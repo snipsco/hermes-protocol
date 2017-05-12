@@ -1,0 +1,6 @@
+[package]
+name = "hermes-protocol"
+version = "0.1.0"
+authors = ["Kevin Lefèvre <kevin.lefevre@snips.ai>"]
+
+[dependencies]
