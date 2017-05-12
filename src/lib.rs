@@ -1,4 +1,16 @@
-pub enum HermesProtocol {
+#[macro_use]
+extern crate error_chain;
+extern crate serde;
+#[macro_use]
+extern crate serde_derive;
+extern crate serde_json;
+
+mod errors;
+
+use std::collections::HashMap;
+//use errors::*;
+
+pub enum HermesTopic {
     Hotword,
     Intent,
     Speech,
@@ -6,35 +18,41 @@ pub enum HermesProtocol {
     TextToSpeech,
 }
 
-pub trait ToTopic: Sized {
-    fn from_topic(topic: &str) -> Option<Self>;
-    fn as_topic(&self) -> &str;
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+pub struct SpeechToTextMessage {
+    pub text: String,
+    pub likelihood: f32,
 }
 
-impl HermesProtocol {
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+pub struct IntentMessage {
+    pub intent_name: String,
+    pub likelihood: f32,
+    pub data: HashMap<String, String>,
+}
+
+impl HermesTopic {
     fn all() -> Vec<Self> {
         vec![
-            HermesProtocol::Hotword,
-            HermesProtocol::Intent,
-            HermesProtocol::Speech,
-            HermesProtocol::SpeechToText,
-            HermesProtocol::TextToSpeech,
+            HermesTopic::Hotword,
+            HermesTopic::Intent,
+            HermesTopic::Speech,
+            HermesTopic::SpeechToText,
+            HermesTopic::TextToSpeech,
         ]
     }
-}
 
-impl ToTopic for HermesProtocol {
-    fn from_topic(topic: &str) -> Option<Self> {
-        HermesProtocol::all().into_iter().find(|m| m.as_topic() == topic)
+    pub fn from_path(path: &str) -> Option<Self> {
+        HermesTopic::all().into_iter().find(|m| m.as_path() == path)
     }
 
-    fn as_topic(&self) -> &str {
+    pub fn as_path(&self) -> &str {
         match *self {
-            HermesProtocol::Hotword => "hermes/hotword",
-            HermesProtocol::Intent => "hermes/intent",
-            HermesProtocol::Speech => "hermes/speech",
-            HermesProtocol::SpeechToText => "hermes/stt",
-            HermesProtocol::TextToSpeech => "hermes/tts",
+            HermesTopic::Hotword => "hermes/hotword",
+            HermesTopic::Intent => "hermes/intent",
+            HermesTopic::Speech => "hermes/speech",
+            HermesTopic::SpeechToText => "hermes/stt",
+            HermesTopic::TextToSpeech => "hermes/tts",
         }
     }
 }
