@@ -8,6 +8,7 @@ extern crate serde_json;
 mod errors;
 
 use std::collections::HashMap;
+use std::ops::Range;
 //use errors::*;
 
 pub enum HermesTopic {
@@ -28,7 +29,14 @@ pub struct SpeechToTextMessage {
 pub struct IntentMessage {
     pub intent_name: String,
     pub likelihood: f32,
-    pub data: HashMap<String, String>,
+    pub slots: HashMap<String, SlotValue>,
+}
+
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+pub struct SlotValue {
+    pub value: String,
+    pub range: Range<usize>,
+    pub entity: String,
 }
 
 impl HermesTopic {
