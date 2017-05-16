@@ -29,7 +29,7 @@ pub struct SpeechToTextMessage {
 pub struct IntentMessage {
     pub intent_name: String,
     pub likelihood: f32,
-    pub slots: HashMap<String, SlotValue>,
+    pub slots: HashMap<String, Vec<SlotValue>>,
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
