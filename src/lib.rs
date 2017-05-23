@@ -27,16 +27,23 @@ pub struct SpeechToTextMessage {
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct IntentMessage {
-    pub intent_name: String,
-    pub likelihood: f32,
-    pub slots: HashMap<String, Vec<SlotValue>>,
+    pub input: String,
+    pub intent: Option<IntentClassifierResult>,
+    pub slots: Option<Vec<Slot>>,
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
-pub struct SlotValue {
+pub struct IntentClassifierResult {
+    pub intent_name: String,
+    pub probability: f32,
+}
+
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+pub struct Slot {
     pub value: String,
     pub range: Range<usize>,
     pub entity: String,
+    pub slot_name: String
 }
 
 impl HermesTopic {
