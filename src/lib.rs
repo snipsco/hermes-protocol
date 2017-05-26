@@ -7,16 +7,16 @@ extern crate serde_json;
 
 mod errors;
 
-use std::collections::HashMap;
 use std::ops::Range;
 //use errors::*;
 
-pub enum HermesTopic {
+pub enum HermesTopic<'a> {
     Hotword,
-    Intent,
+    Intent(&'a str),
     Speech,
     SpeechToText,
     TextToSpeech,
+    Version(&'a str),
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
@@ -46,14 +46,22 @@ pub struct Slot {
     pub slot_name: String
 }
 
-impl HermesTopic {
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+pub struct VersionMessage {
+    pub minor: usize,
+    pub major: usize,
+    pub patch: usize,
+}
+
+impl<'a> HermesTopic<'a> {
     fn all() -> Vec<Self> {
         vec![
             HermesTopic::Hotword,
-            HermesTopic::Intent,
+            HermesTopic::Intent(""),
             HermesTopic::Speech,
             HermesTopic::SpeechToText,
             HermesTopic::TextToSpeech,
+            HermesTopic::Version(""),
         ]
     }
 
@@ -61,13 +69,14 @@ impl HermesTopic {
         HermesTopic::all().into_iter().find(|m| m.as_path() == path)
     }
 
-    pub fn as_path(&self) -> &str {
+    pub fn as_path(&self) -> String {
         match *self {
-            HermesTopic::Hotword => "hermes/hotword",
-            HermesTopic::Intent => "hermes/intent",
-            HermesTopic::Speech => "hermes/speech",
-            HermesTopic::SpeechToText => "hermes/stt",
-            HermesTopic::TextToSpeech => "hermes/tts",
+            HermesTopic::Hotword => "hermes/hotword".into(),
+            HermesTopic::Intent(name) => format!("hermes/intent/{}", name),
+            HermesTopic::Speech => "hermes/speech".into(),
+            HermesTopic::SpeechToText => "hermes/stt".into(),
+            HermesTopic::TextToSpeech => "hermes/tts".into(),
+            HermesTopic::Version(component) => format!("hermes/version/{}", component),
         }
     }
 }
