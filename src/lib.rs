@@ -17,7 +17,7 @@ pub enum HermesTopic<'a> {
     Speech,
     SpeechToText,
     TextToSpeech,
-    Version(&'a str),
+    Version(Option<&'a str>),
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
@@ -62,7 +62,7 @@ impl<'a> HermesTopic<'a> {
             HermesTopic::Speech,
             HermesTopic::SpeechToText,
             HermesTopic::TextToSpeech,
-            HermesTopic::Version(""),
+            HermesTopic::Version(None),
         ]
     }
 
@@ -77,7 +77,8 @@ impl<'a> HermesTopic<'a> {
             HermesTopic::Speech => "hermes/speech".into(),
             HermesTopic::SpeechToText => "hermes/stt".into(),
             HermesTopic::TextToSpeech => "hermes/tts".into(),
-            HermesTopic::Version(component) => format!("hermes/version/{}", component),
+            HermesTopic::Version(Some(component)) => format!("hermes/version/{}", component),
+            HermesTopic::Version(None) => "hermes/version".into(),
         }
     }
 }
