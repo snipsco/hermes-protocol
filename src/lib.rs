@@ -49,6 +49,12 @@ pub struct Slot {
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct VersionMessage {
+    pub component: String,
+    pub version: Version,
+}
+
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+pub struct Version {
     pub minor: usize,
     pub major: usize,
     pub patch: usize,
