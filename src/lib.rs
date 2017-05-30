@@ -23,6 +23,7 @@ pub enum HermesTopic<'a> {
 pub struct SpeechToTextMessage {
     pub text: String,
     pub likelihood: f32,
+    pub seconds: f32,
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
