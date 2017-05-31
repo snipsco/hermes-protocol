@@ -11,6 +11,7 @@ mod errors;
 use std::ops::Range;
 //use errors::*;
 
+#[derive(Debug)]
 pub enum HermesTopic<'a> {
     Hotword,
     Intent(&'a str),
