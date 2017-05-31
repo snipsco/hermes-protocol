@@ -69,7 +69,7 @@ impl<'a> HermesTopic<'a> {
     }
 
     pub fn from_path(path: &str) -> Option<Self> {
-        HermesTopic::all().into_iter().find(|m| m.as_path() == path)
+        HermesTopic::all().into_iter().find(|m| m.as_path().contains(path))
     }
 
     pub fn as_path(&self) -> String {
