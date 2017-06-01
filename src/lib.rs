@@ -50,6 +50,7 @@ impl FromPath<Self> for HermesTopic {
             HermesTopic::Hotword(HotwordCommand::ToggleOn),
             HermesTopic::Hotword(HotwordCommand::ToggleOff),
             HermesTopic::Hotword(HotwordCommand::Wait),
+            HermesTopic::Hotword(HotwordCommand::Detected),
             HermesTopic::ASR(ASRCommand::StartListening),
             HermesTopic::ASR(ASRCommand::StopListening),
             HermesTopic::ASR(ASRCommand::TextCaptured),
@@ -116,6 +117,7 @@ pub enum HotwordCommand {
     ToggleOn,
     ToggleOff,
     Wait,
+    Detected
 }
 
 impl ToPath for HotwordCommand {
@@ -124,6 +126,7 @@ impl ToPath for HotwordCommand {
             HotwordCommand::ToggleOn => "toggleOn",
             HotwordCommand::ToggleOff => "toggleOff",
             HotwordCommand::Wait => "wait",
+            HotwordCommand::Detected => "detected",
         }.into()
     }
 }
