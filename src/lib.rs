@@ -202,9 +202,10 @@ pub struct TextCapturedMessage {
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
-pub struct PartialTextCapturedMessage {
+pub struct NLUQueryMessage {
     pub text: String,
-    pub likelihood: f32,
+    pub likelihood: Option<f32>,
+    pub seconds: Option<f32>,
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
