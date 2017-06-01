@@ -12,8 +12,12 @@ use std::path;
 use std::ops::Range;
 //use errors::*;
 
-trait ToPath {
+pub trait ToPath {
     fn as_path(&self) -> String;
+}
+
+pub trait FromPath<T: Sized> {
+    fn from_path(&str) -> Option<T>;
 }
 
 #[derive(Debug)]
@@ -40,8 +44,8 @@ impl ToPath for HermesTopic {
     }
 }
 
-impl HermesTopic {
-    pub fn from_path(path: &str) -> Option<Self> {
+impl FromPath<Self> for HermesTopic {
+    fn from_path(path: &str) -> Option<Self> {
         let mut all = vec![
             HermesTopic::Hotword(HotwordCommand::ToggleOn),
             HermesTopic::Hotword(HotwordCommand::ToggleOff),
