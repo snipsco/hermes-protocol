@@ -60,6 +60,7 @@ impl FromPath<Self> for HermesTopic {
             HermesTopic::NLU(NLUCommand::Query),
             HermesTopic::NLU(NLUCommand::IntentParsed),
             HermesTopic::NLU(NLUCommand::Error),
+            HermesTopic::NLU(NLUCommand::IntentNotRecognized),
             HermesTopic::Component(Component::Hotword, ComponentCommand::VersionRequest),
             HermesTopic::Component(Component::Hotword, ComponentCommand::Version),
             HermesTopic::Component(Component::ASR, ComponentCommand::VersionRequest),
@@ -170,6 +171,7 @@ pub enum NLUCommand {
     Query,
     IntentParsed,
     Error
+    IntentNotRecognized,
 }
 
 impl ToPath for NLUCommand {
@@ -178,6 +180,7 @@ impl ToPath for NLUCommand {
             NLUCommand::Query => "query",
             NLUCommand::IntentParsed => "intentParsed",
             NLUCommand::Error => "error",
+            NLUCommand::IntentNotRecognized => "IntentNotRecognized",
         }.into()
     }
 }
