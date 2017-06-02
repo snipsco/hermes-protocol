@@ -59,23 +59,29 @@ impl FromPath<Self> for HermesTopic {
             HermesTopic::TTS(TTSCommand::SayFinished),
             HermesTopic::NLU(NLUCommand::Query),
             HermesTopic::NLU(NLUCommand::IntentParsed),
-            HermesTopic::NLU(NLUCommand::Error),
             HermesTopic::NLU(NLUCommand::IntentNotRecognized),
             HermesTopic::Component(Component::Hotword, ComponentCommand::VersionRequest),
             HermesTopic::Component(Component::Hotword, ComponentCommand::Version),
+            HermesTopic::Component(Component::Hotword, ComponentCommand::Error),
             HermesTopic::Component(Component::ASR, ComponentCommand::VersionRequest),
             HermesTopic::Component(Component::ASR, ComponentCommand::Version),
+            HermesTopic::Component(Component::ASR, ComponentCommand::Error),
             HermesTopic::Component(Component::TTS, ComponentCommand::VersionRequest),
             HermesTopic::Component(Component::TTS, ComponentCommand::Version),
+            HermesTopic::Component(Component::TTS, ComponentCommand::Error),
             HermesTopic::Component(Component::NLU, ComponentCommand::VersionRequest),
             HermesTopic::Component(Component::NLU, ComponentCommand::Version),
+            HermesTopic::Component(Component::NLU, ComponentCommand::Error),
             HermesTopic::Component(Component::DialogManager, ComponentCommand::VersionRequest),
             HermesTopic::Component(Component::DialogManager, ComponentCommand::Version),
+            HermesTopic::Component(Component::DialogManager, ComponentCommand::Error),
             HermesTopic::Component(Component::IntentParserManager, ComponentCommand::VersionRequest),
             HermesTopic::Component(Component::IntentParserManager, ComponentCommand::Version),
+            HermesTopic::Component(Component::IntentParserManager, ComponentCommand::Error),
             HermesTopic::Component(Component::SkillManager, ComponentCommand::VersionRequest),
             HermesTopic::Component(Component::SkillManager, ComponentCommand::Version),
-        ];
+            HermesTopic::Component(Component::SkillManager, ComponentCommand::Error),
+            ];
 
         let path_buf = path::PathBuf::from(path);
         if let Some(last_component) = path_buf.components().last() {
@@ -170,7 +176,6 @@ impl ToPath for TTSCommand {
 pub enum NLUCommand {
     Query,
     IntentParsed,
-    Error
     IntentNotRecognized,
 }
 
@@ -179,7 +184,6 @@ impl ToPath for NLUCommand {
         match *self {
             NLUCommand::Query => "query",
             NLUCommand::IntentParsed => "intentParsed",
-            NLUCommand::Error => "error",
             NLUCommand::IntentNotRecognized => "IntentNotRecognized",
         }.into()
     }
@@ -189,6 +193,7 @@ impl ToPath for NLUCommand {
 pub enum ComponentCommand {
     VersionRequest,
     Version,
+    Error,
 }
 
 impl ToPath for ComponentCommand {
@@ -196,6 +201,7 @@ impl ToPath for ComponentCommand {
         match *self {
             ComponentCommand::VersionRequest => "versionRequest",
             ComponentCommand::Version => "version",
+            ComponentCommand::Error => "error",
         }.into()
     }
 }
@@ -244,4 +250,9 @@ pub struct Slot {
 pub struct VersionMessage {
     pub component: String,
     pub version: semver::Version,
+}
+
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+pub struct ErrorMessage {
+    pub error: String,
 }
