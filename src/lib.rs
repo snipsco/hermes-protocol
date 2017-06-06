@@ -110,6 +110,7 @@ pub enum Component {
     SkillManager,
     AudioServer,
 }
+version = { version = "0.3", features = ["serde"]
 
 impl ToPath for Component {
     fn as_path(&self) -> String {
@@ -248,6 +249,11 @@ pub struct PlayFileMessage {
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 pub struct SayMessage {
+    pub text: String,
+}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+pub struct IntentNotRecognizedMessage {
     pub text: String,
 }
 
