@@ -110,7 +110,6 @@ pub enum Component {
     SkillManager,
     AudioServer,
 }
-version = { version = "0.3", features = ["serde"]
 
 impl ToPath for Component {
     fn as_path(&self) -> String {
