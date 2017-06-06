@@ -20,13 +20,14 @@ pub trait FromPath<T: Sized> {
     fn from_path(&str) -> Option<T>;
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum HermesTopic {
     Hotword(HotwordCommand),
     ASR(ASRCommand),
     TTS(TTSCommand),
     NLU(NLUCommand),
     Intent(String),
+    AudioServer(AudioServerCommand),
     Component(Component, ComponentCommand),
 }
 
@@ -38,6 +39,7 @@ impl ToPath for HermesTopic {
             HermesTopic::TTS(ref cmd) => format!("{}/{}", Component::TTS.as_path(), cmd.as_path()),
             HermesTopic::NLU(ref cmd) => format!("{}/{}", Component::NLU.as_path(), cmd.as_path()),
             HermesTopic::Intent(ref intent_name) => format!("intent/{}", intent_name),
+            HermesTopic::AudioServer(ref cmd) => format!("{}/{}", Component::AudioServer.as_path(), cmd.as_path()),
             HermesTopic::Component(ref component, ref cmd) => format!("component/{}/{}", component.as_path(), cmd.as_path()),
         };
         format!("hermes/{}", subpath)
@@ -60,6 +62,9 @@ impl FromPath<Self> for HermesTopic {
             HermesTopic::NLU(NLUCommand::Query),
             HermesTopic::NLU(NLUCommand::IntentParsed),
             HermesTopic::NLU(NLUCommand::IntentNotRecognized),
+            HermesTopic::AudioServer(AudioServerCommand::PlayFile),
+            HermesTopic::Component(Component::AudioServer, ComponentCommand::VersionRequest),
+            HermesTopic::Component(Component::AudioServer, ComponentCommand::Version),
             HermesTopic::Component(Component::Hotword, ComponentCommand::VersionRequest),
             HermesTopic::Component(Component::Hotword, ComponentCommand::Version),
             HermesTopic::Component(Component::Hotword, ComponentCommand::Error),
@@ -94,7 +99,7 @@ impl FromPath<Self> for HermesTopic {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Component {
     Hotword,
     ASR,
@@ -103,6 +108,7 @@ pub enum Component {
     DialogManager,
     IntentParserManager,
     SkillManager,
+    AudioServer,
 }
 
 impl ToPath for Component {
@@ -115,11 +121,12 @@ impl ToPath for Component {
             Component::DialogManager => "dialogManager",
             Component::IntentParserManager => "intentParserManager",
             Component::SkillManager => "skillManager",
+            Component::AudioServer => "audioServer"
         }.into()
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum HotwordCommand {
     ToggleOn,
     ToggleOff,
@@ -138,7 +145,7 @@ impl ToPath for HotwordCommand {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ASRCommand {
     StartListening,
     StopListening,
@@ -157,7 +164,7 @@ impl ToPath for ASRCommand {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum TTSCommand {
     Say,
     SayFinished,
@@ -172,7 +179,7 @@ impl ToPath for TTSCommand {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum NLUCommand {
     Query,
     IntentParsed,
@@ -189,7 +196,21 @@ impl ToPath for NLUCommand {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
+pub enum AudioServerCommand {
+    PlayFile
+}
+
+impl ToPath for AudioServerCommand {
+    fn as_path(&self) -> String {
+        match *self {
+            AudioServerCommand::PlayFile => "playFile",
+        }.into()
+    }
+}
+
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum ComponentCommand {
     VersionRequest,
     Version,
@@ -218,6 +239,11 @@ pub struct NLUQueryMessage {
     pub text: String,
     pub likelihood: Option<f32>,
     pub seconds: Option<f32>,
+}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+pub struct PlayFileMessage {
+    pub path: String,
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
