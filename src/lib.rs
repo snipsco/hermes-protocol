@@ -279,8 +279,14 @@ pub struct SayMessage {
     pub text: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct SlotMessage {
     pub slot: Option<Slot>,
+}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+pub struct IntentNotRecognizedMessage {
+    pub text: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
