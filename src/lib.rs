@@ -319,4 +319,5 @@ pub struct VersionMessage {
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct ErrorMessage {
     pub error: String,
+    pub context: Option<String>,
 }
