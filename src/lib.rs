@@ -53,8 +53,8 @@ impl FromPath<Self> for HermesTopic {
             HermesTopic::Hotword(HotwordCommand::ToggleOff),
             HermesTopic::Hotword(HotwordCommand::Wait),
             HermesTopic::Hotword(HotwordCommand::Detected),
-            HermesTopic::ASR(ASRCommand::StartListening),
-            HermesTopic::ASR(ASRCommand::StopListening),
+            HermesTopic::ASR(ASRCommand::ToggleOn),
+            HermesTopic::ASR(ASRCommand::ToggleOff),
             HermesTopic::ASR(ASRCommand::TextCaptured),
             HermesTopic::ASR(ASRCommand::PartialTextCaptured),
             HermesTopic::TTS(TTSCommand::Say),
@@ -147,8 +147,8 @@ impl ToPath for HotwordCommand {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ASRCommand {
-    StartListening,
-    StopListening,
+    ToggleOn,
+    ToggleOff,
     TextCaptured,
     PartialTextCaptured,
 }
@@ -156,8 +156,8 @@ pub enum ASRCommand {
 impl ToPath for ASRCommand {
     fn as_path(&self) -> String {
         match *self {
-            ASRCommand::StartListening => "startListening",
-            ASRCommand::StopListening => "stopListening",
+            ASRCommand::ToggleOn => "toggleOn",
+            ASRCommand::ToggleOff => "toggleOff",
             ASRCommand::TextCaptured => "textCaptured",
             ASRCommand::PartialTextCaptured => "partialTextCaptured",
         }.into()
