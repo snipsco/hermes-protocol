@@ -64,7 +64,9 @@ impl FromPath<Self> for HermesTopic {
             HermesTopic::TTS(TTSCommand::Say),
             HermesTopic::TTS(TTSCommand::SayFinished),
             HermesTopic::NLU(NLUCommand::Query),
+            HermesTopic::NLU(NLUCommand::PartialQuery),
             HermesTopic::NLU(NLUCommand::IntentParsed),
+            HermesTopic::NLU(NLUCommand::SlotParsed),
             HermesTopic::NLU(NLUCommand::IntentNotRecognized),
             HermesTopic::AudioServer(AudioServerCommand::PlayFile),
             HermesTopic::Component(Component::AudioServer, ComponentCommand::VersionRequest),
@@ -215,6 +217,7 @@ impl ToPath for TTSCommand {
 pub enum NLUCommand {
     Query,
     PartialQuery,
+    SlotParsed,
     IntentParsed,
     IntentNotRecognized,
 }
@@ -224,6 +227,7 @@ impl ToPath for NLUCommand {
         match *self {
             NLUCommand::Query => "query",
             NLUCommand::PartialQuery => "partialQuery",
+            NLUCommand::SlotParsed => "slotParsed",
             NLUCommand::IntentParsed => "intentParsed",
             NLUCommand::IntentNotRecognized => "IntentNotRecognized",
         }.into()
@@ -278,8 +282,8 @@ pub struct NLUQueryMessage {
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 pub struct NLUSlotQueryMessage {
     pub text: String,
-    pub likelihood: Option<f32>,
-    pub seconds: Option<f32>,
+    pub likelihood: f32,
+    pub seconds: f32,
     #[serde(rename="intentName")]
     pub intent_name: String,
     #[serde(rename="slotName")]
