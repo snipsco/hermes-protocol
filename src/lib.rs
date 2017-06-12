@@ -286,7 +286,7 @@ pub struct NLUSlotQueryMessage {
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 pub struct PlayFileMessage {
-    pub path: String,
+    pub filePath: String,
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
