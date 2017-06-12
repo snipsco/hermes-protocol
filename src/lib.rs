@@ -261,7 +261,7 @@ pub struct NLUQueryMessage {
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
-pub struct NLUPartialQueryMessage {
+pub struct NLUSlotQueryMessage {
     pub text: String,
     pub likelihood: Option<f32>,
     pub seconds: Option<f32>,
