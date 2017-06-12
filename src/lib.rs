@@ -338,7 +338,7 @@ pub struct Slot {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "type")]
+#[serde(tag = "kind", content="value")]
 pub enum SlotValue {
     Custom(String),
     Builtin(BuiltinEntity),

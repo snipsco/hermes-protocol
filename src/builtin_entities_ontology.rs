@@ -1,7 +1,7 @@
 use errors::*;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "type")]
+#[serde(tag = "kind", content="value")]
 pub enum BuiltinEntity {
     Number(NumberValue),
     Ordinal(OrdinalValue),
@@ -18,7 +18,7 @@ pub struct NumberValue(pub f64);
 pub struct OrdinalValue(pub i64);
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
-#[serde(tag = "type")]
+#[serde(tag = "kind", content="value")]
 pub enum TimeValue {
     InstantTime(InstantTimeValue),
     TimeInterval(TimeIntervalValue)
