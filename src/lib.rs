@@ -35,6 +35,7 @@ pub enum HermesTopic {
 impl ToPath for HermesTopic {
     fn as_path(&self) -> String {
         let subpath = match *self {
+            HermesTopic::Feedback(ref cmd) => format!("feedback/{}", cmd.as_path()),
             HermesTopic::Hotword(ref cmd) => format!("{}/{}", Component::Hotword.as_path(), cmd.as_path()),
             HermesTopic::ASR(ref cmd) => format!("{}/{}", Component::ASR.as_path(), cmd.as_path()),
             HermesTopic::TTS(ref cmd) => format!("{}/{}", Component::TTS.as_path(), cmd.as_path()),
@@ -198,6 +199,7 @@ impl ToPath for TTSCommand {
 #[derive(Debug, Clone, PartialEq)]
 pub enum NLUCommand {
     Query,
+    PartialQuery,
     IntentParsed,
     IntentNotRecognized,
 }
@@ -206,6 +208,7 @@ impl ToPath for NLUCommand {
     fn as_path(&self) -> String {
         match *self {
             NLUCommand::Query => "query",
+            NLUCommand::PartialQuery => "partialQuery",
             NLUCommand::IntentParsed => "intentParsed",
             NLUCommand::IntentNotRecognized => "IntentNotRecognized",
         }.into()
@@ -258,6 +261,15 @@ pub struct NLUQueryMessage {
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+pub struct NLUPartialQueryMessage {
+    pub text: String,
+    pub likelihood: Option<f32>,
+    pub seconds: Option<f32>,
+    pub intent_name: String,
+    pub slot_name: String,
+}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 pub struct PlayFileMessage {
     pub path: String,
 }
@@ -265,6 +277,10 @@ pub struct PlayFileMessage {
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 pub struct SayMessage {
     pub text: String,
+}
+
+pub struct SlotMessage {
+    pub slot: Option<Slot>,
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
@@ -283,7 +299,7 @@ pub struct IntentClassifierResult {
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct Slot {
     pub value: String,
-    pub range: Range<usize>,
+    pub range: Option<Range<usize>>,
     pub entity: String,
     pub slot_name: String
 }
