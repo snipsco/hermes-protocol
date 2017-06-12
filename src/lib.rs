@@ -8,25 +8,247 @@ extern crate serde_json;
 
 mod errors;
 
+use std::path;
 use std::ops::Range;
 //use errors::*;
 
-#[derive(Debug)]
-pub enum HermesTopic<'a> {
+pub trait ToPath {
+    fn as_path(&self) -> String;
+}
+
+pub trait FromPath<T: Sized> {
+    fn from_path(&str) -> Option<T>;
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum HermesTopic {
+    Hotword(HotwordCommand),
+    ASR(ASRCommand),
+    TTS(TTSCommand),
+    NLU(NLUCommand),
+    Intent(String),
+    AudioServer(AudioServerCommand),
+    Component(Component, ComponentCommand),
+}
+
+impl ToPath for HermesTopic {
+    fn as_path(&self) -> String {
+        let subpath = match *self {
+            HermesTopic::Hotword(ref cmd) => format!("{}/{}", Component::Hotword.as_path(), cmd.as_path()),
+            HermesTopic::ASR(ref cmd) => format!("{}/{}", Component::ASR.as_path(), cmd.as_path()),
+            HermesTopic::TTS(ref cmd) => format!("{}/{}", Component::TTS.as_path(), cmd.as_path()),
+            HermesTopic::NLU(ref cmd) => format!("{}/{}", Component::NLU.as_path(), cmd.as_path()),
+            HermesTopic::Intent(ref intent_name) => format!("intent/{}", intent_name),
+            HermesTopic::AudioServer(ref cmd) => format!("{}/{}", Component::AudioServer.as_path(), cmd.as_path()),
+            HermesTopic::Component(ref component, ref cmd) => format!("component/{}/{}", component.as_path(), cmd.as_path()),
+        };
+        format!("hermes/{}", subpath)
+    }
+}
+
+impl FromPath<Self> for HermesTopic {
+    fn from_path(path: &str) -> Option<Self> {
+        let mut all = vec![
+            HermesTopic::Hotword(HotwordCommand::ToggleOn),
+            HermesTopic::Hotword(HotwordCommand::ToggleOff),
+            HermesTopic::Hotword(HotwordCommand::Wait),
+            HermesTopic::Hotword(HotwordCommand::Detected),
+            HermesTopic::ASR(ASRCommand::ToggleOn),
+            HermesTopic::ASR(ASRCommand::ToggleOff),
+            HermesTopic::ASR(ASRCommand::TextCaptured),
+            HermesTopic::ASR(ASRCommand::PartialTextCaptured),
+            HermesTopic::TTS(TTSCommand::Say),
+            HermesTopic::TTS(TTSCommand::SayFinished),
+            HermesTopic::NLU(NLUCommand::Query),
+            HermesTopic::NLU(NLUCommand::IntentParsed),
+            HermesTopic::NLU(NLUCommand::IntentNotRecognized),
+            HermesTopic::AudioServer(AudioServerCommand::PlayFile),
+            HermesTopic::Component(Component::AudioServer, ComponentCommand::VersionRequest),
+            HermesTopic::Component(Component::AudioServer, ComponentCommand::Version),
+            HermesTopic::Component(Component::Hotword, ComponentCommand::VersionRequest),
+            HermesTopic::Component(Component::Hotword, ComponentCommand::Version),
+            HermesTopic::Component(Component::Hotword, ComponentCommand::Error),
+            HermesTopic::Component(Component::ASR, ComponentCommand::VersionRequest),
+            HermesTopic::Component(Component::ASR, ComponentCommand::Version),
+            HermesTopic::Component(Component::ASR, ComponentCommand::Error),
+            HermesTopic::Component(Component::TTS, ComponentCommand::VersionRequest),
+            HermesTopic::Component(Component::TTS, ComponentCommand::Version),
+            HermesTopic::Component(Component::TTS, ComponentCommand::Error),
+            HermesTopic::Component(Component::NLU, ComponentCommand::VersionRequest),
+            HermesTopic::Component(Component::NLU, ComponentCommand::Version),
+            HermesTopic::Component(Component::NLU, ComponentCommand::Error),
+            HermesTopic::Component(Component::DialogManager, ComponentCommand::VersionRequest),
+            HermesTopic::Component(Component::DialogManager, ComponentCommand::Version),
+            HermesTopic::Component(Component::DialogManager, ComponentCommand::Error),
+            HermesTopic::Component(Component::IntentParserManager, ComponentCommand::VersionRequest),
+            HermesTopic::Component(Component::IntentParserManager, ComponentCommand::Version),
+            HermesTopic::Component(Component::IntentParserManager, ComponentCommand::Error),
+            HermesTopic::Component(Component::SkillManager, ComponentCommand::VersionRequest),
+            HermesTopic::Component(Component::SkillManager, ComponentCommand::Version),
+            HermesTopic::Component(Component::SkillManager, ComponentCommand::Error),
+            ];
+
+        let path_buf = path::PathBuf::from(path);
+        if let Some(last_component) = path_buf.components().last() {
+            if let Some(intent_name) = last_component.as_os_str().to_str() {
+                all.push(HermesTopic::Intent(intent_name.to_string()));
+            }
+        }
+
+        all.into_iter().find(|p| p.as_path() == path)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Component {
     Hotword,
-    Intent(&'a str),
-    Speech,
-    SpeechToText,
-    TextToSpeech,
-    VersionRequest(&'a str),
+    ASR,
+    TTS,
+    NLU,
+    DialogManager,
+    IntentParserManager,
+    SkillManager,
+    AudioServer,
+}
+
+impl ToPath for Component {
+    fn as_path(&self) -> String {
+        match *self {
+            Component::Hotword => "hotword",
+            Component::ASR => "asr",
+            Component::TTS => "tts",
+            Component::NLU => "nlu",
+            Component::DialogManager => "dialogManager",
+            Component::IntentParserManager => "intentParserManager",
+            Component::SkillManager => "skillManager",
+            Component::AudioServer => "audioServer"
+        }.into()
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum HotwordCommand {
+    ToggleOn,
+    ToggleOff,
+    Wait,
+    Detected
+}
+
+impl ToPath for HotwordCommand {
+    fn as_path(&self) -> String {
+        match *self {
+            HotwordCommand::ToggleOn => "toggleOn",
+            HotwordCommand::ToggleOff => "toggleOff",
+            HotwordCommand::Wait => "wait",
+            HotwordCommand::Detected => "detected",
+        }.into()
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum ASRCommand {
+    ToggleOn,
+    ToggleOff,
+    TextCaptured,
+    PartialTextCaptured,
+}
+
+impl ToPath for ASRCommand {
+    fn as_path(&self) -> String {
+        match *self {
+            ASRCommand::ToggleOn => "toggleOn",
+            ASRCommand::ToggleOff => "toggleOff",
+            ASRCommand::TextCaptured => "textCaptured",
+            ASRCommand::PartialTextCaptured => "partialTextCaptured",
+        }.into()
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum TTSCommand {
+    Say,
+    SayFinished,
+}
+
+impl ToPath for TTSCommand {
+    fn as_path(&self) -> String {
+        match *self {
+            TTSCommand::Say => "say",
+            TTSCommand::SayFinished => "sayFinished",
+        }.into()
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum NLUCommand {
+    Query,
+    IntentParsed,
+    IntentNotRecognized,
+}
+
+impl ToPath for NLUCommand {
+    fn as_path(&self) -> String {
+        match *self {
+            NLUCommand::Query => "query",
+            NLUCommand::IntentParsed => "intentParsed",
+            NLUCommand::IntentNotRecognized => "IntentNotRecognized",
+        }.into()
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum AudioServerCommand {
+    PlayFile
+}
+
+impl ToPath for AudioServerCommand {
+    fn as_path(&self) -> String {
+        match *self {
+            AudioServerCommand::PlayFile => "playFile",
+        }.into()
+    }
+}
+
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum ComponentCommand {
+    VersionRequest,
     Version,
+    Error,
+}
+
+impl ToPath for ComponentCommand {
+    fn as_path(&self) -> String {
+        match *self {
+            ComponentCommand::VersionRequest => "versionRequest",
+            ComponentCommand::Version => "version",
+            ComponentCommand::Error => "error",
+        }.into()
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
-pub struct SpeechToTextMessage {
+pub struct TextCapturedMessage {
     pub text: String,
     pub likelihood: f32,
     pub seconds: f32,
+}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+pub struct NLUQueryMessage {
+    pub text: String,
+    pub likelihood: Option<f32>,
+    pub seconds: Option<f32>,
+}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+pub struct PlayFileMessage {
+    pub path: String,
+}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+pub struct SayMessage {
+    pub text: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
@@ -56,32 +278,7 @@ pub struct VersionMessage {
     pub version: semver::Version,
 }
 
-impl<'a> HermesTopic<'a> {
-    fn all() -> Vec<Self> {
-        vec![
-            HermesTopic::Hotword,
-            HermesTopic::Intent(""),
-            HermesTopic::Speech,
-            HermesTopic::SpeechToText,
-            HermesTopic::TextToSpeech,
-            HermesTopic::VersionRequest(""),
-            HermesTopic::Version,
-        ]
-    }
-
-    pub fn from_path(path: &str) -> Option<Self> {
-        HermesTopic::all().into_iter().find(|m| m.as_path().contains(path))
-    }
-
-    pub fn as_path(&self) -> String {
-        match *self {
-            HermesTopic::Hotword => "hermes/hotword".into(),
-            HermesTopic::Intent(name) => format!("hermes/intent/{}", name),
-            HermesTopic::Speech => "hermes/speech".into(),
-            HermesTopic::SpeechToText => "hermes/stt".into(),
-            HermesTopic::TextToSpeech => "hermes/tts".into(),
-            HermesTopic::VersionRequest(component) => format!("hermes/version/{}", component),
-            HermesTopic::Version => "hermes/version".into(),
-        }
-    }
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+pub struct ErrorMessage {
+    pub error: String,
 }
