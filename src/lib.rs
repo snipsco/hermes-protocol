@@ -22,6 +22,7 @@ pub trait FromPath<T: Sized> {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum HermesTopic {
+    Feedback(FeedbackCommand),
     Hotword(HotwordCommand),
     ASR(ASRCommand),
     TTS(TTSCommand),
@@ -122,6 +123,21 @@ impl ToPath for Component {
             Component::IntentParserManager => "intentParserManager",
             Component::SkillManager => "skillManager",
             Component::AudioServer => "audioServer"
+        }.into()
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum FeedbackCommand {
+    ToggleOn,
+    ToggleOff,
+}
+
+impl ToPath for FeedbackCommand {
+    fn as_path(&self) -> String {
+        match *self {
+            FeedbackCommand::ToggleOn => "toggleOn",
+            FeedbackCommand::ToggleOff => "toggleOff",
         }.into()
     }
 }
@@ -254,7 +270,7 @@ pub struct SayMessage {
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct IntentMessage {
     pub input: String,
-    pub intent: Option<IntentClassifierResult>,
+    pub intent: IntentClassifierResult,
     pub slots: Option<Vec<Slot>>,
 }
 
