@@ -280,13 +280,16 @@ pub struct NLUSlotQueryMessage {
     pub text: String,
     pub likelihood: Option<f32>,
     pub seconds: Option<f32>,
+    #[serde(rename="intentName")]
     pub intent_name: String,
+    #[serde(rename="slotName")]
     pub slot_name: String,
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 pub struct PlayFileMessage {
-    pub filePath: String,
+    #[serde(rename="filePath")]
+    pub file_path: String,
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
@@ -313,6 +316,7 @@ pub struct IntentMessage {
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct IntentClassifierResult {
+    #[serde(rename="intentName")]
     pub intent_name: String,
     pub probability: f32,
 }
@@ -322,6 +326,7 @@ pub struct Slot {
     pub value: String,
     pub range: Option<Range<usize>>,
     pub entity: String,
+    #[serde(rename="slotName")]
     pub slot_name: String
 }
 
