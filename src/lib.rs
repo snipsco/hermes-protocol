@@ -261,7 +261,7 @@ pub struct NLUQueryMessage {
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
-pub struct NLUPartialQueryMessage {
+pub struct NLUSlotQueryMessage {
     pub text: String,
     pub likelihood: Option<f32>,
     pub seconds: Option<f32>,
@@ -279,8 +279,14 @@ pub struct SayMessage {
     pub text: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct SlotMessage {
     pub slot: Option<Slot>,
+}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+pub struct IntentNotRecognizedMessage {
+    pub text: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
@@ -313,4 +319,5 @@ pub struct VersionMessage {
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct ErrorMessage {
     pub error: String,
+    pub context: Option<String>,
 }
