@@ -7,10 +7,13 @@ extern crate serde_derive;
 extern crate serde_json;
 
 mod errors;
+mod builtin_entities_ontology;
 
 use std::path;
 use std::ops::Range;
-//use errors::*;
+
+pub use builtin_entities_ontology::*;
+
 
 pub trait ToPath {
     fn as_path(&self) -> String;
@@ -92,7 +95,7 @@ impl FromPath<Self> for HermesTopic {
             HermesTopic::Component(Component::SkillManager, ComponentCommand::VersionRequest),
             HermesTopic::Component(Component::SkillManager, ComponentCommand::Version),
             HermesTopic::Component(Component::SkillManager, ComponentCommand::Error),
-            ];
+        ];
 
         let path_buf = path::PathBuf::from(path);
         if let Some(last_component) = path_buf.components().last() {
@@ -325,14 +328,22 @@ pub struct IntentClassifierResult {
     pub probability: f32,
 }
 
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Slot {
-    pub value: String,
+    pub value: SlotValue,
     pub range: Option<Range<usize>>,
     pub entity: String,
     #[serde(rename="slotName")]
     pub slot_name: String
 }
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "kind", content="value")]
+pub enum SlotValue {
+    Custom(String),
+    Builtin(BuiltinEntity),
+}
+
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct VersionMessage {
@@ -345,3 +356,55 @@ pub struct ErrorMessage {
     pub error: String,
     pub context: Option<String>,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_custom_slot() {
+        let slot = Slot {
+            value: SlotValue::Custom("value".into()),
+            range: None,
+            entity: "toto".into(),
+            slot_name: "toto".into(),
+        };
+
+        assert!(serde_json::to_string(&slot).is_ok());
+        assert!(serde_json::from_str::<Slot>(&serde_json::to_string(&slot).unwrap()).is_ok());
+    }
+
+    #[test]
+    fn test_builtin_slot_1() {
+        let slot = Slot {
+            value: SlotValue::Builtin(BuiltinEntity::Ordinal(OrdinalValue(5))),
+            range: None,
+            entity: "toto".into(),
+            slot_name: "toto".into(),
+        };
+        assert!(serde_json::to_string(&slot).is_ok());
+        assert!(serde_json::from_str::<Slot>(&serde_json::to_string(&slot).unwrap()).is_ok());
+    }
+
+    #[test]
+    fn test_builtin_slot_2() {
+        let slot = Slot {
+            value: SlotValue::Builtin(
+                    BuiltinEntity::Time(
+                        TimeValue::InstantTime(
+                            InstantTimeValue { 
+                                value: "some_value".into(), 
+                                grain: Grain::Year, 
+                                precision: Precision::Exact 
+                            }
+                        )
+                    )
+                ),
+            range: None,
+            entity: "toto".into(),
+            slot_name: "toto".into(),
+        };
+        assert!(serde_json::to_string(&slot).is_ok());
+        assert!(serde_json::from_str::<Slot>(&serde_json::to_string(&slot).unwrap()).is_ok());
+    }
+}
+
