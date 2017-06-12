@@ -356,3 +356,55 @@ pub struct ErrorMessage {
     pub error: String,
     pub context: Option<String>,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_custom_slot() {
+        let slot = Slot {
+            value: SlotValue::Custom("value".into()),
+            range: None,
+            entity: "toto".into(),
+            slot_name: "toto".into(),
+        };
+
+        assert!(serde_json::to_string(&slot).is_ok());
+        assert!(serde_json::from_str::<Slot>(&serde_json::to_string(&slot).unwrap()).is_ok());
+    }
+
+    #[test]
+    fn test_builtin_slot_1() {
+        let slot = Slot {
+            value: SlotValue::Builtin(BuiltinEntity::Ordinal(OrdinalValue(5))),
+            range: None,
+            entity: "toto".into(),
+            slot_name: "toto".into(),
+        };
+        assert!(serde_json::to_string(&slot).is_ok());
+        assert!(serde_json::from_str::<Slot>(&serde_json::to_string(&slot).unwrap()).is_ok());
+    }
+
+    #[test]
+    fn test_builtin_slot_2() {
+        let slot = Slot {
+            value: SlotValue::Builtin(
+                    BuiltinEntity::Time(
+                        TimeValue::InstantTime(
+                            InstantTimeValue { 
+                                value: "some_value".into(), 
+                                grain: Grain::Year, 
+                                precision: Precision::Exact 
+                            }
+                        )
+                    )
+                ),
+            range: None,
+            entity: "toto".into(),
+            slot_name: "toto".into(),
+        };
+        assert!(serde_json::to_string(&slot).is_ok());
+        assert!(serde_json::from_str::<Slot>(&serde_json::to_string(&slot).unwrap()).is_ok());
+    }
+}
+
