@@ -33,8 +33,8 @@ pub struct InstantTimeValue {
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
 pub struct TimeIntervalValue {
-    from: Option<String>,
-    to: Option<String>
+    pub from: Option<String>,
+    pub to: Option<String>
 }
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
