@@ -51,6 +51,8 @@ impl ToPath for HermesTopic {
 impl FromPath<Self> for HermesTopic {
     fn from_path(path: &str) -> Option<Self> {
         let mut all = vec![
+            HermesTopic::Feedback(FeedbackCommand::Sound(SoundCommand::ToggleOn)),
+            HermesTopic::Feedback(FeedbackCommand::Sound(SoundCommand::ToggleOff)),
             HermesTopic::Hotword(HotwordCommand::ToggleOn),
             HermesTopic::Hotword(HotwordCommand::ToggleOff),
             HermesTopic::Hotword(HotwordCommand::Wait),
@@ -130,15 +132,28 @@ impl ToPath for Component {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum FeedbackCommand {
-    ToggleOn,
-    ToggleOff,
+    Sound(SoundCommand),
 }
 
 impl ToPath for FeedbackCommand {
     fn as_path(&self) -> String {
         match *self {
-            FeedbackCommand::ToggleOn => "toggleOn",
-            FeedbackCommand::ToggleOff => "toggleOff",
+            FeedbackCommand::Sound(ref cmd) => format!("sound/{}", cmd.as_path()),
+        }.into()
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum SoundCommand {
+    ToggleOn,
+    ToggleOff,
+}
+
+impl ToPath for SoundCommand {
+    fn as_path(&self) -> String {
+        match *self {
+            SoundCommand::ToggleOn => "toggleOn",
+            SoundCommand::ToggleOff => "toggleOff",
         }.into()
     }
 }
