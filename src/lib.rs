@@ -331,6 +331,7 @@ pub struct IntentClassifierResult {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Slot {
     pub value: SlotValue,
+    pub raw_value: String,
     pub range: Option<Range<usize>>,
     pub entity: String,
     #[serde(rename="slotName")]
