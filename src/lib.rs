@@ -5,14 +5,13 @@ extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
+extern crate nlu_rust_ontology;
 
 mod errors;
-mod builtin_entities_ontology;
 
 use std::path;
-use std::ops::Range;
 
-pub use builtin_entities_ontology::*;
+pub use nlu_rust_ontology::*;
 
 
 pub trait ToPath {
@@ -287,15 +286,15 @@ pub struct NLUSlotQueryMessage {
     pub text: String,
     pub likelihood: f32,
     pub seconds: f32,
-    #[serde(rename="intentName")]
+    #[serde(rename = "intentName")]
     pub intent_name: String,
-    #[serde(rename="slotName")]
+    #[serde(rename = "slotName")]
     pub slot_name: String,
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 pub struct PlayFileMessage {
-    #[serde(rename="filePath")]
+    #[serde(rename = "filePath")]
     pub file_path: String,
 }
 
@@ -321,31 +320,6 @@ pub struct IntentMessage {
     pub slots: Option<Vec<Slot>>,
 }
 
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
-pub struct IntentClassifierResult {
-    #[serde(rename="intentName")]
-    pub intent_name: String,
-    pub probability: f32,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Slot {
-    pub value: SlotValue,
-    #[serde(rename="rawValue")]
-    pub raw_value: String,
-    pub range: Option<Range<usize>>,
-    pub entity: String,
-    #[serde(rename="slotName")]
-    pub slot_name: String
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "kind", content="value")]
-pub enum SlotValue {
-    Custom(String),
-    Builtin(BuiltinEntity),
-}
-
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct VersionMessage {
@@ -358,55 +332,3 @@ pub struct ErrorMessage {
     pub error: String,
     pub context: Option<String>,
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn test_custom_slot() {
-        let slot = Slot {
-            value: SlotValue::Custom("value".into()),
-            range: None,
-            entity: "toto".into(),
-            slot_name: "toto".into(),
-        };
-
-        assert!(serde_json::to_string(&slot).is_ok());
-        assert!(serde_json::from_str::<Slot>(&serde_json::to_string(&slot).unwrap()).is_ok());
-    }
-
-    #[test]
-    fn test_builtin_slot_1() {
-        let slot = Slot {
-            value: SlotValue::Builtin(BuiltinEntity::Ordinal(OrdinalValue(5))),
-            range: None,
-            entity: "toto".into(),
-            slot_name: "toto".into(),
-        };
-        assert!(serde_json::to_string(&slot).is_ok());
-        assert!(serde_json::from_str::<Slot>(&serde_json::to_string(&slot).unwrap()).is_ok());
-    }
-
-    #[test]
-    fn test_builtin_slot_2() {
-        let slot = Slot {
-            value: SlotValue::Builtin(
-                    BuiltinEntity::Time(
-                        TimeValue::InstantTime(
-                            InstantTimeValue { 
-                                value: "some_value".into(), 
-                                grain: Grain::Year, 
-                                precision: Precision::Exact 
-                            }
-                        )
-                    )
-                ),
-            range: None,
-            entity: "toto".into(),
-            slot_name: "toto".into(),
-        };
-        assert!(serde_json::to_string(&slot).is_ok());
-        assert!(serde_json::from_str::<Slot>(&serde_json::to_string(&slot).unwrap()).is_ok());
-    }
-}
-

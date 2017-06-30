@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["Kevin Lefèvre <kevin.lefevre@snips.ai>"]
 
 [dependencies]
+nlu-rust-ontology = { git="https://github.com/snipsco/nlu-rust-ontology/", tag="0.1.0"}
 error-chain = { version = "0.10", default-features = false }
 semver = { version = "0.7", features = ["serde"] }
 serde = "1.0"
