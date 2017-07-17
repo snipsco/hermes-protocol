@@ -13,7 +13,6 @@ use std::path;
 
 pub use nlu_rust_ontology::*;
 
-
 pub trait ToPath {
     fn as_path(&self) -> String;
 }
@@ -71,6 +70,8 @@ impl FromPath<Self> for HermesTopic {
             HermesTopic::NLU(NLUCommand::SlotParsed),
             HermesTopic::NLU(NLUCommand::IntentNotRecognized),
             HermesTopic::AudioServer(AudioServerCommand::PlayFile),
+            HermesTopic::AudioServer(AudioServerCommand::PlayBytes),
+            HermesTopic::AudioServer(AudioServerCommand::PlayFinished),
             HermesTopic::Component(Component::AudioServer, ComponentCommand::VersionRequest),
             HermesTopic::Component(Component::AudioServer, ComponentCommand::Version),
             HermesTopic::Component(Component::Hotword, ComponentCommand::VersionRequest),
@@ -238,13 +239,17 @@ impl ToPath for NLUCommand {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum AudioServerCommand {
-    PlayFile
+    PlayFile,
+    PlayBytes,
+    PlayFinished,
 }
 
 impl ToPath for AudioServerCommand {
     fn as_path(&self) -> String {
         match *self {
             AudioServerCommand::PlayFile => "playFile",
+            AudioServerCommand::PlayBytes => "playBytes",
+            AudioServerCommand::PlayFinished => "playFinished",
         }.into()
     }
 }
@@ -299,6 +304,18 @@ pub struct PlayFileMessage {
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+pub struct PlayBytesMessage {
+    pub id: String,
+    #[serde(rename = "wavBytes")]
+    pub wav_bytes: Vec<u8>,
+}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+pub struct PlayFinishedMessage {
+    pub id: String
+}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 pub struct SayMessage {
     pub text: String,
 }
@@ -319,7 +336,6 @@ pub struct IntentMessage {
     pub intent: IntentClassifierResult,
     pub slots: Option<Vec<Slot>>,
 }
-
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct VersionMessage {
