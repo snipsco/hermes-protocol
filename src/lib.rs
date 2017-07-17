@@ -6,6 +6,9 @@ extern crate serde;
 extern crate serde_derive;
 extern crate serde_json;
 extern crate nlu_rust_ontology;
+extern crate strum;
+#[macro_use]
+extern crate strum_macros;
 
 mod errors;
 
