@@ -1,206 +1,165 @@
 #[macro_use]
 extern crate error_chain;
+extern crate nlu_rust_ontology;
+#[cfg(feature = "mqtt")]
+#[macro_use]
+extern crate log;
+#[cfg(feature = "mqtt")]
+extern crate rumqtt;
 extern crate semver;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
-extern crate nlu_rust_ontology;
+#[cfg(feature = "mqtt")]
 extern crate strum;
+#[cfg(feature = "mqtt")]
 #[macro_use]
 extern crate strum_macros;
 
 mod errors;
 
-use std::path;
-use std::string::ToString;
+#[cfg(feature = "mqtt")]
+mod mqtt;
 
-use strum::IntoEnumIterator;
+use errors::*;
 
+pub use errors::Error;
+#[cfg(feature = "mqtt")]
+pub use mqtt::MqttHermesProtocolHandler;
 pub use nlu_rust_ontology::*;
 
-pub trait ToPath: ToString{
-    fn as_path(&self) -> String {
-        let raw_path = self.to_string();
-        let mut c = raw_path.chars();
 
-        match c.next() {
-            None => String::new(),
-            Some(f) => f.to_lowercase().chain(c).collect(),
-        }
+pub struct Callback<T> {
+    callback: Box<Fn(&T) -> () + Send + Sync>
+}
+
+impl<T> Callback<T> {
+    pub fn new<F: 'static>(handler: F) -> Callback<T> where F: Fn(&T) -> () + Send + Sync {
+        Callback { callback: Box::new(handler) }
     }
+
+    pub fn call(&self, arg: &T) { (self.callback)(arg) }
 }
 
-pub trait FromPath<T: Sized> {
-    fn from_path(&str) -> Option<T>;
+pub struct Callback0 {
+     callback: Box<Fn() -> () + Send + Sync>
 }
 
-// - Topics
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum HermesTopic {
-    Feedback(FeedbackCommand),
-    Hotword(HotwordCommand),
-    Asr(AsrCommand),
-    Tts(TtsCommand),
-    Nlu(NluCommand),
-    Intent(String),
-    AudioServer(AudioServerCommand),
-    Component(Component, ComponentCommand),
-}
-
-impl ToPath for HermesTopic {}
-
-impl FromPath<Self> for HermesTopic {
-    fn from_path(path: &str) -> Option<Self> {
-        let feedback = SoundCommand::iter().map(|cmd| HermesTopic::Feedback(FeedbackCommand::Sound(cmd)));
-        let hotword = HotwordCommand::iter().map(HermesTopic::Hotword);
-        let asr = AsrCommand::iter().map(HermesTopic::Asr);
-        let tts = TtsCommand::iter().map(HermesTopic::Tts);
-        let nlu = NluCommand::iter().map(HermesTopic::Nlu);
-        let audio_server = AudioServerCommand::iter().map(HermesTopic::AudioServer);
-        let component = ComponentCommand::iter().flat_map(|cmd| {
-            Component::iter()
-                .map(|component| HermesTopic::Component(component, cmd))
-                .collect::<Vec<HermesTopic>>()
-        });
-        let intent = if let Some(last_component) = path::PathBuf::from(path).components().last() {
-            last_component.as_os_str().to_str()
-                .map(|intent_name| vec![HermesTopic::Intent(intent_name.to_string())])
-                .unwrap_or(vec![])
-        } else {
-            vec![]
-        };
-
-        feedback
-            .chain(hotword)
-            .chain(asr)
-            .chain(tts)
-            .chain(nlu)
-            .chain(audio_server)
-            .chain(component)
-            .chain(intent)
-            .into_iter()
-            .find(|p| p.as_path() == path)
+impl Callback0 {
+    pub fn new<F: 'static>(handler: F) -> Callback0 where F: Fn() -> () + Send + Sync {
+        Callback0 { callback: Box::new(handler) }
     }
+
+    pub fn call(&self) { (self.callback)() }
 }
 
-impl std::fmt::Display for HermesTopic {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        let subpath = match *self {
-            HermesTopic::Feedback(ref cmd) => format!("feedback/{}", cmd.as_path()),
-            HermesTopic::Hotword(ref cmd) => format!("{}/{}", Component::Hotword.as_path(), cmd.as_path()),
-            HermesTopic::Asr(ref cmd) => format!("{}/{}", Component::Asr.as_path(), cmd.as_path()),
-            HermesTopic::Tts(ref cmd) => format!("{}/{}", Component::Tts.as_path(), cmd.as_path()),
-            HermesTopic::Nlu(ref cmd) => format!("{}/{}", Component::Nlu.as_path(), cmd.as_path()),
-            HermesTopic::Intent(ref intent_name) => format!("intent/{}", intent_name),
-            HermesTopic::AudioServer(ref cmd) => format!("{}/{}", Component::AudioServer.as_path(), cmd.as_path()),
-            HermesTopic::Component(ref component, ref cmd) => format!("component/{}/{}", component.as_path(), cmd.as_path()),
-        };
-        write!(f, "hermes/{}", subpath)
-    }
+pub trait ToggleableFacade : Send + Sync {
+    fn publish_toggle_on(&self) -> Result<()>;
+    fn publish_toggle_off(&self) -> Result<()>;
 }
 
-// - Components
-
-#[derive(Debug, Clone, Copy, PartialEq, ToString, EnumIter)]
-pub enum Component {
-    Hotword,
-    Asr,
-    Tts,
-    Nlu,
-    DialogManager,
-    IntentParserManager,
-    SkillManager,
-    AudioServer,
+pub trait ToggleableBackendFacade : Send + Sync {
+    fn subscribe_toggle_on(&self, handler: Callback0) -> Result<()>;
+    fn subscribe_toggle_off(&self, handler: Callback0) -> Result<()>;
 }
 
-impl ToPath for Component {}
-
-// - Commands
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum FeedbackCommand {
-    Sound(SoundCommand),
+pub trait HotwordFacade: ComponentFacade + ToggleableFacade {
+    fn publish_wait(&self) -> Result<()>;
+    fn subscribe_detected(&self, handler: Callback0) -> Result<()>;
 }
 
-impl ToPath for FeedbackCommand {}
-
-impl std::fmt::Display for FeedbackCommand {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        let subpath = match *self {
-            FeedbackCommand::Sound(ref cmd) => format!("sound/{}", cmd.as_path()),
-        };
-        write!(f, "{}", subpath)
-    }
+pub trait HotwordBackendFacade: ComponentBackendFacade + ToggleableBackendFacade {
+    fn publish_detected(&self) -> Result<()>;
+    fn subscribe_wait(&self, handler: Callback0) -> Result<()>;
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, ToString, EnumIter)]
-pub enum SoundCommand {
-    ToggleOn,
-    ToggleOff,
+pub trait SoundFeedbackFacade: ToggleableFacade {}
+
+pub trait SoundFeedbackBackendFacade: ToggleableBackendFacade {}
+
+pub trait AsrFacade: ComponentFacade + ToggleableFacade {
+    fn subscribe_text_captured(&self, handler: Callback<TextCapturedMessage>) -> Result<()>;
+    fn subscribe_partial_text_captured(&self, handler: Callback<TextCapturedMessage>) -> Result<()>;
 }
 
-impl ToPath for SoundCommand {}
-
-#[derive(Debug, Clone, Copy, PartialEq, ToString, EnumIter)]
-pub enum HotwordCommand {
-    ToggleOn,
-    ToggleOff,
-    Wait,
-    Detected
+pub trait AsrBackendFacade: ComponentBackendFacade + ToggleableBackendFacade {
+    fn publish_text_captured(&self, text_captured: TextCapturedMessage) -> Result<()>;
+    fn publish_partial_text_captured(&self, text_captured: TextCapturedMessage) -> Result<()>;
 }
 
-impl ToPath for HotwordCommand {}
-
-#[derive(Debug, Clone, Copy, PartialEq, ToString, EnumIter)]
-pub enum AsrCommand {
-    ToggleOn,
-    ToggleOff,
-    TextCaptured,
-    PartialTextCaptured,
+pub trait TtsFacade: ComponentFacade {
+    fn publish_say(&self, to_say: SayMessage) -> Result<()>;
+    fn subscribe_say_finished(&self, handler: Callback0) -> Result<()>;
 }
 
-impl ToPath for AsrCommand {}
-
-#[derive(Debug, Clone, Copy, PartialEq, ToString, EnumIter)]
-pub enum TtsCommand {
-    Say,
-    SayFinished,
+pub trait TtsBackendFacade: ComponentBackendFacade {
+    fn publish_say_finished(&self) -> Result<()>;
+    fn subscribe_say(&self, handler: Callback<SayMessage>) -> Result<()>;
 }
 
-impl ToPath for TtsCommand {}
-
-#[derive(Debug, Clone, Copy, PartialEq, ToString, EnumIter)]
-pub enum NluCommand {
-    Query,
-    PartialQuery,
-    SlotParsed,
-    IntentParsed,
-    IntentNotRecognized,
+pub trait NluFacade: ComponentFacade {
+    fn publish_query(&self, query: NluQueryMessage) -> Result<()>;
+    fn publish_partial_query(&self, query: NluSlotQueryMessage) -> Result<()>;
+    fn subscribe_slot_parsed(&self, handler: Callback<SlotMessage>) -> Result<()>;
+    fn subscribe_intent_parsed(&self, handler: Callback<IntentMessage>) -> Result<()>;
+    fn subscribe_intent_not_recognized(&self, handler: Callback<IntentNotRecognizedMessage>) -> Result<()>;
 }
 
-impl ToPath for NluCommand {}
-
-#[derive(Debug, Clone, Copy, PartialEq, ToString, EnumIter)]
-pub enum AudioServerCommand {
-    PlayFile,
-    PlayBytes,
-    PlayFinished,
+pub trait NluBackendFacade: ComponentBackendFacade {
+    fn subscribe_query(&self, handler: Callback<NluQueryMessage>) -> Result<()>;
+    fn subscribe_partial_query(&self, handler: Callback<NluSlotQueryMessage>) -> Result<()>;
+    fn publish_slot_parsed(&self, slot: SlotMessage) -> Result<()>;
+    fn publish_intent_parsed(&self, intent: IntentMessage) -> Result<()>;
+    fn publish_intent_not_recognized(&self, status: IntentNotRecognizedMessage) -> Result<()>;
 }
 
-impl ToPath for AudioServerCommand {}
-
-#[derive(Debug, Clone, Copy, PartialEq, ToString, EnumIter)]
-pub enum ComponentCommand {
-    VersionRequest,
-    Version,
-    Error,
+pub trait AudioServerFacade: ComponentFacade {
+    fn publish_play_file(&self, file: PlayFileMessage) -> Result<()>;
+    fn publish_play_bytes(&self, bytes: PlayBytesMessage) -> Result<()>;
+    fn subscribe_play_finished(&self, handler: Callback<PlayFinishedMessage>) -> Result<()>;
 }
 
-impl ToPath for ComponentCommand {}
+pub trait AudioServerBackendFacade: ComponentBackendFacade {
+    fn subscribe_play_bytes(&self, handler: Callback<PlayBytesMessage>) -> Result<()>;
+    fn subscribe_play_file(&self, handler: Callback<PlayFileMessage>) -> Result<()>;
+    fn publish_play_finished(&self, status: PlayFinishedMessage) -> Result<()>;
+}
 
-// - Messages
+pub trait ComponentFacade : Send + Sync {
+    fn publish_version_request(&self) -> Result<()>;
+    fn subscribe_version(&self, handler: Callback<VersionMessage>) -> Result<()>;
+    fn subscribe_error(&self, handler: Callback<ErrorMessage>) -> Result<()>;
+}
+
+pub trait ComponentBackendFacade : Send + Sync{
+    fn subscribe_version_request(&self, handler: Callback0) -> Result<()>;
+    fn publish_version(&self, version: VersionMessage) -> Result<()>;
+    fn publish_error(&self, error: ErrorMessage) -> Result<()>;
+}
+
+pub trait IntentFacade : Send + Sync {
+    fn subscribe_intent(&self, handler: Callback<IntentMessage>) -> Result<()>;
+}
+
+pub trait IntentBackendFacade : Send + Sync {
+    fn publish_intent(&self, intent: IntentMessage) -> Result<()>;
+}
+
+pub trait HermesProtocolHandler : Send + Sync{
+    fn hotword(&self) -> Box<HotwordFacade>;
+    fn sound_feedback(&self) -> Box<SoundFeedbackFacade>;
+    fn asr(&self) -> Box<AsrFacade>;
+    fn tts(&self) -> Box<TtsFacade>;
+    fn nlu(&self) -> Box<NluFacade>;
+    fn audio_server(&self) -> Box<AudioServerFacade>;
+    fn hotword_backend(&self) -> Box<HotwordBackendFacade>;
+    fn sound_feedback_backend(&self) -> Box<SoundFeedbackBackendFacade>;
+    fn asr_backend(&self) -> Box<AsrBackendFacade>;
+    fn tts_backend(&self) -> Box<TtsBackendFacade>;
+    fn nlu_backend(&self) -> Box<NluBackendFacade>;
+    fn audio_server_backend(&self) -> Box<AudioServerBackendFacade>;
+}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 pub struct TextCapturedMessage {
