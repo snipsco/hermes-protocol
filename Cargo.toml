@@ -1,5 +1,5 @@
 [package]
-name = "hermes_protocol"
+name = "hermes"
 version = "0.9.0"
 authors = [
     "Kevin Lefevre <kevin.lefevre@snips.ai>",
