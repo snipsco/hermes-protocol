@@ -1,16 +1,19 @@
 [package]
 name = "hermes_protocol"
 version = "0.9.0"
-authors = ["Kevin Lefevre <kevin.lefevre@snips.ai>", "Thibaut Lorrain <thibaut.lorrain@snips.ai"]
+authors = [
+    "Kevin Lefevre <kevin.lefevre@snips.ai>",
+    "Thibaut Lorrain <thibaut.lorrain@snips.ai"
+]
 
 [features]
 mqtt = ["log", "rumqtt", "strum", "strum_macros"]
 
 [dependencies]
 error-chain = { version = "0.10", default-features = false }
-log = {version ="*", optional = true }
+log = {version = "*", optional = true }
 nlu-rust-ontology = { git = "ssh://git@github.com/snipsco/nlu-rust-ontology.git", tag = "0.2.0"}
-rumqtt = { git="https://github.com/snipsco/rumqtt.git", rev = "697fbd6", optional = true }
+rumqtt = { git = "https://github.com/snipsco/rumqtt.git", rev = "697fbd6", optional = true }
 semver = { version = "0.7", features = ["serde"] }
 serde = "1.0"
 serde_derive = "1.0"

@@ -29,7 +29,6 @@ pub use errors::Error;
 pub use mqtt::MqttHermesProtocolHandler;
 pub use nlu_rust_ontology::*;
 
-
 pub struct Callback<T> {
     callback: Box<Fn(&T) -> () + Send + Sync>
 }
