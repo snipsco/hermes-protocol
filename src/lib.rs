@@ -227,7 +227,6 @@ pub struct IntentMessage {
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct VersionMessage {
-    pub component: String,
     pub version: semver::Version,
 }
 
