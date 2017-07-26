@@ -22,9 +22,7 @@ mod errors;
 #[cfg(feature = "mqtt")]
 mod mqtt;
 
-use errors::*;
-
-pub use errors::Error;
+pub use errors::{Error, ErrorKind, Result};
 #[cfg(feature = "mqtt")]
 pub use mqtt::MqttHermesProtocolHandler;
 pub use nlu_rust_ontology::*;

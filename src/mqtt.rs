@@ -14,40 +14,52 @@ mod private {
     use super::*;
 
     pub struct MqttHandler {
-        pub callbacks: Arc<Mutex<HashMap<String, Box<Fn(rumqtt::Message) -> () + Send + Sync>>>>,
+        pub callbacks: Arc<Mutex<HashMap<String, Box<Fn(&rumqtt::Message) -> () + Send + Sync>>>>,
         pub mqtt_client: Mutex<rumqtt::MqttClient>
     }
 
     impl MqttHandler {
         pub fn publish(&self, topic: &HermesTopic) -> Result<()> {
-            self.mqtt_client.lock().map(|mut c| c.publish(&*topic.as_path(),
-                                                          rumqtt::QoS::Level0,
-                                                          vec![]
-            ))??;
+            self.mqtt_client.lock().map(|mut c| {
+                let topic = &*topic.as_path();
+                debug!("Publishing on MQTT topic '{}'", topic);
+                c.publish(topic, rumqtt::QoS::Level0, vec![]
+                )
+            })??;
             Ok(())
         }
 
         pub fn publish_payload<P: serde::Serialize>(&self, topic: &HermesTopic, payload: P) -> Result<()> {
             self.mqtt_client.lock().map(|mut c|
-                serde_json::to_vec(&payload).map(|p|
-                    c.publish(&*topic.as_path(), rumqtt::QoS::Level0, p)
+                serde_json::to_vec(&payload).map(|p| {
+                    let topic = &*topic.as_path();
+                    debug!("Publishing on MQTT topic '{}', payload size : {:?}", topic, p);
+                    c.publish(topic, rumqtt::QoS::Level0, p)
+                }
                 ))???;
             Ok(())
         }
 
 
         pub fn subscribe<F>(&self, topic: &HermesTopic, handler: F) -> Result<()> where F: Fn() -> () + Send + Sync + 'static {
-            self.callbacks.lock().map(|mut c| c.insert(topic.as_path().to_string(), Box::new(move |_| handler())))?;
-            self.mqtt_client.lock().map(|mut c| c.subscribe(vec![(&*topic.as_path(),
+            let topic_name = Arc::new(topic.as_path());
+            let s_topic_name = Arc::clone(&topic_name);
+            self.callbacks.lock().map(|mut c| {
+                c.insert(topic.to_string(), Box::new(move |_| handler()))
+            })?;
+            self.mqtt_client.lock().map(|mut c| c.subscribe(vec![(&s_topic_name,
                                                                   rumqtt::QoS::Level0)]))??;
+            debug!("Subscribed on MQTT topic '{}'", topic_name);
             Ok(())
         }
 
         pub fn subscribe_payload<F, P>(&self, topic: &HermesTopic, handler: F) -> Result<()>
             where F: Fn(&P) -> () + Send + Sync + 'static,
                   P: serde::de::DeserializeOwned {
+            let topic_name = Arc::new(topic.as_path());
+            let s_topic_name = Arc::clone(&topic_name);
             self.callbacks.lock().map(|mut c| {
-                c.insert(topic.as_path().to_string(), Box::new(move |m| {
+                c.insert(topic.to_string(), Box::new(move |m| {
                     let r = serde_json::from_slice(m.payload.as_slice());
                     match r {
                         Ok(p) => handler(&p),
@@ -55,7 +67,8 @@ mod private {
                     }
                 }))
             })?;
-            self.mqtt_client.lock().map(|mut c| c.subscribe(vec![(&*topic.as_path(), rumqtt::QoS::Level0)]))??;
+            self.mqtt_client.lock().map(|mut c| c.subscribe(vec![(&s_topic_name, rumqtt::QoS::Level0)]))??;
+            debug!("Subscribed on MQTT topic '{}'", topic_name);
             Ok(())
         }
     }
@@ -78,22 +91,26 @@ pub struct MqttHermesProtocolHandler {
 
 impl MqttHermesProtocolHandler {
     pub fn new(broker_address: &str) -> Result<MqttHermesProtocolHandler> {
-        let callbacks: Arc<Mutex<HashMap<String, Box<Fn(rumqtt::Message) -> () + Send + Sync>>>> = Arc::new(Mutex::new(HashMap::new()));
+        let callbacks: Arc<Mutex<HashMap<String, Box<Fn(&rumqtt::Message) -> () + Send + Sync>>>> = Arc::new(Mutex::new(HashMap::new()));
+
+        info!("Connecting to MQTT broker at address {}", broker_address);
 
         let client_options = rumqtt::MqttOptions::new()
             .set_keep_alive(5)
             .set_reconnect(3)
             .set_broker(&broker_address);
 
-        let client_callbacks = callbacks.clone();
+        let client_callbacks = Arc::clone(&callbacks);
 
         let mqtt_client = Mutex::new(rumqtt::MqttClient::start(client_options,
                                                                Some(rumqtt::MqttCallback::new().on_message(move |message| {
                                                                    client_callbacks.lock().map(|r| {
                                                                        if let Some(callback) = r.get(&*message.topic) {
-                                                                           (callback)(message)
+                                                                           (callback)(&message)
                                                                        }
-                                                                   }).unwrap()
+                                                                   }).unwrap_or_else(|e| {
+                                                                       error!("Could not get a lock on callbacks, message on topic '{}' dropped: {:?}", &*message.topic, e )
+                                                                   })
                                                                })))?);
 
         let mqtt_handler = Arc::new(MqttHandler { callbacks, mqtt_client });
@@ -359,7 +376,7 @@ impl AudioServerBackendFacade for MqttComponentFacade {
 impl MqttHermesProtocolHandler {
     fn hotword_component(&self) -> MqttToggleableComponentFacade {
         MqttToggleableComponentFacade {
-            mqtt_handler: self.mqtt_handler.clone(),
+            mqtt_handler: Arc::clone(&self.mqtt_handler),
             component: Component::Hotword,
             toggle_on_topic: HermesTopic::Hotword(HotwordCommand::ToggleOn),
             toggle_off_topic: HermesTopic::Hotword(HotwordCommand::ToggleOff)
@@ -368,7 +385,7 @@ impl MqttHermesProtocolHandler {
 
     fn sound_toggleable(&self) -> MqttToggleableFacade {
         MqttToggleableFacade {
-            mqtt_handler: self.mqtt_handler.clone(),
+            mqtt_handler: Arc::clone(&self.mqtt_handler),
             toggle_on_topic: HermesTopic::Feedback(FeedbackCommand::Sound(SoundCommand::ToggleOn)),
             toggle_off_topic: HermesTopic::Feedback(FeedbackCommand::Sound(SoundCommand::ToggleOff))
         }
@@ -376,7 +393,7 @@ impl MqttHermesProtocolHandler {
 
     fn asr_component(&self) -> MqttToggleableComponentFacade {
         MqttToggleableComponentFacade {
-            mqtt_handler: self.mqtt_handler.clone(),
+            mqtt_handler: Arc::clone(&self.mqtt_handler),
             component: Component::Asr,
             toggle_on_topic: HermesTopic::Asr(AsrCommand::ToggleOn),
             toggle_off_topic: HermesTopic::Asr(AsrCommand::ToggleOff)
@@ -385,7 +402,7 @@ impl MqttHermesProtocolHandler {
 
     fn component(&self, component: Component) -> MqttComponentFacade {
         MqttComponentFacade {
-            mqtt_handler: self.mqtt_handler.clone(),
+            mqtt_handler: Arc::clone(&self.mqtt_handler),
             component
         }
     }
