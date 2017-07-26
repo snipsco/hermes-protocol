@@ -387,89 +387,88 @@ impl AudioServerBackendFacade for MqttComponentFacade {
     }
 }
 
-
 impl MqttHermesProtocolHandler {
-    fn hotword_component(&self) -> MqttToggleableComponentFacade {
-        MqttToggleableComponentFacade {
+    fn hotword_component(&self) -> Box<MqttToggleableComponentFacade> {
+        Box::new(MqttToggleableComponentFacade {
             mqtt_handler: Arc::clone(&self.mqtt_handler),
             component: Component::Hotword,
             toggle_on_topic: HermesTopic::Hotword(HotwordCommand::ToggleOn),
             toggle_off_topic: HermesTopic::Hotword(HotwordCommand::ToggleOff)
-        }
+        })
     }
 
-    fn sound_toggleable(&self) -> MqttToggleableFacade {
-        MqttToggleableFacade {
+    fn sound_toggleable(&self) -> Box<MqttToggleableFacade> {
+        Box::new(MqttToggleableFacade {
             mqtt_handler: Arc::clone(&self.mqtt_handler),
             toggle_on_topic: HermesTopic::Feedback(FeedbackCommand::Sound(SoundCommand::ToggleOn)),
             toggle_off_topic: HermesTopic::Feedback(FeedbackCommand::Sound(SoundCommand::ToggleOff))
-        }
+        })
     }
 
-    fn asr_component(&self) -> MqttToggleableComponentFacade {
-        MqttToggleableComponentFacade {
+    fn asr_component(&self) -> Box<MqttToggleableComponentFacade> {
+        Box::new(MqttToggleableComponentFacade {
             mqtt_handler: Arc::clone(&self.mqtt_handler),
             component: Component::Asr,
             toggle_on_topic: HermesTopic::Asr(AsrCommand::ToggleOn),
             toggle_off_topic: HermesTopic::Asr(AsrCommand::ToggleOff)
-        }
+        })
     }
 
-    fn component(&self, component: Component) -> MqttComponentFacade {
-        MqttComponentFacade {
+    fn component(&self, component: Component) -> Box<MqttComponentFacade> {
+        Box::new(MqttComponentFacade {
             mqtt_handler: Arc::clone(&self.mqtt_handler),
             component
-        }
+        })
     }
 }
 
 impl HermesProtocolHandler for MqttHermesProtocolHandler {
     fn hotword(&self) -> Box<HotwordFacade> {
-        Box::new(self.hotword_component())
+        self.hotword_component()
     }
 
     fn sound_feedback(&self) -> Box<SoundFeedbackFacade> {
-        Box::new(self.sound_toggleable())
+        self.sound_toggleable()
     }
 
     fn asr(&self) -> Box<AsrFacade> {
-        Box::new(self.asr_component())
+        self.asr_component()
     }
 
     fn tts(&self) -> Box<TtsFacade> {
-        Box::new(self.component(Component::Tts))
+        self.component(Component::Tts)
     }
 
     fn nlu(&self) -> Box<NluFacade> {
-        Box::new(self.component(Component::Nlu))
+        self.component(Component::Nlu)
     }
 
     fn audio_server(&self) -> Box<AudioServerFacade> {
-        Box::new(self.component(Component::AudioServer))
+        self.component(Component::AudioServer)
     }
 
     fn hotword_backend(&self) -> Box<HotwordBackendFacade> {
-        Box::new(self.hotword_component())
+        self.hotword_component()
     }
 
     fn sound_feedback_backend(&self) -> Box<SoundFeedbackBackendFacade> {
-        Box::new(self.sound_toggleable())
+        self.sound_toggleable()
     }
 
     fn asr_backend(&self) -> Box<AsrBackendFacade> {
-        Box::new(self.asr_component())
+        self.asr_component()
     }
 
     fn tts_backend(&self) -> Box<TtsBackendFacade> {
-        Box::new(self.component(Component::Tts))
+        self.component(Component::Tts)
     }
 
     fn nlu_backend(&self) -> Box<NluBackendFacade> {
-        Box::new(self.component(Component::Nlu))
+        self.component(Component::Nlu)
     }
 
     fn audio_server_backend(&self) -> Box<AudioServerBackendFacade> {
-        Box::new(self.component(Component::AudioServer))
+        self.component(Component::AudioServer)
     }
 }
 
