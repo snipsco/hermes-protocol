@@ -1,3 +1,4 @@
+extern crate base64;
 #[macro_use]
 extern crate error_chain;
 extern crate nlu_rust_ontology;
@@ -192,7 +193,7 @@ pub struct PlayFileMessage {
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 pub struct PlayBytesMessage {
     pub id: String,
-    #[serde(rename = "wavBytes")]
+    #[serde(rename = "wavBytes", serialize_with = "as_base64", deserialize_with = "from_base64")]
     pub wav_bytes: Vec<u8>,
 }
 
@@ -232,4 +233,19 @@ pub struct VersionMessage {
 pub struct ErrorMessage {
     pub error: String,
     pub context: Option<String>,
+}
+
+fn as_base64<S>(bytes: &[u8], serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where S: serde::Serializer
+{
+    serializer.serialize_str(&base64::encode(bytes))
+}
+
+fn from_base64<'de, D>(deserializer: D) -> std::result::Result<Vec<u8>, D::Error>
+    where D: serde::Deserializer<'de>
+{
+    use serde::de::Error;
+    use serde::Deserialize;
+    String::deserialize(deserializer)
+        .and_then(|string| base64::decode(&string).map_err(|err| Error::custom(err.to_string())))
 }
