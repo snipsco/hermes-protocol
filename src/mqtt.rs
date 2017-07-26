@@ -10,7 +10,8 @@ use super::*;
 
 use errors::*;
 
-mod private {
+// this is a submodule to prevent rust from complaining of the leakage of private types
+mod handler {
     use super::*;
 
     pub struct MqttHandler {
@@ -33,7 +34,12 @@ mod private {
             self.mqtt_client.lock().map(|mut c|
                 serde_json::to_vec(&payload).map(|p| {
                     let topic = &*topic.as_path();
-                    debug!("Publishing on MQTT topic '{}', payload size : {:?}", topic, p);
+                    debug!("Publishing on MQTT topic '{}', payload : {}", topic, if p.len() < 2048 {
+                        String::from_utf8_lossy(&p).to_string()
+                    } else {
+                        format!("size = {}, start = {}", p.len(), String::from_utf8_lossy(&p[0..128]))
+                    });
+                    trace!("Payload : {}", String::from_utf8_lossy(&p));
                     c.publish(topic, rumqtt::QoS::Level0, p)
                 }
                 ))???;
@@ -45,7 +51,10 @@ mod private {
             let topic_name = Arc::new(topic.as_path());
             let s_topic_name = Arc::clone(&topic_name);
             self.callbacks.lock().map(|mut c| {
-                c.insert(topic.to_string(), Box::new(move |_| handler()))
+                c.insert(topic.to_string(), Box::new(move |m| {
+                    debug!("Received a message on MQTT topic '{}'", &*m.topic);
+                    handler()
+                }))
             })?;
             self.mqtt_client.lock().map(|mut c| c.subscribe(vec![(&s_topic_name,
                                                                   rumqtt::QoS::Level0)]))??;
@@ -60,6 +69,12 @@ mod private {
             let s_topic_name = Arc::clone(&topic_name);
             self.callbacks.lock().map(|mut c| {
                 c.insert(topic.to_string(), Box::new(move |m| {
+                    debug!("Received a message on MQTT topic '{}', payload : {}", &*m.topic, if m.payload.len() < 2048 {
+                        String::from_utf8_lossy(&m.payload).to_string()
+                    } else {
+                        format!("size = {}, start = {}", m.payload.len(), String::from_utf8_lossy(&m.payload[0..128]))
+                    });
+                    trace!("Payload : {}", String::from_utf8_lossy(&m.payload));
                     let r = serde_json::from_slice(m.payload.as_slice());
                     match r {
                         Ok(p) => handler(&p),
@@ -83,7 +98,7 @@ mod private {
     }
 }
 
-use self::private::*;
+use self::handler::*;
 
 pub struct MqttHermesProtocolHandler {
     mqtt_handler: Arc<MqttHandler>
