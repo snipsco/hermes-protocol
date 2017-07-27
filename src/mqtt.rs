@@ -251,6 +251,10 @@ impl HasToggleTopics for MqttToggleableComponentFacade {
     }
 }
 
+struct MqttFacade {
+    mqtt_handler: Arc<MqttHandler>
+}
+
 impl HotwordFacade for MqttToggleableComponentFacade {
     fn publish_wait(&self) -> Result<()> {
         self.mqtt_handler.publish(&HermesTopic::Hotword(HotwordCommand::Wait))
@@ -387,6 +391,18 @@ impl AudioServerBackendFacade for MqttComponentFacade {
     }
 }
 
+impl IntentFacade for MqttFacade {
+    fn subscribe_intent(&self, intent_name: String, handler: Callback<IntentMessage>) -> Result<()> {
+        self.mqtt_handler.subscribe_payload(&HermesTopic::Intent(intent_name), move |p| handler.call(p))
+    }
+}
+
+impl IntentBackendFacade for MqttFacade {
+    fn publish_intent(&self, intent: IntentMessage) -> Result<()> {
+        self.mqtt_handler.publish_payload(&HermesTopic::Intent(intent.intent.intent_name.clone()), intent)
+    }
+}
+
 impl MqttHermesProtocolHandler {
     fn hotword_component(&self) -> Box<MqttToggleableComponentFacade> {
         Box::new(MqttToggleableComponentFacade {
@@ -418,6 +434,12 @@ impl MqttHermesProtocolHandler {
         Box::new(MqttComponentFacade {
             mqtt_handler: Arc::clone(&self.mqtt_handler),
             component
+        })
+    }
+
+    fn facade(&self) -> Box<MqttFacade> {
+        Box::new(MqttFacade {
+            mqtt_handler: Arc::clone(&self.mqtt_handler)
         })
     }
 }
@@ -469,6 +491,14 @@ impl HermesProtocolHandler for MqttHermesProtocolHandler {
 
     fn audio_server_backend(&self) -> Box<AudioServerBackendFacade> {
         self.component(Component::AudioServer)
+    }
+
+    fn intent(&self) -> Box<IntentFacade> {
+        self.facade()
+    }
+
+    fn intent_backend(&self) -> Box<IntentBackendFacade> {
+        self.facade()
     }
 }
 

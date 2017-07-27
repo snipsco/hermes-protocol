@@ -137,7 +137,7 @@ pub trait ComponentBackendFacade : Send + Sync{
 }
 
 pub trait IntentFacade : Send + Sync {
-    fn subscribe_intent(&self, handler: Callback<IntentMessage>) -> Result<()>;
+    fn subscribe_intent(&self, intent_name: String, handler: Callback<IntentMessage>) -> Result<()>;
 }
 
 pub trait IntentBackendFacade : Send + Sync {
@@ -157,6 +157,8 @@ pub trait HermesProtocolHandler : Send + Sync{
     fn tts_backend(&self) -> Box<TtsBackendFacade>;
     fn nlu_backend(&self) -> Box<NluBackendFacade>;
     fn audio_server_backend(&self) -> Box<AudioServerBackendFacade>;
+    fn intent(&self) -> Box<IntentFacade>;
+    fn intent_backend(&self) -> Box<IntentBackendFacade>;
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
@@ -236,14 +238,12 @@ pub struct ErrorMessage {
 }
 
 fn as_base64<S>(bytes: &[u8], serializer: S) -> std::result::Result<S::Ok, S::Error>
-    where S: serde::Serializer
-{
+    where S: serde::Serializer {
     serializer.serialize_str(&base64::encode(bytes))
 }
 
 fn from_base64<'de, D>(deserializer: D) -> std::result::Result<Vec<u8>, D::Error>
-    where D: serde::Deserializer<'de>
-{
+    where D: serde::Deserializer<'de> {
     use serde::de::Error;
     use serde::Deserialize;
     String::deserialize(deserializer)
