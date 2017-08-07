@@ -190,7 +190,7 @@ struct MqttComponentFacade {
 
 impl HasMqttHandler for MqttComponentFacade {
     fn get_mqtt_handler(&self) -> Arc<MqttHandler> {
-        self.mqtt_handler.clone()
+        Arc::clone(&self.mqtt_handler)
     }
 }
 
