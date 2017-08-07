@@ -2,7 +2,6 @@ extern crate base64;
 #[macro_use]
 extern crate error_chain;
 extern crate nlu_rust_ontology;
-#[cfg(feature = "mqtt")]
 #[macro_use]
 extern crate log;
 #[cfg(feature = "mqtt")]
@@ -23,9 +22,14 @@ mod errors;
 #[cfg(feature = "mqtt")]
 mod mqtt;
 
+#[cfg(feature = "inprocess")]
+mod inprocess;
+
 pub use errors::{Error, ErrorKind, Result};
 #[cfg(feature = "mqtt")]
 pub use mqtt::MqttHermesProtocolHandler;
+#[cfg(feature = "inprocess")]
+pub use inprocess::InProcessHermesProtocolHandler;
 pub use nlu_rust_ontology::*;
 
 pub struct Callback<T> {
