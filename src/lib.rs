@@ -248,6 +248,7 @@ pub struct PlayFinishedMessage {
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 pub struct SayMessage {
     pub text: String,
+    pub lang: Option<String>
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
