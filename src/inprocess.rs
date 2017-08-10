@@ -93,25 +93,27 @@ impl InProcessComponent {
                 }
             });
             if let Err(e) = result {
-                error!("Error occured in thread: {}", e)
+                error!("Error while publishing an event : {}", e)
             }
         });
         Ok(())
     }
 
     fn publish_payload<F, M>(&self, retrieve_callbacks: F, message: M) -> Result<()>
-        where F: FnOnce(&Handler) -> &Vec<Callback<M>> + Send + 'static, M: Send + 'static
+        where F: FnOnce(&Handler) -> &Vec<Callback<M>> + Send + 'static,
+              M: HermesMessage + Send + 'static
     {
         let _handler = Arc::clone(&self.handler);
 
         thread::spawn(move || {
             let result = _handler.lock().map(|ref h| {
+                debug!("Publishing payload: {:#?}", &message);
                 for callback in retrieve_callbacks(h) {
                     callback.call(&message);
                 }
             });
             if let Err(e) = result {
-                error!("Error occured in thread: {}", e)
+                error!("Error while publishing an event with payload: {:#?} : {}", &message, e)
             }
         });
         Ok(())
@@ -124,7 +126,8 @@ impl InProcessComponent {
     }
 
     fn subscribe_payload<F, M>(&self, retrieve_callbacks: F, callback: Callback<M>) -> Result<()>
-        where F: FnOnce(&mut Handler) -> &mut Vec<Callback<M>> + Send + 'static
+        where F: FnOnce(&mut Handler) -> &mut Vec<Callback<M>> + Send + 'static,
+              M: HermesMessage
     {
         Ok(self.handler.lock().map(|mut h| retrieve_callbacks(&mut h).push(callback) )?)
     }
