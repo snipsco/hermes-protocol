@@ -2,6 +2,7 @@ extern crate base64;
 #[macro_use]
 extern crate error_chain;
 extern crate nlu_rust_ontology;
+#[cfg(any(feature = "mqtt", feature = "inprocess"))]
 #[macro_use]
 extern crate log;
 #[cfg(feature = "mqtt")]

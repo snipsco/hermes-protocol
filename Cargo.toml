@@ -7,13 +7,13 @@ authors = [
 ]
 
 [features]
-mqtt = ["rumqtt", "strum", "strum_macros"]
-inprocess = []
+mqtt = ["log", "rumqtt", "strum", "strum_macros"]
+inprocess = ["log"]
 
 [dependencies]
 base64 = "0.6"
 error-chain = { version = "0.10", default-features = false }
-log = "0.3"
+log = { version = "0.3", optional = true }
 nlu-rust-ontology = { git = "ssh://git@github.com/snipsco/nlu-rust-ontology.git", tag = "0.2.0"}
 rumqtt = { git = "https://github.com/snipsco/rumqtt.git", rev = "697fbd6", optional = true }
 semver = { version = "0.7", features = ["serde"] }
