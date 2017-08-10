@@ -2,7 +2,7 @@ extern crate base64;
 #[macro_use]
 extern crate error_chain;
 extern crate nlu_rust_ontology;
-#[cfg(feature = "mqtt")]
+#[cfg(any(feature = "mqtt", feature = "inprocess"))]
 #[macro_use]
 extern crate log;
 #[cfg(feature = "mqtt")]
@@ -23,9 +23,14 @@ mod errors;
 #[cfg(feature = "mqtt")]
 mod mqtt;
 
+#[cfg(feature = "inprocess")]
+mod inprocess;
+
 pub use errors::{Error, ErrorKind, Result};
 #[cfg(feature = "mqtt")]
 pub use mqtt::MqttHermesProtocolHandler;
+#[cfg(feature = "inprocess")]
+pub use inprocess::InProcessHermesProtocolHandler;
 pub use nlu_rust_ontology::*;
 
 pub struct Callback<T> {
@@ -52,12 +57,12 @@ impl Callback0 {
     pub fn call(&self) { (self.callback)() }
 }
 
-pub trait ToggleableFacade : Send + Sync {
+pub trait ToggleableFacade: Send + Sync {
     fn publish_toggle_on(&self) -> Result<()>;
     fn publish_toggle_off(&self) -> Result<()>;
 }
 
-pub trait ToggleableBackendFacade : Send + Sync {
+pub trait ToggleableBackendFacade: Send + Sync {
     fn subscribe_toggle_on(&self, handler: Callback0) -> Result<()>;
     fn subscribe_toggle_off(&self, handler: Callback0) -> Result<()>;
 }
@@ -124,27 +129,27 @@ pub trait AudioServerBackendFacade: ComponentBackendFacade {
     fn publish_play_finished(&self, status: PlayFinishedMessage) -> Result<()>;
 }
 
-pub trait ComponentFacade : Send + Sync {
+pub trait ComponentFacade: Send + Sync {
     fn publish_version_request(&self) -> Result<()>;
     fn subscribe_version(&self, handler: Callback<VersionMessage>) -> Result<()>;
     fn subscribe_error(&self, handler: Callback<ErrorMessage>) -> Result<()>;
 }
 
-pub trait ComponentBackendFacade : Send + Sync{
+pub trait ComponentBackendFacade: Send + Sync{
     fn subscribe_version_request(&self, handler: Callback0) -> Result<()>;
     fn publish_version(&self, version: VersionMessage) -> Result<()>;
     fn publish_error(&self, error: ErrorMessage) -> Result<()>;
 }
 
-pub trait IntentFacade : Send + Sync {
+pub trait IntentFacade: Send + Sync {
     fn subscribe_intent(&self, intent_name: String, handler: Callback<IntentMessage>) -> Result<()>;
 }
 
-pub trait IntentBackendFacade : Send + Sync {
+pub trait IntentBackendFacade: Send + Sync {
     fn publish_intent(&self, intent: IntentMessage) -> Result<()>;
 }
 
-pub trait HermesProtocolHandler : Send + Sync{
+pub trait HermesProtocolHandler: Send + Sync{
     fn hotword(&self) -> Box<HotwordFacade>;
     fn sound_feedback(&self) -> Box<SoundFeedbackFacade>;
     fn asr(&self) -> Box<AsrFacade>;
@@ -161,6 +166,9 @@ pub trait HermesProtocolHandler : Send + Sync{
     fn intent_backend(&self) -> Box<IntentBackendFacade>;
 }
 
+pub trait HermesMessage: ::std::fmt::Debug {
+}
+
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 pub struct TextCapturedMessage {
     pub text: String,
@@ -168,12 +176,16 @@ pub struct TextCapturedMessage {
     pub seconds: f32,
 }
 
+impl HermesMessage for TextCapturedMessage {}
+
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 pub struct NluQueryMessage {
     pub text: String,
     pub likelihood: Option<f32>,
     pub seconds: Option<f32>,
 }
+
+impl HermesMessage for NluQueryMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 pub struct NluSlotQueryMessage {
@@ -186,11 +198,15 @@ pub struct NluSlotQueryMessage {
     pub slot_name: String,
 }
 
+impl HermesMessage for NluSlotQueryMessage {}
+
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 pub struct PlayFileMessage {
     #[serde(rename = "filePath")]
     pub file_path: String,
 }
+
+impl HermesMessage for PlayFileMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 pub struct PlayBytesMessage {
@@ -199,10 +215,14 @@ pub struct PlayBytesMessage {
     pub wav_bytes: Vec<u8>,
 }
 
+impl HermesMessage for PlayBytesMessage {}
+
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 pub struct PlayFinishedMessage {
     pub id: String
 }
+
+impl HermesMessage for PlayFinishedMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 pub struct SayMessage {
@@ -210,15 +230,21 @@ pub struct SayMessage {
     pub lang: Option<String>
 }
 
+impl HermesMessage for SayMessage {}
+
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct SlotMessage {
     pub slot: Option<Slot>,
 }
 
+impl HermesMessage for SlotMessage {}
+
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 pub struct IntentNotRecognizedMessage {
     pub text: String,
 }
+
+impl HermesMessage for IntentNotRecognizedMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct IntentMessage {
@@ -227,16 +253,22 @@ pub struct IntentMessage {
     pub slots: Option<Vec<Slot>>,
 }
 
+impl HermesMessage for IntentMessage {}
+
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct VersionMessage {
     pub version: semver::Version,
 }
+
+impl HermesMessage for VersionMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct ErrorMessage {
     pub error: String,
     pub context: Option<String>,
 }
+
+impl HermesMessage for ErrorMessage {}
 
 fn as_base64<S>(bytes: &[u8], serializer: S) -> std::result::Result<S::Ok, S::Error>
     where S: serde::Serializer {
