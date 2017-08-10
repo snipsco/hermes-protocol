@@ -5,8 +5,6 @@ use std::thread;
 use super::*;
 use errors::*;
 
-// **facepalm** How did I accept to write this ?
-
 type IntentName = String;
 
 #[derive(Default)]
