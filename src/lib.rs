@@ -56,12 +56,12 @@ impl Callback0 {
     pub fn call(&self) { (self.callback)() }
 }
 
-pub trait ToggleableFacade : Send + Sync {
+pub trait ToggleableFacade: Send + Sync {
     fn publish_toggle_on(&self) -> Result<()>;
     fn publish_toggle_off(&self) -> Result<()>;
 }
 
-pub trait ToggleableBackendFacade : Send + Sync {
+pub trait ToggleableBackendFacade: Send + Sync {
     fn subscribe_toggle_on(&self, handler: Callback0) -> Result<()>;
     fn subscribe_toggle_off(&self, handler: Callback0) -> Result<()>;
 }
@@ -128,27 +128,27 @@ pub trait AudioServerBackendFacade: ComponentBackendFacade {
     fn publish_play_finished(&self, status: PlayFinishedMessage) -> Result<()>;
 }
 
-pub trait ComponentFacade : Send + Sync {
+pub trait ComponentFacade: Send + Sync {
     fn publish_version_request(&self) -> Result<()>;
     fn subscribe_version(&self, handler: Callback<VersionMessage>) -> Result<()>;
     fn subscribe_error(&self, handler: Callback<ErrorMessage>) -> Result<()>;
 }
 
-pub trait ComponentBackendFacade : Send + Sync{
+pub trait ComponentBackendFacade: Send + Sync{
     fn subscribe_version_request(&self, handler: Callback0) -> Result<()>;
     fn publish_version(&self, version: VersionMessage) -> Result<()>;
     fn publish_error(&self, error: ErrorMessage) -> Result<()>;
 }
 
-pub trait IntentFacade : Send + Sync {
+pub trait IntentFacade: Send + Sync {
     fn subscribe_intent(&self, intent_name: String, handler: Callback<IntentMessage>) -> Result<()>;
 }
 
-pub trait IntentBackendFacade : Send + Sync {
+pub trait IntentBackendFacade: Send + Sync {
     fn publish_intent(&self, intent: IntentMessage) -> Result<()>;
 }
 
-pub trait HermesProtocolHandler : Send + Sync{
+pub trait HermesProtocolHandler: Send + Sync{
     fn hotword(&self) -> Box<HotwordFacade>;
     fn sound_feedback(&self) -> Box<SoundFeedbackFacade>;
     fn asr(&self) -> Box<AsrFacade>;

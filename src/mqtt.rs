@@ -46,7 +46,6 @@ mod handler {
             Ok(())
         }
 
-
         pub fn subscribe<F>(&self, topic: &HermesTopic, handler: F) -> Result<()> where F: Fn() -> () + Send + Sync + 'static {
             let topic_name = Arc::new(topic.as_path());
             let s_topic_name = Arc::clone(&topic_name);
@@ -133,7 +132,6 @@ impl MqttHermesProtocolHandler {
         Ok(MqttHermesProtocolHandler { mqtt_handler })
     }
 }
-
 
 impl<T> ComponentFacade for T where T: HasMqttHandler + HasComponent + Send + Sync {
     fn publish_version_request(&self) -> Result<()> {
@@ -502,7 +500,6 @@ impl HermesProtocolHandler for MqttHermesProtocolHandler {
     }
 }
 
-
 pub trait ToPath: ToString {
     fn as_path(&self) -> String {
         let raw_path = self.to_string();
@@ -518,7 +515,6 @@ pub trait ToPath: ToString {
 pub trait FromPath<T: Sized> {
     fn from_path(&str) -> Option<T>;
 }
-
 
 // - Topics
 
