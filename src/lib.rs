@@ -187,6 +187,16 @@ pub struct NluQueryMessage {
 
 impl HermesMessage for NluQueryMessage {}
 
+impl From<TextCapturedMessage> for NluQueryMessage {
+    fn from(input: TextCapturedMessage) -> Self {
+        NluQueryMessage {
+            text : input.text,
+            likelihood: Some(input.likelihood),
+            seconds: Some(input.seconds),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 pub struct NluSlotQueryMessage {
     pub text: String,
