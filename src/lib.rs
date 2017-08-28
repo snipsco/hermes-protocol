@@ -124,8 +124,8 @@ pub trait AudioServerFacade: ComponentFacade {
 }
 
 pub trait AudioServerBackendFacade: ComponentBackendFacade {
-    fn subscribe_play_bytes(&self, handler: Callback<PlayBytesMessage>) -> Result<()>;
     fn subscribe_play_file(&self, handler: Callback<PlayFileMessage>) -> Result<()>;
+    fn subscribe_play_bytes(&self, handler: Callback<PlayBytesMessage>) -> Result<()>;
     fn publish_play_finished(&self, status: PlayFinishedMessage) -> Result<()>;
 }
 

@@ -79,9 +79,10 @@ struct InProcessComponent {
 }
 
 impl InProcessComponent {
-    fn publish<F>(&self, retrieve_callbacks: F) -> Result<()>
+    fn publish<F>(&self, callback_name: &str, retrieve_callbacks: F) -> Result<()>
         where F: FnOnce(&Handler) -> &Vec<Callback0> + Send + 'static
     {
+        debug!("Publishing on '{}'", callback_name);
         let _handler = Arc::clone(&self.handler);
 
         thread::spawn(move || {
@@ -97,15 +98,15 @@ impl InProcessComponent {
         Ok(())
     }
 
-    fn publish_payload<F, M>(&self, retrieve_callbacks: F, message: M) -> Result<()>
+    fn publish_payload<F, M>(&self, callback_name: &str, retrieve_callbacks: F, message: M) -> Result<()>
         where F: FnOnce(&Handler) -> &Vec<Callback<M>> + Send + 'static,
               M: HermesMessage + Send + 'static
     {
+        debug!("Publishing on '{}' :\n{:#?}", callback_name, &message);
         let _handler = Arc::clone(&self.handler);
 
         thread::spawn(move || {
             let result = _handler.lock().map(|ref h| {
-                debug!("Publishing payload: {:#?}", &message);
                 for callback in retrieve_callbacks(h) {
                     callback.call(&message);
                 }
@@ -117,113 +118,115 @@ impl InProcessComponent {
         Ok(())
     }
 
-    fn subscribe<F>(&self, retrieve_callbacks: F, callback: Callback0) -> Result<()>
+    fn subscribe<F>(&self, callback_name: &str, retrieve_callbacks: F, callback: Callback0) -> Result<()>
         where F: FnOnce(&mut Handler) -> &mut Vec<Callback0> + Send + 'static
     {
+        debug!("Subscribing on '{}'", callback_name);
         Ok(self.handler.lock().map(|mut h| retrieve_callbacks(&mut h).push(callback) )?)
     }
 
-    fn subscribe_payload<F, M>(&self, retrieve_callbacks: F, callback: Callback<M>) -> Result<()>
+    fn subscribe_payload<F, M>(&self, callback_name: &str, retrieve_callbacks: F, callback: Callback<M>) -> Result<()>
         where F: FnOnce(&mut Handler) -> &mut Vec<Callback<M>> + Send + 'static,
               M: HermesMessage
     {
+        debug!("Subscribing on '{}'", callback_name);
         Ok(self.handler.lock().map(|mut h| retrieve_callbacks(&mut h).push(callback) )?)
     }
 }
 
 impl ComponentFacade for InProcessComponent {
     fn publish_version_request(&self) -> Result<()> {
-        self.publish(|h| &h.component_version_request)
+        self.publish("component_version_request", |h| &h.component_version_request)
     }
     fn subscribe_version(&self, handler: Callback<VersionMessage>) -> Result<()> {
-        self.subscribe_payload(|h| &mut h.component_version, handler)
+        self.subscribe_payload("component_version", |h| &mut h.component_version, handler)
     }
     fn subscribe_error(&self, handler: Callback<ErrorMessage>) -> Result<()> {
-        self.subscribe_payload(|h| &mut h.component_error, handler)
+        self.subscribe_payload("component_error", |h| &mut h.component_error, handler)
     }
 }
 
 impl ComponentBackendFacade for InProcessComponent {
     fn subscribe_version_request(&self, handler: Callback0) -> Result<()> {
-        self.subscribe(|h| &mut h.component_version_request, handler)
+        self.subscribe("component_version_request", |h| &mut h.component_version_request, handler)
     }
     fn publish_version(&self, version: VersionMessage) -> Result<()> {
-        self.publish_payload(|h| &h.component_version, version)
+        self.publish_payload("component_version", |h| &h.component_version, version)
     }
     fn publish_error(&self, error: ErrorMessage) -> Result<()> {
-        self.publish_payload(|h| &h.component_error, error)
+        self.publish_payload("component_error", |h| &h.component_error, error)
     }
 }
 
 impl NluFacade for InProcessComponent {
     fn publish_query(&self, query: NluQueryMessage) -> Result<()> {
-        self.publish_payload(|h| &h.nlu_query, query)
+        self.publish_payload("nlu_query", |h| &h.nlu_query, query)
     }
     fn publish_partial_query(&self, query: NluSlotQueryMessage) -> Result<()> {
-        self.publish_payload(|h| &h.nlu_partial_query, query)
+        self.publish_payload("nlu_partial_query", |h| &h.nlu_partial_query, query)
     }
     fn subscribe_slot_parsed(&self, handler: Callback<SlotMessage>) -> Result<()> {
-        self.subscribe_payload(|h| &mut h.nlu_slot_parsed, handler)
+        self.subscribe_payload("nlu_slot_parsed", |h| &mut h.nlu_slot_parsed, handler)
     }
     fn subscribe_intent_parsed(&self, handler: Callback<IntentMessage>) -> Result<()> {
-        self.subscribe_payload(|h| &mut h.nlu_intent_parsed, handler)
+        self.subscribe_payload("nlu_intent_parsed", |h| &mut h.nlu_intent_parsed, handler)
     }
     fn subscribe_intent_not_recognized(&self, handler: Callback<IntentNotRecognizedMessage>) -> Result<()> {
-        self.subscribe_payload(|h| &mut h.nlu_intent_not_recognized, handler)
+        self.subscribe_payload("nlu_intent_not_recognized", |h| &mut h.nlu_intent_not_recognized, handler)
     }
 }
 
 impl NluBackendFacade for InProcessComponent {
     fn subscribe_query(&self, handler: Callback<NluQueryMessage>) -> Result<()> {
-        self.subscribe_payload(|h| &mut h.nlu_query, handler)
+        self.subscribe_payload("nlu_query", |h| &mut h.nlu_query, handler)
     }
     fn subscribe_partial_query(&self, handler: Callback<NluSlotQueryMessage>) -> Result<()> {
-        self.subscribe_payload(|h| &mut h.nlu_partial_query, handler)
+        self.subscribe_payload("nlu_partial_query", |h| &mut h.nlu_partial_query, handler)
     }
     fn publish_slot_parsed(&self, slot: SlotMessage) -> Result<()> {
-        self.publish_payload(|h| &h.nlu_slot_parsed, slot)
+        self.publish_payload("nlu_slot_parsed", |h| &h.nlu_slot_parsed, slot)
     }
     fn publish_intent_parsed(&self, intent: IntentMessage) -> Result<()> {
-        self.publish_payload(|h| &h.nlu_intent_parsed, intent)
+        self.publish_payload("nlu_intent_parsed", |h| &h.nlu_intent_parsed, intent)
     }
     fn publish_intent_not_recognized(&self, status: IntentNotRecognizedMessage) -> Result<()> {
-        self.publish_payload(|h| &h.nlu_intent_not_recognized, status)
+        self.publish_payload("nlu_intent_not_recognized", |h| &h.nlu_intent_not_recognized, status)
     }
 }
 
 impl ToggleableFacade for InProcessComponent {
     fn publish_toggle_on(&self) -> Result<()> {
-        self.publish(|h| &h.toggle_on)
+        self.publish("toggle_on", |h| &h.toggle_on)
     }
     fn publish_toggle_off(&self) -> Result<()> {
-        self.publish(|h| &h.toggle_off)
+        self.publish("toggle_off", |h| &h.toggle_off)
     }
 }
 
 impl ToggleableBackendFacade for InProcessComponent {
     fn subscribe_toggle_on(&self, handler: Callback0) -> Result<()> {
-        self.subscribe(|h| &mut h.toggle_on, handler)
+        self.subscribe("toggle_on", |h| &mut h.toggle_on, handler)
     }
     fn subscribe_toggle_off(&self, handler: Callback0) -> Result<()> {
-        self.subscribe(|h| &mut h.toggle_off, handler)
+        self.subscribe("toggle_off", |h| &mut h.toggle_off, handler)
     }
 }
 
 impl HotwordFacade for InProcessComponent {
     fn publish_wait(&self) -> Result<()> {
-        self.publish(|h| &h.hotword_wait)
+        self.publish("hotword_wait", |h| &h.hotword_wait)
     }
     fn subscribe_detected(&self, handler: Callback0) -> Result<()> {
-        self.subscribe(|h| &mut h.hotword_detected, handler)
+        self.subscribe("hotword_detected", |h| &mut h.hotword_detected, handler)
     }
 }
 
 impl HotwordBackendFacade for InProcessComponent {
     fn subscribe_wait(&self, handler: Callback0) -> Result<()> {
-        self.subscribe(|h| &mut h.hotword_wait, handler)
+        self.subscribe("hotword_wait", |h| &mut h.hotword_wait, handler)
     }
     fn publish_detected(&self) -> Result<()> {
-        self.publish(|h| &h.hotword_detected)
+        self.publish("hotword_detected", |h| &h.hotword_detected)
     }
 }
 
@@ -233,73 +236,73 @@ impl SoundFeedbackBackendFacade for InProcessComponent {}
 
 impl AsrFacade for InProcessComponent {
     fn subscribe_text_captured(&self, handler: Callback<TextCapturedMessage>) -> Result<()> {
-        self.subscribe_payload(|h| &mut h.asr_text_captured, handler)
+        self.subscribe_payload("asr_text_captured", |h| &mut h.asr_text_captured, handler)
     }
     fn subscribe_partial_text_captured(&self, handler: Callback<TextCapturedMessage>) -> Result<()> {
-        self.subscribe_payload(|h| &mut h.asr_partial_text_captured, handler)
+        self.subscribe_payload("asr_partial_text_captured", |h| &mut h.asr_partial_text_captured, handler)
     }
 }
 
 impl AsrBackendFacade for InProcessComponent {
     fn publish_text_captured(&self, text_captured: TextCapturedMessage) -> Result<()> {
-        self.publish_payload(|h| &h.asr_text_captured, text_captured)
+        self.publish_payload("asr_text_captured", |h| &h.asr_text_captured, text_captured)
     }
     fn publish_partial_text_captured(&self, text_captured: TextCapturedMessage) -> Result<()> {
-        self.publish_payload(|h| &h.asr_partial_text_captured, text_captured)
+        self.publish_payload("asr_partial_text_captured", |h| &h.asr_partial_text_captured, text_captured)
     }
 }
 
 impl TtsFacade for InProcessComponent {
     fn publish_say(&self, to_say: SayMessage) -> Result<()> {
-        self.publish_payload(|h| &h.tts_say, to_say)
+        self.publish_payload("tts_say", |h| &h.tts_say, to_say)
     }
     fn subscribe_say_finished(&self, handler: Callback0) -> Result<()> {
-        self.subscribe(|h| &mut h.tts_say_finished, handler)
+        self.subscribe("tts_say_finished", |h| &mut h.tts_say_finished, handler)
     }
 }
 
 impl TtsBackendFacade for InProcessComponent {
     fn subscribe_say(&self, handler: Callback<SayMessage>) -> Result<()> {
-        self.subscribe_payload(|h| &mut h.tts_say, handler)
+        self.subscribe_payload("tts_say", |h| &mut h.tts_say, handler)
     }
     fn publish_say_finished(&self) -> Result<()> {
-        self.publish(|h| &h.tts_say_finished)
+        self.publish("tts_say_finished", |h| &h.tts_say_finished)
     }
 }
 
 impl AudioServerFacade for InProcessComponent {
     fn publish_play_file(&self, file: PlayFileMessage) -> Result<()> {
-        self.publish_payload(|h| &h.as_play_file, file)
+        self.publish_payload("as_play_file", |h| &h.as_play_file, file)
     }
     fn publish_play_bytes(&self, bytes: PlayBytesMessage) -> Result<()> {
-        self.publish_payload(|h| &h.as_play_bytes, bytes)
+        self.publish_payload("as_play_bytes", |h| &h.as_play_bytes, bytes)
     }
     fn subscribe_play_finished(&self, handler: Callback<PlayFinishedMessage>) -> Result<()> {
-        self.subscribe_payload(|h| &mut h.as_play_finished, handler)
+        self.subscribe_payload("as_play_finished", |h| &mut h.as_play_finished, handler)
     }
 }
 
 impl AudioServerBackendFacade for InProcessComponent {
-    fn subscribe_play_bytes(&self, handler: Callback<PlayBytesMessage>) -> Result<()> {
-        self.subscribe_payload(|h| &mut h.as_play_bytes, handler)
-    }
     fn subscribe_play_file(&self, handler: Callback<PlayFileMessage>) -> Result<()> {
-        self.subscribe_payload(|h| &mut h.as_play_file, handler)
+        self.subscribe_payload("as_play_file", |h| &mut h.as_play_file, handler)
+    }
+    fn subscribe_play_bytes(&self, handler: Callback<PlayBytesMessage>) -> Result<()> {
+        self.subscribe_payload("as_play_bytes", |h| &mut h.as_play_bytes, handler)
     }
     fn publish_play_finished(&self, status: PlayFinishedMessage) -> Result<()> {
-        self.publish_payload(|h| &h.as_play_finished, status)
+        self.publish_payload("as_play_finished", |h| &h.as_play_finished, status)
     }
 }
 
 impl IntentFacade for InProcessComponent {
     fn subscribe_intent(&self, intent_name: String, handler: Callback<IntentMessage>) -> Result<()> {
-        self.subscribe_payload(|h| h.intent.entry(intent_name).or_insert_with(|| vec![]), handler)
+        self.subscribe_payload(&format!("intent_{}", intent_name), |h| h.intent.entry(intent_name).or_insert_with(|| vec![]), handler)
     }
 }
 
 impl IntentBackendFacade for InProcessComponent {
     fn publish_intent(&self, intent: IntentMessage) -> Result<()> {
         let intent_name = intent.intent.intent_name.to_string();
-        self.publish_payload(move |h| h.intent.get(&intent_name).unwrap_or(&h.empty), intent)
+        self.publish_payload(&format!("intent_{}", &intent_name), move |h| h.intent.get(&intent_name).unwrap_or(&h.empty), intent)
     }
 }
