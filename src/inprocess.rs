@@ -50,31 +50,32 @@ impl InProcessHermesProtocolHandler {
         Ok(Self { handler: Arc::new(Mutex::new(Handler::default())) })
     }
 
-    fn get_handler(&self) -> Box<InProcessComponent> {
-        Box::new(InProcessComponent { handler: Arc::clone(&self.handler) })
+    fn get_handler(&self, name: &str) -> Box<InProcessComponent> {
+        Box::new(InProcessComponent { name: name.to_string(), handler: Arc::clone(&self.handler) })
     }
 }
 
 impl HermesProtocolHandler for InProcessHermesProtocolHandler {
-    fn asr(&self) -> Box<AsrFacade> { self.get_handler() }
-    fn asr_backend(&self) -> Box<AsrBackendFacade> { self.get_handler() }
-    fn audio_server(&self) -> Box<AudioServerFacade> { self.get_handler() }
-    fn audio_server_backend(&self) -> Box<AudioServerBackendFacade> { self.get_handler() }
-    fn hotword(&self) -> Box<HotwordFacade> { self.get_handler() }
-    fn hotword_backend(&self) -> Box<HotwordBackendFacade> { self.get_handler() }
-    fn intent(&self) -> Box<IntentFacade> { self.get_handler() }
-    fn intent_backend(&self) -> Box<IntentBackendFacade> { self.get_handler() }
-    fn nlu(&self) -> Box<NluFacade> { self.get_handler() }
-    fn nlu_backend(&self) -> Box<NluBackendFacade> { self.get_handler() }
-    fn sound_feedback(&self) -> Box<SoundFeedbackFacade> { self.get_handler() }
-    fn sound_feedback_backend(&self) -> Box<SoundFeedbackBackendFacade> { self.get_handler() }
-    fn tts(&self) -> Box<TtsFacade> { self.get_handler() }
-    fn tts_backend(&self) -> Box<TtsBackendFacade> { self.get_handler() }
+    fn asr(&self) -> Box<AsrFacade> { self.get_handler("asr") }
+    fn asr_backend(&self) -> Box<AsrBackendFacade> { self.get_handler("asr") }
+    fn audio_server(&self) -> Box<AudioServerFacade> { self.get_handler("audio_server") }
+    fn audio_server_backend(&self) -> Box<AudioServerBackendFacade> { self.get_handler("audio_server") }
+    fn hotword(&self) -> Box<HotwordFacade> { self.get_handler("hotword") }
+    fn hotword_backend(&self) -> Box<HotwordBackendFacade> { self.get_handler("hotword") }
+    fn intent(&self) -> Box<IntentFacade> { self.get_handler("intent") }
+    fn intent_backend(&self) -> Box<IntentBackendFacade> { self.get_handler("intent") }
+    fn nlu(&self) -> Box<NluFacade> { self.get_handler("nlu") }
+    fn nlu_backend(&self) -> Box<NluBackendFacade> { self.get_handler("nlu") }
+    fn sound_feedback(&self) -> Box<SoundFeedbackFacade> { self.get_handler("sound_feedback") }
+    fn sound_feedback_backend(&self) -> Box<SoundFeedbackBackendFacade> { self.get_handler("sound_feedback") }
+    fn tts(&self) -> Box<TtsFacade> { self.get_handler("tts") }
+    fn tts_backend(&self) -> Box<TtsBackendFacade> { self.get_handler("tts") }
 }
 
 // -
 
 struct InProcessComponent {
+    name: String,
     handler: Arc<Mutex<Handler>>,
 }
 
@@ -82,7 +83,7 @@ impl InProcessComponent {
     fn publish<F>(&self, callback_name: &str, retrieve_callbacks: F) -> Result<()>
         where F: FnOnce(&Handler) -> &Vec<Callback0> + Send + 'static
     {
-        debug!("Publishing on '{}'", callback_name);
+        debug!("Publishing on '{}/{}'", self.name, callback_name);
         let _handler = Arc::clone(&self.handler);
 
         thread::spawn(move || {
@@ -102,7 +103,7 @@ impl InProcessComponent {
         where F: FnOnce(&Handler) -> &Vec<Callback<M>> + Send + 'static,
               M: HermesMessage + Send + 'static
     {
-        debug!("Publishing on '{}' :\n{:#?}", callback_name, &message);
+        debug!("Publishing on '{}/{}' :\n{:#?}", self.name, callback_name, &message);
         let _handler = Arc::clone(&self.handler);
 
         thread::spawn(move || {
@@ -121,7 +122,7 @@ impl InProcessComponent {
     fn subscribe<F>(&self, callback_name: &str, retrieve_callbacks: F, callback: Callback0) -> Result<()>
         where F: FnOnce(&mut Handler) -> &mut Vec<Callback0> + Send + 'static
     {
-        debug!("Subscribing on '{}'", callback_name);
+        debug!("Subscribing on '{}/{}'", self.name, callback_name);
         Ok(self.handler.lock().map(|mut h| retrieve_callbacks(&mut h).push(callback) )?)
     }
 
@@ -129,7 +130,7 @@ impl InProcessComponent {
         where F: FnOnce(&mut Handler) -> &mut Vec<Callback<M>> + Send + 'static,
               M: HermesMessage
     {
-        debug!("Subscribing on '{}'", callback_name);
+        debug!("Subscribing on '{}/{}'", self.name, callback_name);
         Ok(self.handler.lock().map(|mut h| retrieve_callbacks(&mut h).push(callback) )?)
     }
 }
