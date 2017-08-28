@@ -6,6 +6,7 @@ use super::*;
 use errors::*;
 
 type IntentName = String;
+type ComponentName = String;
 
 #[derive(Default)]
 struct Handler {
@@ -25,18 +26,22 @@ struct Handler {
     nlu_intent_parsed: Vec<Callback<IntentMessage>>,
     nlu_intent_not_recognized: Vec<Callback<IntentNotRecognizedMessage>>,
 
-    component_version_request: Vec<Callback0>,
-    component_version: Vec<Callback<VersionMessage>>,
-    component_error: Vec<Callback<ErrorMessage>>,
+    component_version_request: HashMap<ComponentName, Vec<Callback0>>,
+    component_version: HashMap<ComponentName, Vec<Callback<VersionMessage>>>,
+    component_error: HashMap<ComponentName, Vec<Callback<ErrorMessage>>>,
+    component_version_empty: Vec<Callback<VersionMessage>>,
+    component_error_empty: Vec<Callback<ErrorMessage>>,
 
     tts_say: Vec<Callback<SayMessage>>,
     tts_say_finished: Vec<Callback0>,
 
-    toggle_on: Vec<Callback0>,
-    toggle_off: Vec<Callback0>,
+    toggle_on: HashMap<ComponentName, Vec<Callback0>>,
+    toggle_off: HashMap<ComponentName, Vec<Callback0>>,
 
     intent: HashMap<IntentName, Vec<Callback<IntentMessage>>>,
-    empty: Vec<Callback<IntentMessage>>,
+    intent_empty: Vec<Callback<IntentMessage>>, // should always be empty
+
+    empty_0: Vec<Callback0>, // should always be empty
 }
 
 // -
@@ -137,25 +142,31 @@ impl InProcessComponent {
 
 impl ComponentFacade for InProcessComponent {
     fn publish_version_request(&self) -> Result<()> {
-        self.publish("component_version_request", |h| &h.component_version_request)
+        let component_name = self.name.to_string();
+        self.publish("component_version_request", move |h| &h.component_version_request.get(&component_name).unwrap_or(&h.empty_0))
     }
     fn subscribe_version(&self, handler: Callback<VersionMessage>) -> Result<()> {
-        self.subscribe_payload("component_version", |h| &mut h.component_version, handler)
+        let component_name = self.name.to_string();
+        self.subscribe_payload("component_version", |h| h.component_version.entry(component_name).or_insert_with(|| vec![]), handler)
     }
     fn subscribe_error(&self, handler: Callback<ErrorMessage>) -> Result<()> {
-        self.subscribe_payload("component_error", |h| &mut h.component_error, handler)
+        let component_name = self.name.to_string();
+        self.subscribe_payload("component_error", |h| h.component_error.entry(component_name).or_insert_with(|| vec![]), handler)
     }
 }
 
 impl ComponentBackendFacade for InProcessComponent {
     fn subscribe_version_request(&self, handler: Callback0) -> Result<()> {
-        self.subscribe("component_version_request", |h| &mut h.component_version_request, handler)
+        let component_name = self.name.to_string();
+        self.subscribe("component_version_request", |h| h.component_version_request.entry(component_name).or_insert_with(|| vec![]), handler)
     }
     fn publish_version(&self, version: VersionMessage) -> Result<()> {
-        self.publish_payload("component_version", |h| &h.component_version, version)
+        let component_name = self.name.to_string();
+        self.publish_payload("component_version", move |h| h.component_version.get(&component_name).unwrap_or(&h.component_version_empty), version)
     }
     fn publish_error(&self, error: ErrorMessage) -> Result<()> {
-        self.publish_payload("component_error", |h| &h.component_error, error)
+        let component_name = self.name.to_string();
+        self.publish_payload("component_error", move |h| h.component_error.get(&component_name).unwrap_or(&h.component_error_empty), error)
     }
 }
 
@@ -197,19 +208,23 @@ impl NluBackendFacade for InProcessComponent {
 
 impl ToggleableFacade for InProcessComponent {
     fn publish_toggle_on(&self) -> Result<()> {
-        self.publish("toggle_on", |h| &h.toggle_on)
+        let component_name = self.name.to_string();
+        self.publish("toggle_on", move |h| &h.toggle_on.get(&component_name).unwrap_or(&h.empty_0))
     }
     fn publish_toggle_off(&self) -> Result<()> {
-        self.publish("toggle_off", |h| &h.toggle_off)
+        let component_name = self.name.to_string();
+        self.publish("toggle_off", move |h| &h.toggle_off.get(&component_name).unwrap_or(&h.empty_0))
     }
 }
 
 impl ToggleableBackendFacade for InProcessComponent {
     fn subscribe_toggle_on(&self, handler: Callback0) -> Result<()> {
-        self.subscribe("toggle_on", |h| &mut h.toggle_on, handler)
+        let component_name = self.name.to_string();
+        self.subscribe("toggle_on", |h| h.toggle_on.entry(component_name).or_insert_with(|| vec![]), handler)
     }
     fn subscribe_toggle_off(&self, handler: Callback0) -> Result<()> {
-        self.subscribe("toggle_off", |h| &mut h.toggle_off, handler)
+        let component_name = self.name.to_string();
+        self.subscribe("toggle_off", |h| h.toggle_off.entry(component_name).or_insert_with(|| vec![]), handler)
     }
 }
 
@@ -304,6 +319,6 @@ impl IntentFacade for InProcessComponent {
 impl IntentBackendFacade for InProcessComponent {
     fn publish_intent(&self, intent: IntentMessage) -> Result<()> {
         let intent_name = intent.intent.intent_name.to_string();
-        self.publish_payload(&format!("intent_{}", &intent_name), move |h| h.intent.get(&intent_name).unwrap_or(&h.empty), intent)
+        self.publish_payload(&format!("intent_{}", &intent_name), move |h| h.intent.get(&intent_name).unwrap_or(&h.intent_empty), intent)
     }
 }
