@@ -26,12 +26,12 @@ mod mqtt;
 #[cfg(feature = "inprocess")]
 mod inprocess;
 
-pub use errors::{Error, ErrorKind, Result};
+pub use errors::*;
+pub use nlu_rust_ontology::*;
 #[cfg(feature = "mqtt")]
 pub use mqtt::MqttHermesProtocolHandler;
 #[cfg(feature = "inprocess")]
 pub use inprocess::InProcessHermesProtocolHandler;
-pub use nlu_rust_ontology::*;
 
 pub struct Callback<T> {
     callback: Box<Fn(&T) -> () + Send + Sync>
