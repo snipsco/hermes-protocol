@@ -146,7 +146,7 @@ pub trait DialogueFacade: ComponentFacade + ToggleableFacade {
     fn subscribe_intents(&self, handler: Callback<IntentMessage>) -> Result<()>;
 }
 
-pub trait DialogueBackendFacade: ComponentFacade + ToggleableBackendFacade {
+pub trait DialogueBackendFacade: ComponentBackendFacade + ToggleableBackendFacade {
     fn publish_intent(&self, intent: IntentMessage) -> Result<()>;
 }
 
