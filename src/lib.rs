@@ -141,12 +141,12 @@ pub trait ComponentBackendFacade: Send + Sync{
     fn publish_error(&self, error: ErrorMessage) -> Result<()>;
 }
 
-pub trait DialogueFacade: ComponentFacade {
+pub trait DialogueFacade: ComponentFacade + ToggleableFacade {
     fn subscribe_intent(&self, intent_name: String, handler: Callback<IntentMessage>) -> Result<()>;
     fn subscribe_intents(&self, handler: Callback<IntentMessage>) -> Result<()>;
 }
 
-pub trait DialogueBackendFacade: ComponentFacade {
+pub trait DialogueBackendFacade: ComponentFacade + ToggleableBackendFacade {
     fn publish_intent(&self, intent: IntentMessage) -> Result<()>;
 }
 
