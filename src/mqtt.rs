@@ -249,10 +249,6 @@ impl HasToggleTopics for MqttToggleableComponentFacade {
     }
 }
 
-struct MqttFacade {
-    mqtt_handler: Arc<MqttHandler>
-}
-
 impl HotwordFacade for MqttToggleableComponentFacade {
     fn publish_wait(&self) -> Result<()> {
         self.mqtt_handler.publish(&HermesTopic::Hotword(HotwordCommand::Wait))
@@ -389,13 +385,17 @@ impl AudioServerBackendFacade for MqttComponentFacade {
     }
 }
 
-impl IntentFacade for MqttFacade {
+impl DialogueFacade for MqttComponentFacade {
     fn subscribe_intent(&self, intent_name: String, handler: Callback<IntentMessage>) -> Result<()> {
         self.mqtt_handler.subscribe_payload(&HermesTopic::Intent(intent_name), move |p| handler.call(p))
     }
+
+    fn subscribe_intents(&self, handler: Callback<IntentMessage>) -> Result<()> {
+        self.mqtt_handler.subscribe_payload(&HermesTopic::Intent("#".into()), move |p| handler.call(p))
+    }
 }
 
-impl IntentBackendFacade for MqttFacade {
+impl DialogueBackendFacade for MqttComponentFacade {
     fn publish_intent(&self, intent: IntentMessage) -> Result<()> {
         self.mqtt_handler.publish_payload(&HermesTopic::Intent(intent.intent.intent_name.clone()), intent)
     }
@@ -432,12 +432,6 @@ impl MqttHermesProtocolHandler {
         Box::new(MqttComponentFacade {
             mqtt_handler: Arc::clone(&self.mqtt_handler),
             component
-        })
-    }
-
-    fn facade(&self) -> Box<MqttFacade> {
-        Box::new(MqttFacade {
-            mqtt_handler: Arc::clone(&self.mqtt_handler)
         })
     }
 }
@@ -491,12 +485,12 @@ impl HermesProtocolHandler for MqttHermesProtocolHandler {
         self.component(Component::AudioServer)
     }
 
-    fn intent(&self) -> Box<IntentFacade> {
-        self.facade()
+    fn dialogue(&self) -> Box<DialogueFacade> {
+        self.component(Component::DialogueManager)
     }
 
-    fn intent_backend(&self) -> Box<IntentBackendFacade> {
-        self.facade()
+    fn dialogue_backend(&self) -> Box<DialogueBackendFacade> {
+        self.component(Component::DialogueManager)
     }
 }
 
@@ -590,7 +584,7 @@ pub enum Component {
     Asr,
     Tts,
     Nlu,
-    DialogManager,
+    DialogueManager,
     IntentParserManager,
     SkillManager,
     AudioServer,

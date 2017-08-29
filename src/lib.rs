@@ -141,11 +141,12 @@ pub trait ComponentBackendFacade: Send + Sync{
     fn publish_error(&self, error: ErrorMessage) -> Result<()>;
 }
 
-pub trait IntentFacade: Send + Sync {
+pub trait DialogueFacade: ComponentFacade {
     fn subscribe_intent(&self, intent_name: String, handler: Callback<IntentMessage>) -> Result<()>;
+    fn subscribe_intents(&self, handler: Callback<IntentMessage>) -> Result<()>;
 }
 
-pub trait IntentBackendFacade: Send + Sync {
+pub trait DialogueBackendFacade: ComponentFacade {
     fn publish_intent(&self, intent: IntentMessage) -> Result<()>;
 }
 
@@ -156,14 +157,14 @@ pub trait HermesProtocolHandler: Send + Sync{
     fn tts(&self) -> Box<TtsFacade>;
     fn nlu(&self) -> Box<NluFacade>;
     fn audio_server(&self) -> Box<AudioServerFacade>;
+    fn dialogue(&self) -> Box<DialogueFacade>;
     fn hotword_backend(&self) -> Box<HotwordBackendFacade>;
     fn sound_feedback_backend(&self) -> Box<SoundFeedbackBackendFacade>;
     fn asr_backend(&self) -> Box<AsrBackendFacade>;
     fn tts_backend(&self) -> Box<TtsBackendFacade>;
     fn nlu_backend(&self) -> Box<NluBackendFacade>;
     fn audio_server_backend(&self) -> Box<AudioServerBackendFacade>;
-    fn intent(&self) -> Box<IntentFacade>;
-    fn intent_backend(&self) -> Box<IntentBackendFacade>;
+    fn dialogue_backend(&self) -> Box<DialogueBackendFacade>;
 }
 
 pub trait HermesMessage: ::std::fmt::Debug {

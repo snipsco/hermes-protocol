@@ -39,6 +39,7 @@ struct Handler {
     toggle_off: HashMap<ComponentName, Vec<Callback0>>,
 
     intent: HashMap<IntentName, Vec<Callback<IntentMessage>>>,
+    intents: Vec<Callback<IntentMessage>>,
     intent_empty: Vec<Callback<IntentMessage>>, // should always be empty
 
     empty_0: Vec<Callback0>, // should always be empty
@@ -84,11 +85,11 @@ impl HermesProtocolHandler for InProcessHermesProtocolHandler {
     fn hotword_backend(&self) -> Box<HotwordBackendFacade> {
         self.get_handler("hotword")
     }
-    fn intent(&self) -> Box<IntentFacade> {
-        self.get_handler("intent")
+    fn dialogue(&self) -> Box<DialogueFacade> {
+        self.get_handler("dialogue")
     }
-    fn intent_backend(&self) -> Box<IntentBackendFacade> {
-        self.get_handler("intent")
+    fn dialogue_backend(&self) -> Box<DialogueBackendFacade> {
+        self.get_handler("dialogue")
     }
     fn nlu(&self) -> Box<NluFacade> {
         self.get_handler("nlu")
@@ -453,7 +454,7 @@ impl AudioServerBackendFacade for InProcessComponent {
     }
 }
 
-impl IntentFacade for InProcessComponent {
+impl DialogueFacade for InProcessComponent {
     fn subscribe_intent(
         &self,
         intent_name: String,
@@ -465,15 +466,31 @@ impl IntentFacade for InProcessComponent {
             handler,
         )
     }
+
+    fn subscribe_intents(
+        &self,
+        handler: Callback<IntentMessage>,
+    ) -> Result<()> {
+        self.subscribe_payload(
+            &format!("intents"),
+            |h| &mut h.intents,
+            handler,
+        )
+    }
 }
 
-impl IntentBackendFacade for InProcessComponent {
+impl DialogueBackendFacade for InProcessComponent {
     fn publish_intent(&self, intent: IntentMessage) -> Result<()> {
         let intent_name = intent.intent.intent_name.to_string();
+
+        let _intent = intent.clone();
+
         self.publish_payload(
             &format!("intent_{}", &intent_name),
             move |h| h.intent.get(&intent_name).unwrap_or(&h.intent_empty),
-            intent,
-        )
+            _intent,
+        )?;
+
+        self.publish_payload(&format!("intents"), move |h| &h.intents, intent)
     }
 }
