@@ -385,7 +385,7 @@ impl AudioServerBackendFacade for MqttComponentFacade {
     }
 }
 
-impl DialogueFacade for MqttComponentFacade {
+impl DialogueFacade for MqttToggleableComponentFacade {
     fn subscribe_intent(&self, intent_name: String, handler: Callback<IntentMessage>) -> Result<()> {
         self.mqtt_handler.subscribe_payload(&HermesTopic::Intent(intent_name), move |p| handler.call(p))
     }
@@ -395,7 +395,7 @@ impl DialogueFacade for MqttComponentFacade {
     }
 }
 
-impl DialogueBackendFacade for MqttComponentFacade {
+impl DialogueBackendFacade for MqttToggleableComponentFacade {
     fn publish_intent(&self, intent: IntentMessage) -> Result<()> {
         self.mqtt_handler.publish_payload(&HermesTopic::Intent(intent.intent.intent_name.clone()), intent)
     }
@@ -425,6 +425,15 @@ impl MqttHermesProtocolHandler {
             component: Component::Asr,
             toggle_on_topic: HermesTopic::Asr(AsrCommand::ToggleOn),
             toggle_off_topic: HermesTopic::Asr(AsrCommand::ToggleOff)
+        })
+    }
+
+    fn dialogue_component(&self) -> Box<MqttToggleableComponentFacade> {
+        Box::new(MqttToggleableComponentFacade {
+            mqtt_handler: Arc::clone(&self.mqtt_handler),
+            component: Component::DialogueManager,
+            toggle_on_topic: HermesTopic::DialogueManager(DialogueManagerCommand::ToggleOn),
+            toggle_off_topic: HermesTopic::DialogueManager(DialogueManagerCommand::ToggleOff)
         })
     }
 
@@ -486,11 +495,11 @@ impl HermesProtocolHandler for MqttHermesProtocolHandler {
     }
 
     fn dialogue(&self) -> Box<DialogueFacade> {
-        self.component(Component::DialogueManager)
+        self.dialogue_component()
     }
 
     fn dialogue_backend(&self) -> Box<DialogueBackendFacade> {
-        self.component(Component::DialogueManager)
+        self.dialogue_component()
     }
 }
 
@@ -515,6 +524,7 @@ pub trait FromPath<T: Sized> {
 #[derive(Debug, Clone, PartialEq)]
 pub enum HermesTopic {
     Feedback(FeedbackCommand),
+    DialogueManager(DialogueManagerCommand),
     Hotword(HotwordCommand),
     Asr(AsrCommand),
     Tts(TtsCommand),
@@ -568,6 +578,7 @@ impl std::fmt::Display for HermesTopic {
             HermesTopic::Asr(ref cmd) => format!("{}/{}", Component::Asr.as_path(), cmd.as_path()),
             HermesTopic::Tts(ref cmd) => format!("{}/{}", Component::Tts.as_path(), cmd.as_path()),
             HermesTopic::Nlu(ref cmd) => format!("{}/{}", Component::Nlu.as_path(), cmd.as_path()),
+            HermesTopic::DialogueManager(ref cmd) => format!("{}/{}", Component::DialogueManager.as_path(), cmd.as_path()),
             HermesTopic::Intent(ref intent_name) => format!("intent/{}", intent_name),
             HermesTopic::AudioServer(ref cmd) => format!("{}/{}", Component::AudioServer.as_path(), cmd.as_path()),
             HermesTopic::Component(ref component, ref cmd) => format!("component/{}/{}", component.as_path(), cmd.as_path()),
@@ -617,6 +628,14 @@ pub enum SoundCommand {
 }
 
 impl ToPath for SoundCommand {}
+
+#[derive(Debug, Clone, Copy, PartialEq, ToString, EnumIter)]
+pub enum DialogueManagerCommand {
+    ToggleOn,
+    ToggleOff,
+}
+
+impl ToPath for DialogueManagerCommand {}
 
 #[derive(Debug, Clone, Copy, PartialEq, ToString, EnumIter)]
 pub enum HotwordCommand {
