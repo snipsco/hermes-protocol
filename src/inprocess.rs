@@ -472,7 +472,7 @@ impl DialogueFacade for InProcessComponent {
         handler: Callback<IntentMessage>,
     ) -> Result<()> {
         self.subscribe_payload(
-            &format!("intents"),
+            "intents",
             |h| &mut h.intents,
             handler,
         )
@@ -491,6 +491,6 @@ impl DialogueBackendFacade for InProcessComponent {
             _intent,
         )?;
 
-        self.publish_payload(&format!("intents"), move |h| &h.intents, intent)
+        self.publish_payload("intents", move |h| &h.intents, intent)
     }
 }
