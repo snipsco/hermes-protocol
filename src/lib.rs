@@ -19,15 +19,15 @@ extern crate strum;
 extern crate strum_macros;
 
 mod errors;
-
 #[cfg(feature = "mqtt")]
 mod mqtt;
-
 #[cfg(feature = "inprocess")]
 mod inprocess;
 
 pub use errors::*;
 pub use nlu_rust_ontology::*;
+#[cfg(feature = "ffi")]
+pub use nlu_rust_ontology::ffi::*;
 #[cfg(feature = "mqtt")]
 pub use mqtt::MqttHermesProtocolHandler;
 #[cfg(feature = "inprocess")]

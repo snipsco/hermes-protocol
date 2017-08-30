@@ -7,14 +7,16 @@ authors = [
 ]
 
 [features]
+default = []
 mqtt = ["log", "rumqtt", "strum", "strum_macros"]
 inprocess = ["log"]
+ffi = ["nlu-rust-ontology/ffi"]
 
 [dependencies]
 base64 = "0.6"
 error-chain = { version = "0.10", default-features = false }
 log = { version = "0.3", optional = true }
-nlu-rust-ontology = { git = "ssh://git@github.com/snipsco/nlu-rust-ontology.git", tag = "0.3.0"}
+nlu-rust-ontology = { git = "ssh://git@github.com/snipsco/nlu-rust-ontology.git", tag = "0.4.0"}
 rumqtt = { git = "https://github.com/snipsco/rumqtt.git", rev = "4e091cba", optional = true }
 semver = { version = "0.7", features = ["serde"] }
 serde = "1.0"

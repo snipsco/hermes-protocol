@@ -1,7 +1,7 @@
 error_chain! {
     foreign_links {
         Serde(::serde_json::Error);
-        Rumqtt(::rumqtt::Error)  #[cfg(feature = "mqtt")];
+        Rumqtt(::rumqtt::Error) #[cfg(feature = "mqtt")];
     }
 }
 
