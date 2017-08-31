@@ -1,7 +1,9 @@
 extern crate base64;
 #[macro_use]
 extern crate error_chain;
-extern crate nlu_rust_ontology;
+extern crate snips_queries_ontology;
+#[cfg(feature = "ffi")]
+extern crate libc;
 #[cfg(any(feature = "mqtt", feature = "inprocess"))]
 #[macro_use]
 extern crate log;
@@ -19,19 +21,20 @@ extern crate strum;
 extern crate strum_macros;
 
 mod errors;
-
 #[cfg(feature = "mqtt")]
 mod mqtt;
-
 #[cfg(feature = "inprocess")]
 mod inprocess;
+#[cfg(feature = "ffi")]
+pub mod ffi;
 
 pub use errors::*;
-pub use nlu_rust_ontology::*;
 #[cfg(feature = "mqtt")]
 pub use mqtt::MqttHermesProtocolHandler;
 #[cfg(feature = "inprocess")]
 pub use inprocess::InProcessHermesProtocolHandler;
+
+use snips_queries_ontology::{IntentClassifierResult, Slot};
 
 pub struct Callback<T> {
     callback: Box<Fn(&T) -> () + Send + Sync>
