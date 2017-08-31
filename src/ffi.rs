@@ -109,14 +109,14 @@ impl Drop for CPlayFileMessage {
 pub struct CPlayBytesMessage {
     pub id: *const libc::c_char,
     pub wav_bytes: *const u8,
-    pub wav_bytes_len: libc::size_t,
+    pub wav_bytes_len: libc::c_int, // Note: we can't use `libc_size_t` because JNA doesn't it
 }
 
 impl CPlayBytesMessage {
     pub fn from(input: ::PlayBytesMessage) -> Result<Self> {
         Ok(Self {
             id: CString::new(input.id)?.into_raw(),
-            wav_bytes_len: input.wav_bytes.len(),
+            wav_bytes_len: input.wav_bytes.len() as libc::c_int,
             wav_bytes: Box::into_raw(input.wav_bytes.into_boxed_slice()) as *const u8,
         })
     }
