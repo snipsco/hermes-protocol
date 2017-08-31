@@ -175,14 +175,26 @@ impl Drop for CSayMessage {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CSlotMessage {
-    pub slot: Option<Box<CSlot>>,
+    pub slot: *const CSlot,
 }
 
 impl CSlotMessage {
     pub fn from(input: ::SlotMessage) -> Result<Self> {
         Ok(Self {
-            slot: if let Some(s) = input.slot { Some(Box::new(CSlot::from(s)?)) } else { None },
+            slot: if let Some(s) = input.slot {
+                Box::into_raw(Box::new(CSlot::from(s)?)) as *const CSlot
+            } else {
+                null()
+            },
         })
+    }
+}
+
+impl Drop for CSlotMessage {
+    fn drop(&mut self) {
+        if !self.slot.is_null() {
+            let _ = unsafe { Box::from_raw(self.slot as *mut CSlot) };
+        }
     }
 }
 
@@ -210,18 +222,20 @@ impl Drop for CIntentNotRecognizedMessage {
 #[derive(Debug)]
 pub struct CIntentMessage {
     pub input: *const libc::c_char,
-    pub intent: Option<Box<CIntentClassifierResult>>,
-    pub slots: Option<Box<CSlotList>>,
+    pub intent: *const CIntentClassifierResult,
+    pub slots: *const CSlotList,
 }
 
 impl CIntentMessage {
     pub fn from(input: ::IntentMessage) -> Result<Self> {
         Ok(Self {
             input: CString::new(input.input)?.into_raw(),
-            intent: Some(Box::new(CIntentClassifierResult::from(input.intent)?)),
+            intent: Box::into_raw(Box::new(CIntentClassifierResult::from(input.intent)?)),
             slots: if let Some(slots) = input.slots {
-                Some(Box::new(CSlotList::from(slots)?))
-            } else { None },
+                Box::into_raw(Box::new(CSlotList::from(slots)?)) as *const CSlotList
+            } else {
+               null()
+            },
         })
     }
 }
@@ -229,6 +243,10 @@ impl CIntentMessage {
 impl Drop for CIntentMessage {
     fn drop(&mut self) {
         let _ = unsafe { CString::from_raw(self.input as *mut libc::c_char) };
+        let _ = unsafe { Box::from_raw(self.intent as *mut CIntentClassifierResult) };
+        if !self.slots.is_null() {
+            let _ = unsafe { Box::from_raw(self.slots as *mut CSlotList) };
+        }
     }
 }
 
