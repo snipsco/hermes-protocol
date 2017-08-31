@@ -1,10 +1,10 @@
-use ::std::ffi::CString;
-use ::std::ptr::null;
+use std::ffi::CString;
+use std::ptr::null;
 
 use errors::*;
 
-use ::libc;
-use ::snips_queries_ontology::ffi::{CIntentClassifierResult, CSlot, CSlotList};
+use libc;
+use snips_queries_ontology::ffi::{CIntentClassifierResult, CSlot, CSlotList};
 
 #[repr(C)]
 #[derive(Debug)]
@@ -160,7 +160,11 @@ impl CSayMessage {
     pub fn from(input: ::SayMessage) -> Result<Self> {
         Ok(Self {
             text: CString::new(input.text)?.into_raw(),
-            lang: if let Some(s) = input.lang { CString::new(s)?.into_raw() } else { null() },
+            lang: if let Some(s) = input.lang {
+                CString::new(s)?.into_raw()
+            } else {
+                null()
+            },
         })
     }
 }
@@ -234,7 +238,7 @@ impl CIntentMessage {
             slots: if let Some(slots) = input.slots {
                 Box::into_raw(Box::new(CSlotList::from(slots)?)) as *const CSlotList
             } else {
-               null()
+                null()
             },
         })
     }
@@ -279,7 +283,11 @@ impl CErrorMessage {
     pub fn from(input: ::ErrorMessage) -> Result<Self> {
         Ok(Self {
             error: CString::new(input.error)?.into_raw(),
-            context: if let Some(s) = input.context { CString::new(s)?.into_raw() } else { null() },
+            context: if let Some(s) = input.context {
+                CString::new(s)?.into_raw()
+            } else {
+                null()
+            },
         })
     }
 }
