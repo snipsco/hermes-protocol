@@ -108,13 +108,16 @@ impl Drop for CPlayFileMessage {
 #[derive(Debug)]
 pub struct CPlayBytesMessage {
     pub id: *const libc::c_char,
-    //pub wav_bytes: Vec<u8>,
+    pub wav_bytes: *const u8,
+    pub wav_bytes_len: libc::size_t,
 }
 
 impl CPlayBytesMessage {
     pub fn from(input: ::PlayBytesMessage) -> Result<Self> {
         Ok(Self {
             id: CString::new(input.id)?.into_raw(),
+            wav_bytes_len: input.wav_bytes.len(),
+            wav_bytes: Box::into_raw(input.wav_bytes.into_boxed_slice()) as *const u8,
         })
     }
 }
@@ -122,6 +125,7 @@ impl CPlayBytesMessage {
 impl Drop for CPlayBytesMessage {
     fn drop(&mut self) {
         let _ = unsafe { CString::from_raw(self.id as *mut libc::c_char) };
+        let _ = unsafe { Box::from_raw(self.wav_bytes as *mut u8) };
     }
 }
 
