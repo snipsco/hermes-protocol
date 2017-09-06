@@ -1,4 +1,5 @@
 use std::ffi::CString;
+use std::slice;
 use std::ptr::null;
 
 use errors::*;
@@ -125,7 +126,7 @@ impl CPlayBytesMessage {
 impl Drop for CPlayBytesMessage {
     fn drop(&mut self) {
         let _ = unsafe { CString::from_raw(self.id as *mut libc::c_char) };
-        let _ = unsafe { Box::from_raw(self.wav_bytes as *mut u8) };
+        let _ = unsafe { Box::from_raw(slice::from_raw_parts_mut(self.wav_bytes as *mut u8, self.wav_bytes_len as usize)) };
     }
 }
 
