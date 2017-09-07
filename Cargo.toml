@@ -18,7 +18,7 @@ error-chain = { version = "0.10", default-features = false }
 libc = { version = "0.2", optional = true }
 log = { version = "0.3", optional = true }
 snips-queries-ontology = { git = "ssh://git@github.com/snipsco/snips-queries-ontology.git", tag = "0.4.2" }
-rumqtt = { git = "https://github.com/snipsco/rumqtt.git", rev = "4e091cba", optional = true }
+rumqtt = { git = "https://github.com/snipsco/rumqtt.git", rev = "21d4f28", optional = true }
 semver = { version = "0.7", features = ["serde"] }
 serde = "1.0"
 serde_derive = "1.0"
