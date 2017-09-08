@@ -11,3 +11,4 @@ then
 fi
 
 perl -p -i -e "s/^version = \".*\"\$/version = \"$NEW_VERSION\"/g" Cargo.toml
+perl -p -i -e "s/^version = \".*\"\$/version = \"$NEW_VERSION\"/g" platforms/kotlin/build.gradle
