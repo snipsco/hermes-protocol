@@ -30,7 +30,7 @@ repositories {
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
-    compile 'ai.snips:snips-queries-ontology:0.4.2' // make sure we use the same version in rust...
+    compile 'ai.snips:snips-queries-ontology:0.4.3' // make sure we use the same version in rust...
     compile 'net.java.dev.jna:jna:4.4.0'
 }
 
@@ -47,6 +47,9 @@ uploadArchives {
             }
             snapshotRepository(url: "https://nexus-repository.snips.ai/repository/snips-maven-snapshots/") {
                 authentication(userName: _nexusUsername, password: _nexusPassword)
+            }
+            pom.whenConfigured { pom ->
+                pom.dependencies.find { dep -> dep.groupId == 'net.java.dev.jna' && dep.artifactId == 'jna' }.scope = "provided"
             }
         }
     }
