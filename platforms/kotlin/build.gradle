@@ -48,6 +48,9 @@ uploadArchives {
             snapshotRepository(url: "https://nexus-repository.snips.ai/repository/snips-maven-snapshots/") {
                 authentication(userName: _nexusUsername, password: _nexusPassword)
             }
+            pom.whenConfigured { pom ->
+                pom.dependencies.find { dep -> dep.groupId == 'net.java.dev.jna' && dep.artifactId == 'jna' }.scope = "provided"
+            }
         }
     }
 }
