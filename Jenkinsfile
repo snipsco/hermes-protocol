@@ -18,6 +18,19 @@ node('jenkins-slave-ec2') {
         sh "cargo test --all-features"
     }
 
+    stage('Jar') {
+        sh "cd platforms/kotlin && ./gradlew jar"
+    }
+
+    switch (branchName) {
+        case "develop":
+        case "master":
+            stage("Upload jar") {
+                sh """
+                    cd platforms/kotlin
+                    ./gradlew uploadArchives -PnexusUsername="$NEXUS_USERNAME" -PnexusPassword="$NEXUS_PASSWORD"
+                """
+            }
     }
 
     performReleaseIfNeeded()
