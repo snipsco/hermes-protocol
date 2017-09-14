@@ -411,11 +411,27 @@ impl DialogueFacade for MqttToggleableComponentFacade {
     fn subscribe_intents(&self, handler: Callback<IntentMessage>) -> Result<()> {
         self.mqtt_handler.subscribe_payload(&HermesTopic::Intent("#".into()), move |p| handler.call(p))
     }
+
+    fn publish_say(&self, to_say: SayMessage) -> Result<()> {
+        self.mqtt_handler.publish_payload(&HermesTopic::DialogueManager(DialogueManagerCommand::Say), to_say)
+    }
+
+    fn publish_start_dialogue(&self) -> Result<()> {
+        self.mqtt_handler.publish(&HermesTopic::DialogueManager(DialogueManagerCommand::StartDialogue))
+    }
 }
 
 impl DialogueBackendFacade for MqttToggleableComponentFacade {
     fn publish_intent(&self, intent: IntentMessage) -> Result<()> {
         self.mqtt_handler.publish_payload(&HermesTopic::Intent(intent.intent.intent_name.clone()), intent)
+    }
+
+    fn subscribe_say(&self, handler: Callback<SayMessage>) -> Result<()> {
+        self.mqtt_handler.subscribe_payload(&HermesTopic::DialogueManager(DialogueManagerCommand::Say), move |p| handler.call(p))
+    }
+
+    fn subscribe_start_dialogue(&self, handler: Callback0) -> Result<()> {
+        self.mqtt_handler.subscribe(&HermesTopic::DialogueManager(DialogueManagerCommand::StartDialogue), move || handler.call())
     }
 }
 
@@ -651,6 +667,8 @@ impl ToPath for SoundCommand {}
 pub enum DialogueManagerCommand {
     ToggleOn,
     ToggleOff,
+    StartDialogue,
+    Say,
 }
 
 impl ToPath for DialogueManagerCommand {}

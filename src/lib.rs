@@ -147,10 +147,14 @@ pub trait ComponentBackendFacade: Send + Sync{
 pub trait DialogueFacade: ComponentFacade + ToggleableFacade {
     fn subscribe_intent(&self, intent_name: String, handler: Callback<IntentMessage>) -> Result<()>;
     fn subscribe_intents(&self, handler: Callback<IntentMessage>) -> Result<()>;
+    fn publish_say(&self, to_say: SayMessage) -> Result<()>;
+    fn publish_start_dialogue(&self) -> Result<()>;
 }
 
 pub trait DialogueBackendFacade: ComponentBackendFacade + ToggleableBackendFacade {
     fn publish_intent(&self, intent: IntentMessage) -> Result<()>;
+    fn subscribe_say(&self, handler: Callback<SayMessage>) -> Result<()>;
+    fn subscribe_start_dialogue(&self, handler: Callback0) -> Result<()>;
 }
 
 pub trait HermesProtocolHandler: Send + Sync{
