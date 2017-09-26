@@ -1,6 +1,6 @@
 [package]
 name = "hermes"
-version = "0.16.1"
+version = "0.17.0"
 authors = [
     "Kevin Lefevre <kevin.lefevre@snips.ai>",
     "Thibaut Lorrain <thibaut.lorrain@snips.ai"
@@ -14,7 +14,7 @@ ffi = ["libc", "snips-queries-ontology/ffi"]
 
 [dependencies]
 base64 = "0.6"
-error-chain = { version = "0.10", default-features = false }
+error-chain = { version = "0.11", default-features = false }
 libc = { version = "0.2", optional = true }
 log = { version = "0.3", optional = true }
 snips-queries-ontology = { git = "ssh://git@github.com/snipsco/snips-queries-ontology.git", tag = "0.4.2" }
