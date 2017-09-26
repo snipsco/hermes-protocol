@@ -42,6 +42,9 @@ struct Handler {
     intents: Vec<Callback<IntentMessage>>,
     intent_empty: Vec<Callback<IntentMessage>>, // should always be empty
 
+    dialogue_say : Vec<Callback<SayMessage>>,
+    dialogue_start_dialogue : Vec<Callback0>,
+
     empty_0: Vec<Callback0>, // should always be empty
 }
 
@@ -477,6 +480,14 @@ impl DialogueFacade for InProcessComponent {
             handler,
         )
     }
+
+    fn publish_say(&self, to_say: SayMessage) -> Result<()> {
+        self.publish_payload("dialogue_say", |h| &h.dialogue_say, to_say)
+    }
+
+    fn publish_start_dialogue(&self) -> Result<()> {
+        self.publish("dialogue_start_dialogue", |h| &h.dialogue_start_dialogue)
+    }
 }
 
 impl DialogueBackendFacade for InProcessComponent {
@@ -492,5 +503,13 @@ impl DialogueBackendFacade for InProcessComponent {
         )?;
 
         self.publish_payload("intents", move |h| &h.intents, intent)
+    }
+
+    fn subscribe_say(&self, handler: Callback<SayMessage>) -> Result<()> {
+        self.subscribe_payload("dialogue_say", |h| &mut h.dialogue_say, handler)
+    }
+
+    fn subscribe_start_dialogue(&self, handler: Callback0) -> Result<()> {
+        self.subscribe("dialogue_start_dialogue", |h| &mut h.dialogue_start_dialogue, handler)
     }
 }
