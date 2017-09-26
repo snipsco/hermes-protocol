@@ -1,6 +1,6 @@
 [package]
 name = "hermes"
-version = "0.17.0"
+version = "0.17.1"
 authors = [
     "Kevin Lefevre <kevin.lefevre@snips.ai>",
     "Thibaut Lorrain <thibaut.lorrain@snips.ai"
@@ -17,7 +17,7 @@ base64 = "0.6"
 error-chain = { version = "0.11", default-features = false }
 libc = { version = "0.2", optional = true }
 log = { version = "0.3", optional = true }
-snips-queries-ontology = { git = "ssh://git@github.com/snipsco/snips-queries-ontology.git", tag = "0.4.2" }
+snips-queries-ontology = { git = "ssh://git@github.com/snipsco/snips-queries-ontology.git", tag = "0.4.4" }
 rumqtt = { git = "https://github.com/snipsco/rumqtt.git", rev = "21d4f28", optional = true }
 semver = { version = "0.7", features = ["serde"] }
 serde = "1.0"
