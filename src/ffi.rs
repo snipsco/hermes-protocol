@@ -210,7 +210,7 @@ pub struct CIntentNotRecognizedMessage {
 }
 
 impl CIntentNotRecognizedMessage {
-    pub fn from(input: ::IntentNotRecognizedMessage) -> Result<Self> {
+    pub fn from(input: ::NluIntentNotRecognizedMessage) -> Result<Self> {
         Ok(Self {
             text: CString::new(input.text)?.into_raw(),
         })

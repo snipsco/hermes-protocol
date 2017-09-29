@@ -24,7 +24,7 @@ struct Handler {
     nlu_partial_query: Vec<Callback<NluSlotQueryMessage>>,
     nlu_slot_parsed: Vec<Callback<SlotMessage>>,
     nlu_intent_parsed: Vec<Callback<IntentMessage>>,
-    nlu_intent_not_recognized: Vec<Callback<IntentNotRecognizedMessage>>,
+    nlu_intent_not_recognized: Vec<Callback<NluIntentNotRecognizedMessage>>,
 
     component_version_request: HashMap<ComponentName, Vec<Callback0>>,
     component_version: HashMap<ComponentName, Vec<Callback<VersionMessage>>>,
@@ -298,7 +298,7 @@ impl NluFacade for InProcessComponent {
     }
     fn subscribe_intent_not_recognized(
         &self,
-        handler: Callback<IntentNotRecognizedMessage>,
+        handler: Callback<NluIntentNotRecognizedMessage>,
     ) -> Result<()> {
         self.subscribe_payload(
             "nlu_intent_not_recognized",
@@ -321,7 +321,7 @@ impl NluBackendFacade for InProcessComponent {
     fn publish_intent_parsed(&self, intent: IntentMessage) -> Result<()> {
         self.publish_payload("nlu_intent_parsed", |h| &h.nlu_intent_parsed, intent)
     }
-    fn publish_intent_not_recognized(&self, status: IntentNotRecognizedMessage) -> Result<()> {
+    fn publish_intent_not_recognized(&self, status: NluIntentNotRecognizedMessage) -> Result<()> {
         self.publish_payload(
             "nlu_intent_not_recognized",
             |h| &h.nlu_intent_not_recognized,

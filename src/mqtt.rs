@@ -348,7 +348,7 @@ impl NluFacade for MqttComponentFacade {
         self.mqtt_handler.subscribe_payload(&HermesTopic::Nlu(NluCommand::IntentParsed), move |p| handler.call(p))
     }
 
-    fn subscribe_intent_not_recognized(&self, handler: Callback<IntentNotRecognizedMessage>) -> Result<()> {
+    fn subscribe_intent_not_recognized(&self, handler: Callback<NluIntentNotRecognizedMessage>) -> Result<()> {
         self.mqtt_handler.subscribe_payload(&HermesTopic::Nlu(NluCommand::IntentNotRecognized), move |p| handler.call(p))
     }
 }
@@ -370,7 +370,7 @@ impl NluBackendFacade for MqttComponentFacade {
         self.mqtt_handler.publish_payload(&HermesTopic::Nlu(NluCommand::IntentParsed), intent)
     }
 
-    fn publish_intent_not_recognized(&self, status: IntentNotRecognizedMessage) -> Result<()> {
+    fn publish_intent_not_recognized(&self, status: NluIntentNotRecognizedMessage) -> Result<()> {
         self.mqtt_handler.publish_payload(&HermesTopic::Nlu(NluCommand::IntentNotRecognized), status)
     }
 }
