@@ -61,21 +61,21 @@ impl Callback0 {
 }
 
 pub trait ToggleableFacade: Send + Sync {
-    fn publish_toggle_on(&self, locus: LocusMessage) -> Result<()>;
-    fn publish_toggle_off(&self, locus: LocusMessage) -> Result<()>;
+    fn publish_toggle_on(&self, site: SiteMessage) -> Result<()>;
+    fn publish_toggle_off(&self, site: SiteMessage) -> Result<()>;
 }
 
 pub trait ToggleableBackendFacade: Send + Sync {
-    fn subscribe_toggle_on(&self, handler: Callback<LocusMessage>) -> Result<()>;
-    fn subscribe_toggle_off(&self, handler: Callback<LocusMessage>) -> Result<()>;
+    fn subscribe_toggle_on(&self, handler: Callback<SiteMessage>) -> Result<()>;
+    fn subscribe_toggle_off(&self, handler: Callback<SiteMessage>) -> Result<()>;
 }
 
 pub trait HotwordFacade: ComponentFacade + ToggleableFacade {
-    fn subscribe_detected(&self, handler: Callback<LocusMessage>) -> Result<()>;
+    fn subscribe_detected(&self, handler: Callback<SiteMessage>) -> Result<()>;
 }
 
 pub trait HotwordBackendFacade: ComponentBackendFacade + ToggleableBackendFacade {
-    fn publish_detected(&self, locus: LocusMessage) -> Result<()>;
+    fn publish_detected(&self, site: SiteMessage) -> Result<()>;
 }
 
 pub trait SoundFeedbackFacade: ToggleableFacade {}
@@ -177,13 +177,13 @@ pub trait HermesProtocolHandler: Send + Sync {
 pub trait HermesMessage: ::std::fmt::Debug {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
-pub struct LocusMessage {
-    /// The locus concerned, a value of None will be interpreted as the default one
-    #[serde(rename = "locusId")]
-    pub locus_id: Option<String>,
+pub struct SiteMessage {
+    /// The site concerned, a value of `None` will be interpreted as the default one
+    #[serde(rename = "siteId")]
+    pub site_id: Option<String>,
 }
 
-impl HermesMessage for LocusMessage {}
+impl HermesMessage for SiteMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 pub struct TextCapturedMessage {
@@ -193,9 +193,9 @@ pub struct TextCapturedMessage {
     pub likelihood: f32,
     /// The duration it took to do the processing
     pub seconds: f32,
-    /// The locus where the text was captured
-    #[serde(rename = "locusId")]
-    pub locus_id: Option<String>,
+    /// The site where the text was captured
+    #[serde(rename = "siteId")]
+    pub site_id: Option<String>,
 }
 
 impl HermesMessage for TextCapturedMessage {}
@@ -239,6 +239,10 @@ pub struct PlayBytesMessage {
     /// The bytes of the wav to play
     #[serde(rename = "wavBytes", serialize_with = "as_base64", deserialize_with = "from_base64")]
     pub wav_bytes: Vec<u8>,
+    /// The site where the bytes should be played, a value of `None` will be interpreted as the
+    /// default one
+    #[serde(rename = "siteId")]
+    pub site_id: Option<String>,
 }
 
 impl HermesMessage for PlayBytesMessage {}
@@ -258,7 +262,11 @@ pub struct SayMessage {
     /// The lang to use when saying the `text`, will use en_GB if not provided
     pub lang: Option<String>,
     /// An optional id for the request, it will be passed back in the `SayFinishedMessage`
-    pub id: Option<String>
+    pub id: Option<String>,
+    /// The site where the message should be said, a value of `None` will be interpreted as the
+    /// default one
+    #[serde(rename = "siteId")]
+    pub site_id: Option<String>,
 }
 
 impl HermesMessage for SayMessage {}
