@@ -167,7 +167,7 @@ pub trait DialogueFacade: ComponentFacade + ToggleableFacade {
     fn subscribe_session_started(&self, handler: Callback<SessionStartedMessage>) -> Result<()>;
     fn subscribe_intent(&self, intent_name: String, handler: Callback<IntentMessage>) -> Result<()>;
     fn subscribe_intents(&self, handler: Callback<IntentMessage>) -> Result<()>;
-    fn subscribe_session_aborted(&self, handler: Callback<SessionAbortedMessage>) -> Result<()>;
+    fn subscribe_session_ended(&self, handler: Callback<SessionEndedMessage>) -> Result<()>;
     fn publish_start_session(&self, start_session: StartSessionMessage) -> Result<()>;
     fn publish_continue_session(&self, continue_session: ContinueSessionMessage) -> Result<()>;
     fn publish_end_session(&self, end_session: EndSessionMessage) -> Result<()>;
@@ -177,7 +177,7 @@ pub trait DialogueFacade: ComponentFacade + ToggleableFacade {
 pub trait DialogueBackendFacade: ComponentBackendFacade + ToggleableBackendFacade {
     fn publish_session_started(&self, status : SessionStartedMessage) -> Result<()>;
     fn publish_intent(&self, intent: IntentMessage) -> Result<()>;
-    fn publish_session_aborted(&self, status: SessionAbortedMessage) -> Result<()>;
+    fn publish_session_ended(&self, status: SessionEndedMessage) -> Result<()>;
     fn subscribe_start_session(&self, handler: Callback<StartSessionMessage>) -> Result<()>;
     fn subscribe_continue_session(&self, handler: Callback<ContinueSessionMessage>) -> Result<()>;
     fn subscribe_end_session(&self, handler: Callback<EndSessionMessage>) -> Result<()>;
@@ -425,16 +425,18 @@ pub struct EndSessionMessage {
 impl HermesMessage for EndSessionMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
-pub struct SessionAbortedMessage {
-    /// The id of the session that was aborted
+pub struct SessionEndedMessage {
+    /// The id of the session that was terminated
     #[serde(rename = "sessionId")]
     pub session_id: String,
     /// The custom data that was given at the session creation
     #[serde(rename = "customData")]
     pub custom_data: Option<String>,
+    /// Set to true if the session was aborted by the used
+    pub aborted: Option<bool>,
 }
 
-impl HermesMessage for SessionAbortedMessage {}
+impl HermesMessage for SessionEndedMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct VersionMessage {
