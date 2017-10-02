@@ -141,6 +141,7 @@ pub trait ComponentBackendFacade: Send + Sync {
 }
 
 pub trait DialogueFacade: ComponentFacade + ToggleableFacade {
+    fn subscribe_session_started(&self, handler: Callback<SessionStartedMessage>) -> Result<()>;
     fn subscribe_intent(&self, intent_name: String, handler: Callback<IntentMessage>) -> Result<()>;
     fn subscribe_intents(&self, handler: Callback<IntentMessage>) -> Result<()>;
     fn subscribe_session_aborted(&self, handler: Callback<SessionAbortedMessage>) -> Result<()>;
@@ -150,6 +151,7 @@ pub trait DialogueFacade: ComponentFacade + ToggleableFacade {
 }
 
 pub trait DialogueBackendFacade: ComponentBackendFacade + ToggleableBackendFacade {
+    fn publish_session_started(&self, status : SessionStartedMessage) -> Result<()>;
     fn publish_intent(&self, intent: IntentMessage) -> Result<()>;
     fn publish_session_aborted(&self, status: SessionAbortedMessage) -> Result<()>;
     fn subscribe_start_session(&self, handler: Callback<StartSessionMessage>) -> Result<()>;
@@ -359,13 +361,24 @@ pub struct SessionAction {
 pub struct StartSessionMessage {
     /// The way this session was created
     pub init: SessionInit,
+    /// The custom data that was given at the session creation
+    #[serde(rename = "customData")]
+    pub custom_data: Option<String>
+}
+
+impl HermesMessage for StartSessionMessage {}
+
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+pub struct SessionStartedMessage {
+    /// The id of the session that was started
+    pub id: String,
     /// An optional piece of data that will be given back in `IntentMessage` and
     /// `SessionAbortedMessage` that are related to this session
     #[serde(rename = "customData")]
     pub custom_data: Option<String>
 }
 
-impl HermesMessage for StartSessionMessage {}
+impl HermesMessage for SessionStartedMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct ContinueSessionMessage {
