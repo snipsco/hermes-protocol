@@ -334,7 +334,7 @@ impl HermesMessage for IntentMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(tag = "from")]
-pub enum InteractionInit {
+pub enum SessionInit {
     /// Interaction was initiated by the user
     User,
     /// Interaction was initiated by a lambda
@@ -358,7 +358,7 @@ pub struct SessionAction {
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct StartSessionMessage {
     /// The way this session was created
-    pub init: InteractionInit,
+    pub init: SessionInit,
     /// An optional piece of data that will be given back in `IntentMessage` and
     /// `SessionAbortedMessage` that are related to this session
     #[serde(rename = "customData")]
