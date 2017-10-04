@@ -320,7 +320,7 @@ pub struct NluIntentNotRecognizedMessage {
     /// The id of the `NluQueryMessage` that was processed
     pub id: Option<String>,
     /// The text that didn't match any intent
-    pub text: String,
+    pub input: String,
 }
 
 impl HermesMessage for NluIntentNotRecognizedMessage {}
@@ -395,7 +395,7 @@ impl HermesMessage for StartSessionMessage {}
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct SessionStartedMessage {
     /// The id of the session that was started
-    pub id: String,
+    pub session_id: String,
     /// An optional piece of data that will be given back in `IntentMessage` and
     /// `SessionAbortedMessage` that are related to this session
     #[serde(rename = "customData")]
