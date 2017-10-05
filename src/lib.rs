@@ -387,7 +387,11 @@ pub struct StartSessionMessage {
     pub init: SessionInit,
     /// The custom data that was given at the session creation
     #[serde(rename = "customData")]
-    pub custom_data: Option<String>
+    pub custom_data: Option<String>,
+    /// The site where the session should be started, a value of `None` will be interpreted as the
+    /// default one
+    #[serde(rename = "siteId")]
+    pub site_id: Option<String>,
 }
 
 impl HermesMessage for StartSessionMessage {}
