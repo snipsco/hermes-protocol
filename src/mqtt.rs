@@ -43,6 +43,16 @@ impl MqttHandler {
         Ok(())
     }
 
+    pub fn publish_binary_payload(&self, topic: &HermesTopic, payload: Vec<u8>) -> Result<()> {
+        self.mqtt_client.lock().map(|mut c| {
+            let topic = &*topic.as_path();
+            debug!("Publishing as binary on MQTT topic '{}', with size {}", topic, payload.len());
+            c.publish(topic, rumqtt::QoS::Level0, payload)
+        }
+        )??;
+        Ok(())
+    }
+
     pub fn subscribe<F>(&self, topic: &HermesTopic, handler: F) -> Result<()> where F: Fn() -> () + Send + Sync + 'static {
         self.inner_subscribe(topic, move |m| {
             debug!("Received a message on MQTT topic '{}'", &**m.topic);
@@ -143,6 +153,12 @@ macro_rules! s {
         }
     };
 
+    ($n:ident<$t:ty>($($a:ident: $ta:ty),*) $topic:block) => {
+        fn $n(&self, $($a : $ta),*, handler : Callback<$t>) -> Result<()> {
+            self.mqtt_handler.subscribe_payload($topic, move |p| handler.call(p))
+        }
+    };
+
     ($n:ident $topic:expr; ) => {
         fn $n(&self, handler : Callback0) -> Result<()> {
             self.mqtt_handler.subscribe($topic, move || handler.call())
@@ -154,6 +170,12 @@ macro_rules! p {
     ($n:ident<$t:ty> $topic:expr; ) => {
         fn $n(&self, payload : $t) -> Result<()> {
             self.mqtt_handler.publish_payload($topic, payload)
+        }
+    };
+
+    ($n:ident($payload:ident : $t:ty) { $topic:expr } ) => {
+        fn $n(&self, $payload : $t) -> Result<()> {
+            self.mqtt_handler.publish_payload($topic, $payload)
         }
     };
 
@@ -298,37 +320,30 @@ impl NluBackendFacade for MqttComponentFacade {
 }
 
 impl AudioServerFacade for MqttComponentFacade {
-    p!(publish_play_bytes<PlayBytesMessage> &HermesTopic::AudioServer(AudioServerCommand::PlayBytes););
+    s!(subscribe_audio_frame<AudioFrameMessage>(site_id: SiteId) { &HermesTopic::AudioServer(AudioServerCommand::AudioFrame(site_id)) });
+    p!(publish_play_bytes(bytes: PlayBytesMessage) { &HermesTopic::AudioServer(AudioServerCommand::PlayBytes(bytes.site_id.clone(), bytes.id.clone())) });
     s!(subscribe_play_finished<PlayFinishedMessage> &HermesTopic::AudioServer(AudioServerCommand::PlayFinished););
 }
 
 impl AudioServerBackendFacade for MqttComponentFacade {
-    s!(subscribe_play_bytes<PlayBytesMessage> &HermesTopic::AudioServer(AudioServerCommand::PlayBytes););
+    p!(publish_audio_frame(frame: AudioFrameMessage) { &HermesTopic::AudioServer(AudioServerCommand::AudioFrame(frame.site_id.clone())) });
+    s!(subscribe_play_bytes<PlayBytesMessage>(site_id: SiteId) { &HermesTopic::AudioServer(AudioServerCommand::PlayBytes(site_id, "#".into())) });
     p!(publish_play_finished<PlayFinishedMessage> &HermesTopic::AudioServer(AudioServerCommand::PlayFinished););
 }
 
 impl DialogueFacade for MqttToggleableComponentFacade {
     s!(subscribe_session_started<SessionStartedMessage> &HermesTopic::DialogueManager(DialogueManagerCommand::SessionStarted););
-
-    fn subscribe_intent(&self, intent_name: String, handler: Callback<IntentMessage>) -> Result<()> {
-        self.mqtt_handler.subscribe_payload(&HermesTopic::Intent(intent_name), move |p| handler.call(p))
-    }
-
+    s!(subscribe_intent<IntentMessage>(intent_name: String) { &HermesTopic::Intent(intent_name) });
     s!(subscribe_intents<IntentMessage> &HermesTopic::Intent("#".into()););
     s!(subscribe_session_ended<SessionEndedMessage> &HermesTopic::DialogueManager(DialogueManagerCommand::SessionEnded););
     p!(publish_start_session<StartSessionMessage> &HermesTopic::DialogueManager(DialogueManagerCommand::StartSession););
     p!(publish_continue_session<ContinueSessionMessage> &HermesTopic::DialogueManager(DialogueManagerCommand::ContinueSession););
     p!(publish_end_session<EndSessionMessage> &HermesTopic::DialogueManager(DialogueManagerCommand::EndSession););
-
 }
 
 impl DialogueBackendFacade for MqttToggleableComponentFacade {
     p!(publish_session_started<SessionStartedMessage> &HermesTopic::DialogueManager(DialogueManagerCommand::SessionStarted););
-
-    fn publish_intent(&self, intent: IntentMessage) -> Result<()> {
-        self.mqtt_handler.publish_payload(&HermesTopic::Intent(intent.intent.intent_name.clone()), intent)
-    }
-
+    p!(publish_intent(intent: IntentMessage) {&HermesTopic::Intent(intent.intent.intent_name.clone())});
     p!(publish_session_ended<SessionEndedMessage> &HermesTopic::DialogueManager(DialogueManagerCommand::SessionEnded););
     s!(subscribe_start_session<StartSessionMessage> &HermesTopic::DialogueManager(DialogueManagerCommand::StartSession););
     s!(subscribe_continue_session<ContinueSessionMessage> &HermesTopic::DialogueManager(DialogueManagerCommand::ContinueSession););
@@ -477,28 +492,40 @@ impl FromPath<Self> for HermesTopic {
         let asr = AsrCommand::iter().map(HermesTopic::Asr);
         let tts = TtsCommand::iter().map(HermesTopic::Tts);
         let nlu = NluCommand::iter().map(HermesTopic::Nlu);
-        let audio_server = AudioServerCommand::iter().map(HermesTopic::AudioServer);
+        let audio_server = vec![HermesTopic::AudioServer(AudioServerCommand::PlayFinished)];
         let component = ComponentCommand::iter().flat_map(|cmd| {
             Component::iter()
                 .map(|component| HermesTopic::Component(component, cmd))
                 .collect::<Vec<HermesTopic>>()
         });
-        let intent = if let Some(last_component) = path::PathBuf::from(path).components().last() {
-            last_component.as_os_str().to_str()
-                .map(|intent_name| vec![HermesTopic::Intent(intent_name.to_string())])
-                .unwrap_or(vec![])
+        let dialogue_manager = DialogueManagerCommand::iter().map(HermesTopic::DialogueManager);
+        let path_buf = path::PathBuf::from(path);
+        let path_components = path_buf.components()
+            .collect::<Vec<::std::path::Component>>();
+        let parametric1 = if path_components.len() >= 1 {
+            let p = path_components[path_components.len() - 1].as_os_str().to_string_lossy();
+            vec![HermesTopic::Intent(p.to_string()),
+                 HermesTopic::AudioServer(AudioServerCommand::AudioFrame(p.into()))]
         } else {
             vec![]
         };
-
+        let parametric2 = if path_components.len() >= 2 {
+            let p1 = path_components[path_components.len() - 2].as_os_str().to_string_lossy();
+            let p2 = path_components[path_components.len() - 1].as_os_str().to_string_lossy();
+            vec![HermesTopic::AudioServer(AudioServerCommand::PlayBytes(p1.into(), p2.into()))]
+        } else {
+            vec![]
+        };
         feedback
             .chain(hotword)
             .chain(asr)
             .chain(tts)
             .chain(nlu)
             .chain(audio_server)
+            .chain(dialogue_manager)
             .chain(component)
-            .chain(intent)
+            .chain(parametric1)
+            .chain(parametric2)
             .into_iter()
             .find(|p| p.as_path() == path)
     }
@@ -616,11 +643,22 @@ pub enum NluCommand {
 
 impl ToPath for NluCommand {}
 
-#[derive(Debug, Clone, Copy, PartialEq, ToString, EnumIter)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum AudioServerCommand {
-    PlayFile,
-    PlayBytes,
+    AudioFrame(SiteId),
+    PlayBytes(SiteId, String),
     PlayFinished,
+}
+
+impl std::fmt::Display for AudioServerCommand {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        let subpath = match *self {
+            AudioServerCommand::AudioFrame(ref site_id) => format!("audioFrame/{}", site_id),
+            AudioServerCommand::PlayBytes(ref site_id, ref id) => format!("playBytes/{}/{}", site_id, id),
+            AudioServerCommand::PlayFinished => "playFinished".into(),
+        };
+        write!(f, "{}", subpath)
+    }
 }
 
 impl ToPath for AudioServerCommand {}

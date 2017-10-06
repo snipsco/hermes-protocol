@@ -139,12 +139,14 @@ pub trait NluBackendFacade: ComponentBackendFacade {
 pub trait AudioServerFacade: ComponentFacade {
     fn publish_play_bytes(&self, bytes: PlayBytesMessage) -> Result<()>;
     fn subscribe_play_finished(&self, handler: Callback<PlayFinishedMessage>) -> Result<()>;
+    fn subscribe_audio_frame(&self, site_id: SiteId, handler: Callback<AudioFrameMessage>) -> Result<()>;
 }
 
 /// The facade the audio server must use to receive its orders and advertise when it has finished
 pub trait AudioServerBackendFacade: ComponentBackendFacade {
-    fn subscribe_play_bytes(&self, handler: Callback<PlayBytesMessage>) -> Result<()>;
+    fn subscribe_play_bytes(&self, site_id: SiteId, handler: Callback<PlayBytesMessage>) -> Result<()>;
     fn publish_play_finished(&self, status: PlayFinishedMessage) -> Result<()>;
+    fn publish_audio_frame(&self, frame: AudioFrameMessage) -> Result<()>;
 }
 
 /// A generic facade used to interact with a component
@@ -175,7 +177,7 @@ pub trait DialogueFacade: ComponentFacade + ToggleableFacade {
 
 /// The facade the dialogue manager must use to interact with the lambdas
 pub trait DialogueBackendFacade: ComponentBackendFacade + ToggleableBackendFacade {
-    fn publish_session_started(&self, status : SessionStartedMessage) -> Result<()>;
+    fn publish_session_started(&self, status: SessionStartedMessage) -> Result<()>;
     fn publish_intent(&self, intent: IntentMessage) -> Result<()>;
     fn publish_session_ended(&self, status: SessionEndedMessage) -> Result<()>;
     fn subscribe_start_session(&self, handler: Callback<StartSessionMessage>) -> Result<()>;
@@ -202,11 +204,13 @@ pub trait HermesProtocolHandler: Send + Sync {
 
 pub trait HermesMessage: ::std::fmt::Debug {}
 
+pub type SiteId = String;
+
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 pub struct SiteMessage {
-    /// The site concerned, a value of `None` will be interpreted as the default one
+    /// The site concerned
     #[serde(rename = "siteId")]
-    pub site_id: Option<String>,
+    pub site_id: SiteId,
 }
 
 impl HermesMessage for SiteMessage {}
@@ -221,7 +225,7 @@ pub struct TextCapturedMessage {
     pub seconds: f32,
     /// The site where the text was captured
     #[serde(rename = "siteId")]
-    pub site_id: Option<String>,
+    pub site_id: SiteId,
 }
 
 impl HermesMessage for TextCapturedMessage {}
@@ -262,16 +266,31 @@ impl HermesMessage for NluSlotQueryMessage {}
 pub struct PlayBytesMessage {
     /// An id for the request, it will be passed back in the `PlayFinishedMessage`
     pub id: String,
-    /// The bytes of the wav to play
+    /// The bytes of the wav to play (should be a regular wav with header)
+    /// Note that serde json serialization is provided but in practice most handler impl will want
+    /// to avoid the base64 encoding/decoding and give this a special treatment
     #[serde(rename = "wavBytes", serialize_with = "as_base64", deserialize_with = "from_base64")]
     pub wav_bytes: Vec<u8>,
-    /// The site where the bytes should be played, a value of `None` will be interpreted as the
-    /// default one
+    /// The site where the bytes should be played
     #[serde(rename = "siteId")]
-    pub site_id: Option<String>,
+    pub site_id: SiteId,
 }
 
 impl HermesMessage for PlayBytesMessage {}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+pub struct AudioFrameMessage {
+    /// The bytes of the wav frame (should be a regular wav with header)
+    /// Note that serde json serialization is provided but in practice most handler impl will want
+    /// to avoid the base64 encoding/decoding and give this a special treatment
+    #[serde(rename = "wavFrame", serialize_with = "as_base64", deserialize_with = "from_base64")]
+    pub wav_frame: Vec<u8>,
+    /// The site this frame originates from
+    #[serde(rename = "siteId")]
+    pub site_id: SiteId,
+}
+
+impl HermesMessage for AudioFrameMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 pub struct PlayFinishedMessage {
@@ -292,7 +311,7 @@ pub struct SayMessage {
     /// The site where the message should be said, a value of `None` will be interpreted as the
     /// default one
     #[serde(rename = "siteId")]
-    pub site_id: Option<String>,
+    pub site_id: Option<SiteId>,
 }
 
 impl HermesMessage for SayMessage {}
@@ -391,7 +410,7 @@ pub struct StartSessionMessage {
     /// The site where the session should be started, a value of `None` will be interpreted as the
     /// default one
     #[serde(rename = "siteId")]
-    pub site_id: Option<String>,
+    pub site_id: Option<SiteId>,
 }
 
 impl HermesMessage for StartSessionMessage {}

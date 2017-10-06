@@ -13,8 +13,9 @@ struct Handler {
     asr_text_captured: Vec<Callback<TextCapturedMessage>>,
     asr_partial_text_captured: Vec<Callback<TextCapturedMessage>>,
 
-    as_play_bytes: Vec<Callback<PlayBytesMessage>>,
+    as_play_bytes: HashMap<SiteId, Vec<Callback<PlayBytesMessage>>>,
     as_play_finished: Vec<Callback<PlayFinishedMessage>>,
+    as_audio_frame: HashMap<SiteId, Vec<Callback<AudioFrameMessage>>>,
 
     hotword_detected: Vec<Callback<SiteMessage>>,
 
@@ -27,21 +28,15 @@ struct Handler {
     component_version_request: HashMap<ComponentName, Vec<Callback0>>,
     component_version: HashMap<ComponentName, Vec<Callback<VersionMessage>>>,
     component_error: HashMap<ComponentName, Vec<Callback<ErrorMessage>>>,
-    component_version_empty: Vec<Callback<VersionMessage>>,
-    component_error_empty: Vec<Callback<ErrorMessage>>,
 
     tts_say: Vec<Callback<SayMessage>>,
     tts_say_finished: Vec<Callback<SayFinishedMessage>>,
 
     toggle_on: HashMap<ComponentName, Vec<Callback<SiteMessage>>>,
     toggle_off: HashMap<ComponentName, Vec<Callback<SiteMessage>>>,
-    toggle_empty: Vec<Callback<SiteMessage>>,
-    // should always be empty
 
     intent: HashMap<IntentName, Vec<Callback<IntentMessage>>>,
     intents: Vec<Callback<IntentMessage>>,
-    intent_empty: Vec<Callback<IntentMessage>>,
-    // should always be empty
 
     dialogue_start_session: Vec<Callback<StartSessionMessage>>,
     dialogue_continue_session: Vec<Callback<ContinueSessionMessage>>,
@@ -122,7 +117,13 @@ impl HermesProtocolHandler for InProcessHermesProtocolHandler {
 // -
 
 macro_rules! s {
-     ($n:ident<$t:ty> $field:ident) => {
+    ($n:ident<$t:ty>($($a:ident : $ta:ty),*)  { $field:ident[$key:expr;] } ) => {
+        fn $n(&self, $($a : $ta),*, handler : Callback<$t>) -> Result<()> {
+            let key = $key.to_string();
+            self.subscribe_payload(&format!("{}[{}]", &stringify!($field), &key), |h| h.$field.entry(key).or_insert_with(|| vec![]), handler)
+        }
+    };
+    ($n:ident<$t:ty> $field:ident) => {
         fn $n(&self, handler : Callback<$t>) -> Result<()> {
             self.subscribe_payload(stringify!($field), |h| &mut h.$field, handler)
         }
@@ -130,11 +131,19 @@ macro_rules! s {
 }
 
 macro_rules! p {
-    ($n:ident<$t:ty>  $field:ident) => {
+    ($n:ident<$t:ty> $field:ident) => {
         fn $n(&self, payload : $t) -> Result<()> {
-            self.publish_payload(stringify!($field), |h| &h.$field, payload)
+            self.publish_payload(stringify!($field), |h| Some(&h.$field), payload)
         }
     };
+
+    ($n:ident($payload:ident : $t:ty) $field:ident[$key:expr;] ) => {
+        fn $n(&self, $payload : $t) -> Result<()> {
+            let key = $key.to_string();
+            self.publish_payload(&format!("{}[{}]", &stringify!($field), &key), move |h| h.$field.get(&key).map(|it| Some(it)).unwrap_or(None), $payload)
+        }
+    };
+
 }
 
 struct InProcessComponent {
@@ -170,7 +179,7 @@ impl InProcessComponent {
         message: M,
     ) -> Result<()>
         where
-            F: FnOnce(&Handler) -> &Vec<Callback<M>> + Send + 'static,
+            F: FnOnce(&Handler) -> Option<&Vec<Callback<M>>> + Send + 'static,
             M: HermesMessage + Send + 'static,
     {
         debug!(
@@ -184,9 +193,10 @@ impl InProcessComponent {
         thread::spawn(move || {
             let result = _handler
                 .lock()
-                .map(|ref h| for callback in retrieve_callbacks(h) {
-                    callback.call(&message);
-                });
+                .map(|ref h| retrieve_callbacks(h)
+                    .map(|callbacks| for callback in callbacks {
+                        callback.call(&message);
+                    }));
             if let Err(e) = result {
                 error!(
                     "Error while publishing an event with payload: {:#?} : {}",
@@ -283,9 +293,7 @@ impl ComponentBackendFacade for InProcessComponent {
         self.publish_payload(
             "component_version",
             move |h| {
-                h.component_version
-                    .get(&component_name)
-                    .unwrap_or(&h.component_version_empty)
+                h.component_version.get(&component_name)
             },
             version,
         )
@@ -295,9 +303,7 @@ impl ComponentBackendFacade for InProcessComponent {
         self.publish_payload(
             "component_error",
             move |h| {
-                h.component_error
-                    .get(&component_name)
-                    .unwrap_or(&h.component_error_empty)
+                h.component_error.get(&component_name)
             },
             error,
         )
@@ -308,13 +314,13 @@ impl NluFacade for InProcessComponent {
     p!(publish_query<NluQueryMessage> nlu_query);
     p!(publish_partial_query<NluSlotQueryMessage> nlu_partial_query);
     s!(subscribe_slot_parsed<SlotMessage> nlu_slot_parsed);
-    s!(subscribe_intent_parsed<NluIntentMessage> nlu_intent_parsed); 
-    s!(subscribe_intent_not_recognized<NluIntentNotRecognizedMessage> nlu_intent_not_recognized); 
+    s!(subscribe_intent_parsed<NluIntentMessage> nlu_intent_parsed);
+    s!(subscribe_intent_not_recognized<NluIntentNotRecognizedMessage> nlu_intent_not_recognized);
 }
 
 impl NluBackendFacade for InProcessComponent {
-    s!(subscribe_query<NluQueryMessage> nlu_query); 
-    s!(subscribe_partial_query<NluSlotQueryMessage> nlu_partial_query); 
+    s!(subscribe_query<NluQueryMessage> nlu_query);
+    s!(subscribe_partial_query<NluSlotQueryMessage> nlu_partial_query);
     p!(publish_slot_parsed<SlotMessage> nlu_slot_parsed);
     p!(publish_intent_parsed<NluIntentMessage> nlu_intent_parsed);
     p!(publish_intent_not_recognized<NluIntentNotRecognizedMessage> nlu_intent_not_recognized);
@@ -324,13 +330,13 @@ impl ToggleableFacade for InProcessComponent {
     fn publish_toggle_on(&self, site: SiteMessage) -> Result<()> {
         let component_name = self.name.to_string();
         self.publish_payload("toggle_on", move |h| {
-            &h.toggle_on.get(&component_name).unwrap_or(&h.toggle_empty)
+            h.toggle_on.get(&component_name)
         }, site)
     }
     fn publish_toggle_off(&self, site: SiteMessage) -> Result<()> {
         let component_name = self.name.to_string();
         self.publish_payload("toggle_off", move |h| {
-            &h.toggle_off.get(&component_name).unwrap_or(&h.toggle_empty)
+            h.toggle_off.get(&component_name)
         }, site)
     }
 }
@@ -355,7 +361,7 @@ impl ToggleableBackendFacade for InProcessComponent {
 }
 
 impl HotwordFacade for InProcessComponent {
-    s!(subscribe_detected<SiteMessage> hotword_detected); 
+    s!(subscribe_detected<SiteMessage> hotword_detected);
 }
 
 impl HotwordBackendFacade for InProcessComponent {
@@ -367,8 +373,8 @@ impl SoundFeedbackFacade for InProcessComponent {}
 impl SoundFeedbackBackendFacade for InProcessComponent {}
 
 impl AsrFacade for InProcessComponent {
-    s!(subscribe_text_captured<TextCapturedMessage> asr_text_captured); 
-    s!(subscribe_partial_text_captured<TextCapturedMessage> asr_partial_text_captured); 
+    s!(subscribe_text_captured<TextCapturedMessage> asr_text_captured);
+    s!(subscribe_partial_text_captured<TextCapturedMessage> asr_partial_text_captured);
 }
 
 impl AsrBackendFacade for InProcessComponent {
@@ -378,7 +384,7 @@ impl AsrBackendFacade for InProcessComponent {
 
 impl TtsFacade for InProcessComponent {
     p!(publish_say<SayMessage> tts_say);
-    s!(subscribe_say_finished<SayFinishedMessage> tts_say_finished); 
+    s!(subscribe_say_finished<SayFinishedMessage> tts_say_finished);
 }
 
 impl TtsBackendFacade for InProcessComponent {
@@ -387,13 +393,15 @@ impl TtsBackendFacade for InProcessComponent {
 }
 
 impl AudioServerFacade for InProcessComponent {
-    p!(publish_play_bytes<PlayBytesMessage> as_play_bytes);
+    p!(publish_play_bytes(bytes : PlayBytesMessage) as_play_bytes[bytes.site_id;]);
     s!(subscribe_play_finished<PlayFinishedMessage> as_play_finished);
+    s!(subscribe_audio_frame<AudioFrameMessage>(site_id:SiteId) { as_audio_frame[site_id;] });
 }
 
 impl AudioServerBackendFacade for InProcessComponent {
-    s!(subscribe_play_bytes<PlayBytesMessage> as_play_bytes);
+    s!(subscribe_play_bytes<PlayBytesMessage>(site_id:SiteId) { as_play_bytes[site_id;]});
     p!(publish_play_finished<PlayFinishedMessage> as_play_finished);
+    p!(publish_audio_frame(frame:AudioFrameMessage) as_audio_frame[frame.site_id;]);
 }
 
 impl DialogueFacade for InProcessComponent {
@@ -438,11 +446,11 @@ impl DialogueBackendFacade for InProcessComponent {
 
         self.publish_payload(
             &format!("intent_{}", &intent_name),
-            move |h| h.intent.get(&intent_name).unwrap_or(&h.intent_empty),
+            move |h| h.intent.get(&intent_name),
             _intent,
         )?;
 
-        self.publish_payload("intents", move |h| &h.intents, intent)
+        self.publish_payload("intents", move |h| Some(&h.intents), intent)
     }
 
     p!(publish_session_ended<SessionEndedMessage> dialogue_session_ended);
@@ -482,7 +490,7 @@ mod tests {
                     assert_eq!(result.unwrap(), message)
                 }
             };
-         ($name:ident :
+        ($name:ident :
             $s_facade:ident.$s:ident <= $p_facade:ident.$p:ident) => {
                 #[test]
                 fn $name() {
@@ -497,6 +505,24 @@ mod tests {
                     assert!(result.is_ok(), "didn't receive message after one second");
                 }
             };
+        ($name:ident :
+            $s_facade:ident.$s:ident $a:block <= $t:ty | $p_facade:ident.$p:ident
+            with $object:expr;) => {
+                #[test]
+                fn $name() {
+                    let (handler_source, handler_receiver) = create_handlers();
+                    let source = handler_source.$p_facade();
+                    let receiver = handler_receiver.$s_facade();
+                    let (tx, rx) = ::std::sync::mpsc::channel();
+                    let tx = ::std::sync::Mutex::new(tx);
+                    receiver.$s($a, ::Callback::new(move |o: &$t| tx.lock().map(|it| it.send(o.clone())).unwrap().unwrap())).unwrap();
+                    let message = $object;
+                    source.$p(message.clone()).unwrap();
+                    let result = rx.recv_timeout(::std::time::Duration::from_secs(1));
+                    assert!(result.is_ok(), "didn't receive message after one second");
+                    assert_eq!(result.unwrap(), message)
+                }
+            };
     }
 
     macro_rules! t_toggleable {
@@ -505,10 +531,10 @@ mod tests {
                 use super::*;
                 t!(toggle_on_works :
                         $f_back.subscribe_toggle_on <= SiteMessage | $f.publish_toggle_on
-                        with SiteMessage {site_id : Some("some site".into()) };);
+                        with SiteMessage { site_id : "some site".into() };);
                 t!(toggle_off_works :
                         $f_back.subscribe_toggle_off <= SiteMessage | $f.publish_toggle_off
-                        with SiteMessage {site_id : Some("some site".into()) };);
+                        with SiteMessage { site_id : "some site".into() };);
             }
 
         };
@@ -536,7 +562,7 @@ mod tests {
     t_toggleable!(hotword_toggleable : hotword_backend | hotword);
     t!(hotword_detected_works:
             hotword.subscribe_detected <= SiteMessage | hotword_backend.publish_detected
-            with SiteMessage { site_id : Some("some site".into()) };);
+            with SiteMessage { site_id : "some site".into() };);
 
     t_toggleable!(sound_feedback_toggleable : sound_feedback_backend | sound_feedback );
 
@@ -544,10 +570,10 @@ mod tests {
     t_toggleable!(asr_toggleable : asr_backend | asr);
     t!(asr_text_captured_works :
             asr.subscribe_text_captured <= TextCapturedMessage | asr_backend.publish_text_captured
-            with TextCapturedMessage { text : "hello world".into(), likelihood: 0.5, seconds : 4.2, site_id: None };);
+            with TextCapturedMessage { text : "hello world".into(), likelihood: 0.5, seconds : 4.2, site_id: "Some site".into() };);
     t!(asr_partial_text_captured_works :
             asr.subscribe_partial_text_captured <= TextCapturedMessage | asr_backend.publish_partial_text_captured
-            with TextCapturedMessage { text : "hello world".into(), likelihood: 0.5, seconds : 4.2, site_id: None };);
+            with TextCapturedMessage { text : "hello world".into(), likelihood: 0.5, seconds : 4.2, site_id: "Some site".into() };);
 
     t_component!(tts_component : tts_backend | tts);
     t!(tts_say_works :
@@ -581,12 +607,16 @@ mod tests {
 
     t_component!(audio_server_component : audio_server_backend | audio_server);
     t!(audio_server_play_bytes_works :
-            audio_server_backend.subscribe_play_bytes <= PlayBytesMessage | audio_server.publish_play_bytes
-            with PlayBytesMessage { wav_bytes: vec![42; 1000], id: "my id".into(), site_id: None };
+            audio_server_backend.subscribe_play_bytes { "some site".into() } <= PlayBytesMessage | audio_server.publish_play_bytes
+            with PlayBytesMessage { wav_bytes: vec![42; 1000], id: "my id".into(), site_id: "some site".into() };
     );
     t!(audio_server_play_finished_works :
             audio_server.subscribe_play_finished <= PlayFinishedMessage | audio_server_backend.publish_play_finished
             with PlayFinishedMessage { id: "my id".into() };
+    );
+    t!(audio_server_audio_frame_works :
+            audio_server.subscribe_audio_frame { "some site".into() } <= AudioFrameMessage | audio_server_backend.publish_audio_frame
+            with AudioFrameMessage { wav_frame: vec![42; 1000], site_id: "some site".into() };
     );
 
     t_component!(dialogue_component : dialogue_backend | dialogue);
@@ -602,12 +632,11 @@ mod tests {
             with SessionEndedMessage { session_id: "some id".into(), custom_data : None, aborted : None };);
     t!(dialogue_start_session_works:
             dialogue_backend.subscribe_start_session <= StartSessionMessage | dialogue.publish_start_session
-            with StartSessionMessage { init: SessionInit::User, custom_data : None };);
+            with StartSessionMessage { init: SessionInit::User, custom_data : None, site_id: None };);
     t!(dialogue_continue_session_works:
             dialogue_backend.subscribe_continue_session <= ContinueSessionMessage | dialogue.publish_continue_session
             with ContinueSessionMessage { session_id: "some id".into(), action : SessionAction { text : "some text".into(), expect_response : false, intent_filter : None } };);
     t!(dialogue_end_session_works:
             dialogue_backend.subscribe_end_session <= EndSessionMessage | dialogue.publish_end_session
             with EndSessionMessage { session_id: "some id".into() };);
-
 }
