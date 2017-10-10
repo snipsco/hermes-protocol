@@ -78,6 +78,25 @@ impl MqttHandler {
         })
     }
 
+    pub fn subscribe_binary_payload<F>(&self, topic: &HermesTopic, handler: F) -> Result<()>
+        where F: Fn(&HermesTopic, &[u8]) -> () + Send + Sync + 'static{
+        self.inner_subscribe(topic, move |m| {
+            debug!("Received a message on MQTT topic '{}', payload : {}", &**m.topic, if m.payload.len() < 2048 {
+                String::from_utf8_lossy(&m.payload).to_string()
+            } else {
+                format!("size = {}, start = {}", m.payload.len(), String::from_utf8_lossy(&m.payload[0..128]))
+            });
+            trace!("Payload : {}", String::from_utf8_lossy(&m.payload));
+            let topic = HermesTopic::from_path(&**m.topic);
+            if let Some(topic) = topic {
+                handler(&topic, &m.payload)
+            } else {
+                 error!("could not parse topic : {}", &**m.topic)
+            }
+
+        })
+    }
+
     fn inner_subscribe<F>(&self, topic: &HermesTopic, callback: F) -> Result<()> where F: Fn(&::rumqtt::Message) -> () + Send + Sync + 'static {
         let topic_name = Arc::new(topic.as_path());
         let s_topic_name = Arc::clone(&topic_name);
@@ -166,6 +185,14 @@ macro_rules! s {
     };
 }
 
+macro_rules! s_bin {
+    ($n:ident<$t:ty>($($a:ident: $ta:ty),*) $topic:block |$rt:ident, $p:ident| $decoder:block) => {
+        fn $n(&self, $($a : $ta),*, handler : Callback<$t>) -> Result<()> {
+            self.mqtt_handler.subscribe_binary_payload($topic, move |$rt, $p| handler.call(&$decoder))
+        }
+    };
+}
+
 macro_rules! p {
     ($n:ident<$t:ty> $topic:expr; ) => {
         fn $n(&self, payload : $t) -> Result<()> {
@@ -173,7 +200,7 @@ macro_rules! p {
         }
     };
 
-    ($n:ident($payload:ident : $t:ty) { $topic:expr } ) => {
+    ($n:ident($payload:ident : $t:ty) $topic:block ) => {
         fn $n(&self, $payload : $t) -> Result<()> {
             self.mqtt_handler.publish_payload($topic, $payload)
         }
@@ -182,6 +209,14 @@ macro_rules! p {
     ($n:ident $topic:expr; ) => {
         fn $n(&self) -> Result<()> {
             self.mqtt_handler.publish($topic)
+        }
+    };
+}
+
+macro_rules! p_bin {
+    ($n:ident($payload:ident : $t:ty) $topic:block $bytes:block ) => {
+        fn $n(&self, $payload : $t) -> Result<()> {
+            self.mqtt_handler.publish_binary_payload($topic, $bytes)
         }
     };
 }
@@ -320,14 +355,32 @@ impl NluBackendFacade for MqttComponentFacade {
 }
 
 impl AudioServerFacade for MqttComponentFacade {
-    s!(subscribe_audio_frame<AudioFrameMessage>(site_id: SiteId) { &HermesTopic::AudioServer(AudioServerCommand::AudioFrame(site_id)) });
-    p!(publish_play_bytes(bytes: PlayBytesMessage) { &HermesTopic::AudioServer(AudioServerCommand::PlayBytes(bytes.site_id.clone(), bytes.id.clone())) });
+    s_bin!(subscribe_audio_frame<AudioFrameMessage>(site_id: SiteId) { &HermesTopic::AudioServer(AudioServerCommand::AudioFrame(site_id)) }
+            |topic, bytes| {
+                if let &HermesTopic::AudioServer(AudioServerCommand::AudioFrame(ref site_id)) = topic {
+                    AudioFrameMessage { site_id : site_id.to_owned(), wav_frame : bytes.into() }
+                } else {
+                    unreachable!()
+                }
+            });
+    p_bin!(publish_play_bytes(bytes: PlayBytesMessage)
+        { &HermesTopic::AudioServer(AudioServerCommand::PlayBytes(bytes.site_id, bytes.id)) }
+        { bytes.wav_bytes });
     s!(subscribe_play_finished<PlayFinishedMessage> &HermesTopic::AudioServer(AudioServerCommand::PlayFinished););
 }
 
 impl AudioServerBackendFacade for MqttComponentFacade {
-    p!(publish_audio_frame(frame: AudioFrameMessage) { &HermesTopic::AudioServer(AudioServerCommand::AudioFrame(frame.site_id.clone())) });
-    s!(subscribe_play_bytes<PlayBytesMessage>(site_id: SiteId) { &HermesTopic::AudioServer(AudioServerCommand::PlayBytes(site_id, "#".into())) });
+    p_bin!(publish_audio_frame(frame: AudioFrameMessage)
+        { &HermesTopic::AudioServer(AudioServerCommand::AudioFrame(frame.site_id)) }
+        { frame.wav_frame });
+    s_bin!(subscribe_play_bytes<PlayBytesMessage>(site_id: SiteId) { &HermesTopic::AudioServer(AudioServerCommand::PlayBytes(site_id, "#".into())) }
+            |topic, bytes| {
+                if let &HermesTopic::AudioServer(AudioServerCommand::PlayBytes(ref site_id, ref id)) = topic {
+                    PlayBytesMessage { site_id : site_id.to_owned(), id : id.to_owned(), wav_bytes : bytes.into() }
+                } else {
+                    unreachable!()
+                }
+            });
     p!(publish_play_finished<PlayFinishedMessage> &HermesTopic::AudioServer(AudioServerCommand::PlayFinished););
 }
 
