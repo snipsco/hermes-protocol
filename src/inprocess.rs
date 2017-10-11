@@ -623,7 +623,7 @@ mod tests {
     t_toggleable!(dialogue_toggleable : dialogue_backend | dialogue);
     t!(dialogue_session_started_works:
             dialogue.subscribe_session_started <= SessionStartedMessage | dialogue_backend.publish_session_started
-            with SessionStartedMessage { session_id: "some id".into(), custom_data : None };);
+            with SessionStartedMessage { session_id: "some id".into(), custom_data : None, site_id: "some site".into() };);
     t!(dialogue_intent_works:
             dialogue.subscribe_intents <= IntentMessage | dialogue_backend.publish_intent
             with IntentMessage { session_id: "some id".into(), custom_data : None,  input : "hello world".into(), intent : IntentClassifierResult { intent_name : "my intent".into(), probability : 0.73 }, slots: None  };);

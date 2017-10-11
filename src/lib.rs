@@ -422,7 +422,9 @@ pub struct SessionStartedMessage {
     /// An optional piece of data that will be given back in `IntentMessage` and
     /// `SessionAbortedMessage` that are related to this session
     #[serde(rename = "customData")]
-    pub custom_data: Option<String>
+    pub custom_data: Option<String>,
+    /// The site on which this session was started
+    pub site_id: SiteId
 }
 
 impl HermesMessage for SessionStartedMessage {}
