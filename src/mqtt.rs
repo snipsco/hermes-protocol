@@ -341,7 +341,7 @@ impl TtsBackendFacade for MqttComponentFacade {
 impl NluFacade for MqttComponentFacade {
     p!(publish_query<NluQueryMessage> &HermesTopic::Nlu(NluCommand::Query););
     p!(publish_partial_query<NluSlotQueryMessage> &HermesTopic::Nlu(NluCommand::PartialQuery););
-    s!(subscribe_slot_parsed<SlotMessage> &HermesTopic::Nlu(NluCommand::SlotParsed););
+    s!(subscribe_slot_parsed<NluSlotMessage> &HermesTopic::Nlu(NluCommand::SlotParsed););
     s!(subscribe_intent_parsed<NluIntentMessage> &HermesTopic::Nlu(NluCommand::IntentParsed););
     s!(subscribe_intent_not_recognized<NluIntentNotRecognizedMessage> &HermesTopic::Nlu(NluCommand::IntentNotRecognized););
 }
@@ -349,7 +349,7 @@ impl NluFacade for MqttComponentFacade {
 impl NluBackendFacade for MqttComponentFacade {
     s!(subscribe_query<NluQueryMessage> &HermesTopic::Nlu(NluCommand::Query););
     s!(subscribe_partial_query<NluSlotQueryMessage> &HermesTopic::Nlu(NluCommand::PartialQuery););
-    p!(publish_slot_parsed<SlotMessage> &HermesTopic::Nlu(NluCommand::SlotParsed););
+    p!(publish_slot_parsed<NluSlotMessage> &HermesTopic::Nlu(NluCommand::SlotParsed););
     p!(publish_intent_parsed<NluIntentMessage> &HermesTopic::Nlu(NluCommand::IntentParsed););
     p!(publish_intent_not_recognized<NluIntentNotRecognizedMessage> &HermesTopic::Nlu(NluCommand::IntentNotRecognized););
 }

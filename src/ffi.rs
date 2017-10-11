@@ -184,7 +184,7 @@ pub struct CSlotMessage {
 }
 
 impl CSlotMessage {
-    pub fn from(input: ::SlotMessage) -> Result<Self> {
+    pub fn from(input: ::NluSlotMessage) -> Result<Self> {
         Ok(Self {
             slot: if let Some(s) = input.slot {
                 Box::into_raw(Box::new(CSlot::from(s)?)) as *const CSlot

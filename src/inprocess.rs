@@ -21,7 +21,7 @@ struct Handler {
 
     nlu_query: Vec<Callback<NluQueryMessage>>,
     nlu_partial_query: Vec<Callback<NluSlotQueryMessage>>,
-    nlu_slot_parsed: Vec<Callback<SlotMessage>>,
+    nlu_slot_parsed: Vec<Callback<NluSlotMessage>>,
     nlu_intent_parsed: Vec<Callback<NluIntentMessage>>,
     nlu_intent_not_recognized: Vec<Callback<NluIntentNotRecognizedMessage>>,
 
@@ -313,7 +313,7 @@ impl ComponentBackendFacade for InProcessComponent {
 impl NluFacade for InProcessComponent {
     p!(publish_query<NluQueryMessage> nlu_query);
     p!(publish_partial_query<NluSlotQueryMessage> nlu_partial_query);
-    s!(subscribe_slot_parsed<SlotMessage> nlu_slot_parsed);
+    s!(subscribe_slot_parsed<NluSlotMessage> nlu_slot_parsed);
     s!(subscribe_intent_parsed<NluIntentMessage> nlu_intent_parsed);
     s!(subscribe_intent_not_recognized<NluIntentNotRecognizedMessage> nlu_intent_not_recognized);
 }
@@ -321,7 +321,7 @@ impl NluFacade for InProcessComponent {
 impl NluBackendFacade for InProcessComponent {
     s!(subscribe_query<NluQueryMessage> nlu_query);
     s!(subscribe_partial_query<NluSlotQueryMessage> nlu_partial_query);
-    p!(publish_slot_parsed<SlotMessage> nlu_slot_parsed);
+    p!(publish_slot_parsed<NluSlotMessage> nlu_slot_parsed);
     p!(publish_intent_parsed<NluIntentMessage> nlu_intent_parsed);
     p!(publish_intent_not_recognized<NluIntentNotRecognizedMessage> nlu_intent_not_recognized);
 }
@@ -595,8 +595,8 @@ mod tests {
             with NluSlotQueryMessage { text : "hello world".into(), intent_name : "my intent".into(), slot_name : "my slot".into(), id : None };
     );
     t!(nlu_slot_parsed_works :
-            nlu.subscribe_slot_parsed <= SlotMessage | nlu_backend.publish_slot_parsed
-            with SlotMessage { id : None, slot : Some(Slot { slot_name : "my slot".into(), raw_value : "value".into(), value : ::snips_queries_ontology::SlotValue::Custom("my slot".into()), range : None, entity : "entity".into() }) };
+            nlu.subscribe_slot_parsed <= NluSlotMessage | nlu_backend.publish_slot_parsed
+            with NluSlotMessage { id : None, input: "some input".into(), intent : "some intent".into(), slot : Some(Slot { slot_name : "my slot".into(), raw_value : "value".into(), value : ::snips_queries_ontology::SlotValue::Custom("my slot".into()), range : None, entity : "entity".into() }) };
     );
     t!(nlu_intent_parsed_works :
             nlu.subscribe_intent_parsed <= NluIntentMessage | nlu_backend.publish_intent_parsed

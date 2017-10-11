@@ -120,7 +120,7 @@ pub trait TtsBackendFacade: ComponentBackendFacade {
 pub trait NluFacade: ComponentFacade {
     fn publish_query(&self, query: NluQueryMessage) -> Result<()>;
     fn publish_partial_query(&self, query: NluSlotQueryMessage) -> Result<()>;
-    fn subscribe_slot_parsed(&self, handler: Callback<SlotMessage>) -> Result<()>;
+    fn subscribe_slot_parsed(&self, handler: Callback<NluSlotMessage>) -> Result<()>;
     fn subscribe_intent_parsed(&self, handler: Callback<NluIntentMessage>) -> Result<()>;
     fn subscribe_intent_not_recognized(&self, handler: Callback<NluIntentNotRecognizedMessage>) -> Result<()>;
 }
@@ -130,7 +130,7 @@ pub trait NluFacade: ComponentFacade {
 pub trait NluBackendFacade: ComponentBackendFacade {
     fn subscribe_query(&self, handler: Callback<NluQueryMessage>) -> Result<()>;
     fn subscribe_partial_query(&self, handler: Callback<NluSlotQueryMessage>) -> Result<()>;
-    fn publish_slot_parsed(&self, slot: SlotMessage) -> Result<()>;
+    fn publish_slot_parsed(&self, slot: NluSlotMessage) -> Result<()>;
     fn publish_intent_parsed(&self, intent: NluIntentMessage) -> Result<()>;
     fn publish_intent_not_recognized(&self, status: NluIntentNotRecognizedMessage) -> Result<()>;
 }
@@ -325,14 +325,18 @@ pub struct SayFinishedMessage {
 impl HermesMessage for SayFinishedMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
-pub struct SlotMessage {
+pub struct NluSlotMessage {
     /// The id of the `NluSlotQueryMessage` that was processed
     pub id: Option<String>,
+    /// The input that was processed
+    pub input: String,
+    /// The intent used to find the slot
+    pub intent: String,
     /// The resulting slot, if found
     pub slot: Option<Slot>,
 }
 
-impl HermesMessage for SlotMessage {}
+impl HermesMessage for NluSlotMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 pub struct NluIntentNotRecognizedMessage {
