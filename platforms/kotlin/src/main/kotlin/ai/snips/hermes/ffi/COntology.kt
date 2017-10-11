@@ -37,8 +37,10 @@ class CIntentNotRecognizedMessage(p: Pointer) : Structure(p), Structure.ByRefere
 
     @JvmField
     var input: Pointer? = null
+    @JvmField
+    var id: Pointer? = null
 
-    override fun getFieldOrder() = listOf("input")
+    override fun getFieldOrder() = listOf("input", "id")
 
-    fun toIntentNotRecognizedMessage() = IntentNotRecognizedMessage(input = input.readString())
+    fun toIntentNotRecognizedMessage() = IntentNotRecognizedMessage(input = input.readString(), id = id?.readString())
 }

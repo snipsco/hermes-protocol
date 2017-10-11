@@ -35,16 +35,14 @@ impl Drop for CTextCapturedMessage {
 #[derive(Debug)]
 pub struct CNluQueryMessage {
     pub text: *const libc::c_char,
-    pub likelihood: f32,
-    pub seconds: f32,
+    pub id: *const libc::c_char,
 }
 
 impl CNluQueryMessage {
     pub fn from(input: ::NluQueryMessage) -> Result<Self> {
         Ok(Self {
             text: CString::new(input.text)?.into_raw(),
-            likelihood: input.likelihood.unwrap_or(0.0),
-            seconds: input.seconds.unwrap_or(0.0),
+            id: if let Some(id) = input.id { CString::new(id)?.into_raw()} else { null() },
         })
     }
 }
@@ -52,6 +50,9 @@ impl CNluQueryMessage {
 impl Drop for CNluQueryMessage {
     fn drop(&mut self) {
         let _ = unsafe { CString::from_raw(self.text as *mut libc::c_char) };
+        if !self.id.is_null() {
+            let _ = unsafe { CString::from_raw(self.id as *mut libc::c_char) };
+        }
     }
 }
 
@@ -59,8 +60,7 @@ impl Drop for CNluQueryMessage {
 #[derive(Debug)]
 pub struct CNluSlotQueryMessage {
     pub text: *const libc::c_char,
-    pub likelihood: f32,
-    pub seconds: f32,
+    pub id: *const libc::c_char,
     pub intent_name: *const libc::c_char,
     pub slot_name: *const libc::c_char,
 }
@@ -69,8 +69,7 @@ impl CNluSlotQueryMessage {
     pub fn from(input: ::NluSlotQueryMessage) -> Result<Self> {
         Ok(Self {
             text: CString::new(input.text)?.into_raw(),
-            likelihood: input.likelihood,
-            seconds: input.seconds,
+            id: if let Some(id) = input.id { CString::new(id)?.into_raw()} else { null() },
             intent_name: CString::new(input.intent_name)?.into_raw(),
             slot_name: CString::new(input.slot_name)?.into_raw(),
         })
@@ -82,26 +81,9 @@ impl Drop for CNluSlotQueryMessage {
         let _ = unsafe { CString::from_raw(self.text as *mut libc::c_char) };
         let _ = unsafe { CString::from_raw(self.intent_name as *mut libc::c_char) };
         let _ = unsafe { CString::from_raw(self.slot_name as *mut libc::c_char) };
-    }
-}
-
-#[repr(C)]
-#[derive(Debug)]
-pub struct CPlayFileMessage {
-    pub file_path: *const libc::c_char,
-}
-
-impl CPlayFileMessage {
-    pub fn from(input: ::PlayFileMessage) -> Result<Self> {
-        Ok(Self {
-            file_path: CString::new(input.file_path)?.into_raw(),
-        })
-    }
-}
-
-impl Drop for CPlayFileMessage {
-    fn drop(&mut self) {
-        let _ = unsafe { CString::from_raw(self.file_path as *mut libc::c_char) };
+        if !self.id.is_null() {
+            let _ = unsafe { CString::from_raw(self.id as *mut libc::c_char) };
+        }
     }
 }
 
@@ -206,20 +188,25 @@ impl Drop for CSlotMessage {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CIntentNotRecognizedMessage {
-    pub text: *const libc::c_char,
+    pub input: *const libc::c_char,
+    pub id : *const libc::c_char,
 }
 
 impl CIntentNotRecognizedMessage {
     pub fn from(input: ::NluIntentNotRecognizedMessage) -> Result<Self> {
         Ok(Self {
-            text: CString::new(input.text)?.into_raw(),
+            input: CString::new(input.input)?.into_raw(),
+            id: if let Some(id) = input.id { CString::new(id)?.into_raw()} else { null() },
         })
     }
 }
 
 impl Drop for CIntentNotRecognizedMessage {
     fn drop(&mut self) {
-        let _ = unsafe { CString::from_raw(self.text as *mut libc::c_char) };
+        let _ = unsafe { CString::from_raw(self.input as *mut libc::c_char) };
+        if !self.id.is_null() {
+            let _ = unsafe { CString::from_raw(self.id as *mut libc::c_char) };
+        }
     }
 }
 
