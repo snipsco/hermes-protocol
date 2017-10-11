@@ -453,6 +453,21 @@ pub struct EndSessionMessage {
 impl HermesMessage for EndSessionMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[serde(tag = "type")]
+pub enum SessionTerminationType {
+    /// The session ended as expected
+    Nominal,
+    /// Dialogue was deactivated on the site the session requested
+    SiteUnavailable,
+    /// The user aborted the session
+    AbortedByUser,
+    /// No response was received from one of the components in a timely manner
+    Timeout,
+    /// A generic error occurred
+    Error{ error : String },
+}
+
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct SessionEndedMessage {
     /// The id of the session that was terminated
     #[serde(rename = "sessionId")]
@@ -460,8 +475,8 @@ pub struct SessionEndedMessage {
     /// The custom data that was given at the session creation
     #[serde(rename = "customData")]
     pub custom_data: Option<String>,
-    /// Set to true if the session was aborted by the used
-    pub aborted: Option<bool>,
+    /// How the session was ended
+    pub termination: SessionTerminationType,
 }
 
 impl HermesMessage for SessionEndedMessage {}
