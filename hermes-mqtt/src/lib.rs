@@ -1,3 +1,13 @@
+extern crate hermes;
+#[macro_use]
+extern crate log;
+extern crate rumqtt;
+extern crate serde;
+extern crate serde_json;
+extern crate strum;
+#[macro_use]
+extern crate strum_macros;
+
 use strum::IntoEnumIterator;
 
 use std::collections::HashMap;
@@ -6,9 +16,7 @@ use std::string::ToString;
 use std::sync::Arc;
 use std::sync::Mutex;
 
-use super::*;
-
-use errors::*;
+use hermes::*;
 
 struct MqttHandler {
     pub callbacks: Arc<Mutex<HashMap<String, Box<Fn(&rumqtt::Message) -> () + Send + Sync>>>>,
@@ -21,9 +29,8 @@ impl MqttHandler {
         self.mqtt_client.lock().map(|mut c| {
             let topic = &*topic.as_path();
             debug!("Publishing on MQTT topic '{}'", topic);
-            c.publish(topic, rumqtt::QoS::Level0, vec![]
-            )
-        })??;
+            c.publish(topic, rumqtt::QoS::Level0, vec![])
+        })?.chain_err(|| "Could not publish on MQTT")?;
         Ok(())
     }
 
@@ -39,7 +46,7 @@ impl MqttHandler {
                 trace!("Payload : {}", String::from_utf8_lossy(&p));
                 c.publish(topic, rumqtt::QoS::Level0, p)
             }
-            ))???;
+            ))??.chain_err(|| "Could not publish on MQTT")?;
         Ok(())
     }
 
@@ -49,7 +56,7 @@ impl MqttHandler {
             debug!("Publishing as binary on MQTT topic '{}', with size {}", topic, payload.len());
             c.publish(topic, rumqtt::QoS::Level0, payload)
         }
-        )??;
+        )?.chain_err(|| "Could not publish on MQTT")?;
         Ok(())
     }
 
@@ -79,7 +86,7 @@ impl MqttHandler {
     }
 
     pub fn subscribe_binary_payload<F>(&self, topic: &HermesTopic, handler: F) -> Result<()>
-        where F: Fn(&HermesTopic, &[u8]) -> () + Send + Sync + 'static{
+        where F: Fn(&HermesTopic, &[u8]) -> () + Send + Sync + 'static {
         self.inner_subscribe(topic, move |m| {
             debug!("Received a message on MQTT topic '{}', payload : {}", &**m.topic, if m.payload.len() < 2048 {
                 String::from_utf8_lossy(&m.payload).to_string()
@@ -91,9 +98,8 @@ impl MqttHandler {
             if let Some(topic) = topic {
                 handler(&topic, &m.payload)
             } else {
-                 error!("could not parse topic : {}", &**m.topic)
+                error!("could not parse topic : {}", &**m.topic)
             }
-
         })
     }
 
@@ -101,7 +107,8 @@ impl MqttHandler {
         let topic_name = Arc::new(topic.as_path());
         let s_topic_name = Arc::clone(&topic_name);
         if topic_name.contains("+") || topic_name.contains("#") {
-            let topic_filter = rumqtt::TopicFilter::new(topic.to_string())?;
+            let topic_filter = rumqtt::TopicFilter::new(topic.to_string())
+                .chain_err(|| format!("Not a valid topic : {}", topic))?;
             self.callbacks_wildcard.lock().map(|mut c| {
                 c.push((topic_filter, Box::new(callback)))
             })?;
@@ -110,8 +117,9 @@ impl MqttHandler {
                 c.insert(topic.to_string(), Box::new(callback))
             })?;
         }
-        self.mqtt_client.lock().map(|mut c| c.subscribe(vec![(&s_topic_name,
-                                                              rumqtt::QoS::Level0)]))??;
+        self.mqtt_client.lock()
+            .map(|mut c| c.subscribe(vec![(&s_topic_name, rumqtt::QoS::Level0)]))?
+            .chain_err(|| "Could not subscribe on MQTT")?;
         debug!("Subscribed on MQTT topic '{}'", topic_name);
         Ok(())
     }
@@ -155,9 +163,10 @@ impl MqttHermesProtocolHandler {
                 error!("Could not get a lock on callbacks, message on topic '{}' dropped: {:?}", &**message.topic, e)
             })
         });
+        let mqtt_client = rumqtt::MqttClient::start(client_options, Some(mqtt_callback))
+            .chain_err(|| "Could not start MQTT client")?;
 
-        let mqtt_client = Mutex::new(rumqtt::MqttClient::start(client_options,
-                                                               Some(mqtt_callback))?);
+        let mqtt_client = Mutex::new(mqtt_client);
 
         let mqtt_handler = Arc::new(MqttHandler { callbacks, callbacks_wildcard, mqtt_client });
 

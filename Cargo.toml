@@ -6,22 +6,14 @@ authors = [
     "Thibaut Lorrain <thibaut.lorrain@snips.ai"
 ]
 
-[features]
-default = []
-mqtt = ["log", "rumqtt", "strum", "strum_macros"]
-inprocess = ["log"]
-ffi = ["libc", "snips-queries-ontology/ffi"]
-
 [dependencies]
 base64 = "0.6"
 error-chain = { version = "0.11", default-features = false }
-libc = { version = "0.2", optional = true }
-log = { version = "0.3", optional = true }
 snips-queries-ontology = { git = "ssh://git@github.com/snipsco/snips-queries-ontology.git", tag = "0.4.4" }
-rumqtt = { git = "https://github.com/snipsco/rumqtt.git", rev = "955e7ce1", optional = true }
 semver = { version = "0.7", features = ["serde"] }
 serde = "1.0"
 serde_derive = "1.0"
 serde_json = "1.0"
-strum = { version = "0.6", optional = true }
-strum_macros = { version = "0.6", optional = true }
+
+[workspace]
+members = [ "hermes-ffi", "hermes-mqtt", "hermes-inprocess" ]

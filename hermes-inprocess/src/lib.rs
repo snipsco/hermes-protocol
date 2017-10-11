@@ -1,9 +1,12 @@
+extern crate hermes;
+#[macro_use]
+extern crate log;
+
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::thread;
 
-use super::*;
-use errors::*;
+use hermes::*;
 
 type IntentName = String;
 type ComponentName = String;

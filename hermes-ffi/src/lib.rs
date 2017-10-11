@@ -1,10 +1,13 @@
+extern crate hermes;
+extern crate libc;
+extern crate snips_queries_ontology;
+
 use std::ffi::CString;
 use std::slice;
 use std::ptr::null;
 
-use errors::*;
+use hermes::*;
 
-use libc;
 use snips_queries_ontology::ffi::{CIntentClassifierResult, CSlot, CSlotList};
 
 #[repr(C)]
@@ -15,10 +18,14 @@ pub struct CTextCapturedMessage {
     pub seconds: f32,
 }
 
+macro_rules! convert_to_c_string {
+    ($string:expr) => {CString::new($string).chain_err(||"Could not convert String to C Repr")?.into_raw()};
+}
+
 impl CTextCapturedMessage {
     pub fn from(input: ::TextCapturedMessage) -> Result<Self> {
         Ok(Self {
-            text: CString::new(input.text)?.into_raw(),
+            text: convert_to_c_string!(input.text),
             likelihood: input.likelihood,
             seconds: input.seconds,
         })
@@ -41,8 +48,8 @@ pub struct CNluQueryMessage {
 impl CNluQueryMessage {
     pub fn from(input: ::NluQueryMessage) -> Result<Self> {
         Ok(Self {
-            text: CString::new(input.text)?.into_raw(),
-            id: if let Some(id) = input.id { CString::new(id)?.into_raw()} else { null() },
+            text: convert_to_c_string!(input.text),
+            id: if let Some(id) = input.id { convert_to_c_string!(id)} else { null() },
         })
     }
 }
@@ -68,10 +75,10 @@ pub struct CNluSlotQueryMessage {
 impl CNluSlotQueryMessage {
     pub fn from(input: ::NluSlotQueryMessage) -> Result<Self> {
         Ok(Self {
-            text: CString::new(input.text)?.into_raw(),
-            id: if let Some(id) = input.id { CString::new(id)?.into_raw()} else { null() },
-            intent_name: CString::new(input.intent_name)?.into_raw(),
-            slot_name: CString::new(input.slot_name)?.into_raw(),
+            text: convert_to_c_string!(input.text),
+            id: if let Some(id) = input.id { convert_to_c_string!(id)} else { null() },
+            intent_name: convert_to_c_string!(input.intent_name),
+            slot_name: convert_to_c_string!(input.slot_name),
         })
     }
 }
@@ -98,7 +105,7 @@ pub struct CPlayBytesMessage {
 impl CPlayBytesMessage {
     pub fn from(input: ::PlayBytesMessage) -> Result<Self> {
         Ok(Self {
-            id: CString::new(input.id)?.into_raw(),
+            id: convert_to_c_string!(input.id),
             wav_bytes_len: input.wav_bytes.len() as libc::c_int,
             wav_bytes: Box::into_raw(input.wav_bytes.into_boxed_slice()) as *const u8,
         })
@@ -121,7 +128,7 @@ pub struct CPlayFinishedMessage {
 impl CPlayFinishedMessage {
     pub fn from(input: ::PlayFinishedMessage) -> Result<Self> {
         Ok(Self {
-            id: CString::new(input.id)?.into_raw(),
+            id: convert_to_c_string!(input.id),
         })
     }
 }
@@ -142,9 +149,9 @@ pub struct CSayMessage {
 impl CSayMessage {
     pub fn from(input: ::SayMessage) -> Result<Self> {
         Ok(Self {
-            text: CString::new(input.text)?.into_raw(),
+            text: convert_to_c_string!(input.text),
             lang: if let Some(s) = input.lang {
-                CString::new(s)?.into_raw()
+                convert_to_c_string!(s)
             } else {
                 null()
             },
@@ -169,7 +176,7 @@ impl CSlotMessage {
     pub fn from(input: ::NluSlotMessage) -> Result<Self> {
         Ok(Self {
             slot: if let Some(s) = input.slot {
-                Box::into_raw(Box::new(CSlot::from(s)?)) as *const CSlot
+                Box::into_raw(Box::new(CSlot::from(s).chain_err(|| "Could not transform Slot into C Repr")?)) as *const CSlot
             } else {
                 null()
             },
@@ -195,8 +202,8 @@ pub struct CIntentNotRecognizedMessage {
 impl CIntentNotRecognizedMessage {
     pub fn from(input: ::NluIntentNotRecognizedMessage) -> Result<Self> {
         Ok(Self {
-            input: CString::new(input.input)?.into_raw(),
-            id: if let Some(id) = input.id { CString::new(id)?.into_raw()} else { null() },
+            input: convert_to_c_string!(input.input),
+            id: if let Some(id) = input.id { convert_to_c_string!(id)} else { null() },
         })
     }
 }
@@ -221,10 +228,10 @@ pub struct CIntentMessage {
 impl CIntentMessage {
     pub fn from(input: ::IntentMessage) -> Result<Self> {
         Ok(Self {
-            input: CString::new(input.input)?.into_raw(),
-            intent: Box::into_raw(Box::new(CIntentClassifierResult::from(input.intent)?)),
+            input: convert_to_c_string!(input.input),
+            intent: Box::into_raw(Box::new(CIntentClassifierResult::from(input.intent).chain_err(|| "Could not transform IntentClassifierResult into C Repr")?)),
             slots: if let Some(slots) = input.slots {
-                Box::into_raw(Box::new(CSlotList::from(slots)?)) as *const CSlotList
+                Box::into_raw(Box::new(CSlotList::from(slots).chain_err(|| "Could not transform Slot list into C Repr")?)) as *const CSlotList
             } else {
                 null()
             },
@@ -270,9 +277,9 @@ pub struct CErrorMessage {
 impl CErrorMessage {
     pub fn from(input: ::ErrorMessage) -> Result<Self> {
         Ok(Self {
-            error: CString::new(input.error)?.into_raw(),
+            error: convert_to_c_string!(input.error),
             context: if let Some(s) = input.context {
-                CString::new(s)?.into_raw()
+                convert_to_c_string!(s)
             } else {
                 null()
             },

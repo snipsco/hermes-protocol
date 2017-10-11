@@ -2,37 +2,37 @@ extern crate base64;
 #[macro_use]
 extern crate error_chain;
 extern crate snips_queries_ontology;
-#[cfg(feature = "ffi")]
+/*#[cfg(feature = "ffi")]
 extern crate libc;
 #[cfg(any(feature = "mqtt", feature = "inprocess"))]
 #[macro_use]
 extern crate log;
 #[cfg(feature = "mqtt")]
-extern crate rumqtt;
+extern crate rumqtt;*/
 extern crate semver;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
-#[cfg(feature = "mqtt")]
+/*#[cfg(feature = "mqtt")]
 extern crate strum;
 #[cfg(feature = "mqtt")]
 #[macro_use]
-extern crate strum_macros;
+extern crate strum_macros;*/
 
 mod errors;
-#[cfg(feature = "mqtt")]
+/*#[cfg(feature = "mqtt")]
 mod mqtt;
 #[cfg(feature = "inprocess")]
 mod inprocess;
 #[cfg(feature = "ffi")]
-pub mod ffi;
+pub mod ffi;*/
 
 pub use errors::*;
-#[cfg(feature = "mqtt")]
+/*#[cfg(feature = "mqtt")]
 pub use mqtt::MqttHermesProtocolHandler;
 #[cfg(feature = "inprocess")]
-pub use inprocess::InProcessHermesProtocolHandler;
+pub use inprocess::InProcessHermesProtocolHandler;*/
 
 use snips_queries_ontology::{IntentClassifierResult, Slot};
 

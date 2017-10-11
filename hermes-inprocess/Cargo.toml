@@ -1,0 +1,8 @@
+[package]
+name = "hermes-inprocess"
+version = "0.18.0-SNAPSHOT"
+authors = ["Thibaut Lorrain <thibaut.lorrain@snips.ai>"]
+
+[dependencies]
+hermes = { path = ".." }
+log = "0.3"
