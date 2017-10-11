@@ -578,7 +578,7 @@ mod tests {
     t_component!(tts_component : tts_backend | tts);
     t!(tts_say_works :
             tts_backend.subscribe_say <= SayMessage | tts.publish_say
-            with SayMessage { text: "hello world".into(), lang: None, id: None, site_id: None };
+            with SayMessage { text: "hello world".into(), lang: None, id: None, site_id: "some site".into() };
     );
     t!(tts_say_finished_works :
             tts.subscribe_say_finished <= SayFinishedMessage | tts_backend.publish_say_finished

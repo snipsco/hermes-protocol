@@ -308,10 +308,9 @@ pub struct SayMessage {
     pub lang: Option<String>,
     /// An optional id for the request, it will be passed back in the `SayFinishedMessage`
     pub id: Option<String>,
-    /// The site where the message should be said, a value of `None` will be interpreted as the
-    /// default one
+    /// The site where the message should be said
     #[serde(rename = "siteId")]
-    pub site_id: Option<SiteId>,
+    pub site_id: SiteId,
 }
 
 impl HermesMessage for SayMessage {}
