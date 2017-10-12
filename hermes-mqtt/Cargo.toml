@@ -9,5 +9,5 @@ log = "0.3"
 rumqtt = { git = "https://github.com/snipsco/rumqtt.git", rev = "955e7ce1"}
 serde = "1.0"
 serde_json = "1.0"
-strum = "0.6"
-strum_macros = "0.6"
+strum = "0.8"
+strum_macros = "0.8"
