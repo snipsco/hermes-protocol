@@ -11,7 +11,7 @@ node('jenkins-slave-ec2') {
     }
 
     stage('Build') {
-        sh_ssh "cargo build --all"
+        ssh_sh "cargo build --all"
     }
 
     stage('Test') {
