@@ -185,24 +185,23 @@ impl HermesMessage for IntentMessage {}
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(tag = "from")]
 pub enum SessionInit {
-    /// Interaction was initiated by the user
+    /// Session was initiated by the user
     User,
-    /// Interaction was initiated by a lambda
-    Lambda { action: SessionAction }
-}
+    /// Session was initiated by a lambda, expecting a response from the user. Users responses will
+    /// be provided in the form of `IntentMessage`s
+    LambdaAction {
+        /// The text to say to the user
+        text: String,
+        /// An optional list of intent name to restrict the parsing of the user response to
+        #[serde(rename = "intentFilter")]
+        intent_filter: Option<Vec<String>>,
 
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
-pub struct SessionAction {
-    /// The text to say to the user
-    pub text: String,
-    /// Whether of not the lambda expects the user to respond, if set to `false` the session will
-    /// be closed once the text has been said
-    #[serde(rename = "expectResponse")]
-    pub expect_response: bool,
-    /// An optional list of intent name to restrict the parsing of the user response to. This will
-    /// be ignored if `expect_response` is set to `false`
-    #[serde(rename = "intentFilter")]
-    pub intent_filter: Option<Vec<String>>
+    },
+    /// Session was initiated by a lambda, not expecting a response from the user. The session
+    /// will be closed one the text will be said
+    LambdaNotification {
+        text: String,
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
@@ -229,7 +228,12 @@ pub struct SessionStartedMessage {
     #[serde(rename = "customData")]
     pub custom_data: Option<String>,
     /// The site on which this session was started
-    pub site_id: SiteId
+    pub site_id: SiteId,
+    /// This optional field indicates this session is a reactivation of a previously ended session.
+    /// This is for example provided when the user continues talking to the platform without saying
+    /// the hotword again after a session was ended.
+    #[serde(rename = "reactivatedFromSessionId")]
+    pub reactivated_from_session_id : Option<String>
 }
 
 impl HermesMessage for SessionStartedMessage {}
@@ -239,8 +243,11 @@ pub struct ContinueSessionMessage {
     /// The id of the session this action applies to
     #[serde(rename = "sessionId")]
     pub session_id: String,
-    /// The action to perform
-    pub action: SessionAction,
+    /// The text to say to the user
+    pub text: String,
+    /// An optional list of intent name to restrict the parsing of the user response to
+    #[serde(rename = "intentFilter")]
+    pub intent_filter: Option<Vec<String>>
 }
 
 impl HermesMessage for ContinueSessionMessage {}
@@ -250,6 +257,8 @@ pub struct EndSessionMessage {
     /// The id of the session to end
     #[serde(rename = "sessionId")]
     pub session_id: String,
+    /// An optional text to say to the user before ending the session
+    pub text : Option<String>,
 }
 
 impl HermesMessage for EndSessionMessage {}
@@ -268,7 +277,7 @@ pub enum SessionTerminationType {
     /// No response was received from one of the components in a timely manner
     Timeout,
     /// A generic error occurred
-    Error{ error : String },
+    Error { error : String },
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
