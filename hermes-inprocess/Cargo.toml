@@ -6,3 +6,7 @@ authors = ["Thibaut Lorrain <thibaut.lorrain@snips.ai>"]
 [dependencies]
 hermes = { path = ".." }
 log = "0.3"
+
+[dev-dependencies]
+semver = "0.7"
+snips-queries-ontology = { git = "ssh://git@github.com/snipsco/snips-queries-ontology.git", tag = "0.4.4" }

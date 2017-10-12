@@ -1,6 +1,10 @@
 extern crate hermes;
 #[macro_use]
 extern crate log;
+#[cfg(test)]
+extern crate semver;
+#[cfg(test)]
+extern crate snips_queries_ontology;
 
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
@@ -466,6 +470,8 @@ impl DialogueBackendFacade for InProcessComponent {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    use snips_queries_ontology::*;
 
     use std::rc::Rc;
 
