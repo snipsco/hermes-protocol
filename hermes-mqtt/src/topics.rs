@@ -1,7 +1,6 @@
 use hermes::SiteId;
 
-use std;
-use std::path;
+use std::{fmt, path};
 use strum::IntoEnumIterator;
 
 
@@ -82,8 +81,8 @@ impl FromPath<Self> for HermesTopic {
     }
 }
 
-impl std::fmt::Display for HermesTopic {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+impl fmt::Display for HermesTopic {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let subpath = match *self {
             HermesTopic::Feedback(ref cmd) => format!("feedback/{}", cmd.as_path()),
             HermesTopic::Hotword(ref cmd) => format!("{}/{}", Component::Hotword.as_path(), cmd.as_path()),
@@ -121,8 +120,8 @@ pub enum FeedbackCommand {
 
 impl ToPath for FeedbackCommand {}
 
-impl std::fmt::Display for FeedbackCommand {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+impl fmt::Display for FeedbackCommand {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let subpath = match *self {
             FeedbackCommand::Sound(ref cmd) => format!("sound/{}", cmd.as_path()),
         };
@@ -198,8 +197,8 @@ pub enum AudioServerCommand {
     PlayFinished,
 }
 
-impl std::fmt::Display for AudioServerCommand {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+impl fmt::Display for AudioServerCommand {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let subpath = match *self {
             AudioServerCommand::AudioFrame(ref site_id) => format!("audioFrame/{}", site_id),
             AudioServerCommand::PlayBytes(ref site_id, ref id) => format!("playBytes/{}/{}", site_id, id),

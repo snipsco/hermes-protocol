@@ -6,8 +6,7 @@ use std::ffi::CString;
 use std::slice;
 use std::ptr::null;
 
-use hermes::*;
-
+use hermes::{Result, ResultExt};
 use snips_queries_ontology::ffi::{CIntentClassifierResult, CSlot, CSlotList};
 
 macro_rules! convert_to_c_string {
@@ -47,7 +46,7 @@ pub struct CTextCapturedMessage {
 }
 
 impl CTextCapturedMessage {
-    pub fn from(input: ::TextCapturedMessage) -> Result<Self> {
+    pub fn from(input: hermes::TextCapturedMessage) -> Result<Self> {
         Ok(Self {
             text: convert_to_c_string!(input.text),
             likelihood: input.likelihood,
@@ -70,7 +69,7 @@ pub struct CNluQueryMessage {
 }
 
 impl CNluQueryMessage {
-    pub fn from(input: ::NluQueryMessage) -> Result<Self> {
+    pub fn from(input: hermes::NluQueryMessage) -> Result<Self> {
         Ok(Self {
             input: convert_to_c_string!(input.input),
             id: convert_to_nullable_c_string!(input.id),
@@ -95,7 +94,7 @@ pub struct CNluSlotQueryMessage {
 }
 
 impl CNluSlotQueryMessage {
-    pub fn from(input: ::NluSlotQueryMessage) -> Result<Self> {
+    pub fn from(input: hermes::NluSlotQueryMessage) -> Result<Self> {
         Ok(Self {
             input: convert_to_c_string!(input.input),
             id: convert_to_nullable_c_string!(input.id),
@@ -123,7 +122,7 @@ pub struct CPlayBytesMessage {
 }
 
 impl CPlayBytesMessage {
-    pub fn from(input: ::PlayBytesMessage) -> Result<Self> {
+    pub fn from(input: hermes::PlayBytesMessage) -> Result<Self> {
         Ok(Self {
             id: convert_to_c_string!(input.id),
             wav_bytes_len: input.wav_bytes.len() as libc::c_int,
@@ -146,7 +145,7 @@ pub struct CPlayFinishedMessage {
 }
 
 impl CPlayFinishedMessage {
-    pub fn from(input: ::PlayFinishedMessage) -> Result<Self> {
+    pub fn from(input: hermes::PlayFinishedMessage) -> Result<Self> {
         Ok(Self {
             id: convert_to_c_string!(input.id),
         })
@@ -167,7 +166,7 @@ pub struct CSayMessage {
 }
 
 impl CSayMessage {
-    pub fn from(input: ::SayMessage) -> Result<Self> {
+    pub fn from(input: hermes::SayMessage) -> Result<Self> {
         Ok(Self {
             text: convert_to_c_string!(input.text),
             lang: convert_to_nullable_c_string!(input.lang),
@@ -189,7 +188,7 @@ pub struct CSlotMessage {
 }
 
 impl CSlotMessage {
-    pub fn from(input: ::NluSlotMessage) -> Result<Self> {
+    pub fn from(input: hermes::NluSlotMessage) -> Result<Self> {
         Ok(Self {
             slot: if let Some(s) = input.slot {
                 Box::into_raw(Box::new(CSlot::from(s).chain_err(|| "Could not transform Slot into C Repr")?)) as *const CSlot
@@ -216,7 +215,7 @@ pub struct CIntentNotRecognizedMessage {
 }
 
 impl CIntentNotRecognizedMessage {
-    pub fn from(input: ::NluIntentNotRecognizedMessage) -> Result<Self> {
+    pub fn from(input: hermes::NluIntentNotRecognizedMessage) -> Result<Self> {
         Ok(Self {
             input: convert_to_c_string!(input.input),
             id: convert_to_nullable_c_string!(input.id),
@@ -240,7 +239,7 @@ pub struct CIntentMessage {
 }
 
 impl CIntentMessage {
-    pub fn from(input: ::IntentMessage) -> Result<Self> {
+    pub fn from(input: hermes::IntentMessage) -> Result<Self> {
         Ok(Self {
             input: convert_to_c_string!(input.input),
             intent: Box::into_raw(Box::new(CIntentClassifierResult::from(input.intent).chain_err(|| "Could not transform IntentClassifierResult into C Repr")?)),
@@ -272,7 +271,7 @@ pub struct CVersionMessage {
 }
 
 impl CVersionMessage {
-    pub fn from(input: ::VersionMessage) -> Result<Self> {
+    pub fn from(input: hermes::VersionMessage) -> Result<Self> {
         Ok(Self {
             major: input.version.major,
             minor: input.version.minor,
@@ -289,7 +288,7 @@ pub struct CErrorMessage {
 }
 
 impl CErrorMessage {
-    pub fn from(input: ::ErrorMessage) -> Result<Self> {
+    pub fn from(input: hermes::ErrorMessage) -> Result<Self> {
         Ok(Self {
             error: convert_to_c_string!(input.error),
             context: convert_to_nullable_c_string!(input.context),
