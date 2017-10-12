@@ -605,7 +605,7 @@ mod tests {
     );
     t!(nlu_slot_parsed_works :
             nlu.subscribe_slot_parsed <= NluSlotMessage | nlu_backend.publish_slot_parsed
-            with NluSlotMessage { id : None, input: "some input".into(), intent : "some intent".into(), slot : Some(Slot { slot_name : "my slot".into(), raw_value : "value".into(), value : ::snips_queries_ontology::SlotValue::Custom("my slot".into()), range : None, entity : "entity".into() }) };
+            with NluSlotMessage { id : None, input: "some input".into(), intent_name : "some intent".into(), slot : Some(Slot { slot_name : "my slot".into(), raw_value : "value".into(), value : ::snips_queries_ontology::SlotValue::Custom("my slot".into()), range : None, entity : "entity".into() }) };
     );
     t!(nlu_intent_parsed_works :
             nlu.subscribe_intent_parsed <= NluIntentMessage | nlu_backend.publish_intent_parsed

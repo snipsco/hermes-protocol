@@ -132,7 +132,7 @@ pub struct NluSlotMessage {
     /// The input that was processed
     pub input: String,
     /// The intent used to find the slot
-    pub intent: String,
+    pub intent_name: String,
     /// The resulting slot, if found
     pub slot: Option<Slot>,
 }
