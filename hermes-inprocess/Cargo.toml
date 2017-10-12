@@ -5,6 +5,7 @@ authors = ["Thibaut Lorrain <thibaut.lorrain@snips.ai>"]
 
 [dependencies]
 hermes = { path = ".." }
+hermes-test-suite = { path = "../hermes-test-suite" }
 log = "0.3"
 
 [dev-dependencies]
