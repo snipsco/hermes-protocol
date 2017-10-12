@@ -35,7 +35,7 @@ impl HermesMessage for TextCapturedMessage {}
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 pub struct NluQueryMessage {
     /// The text to run the NLU on
-    pub text: String,
+    pub input: String,
     /// An optional list of intents to restrict the NLU resolution on
     #[serde(rename = "intentFilter")]
     pub intent_filter: Option<Vec<String>>,
@@ -49,7 +49,7 @@ impl HermesMessage for NluQueryMessage {}
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 pub struct NluSlotQueryMessage {
     /// The text to run the slot detection on
-    pub text: String,
+    pub input: String,
     #[serde(rename = "intentName")]
     /// The intent to use when doing the slot detection
     pub intent_name: String,

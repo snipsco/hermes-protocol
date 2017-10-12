@@ -65,14 +65,14 @@ impl Drop for CTextCapturedMessage {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CNluQueryMessage {
-    pub text: *const libc::c_char,
+    pub input: *const libc::c_char,
     pub id: *const libc::c_char,
 }
 
 impl CNluQueryMessage {
     pub fn from(input: ::NluQueryMessage) -> Result<Self> {
         Ok(Self {
-            text: convert_to_c_string!(input.text),
+            input: convert_to_c_string!(input.input),
             id: convert_to_nullable_c_string!(input.id),
         })
     }
@@ -80,7 +80,7 @@ impl CNluQueryMessage {
 
 impl Drop for CNluQueryMessage {
     fn drop(&mut self) {
-        take_back_c_string!(self.text);
+        take_back_c_string!(self.input);
         take_back_nullable_c_string!(self.id);
     }
 }
@@ -88,7 +88,7 @@ impl Drop for CNluQueryMessage {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CNluSlotQueryMessage {
-    pub text: *const libc::c_char,
+    pub input: *const libc::c_char,
     pub id: *const libc::c_char,
     pub intent_name: *const libc::c_char,
     pub slot_name: *const libc::c_char,
@@ -97,7 +97,7 @@ pub struct CNluSlotQueryMessage {
 impl CNluSlotQueryMessage {
     pub fn from(input: ::NluSlotQueryMessage) -> Result<Self> {
         Ok(Self {
-            text: convert_to_c_string!(input.text),
+            input: convert_to_c_string!(input.input),
             id: convert_to_nullable_c_string!(input.id),
             intent_name: convert_to_c_string!(input.intent_name),
             slot_name: convert_to_c_string!(input.slot_name),
@@ -107,7 +107,7 @@ impl CNluSlotQueryMessage {
 
 impl Drop for CNluSlotQueryMessage {
     fn drop(&mut self) {
-        take_back_c_string!(self.text);
+        take_back_c_string!(self.input);
         take_back_nullable_c_string!(self.id);
         take_back_c_string!(self.intent_name);
         take_back_c_string!(self.slot_name);

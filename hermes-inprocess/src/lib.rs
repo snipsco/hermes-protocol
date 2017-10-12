@@ -597,11 +597,11 @@ mod tests {
     t_component!(nlu_component : nlu_backend | nlu);
     t!(nlu_query_works :
             nlu_backend.subscribe_query <= NluQueryMessage | nlu.publish_query
-            with NluQueryMessage { text : "hello world".into(), intent_filter : None, id : None };
+            with NluQueryMessage { input : "hello world".into(), intent_filter : None, id : None };
     );
     t!(nlu_partial_query_works :
             nlu_backend.subscribe_partial_query <= NluSlotQueryMessage | nlu.publish_partial_query
-            with NluSlotQueryMessage { text : "hello world".into(), intent_name : "my intent".into(), slot_name : "my slot".into(), id : None };
+            with NluSlotQueryMessage { input : "hello world".into(), intent_name : "my intent".into(), slot_name : "my slot".into(), id : None };
     );
     t!(nlu_slot_parsed_works :
             nlu.subscribe_slot_parsed <= NluSlotMessage | nlu_backend.publish_slot_parsed
