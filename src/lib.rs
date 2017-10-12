@@ -461,6 +461,8 @@ pub enum SessionTerminationType {
     SiteUnavailable,
     /// The user aborted the session
     AbortedByUser,
+    /// The platform didn't understand was the user said
+    IntentNotRecognized,
     /// No response was received from one of the components in a timely manner
     Timeout,
     /// A generic error occurred
