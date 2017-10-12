@@ -1,9 +1,18 @@
 extern crate hermes;
+#[cfg(test)]
+#[macro_use]
+extern crate hermes_test_suite;
 #[macro_use]
 extern crate log;
+#[cfg(test)]
+extern crate rand;
 extern crate rumqtt;
+#[cfg(test)]
+extern crate semver;
 extern crate serde;
 extern crate serde_json;
+#[cfg(test)]
+extern crate snips_queries_ontology;
 extern crate strum;
 #[macro_use]
 extern crate strum_macros;
@@ -515,3 +524,66 @@ impl HermesProtocolHandler for MqttHermesProtocolHandler {
     }
 }
 
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::process::Command;
+    use std::rc::Rc;
+    use ::HermesProtocolHandler;
+
+    struct ServerHolder {
+        server: ::std::process::Child,
+    }
+
+    struct HandlerHolder {
+        handler: MqttHermesProtocolHandler,
+        server: Rc<ServerHolder>,
+    }
+
+    impl std::ops::Deref for HandlerHolder {
+        type Target = MqttHermesProtocolHandler;
+        fn deref(&self) -> &MqttHermesProtocolHandler {
+            &self.handler
+        }
+    }
+
+    impl Drop for ServerHolder {
+        fn drop(&mut self) {
+            self.server.kill().unwrap();
+        }
+    }
+
+    fn create_handlers() -> (HandlerHolder, HandlerHolder) {
+        let port = ::rand::random::<u16>() | 1024;
+
+
+        let server = Rc::new(ServerHolder {
+            server: Command::new("mosquitto")
+                .arg("-p")
+                .arg(format!("{}", port))
+                .arg("-v")
+                .spawn()
+                .expect("could not start mosquitto"),
+        });
+
+        let server_address = format!("localhost:{}", port);
+
+        ::std::thread::sleep(::std::time::Duration::from_millis(200));
+
+        let handler1 = HandlerHolder {
+            handler : MqttHermesProtocolHandler::new(&server_address).expect("could not create first client"),
+            server : Rc::clone(&server)
+        };
+
+        let handler2 = HandlerHolder {
+            handler : MqttHermesProtocolHandler::new(&server_address).expect("could not create second client"),
+            server : server
+        };
+
+        (handler1, handler2)
+    }
+    //TODO make this work :)
+    //test_suite!();
+
+}

@@ -1,14 +1,13 @@
 extern crate hermes;
+#[cfg(test)]
+#[macro_use]
+extern crate hermes_test_suite;
 #[macro_use]
 extern crate log;
 #[cfg(test)]
 extern crate semver;
 #[cfg(test)]
 extern crate snips_queries_ontology;
-
-#[cfg(test)]
-#[macro_use]
-extern crate hermes_test_suite;
 
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
