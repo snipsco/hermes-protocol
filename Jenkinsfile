@@ -11,11 +11,11 @@ node('jenkins-slave-ec2') {
     }
 
     stage('Build') {
-        sh "ssh-agent sh -c 'ssh-add; cargo build --all-features'"
+        sh "ssh-agent sh -c 'ssh-add; cargo build --all'"
     }
 
     stage('Test') {
-        sh "cargo test --all-features"
+        sh "cargo test --all"
     }
 
     stage('Jar') {
