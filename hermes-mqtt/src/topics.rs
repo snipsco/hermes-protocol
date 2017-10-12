@@ -18,7 +18,7 @@ pub trait ToPath: ToString {
 }
 
 pub trait FromPath<T: Sized> {
-    fn from_path(&str) -> Option<T>;
+    fn from_path(path : &str) -> Option<T>;
 }
 
 #[derive(Debug, Clone, PartialEq)]
