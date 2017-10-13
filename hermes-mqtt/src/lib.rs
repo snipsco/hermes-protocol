@@ -591,5 +591,5 @@ mod tests {
     //test_suite!();
 
 
-    //t_toggleable!(hotword_toggleable : hotword_backend | hotword);
+    t_toggleable!(hotword_toggleable : hotword_backend | hotword);
 }
