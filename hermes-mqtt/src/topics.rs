@@ -144,6 +144,7 @@ pub enum DialogueManagerCommand {
     StartSession,
     ContinueSession,
     EndSession,
+    SessionQueued,
     SessionStarted,
     SessionEnded,
 }

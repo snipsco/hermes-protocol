@@ -404,6 +404,7 @@ impl AudioServerBackendFacade for MqttComponentFacade {
 }
 
 impl DialogueFacade for MqttToggleableComponentFacade {
+    s!(subscribe_session_queued<SessionQueuedMessage> &HermesTopic::DialogueManager(DialogueManagerCommand::SessionQueued););
     s!(subscribe_session_started<SessionStartedMessage> &HermesTopic::DialogueManager(DialogueManagerCommand::SessionStarted););
     s!(subscribe_intent<IntentMessage>(intent_name: String) { &HermesTopic::Intent(intent_name) });
     s!(subscribe_intents<IntentMessage> &HermesTopic::Intent("#".into()););
@@ -414,6 +415,7 @@ impl DialogueFacade for MqttToggleableComponentFacade {
 }
 
 impl DialogueBackendFacade for MqttToggleableComponentFacade {
+    p!(publish_session_queued<SessionQueuedMessage> &HermesTopic::DialogueManager(DialogueManagerCommand::SessionQueued););
     p!(publish_session_started<SessionStartedMessage> &HermesTopic::DialogueManager(DialogueManagerCommand::SessionStarted););
     p!(publish_intent(intent: IntentMessage) {&HermesTopic::Intent(intent.intent.intent_name.clone())});
     p!(publish_session_ended<SessionEndedMessage> &HermesTopic::DialogueManager(DialogueManagerCommand::SessionEnded););
@@ -530,7 +532,6 @@ mod tests {
     use super::*;
     use std::process::Command;
     use std::rc::Rc;
-    use ::HermesProtocolHandler;
 
     struct ServerHolder {
         server: ::std::process::Child,
@@ -538,6 +539,9 @@ mod tests {
 
     struct HandlerHolder {
         handler: MqttHermesProtocolHandler,
+        // this code is not dead, we need this as there is a drop on server holder that will kill
+        // the child process
+        #[allow(dead_code)]
         server: Rc<ServerHolder>,
     }
 
@@ -586,4 +590,6 @@ mod tests {
     //TODO make this work :)
     //test_suite!();
 
+
+    //t_toggleable!(hotword_toggleable : hotword_backend | hotword);
 }

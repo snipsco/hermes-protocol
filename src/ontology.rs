@@ -208,7 +208,9 @@ pub enum SessionInit {
 pub struct StartSessionMessage {
     /// The way this session was created
     pub init: SessionInit,
-    /// The custom data that was given at the session creation
+    /// An optional piece of data that will be given back in `IntentMessage` and
+    /// `SessionQueuedMessage`, `SessionStartedMessage` and `SessionEndedMessage`that are related
+    /// to this session
     #[serde(rename = "customData")]
     pub custom_data: Option<String>,
     /// The site where the session should be started, a value of `None` will be interpreted as the
@@ -223,8 +225,7 @@ impl HermesMessage for StartSessionMessage {}
 pub struct SessionStartedMessage {
     /// The id of the session that was started
     pub session_id: String,
-    /// An optional piece of data that will be given back in `IntentMessage` and
-    /// `SessionAbortedMessage` that are related to this session
+    /// The custom data that was given at the session creation
     #[serde(rename = "customData")]
     pub custom_data: Option<String>,
     /// The site on which this session was started
@@ -237,6 +238,19 @@ pub struct SessionStartedMessage {
 }
 
 impl HermesMessage for SessionStartedMessage {}
+
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+pub struct SessionQueuedMessage {
+    /// The id of the session that was started
+    pub session_id: String,
+    /// The custom data that was given at the session creation
+    #[serde(rename = "customData")]
+    pub custom_data: Option<String>,
+    /// The site on which this session was started
+    pub site_id: SiteId,
+}
+
+impl HermesMessage for SessionQueuedMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct ContinueSessionMessage {

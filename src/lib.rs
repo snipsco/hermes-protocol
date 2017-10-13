@@ -146,6 +146,7 @@ pub trait ComponentBackendFacade: Send + Sync {
 /// The facade to use to interact with the dialogue manager, this is the principal interface that a
 /// lambda should use
 pub trait DialogueFacade: ComponentFacade + ToggleableFacade {
+    fn subscribe_session_queued(&self, handler: Callback<SessionQueuedMessage>) -> Result<()>;
     fn subscribe_session_started(&self, handler: Callback<SessionStartedMessage>) -> Result<()>;
     fn subscribe_intent(&self, intent_name: String, handler: Callback<IntentMessage>) -> Result<()>;
     fn subscribe_intents(&self, handler: Callback<IntentMessage>) -> Result<()>;
@@ -157,6 +158,7 @@ pub trait DialogueFacade: ComponentFacade + ToggleableFacade {
 
 /// The facade the dialogue manager must use to interact with the lambdas
 pub trait DialogueBackendFacade: ComponentBackendFacade + ToggleableBackendFacade {
+    fn publish_session_queued(&self, status: SessionQueuedMessage) -> Result<()>;
     fn publish_session_started(&self, status: SessionStartedMessage) -> Result<()>;
     fn publish_intent(&self, intent: IntentMessage) -> Result<()>;
     fn publish_session_ended(&self, status: SessionEndedMessage) -> Result<()>;

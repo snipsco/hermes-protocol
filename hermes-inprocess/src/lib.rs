@@ -53,6 +53,7 @@ struct Handler {
     dialogue_end_session: Vec<Callback<EndSessionMessage>>,
     dialogue_session_started: Vec<Callback<SessionStartedMessage>>,
     dialogue_session_ended: Vec<Callback<SessionEndedMessage>>,
+    dialogue_session_queued: Vec<Callback<SessionQueuedMessage>>,
 
     empty_0: Vec<Callback0>,
     // should always be empty
@@ -415,6 +416,7 @@ impl AudioServerBackendFacade for InProcessComponent {
 }
 
 impl DialogueFacade for InProcessComponent {
+    s!(subscribe_session_queued<SessionQueuedMessage> dialogue_session_queued);
     s!(subscribe_session_started<SessionStartedMessage> dialogue_session_started);
 
     fn subscribe_intent(
@@ -447,6 +449,7 @@ impl DialogueFacade for InProcessComponent {
 }
 
 impl DialogueBackendFacade for InProcessComponent {
+    p!(publish_session_queued<SessionQueuedMessage> dialogue_session_queued);
     p!(publish_session_started<SessionStartedMessage> dialogue_session_started);
 
     fn publish_intent(&self, intent: IntentMessage) -> Result<()> {
