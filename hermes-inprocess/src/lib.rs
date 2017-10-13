@@ -24,7 +24,7 @@ struct Handler {
     asr_partial_text_captured: Vec<Callback<TextCapturedMessage>>,
 
     as_play_bytes: HashMap<SiteId, Vec<Callback<PlayBytesMessage>>>,
-    as_play_finished: Vec<Callback<PlayFinishedMessage>>,
+    as_play_finished: HashMap<SiteId, Vec<Callback<PlayFinishedMessage>>>,
     as_audio_frame: HashMap<SiteId, Vec<Callback<AudioFrameMessage>>>,
 
     hotword_detected: Vec<Callback<SiteMessage>>,
@@ -405,13 +405,13 @@ impl TtsBackendFacade for InProcessComponent {
 
 impl AudioServerFacade for InProcessComponent {
     p!(publish_play_bytes(bytes : PlayBytesMessage) as_play_bytes[bytes.site_id;]);
-    s!(subscribe_play_finished<PlayFinishedMessage> as_play_finished);
-    s!(subscribe_audio_frame<AudioFrameMessage>(site_id:SiteId) { as_audio_frame[site_id;] });
+    s!(subscribe_play_finished<PlayFinishedMessage>(site_id: SiteId) { as_play_finished[site_id;] });
+    s!(subscribe_audio_frame<AudioFrameMessage>(site_id: SiteId) { as_audio_frame[site_id;] });
 }
 
 impl AudioServerBackendFacade for InProcessComponent {
-    s!(subscribe_play_bytes<PlayBytesMessage>(site_id:SiteId) { as_play_bytes[site_id;]});
-    p!(publish_play_finished<PlayFinishedMessage> as_play_finished);
+    s!(subscribe_play_bytes<PlayBytesMessage>(site_id: SiteId) { as_play_bytes[site_id;] });
+    p!(publish_play_finished(message: PlayFinishedMessage) as_play_finished[message.site_id;]);
     p!(publish_audio_frame(frame:AudioFrameMessage) as_audio_frame[frame.site_id;]);
 }
 

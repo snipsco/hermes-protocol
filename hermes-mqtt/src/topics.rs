@@ -42,7 +42,6 @@ impl FromPath<Self> for HermesTopic {
         let asr = AsrCommand::iter().map(HermesTopic::Asr);
         let tts = TtsCommand::iter().map(HermesTopic::Tts);
         let nlu = NluCommand::iter().map(HermesTopic::Nlu);
-        let audio_server = vec![HermesTopic::AudioServer(AudioServerCommand::PlayFinished)];
         let component = ComponentCommand::iter().flat_map(|cmd| {
             Component::iter()
                 .map(|component| HermesTopic::Component(component, cmd))
@@ -55,7 +54,8 @@ impl FromPath<Self> for HermesTopic {
         let parametric1 = if path_components.len() >= 1 {
             let p = path_components[path_components.len() - 1].as_os_str().to_string_lossy();
             vec![HermesTopic::Intent(p.to_string()),
-                 HermesTopic::AudioServer(AudioServerCommand::AudioFrame(p.into()))]
+                 HermesTopic::AudioServer(AudioServerCommand::AudioFrame(p.to_string())),
+                 HermesTopic::AudioServer(AudioServerCommand::PlayFinished(p.into()))]
         } else {
             vec![]
         };
@@ -71,7 +71,6 @@ impl FromPath<Self> for HermesTopic {
             .chain(asr)
             .chain(tts)
             .chain(nlu)
-            .chain(audio_server)
             .chain(dialogue_manager)
             .chain(component)
             .chain(parametric1)
@@ -195,7 +194,7 @@ impl ToPath for NluCommand {}
 pub enum AudioServerCommand {
     AudioFrame(SiteId),
     PlayBytes(SiteId, String),
-    PlayFinished,
+    PlayFinished(SiteId),
 }
 
 impl fmt::Display for AudioServerCommand {
@@ -203,7 +202,7 @@ impl fmt::Display for AudioServerCommand {
         let subpath = match *self {
             AudioServerCommand::AudioFrame(ref site_id) => format!("audioFrame/{}", site_id),
             AudioServerCommand::PlayBytes(ref site_id, ref id) => format!("playBytes/{}/{}", site_id, id),
-            AudioServerCommand::PlayFinished => "playFinished".into(),
+            AudioServerCommand::PlayFinished(ref site_id) => format!("playFinished/{}", site_id),
         };
         write!(f, "{}", subpath)
     }

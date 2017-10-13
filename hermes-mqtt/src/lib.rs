@@ -385,7 +385,7 @@ impl AudioServerFacade for MqttComponentFacade {
     p_bin!(publish_play_bytes(bytes: PlayBytesMessage)
         { &HermesTopic::AudioServer(AudioServerCommand::PlayBytes(bytes.site_id, bytes.id)) }
         { bytes.wav_bytes });
-    s!(subscribe_play_finished<PlayFinishedMessage> &HermesTopic::AudioServer(AudioServerCommand::PlayFinished););
+    s!(subscribe_play_finished<PlayFinishedMessage>(site_id: SiteId) { &HermesTopic::AudioServer(AudioServerCommand::PlayFinished(site_id)) });
 }
 
 impl AudioServerBackendFacade for MqttComponentFacade {
@@ -400,7 +400,7 @@ impl AudioServerBackendFacade for MqttComponentFacade {
                     unreachable!()
                 }
             });
-    p!(publish_play_finished<PlayFinishedMessage> &HermesTopic::AudioServer(AudioServerCommand::PlayFinished););
+    p!(publish_play_finished(message: PlayFinishedMessage) { &HermesTopic::AudioServer(AudioServerCommand::PlayFinished(message.site_id.clone())) });
 }
 
 impl DialogueFacade for MqttToggleableComponentFacade {

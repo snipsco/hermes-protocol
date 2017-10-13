@@ -97,7 +97,10 @@ impl HermesMessage for AudioFrameMessage {}
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 pub struct PlayFinishedMessage {
     /// The id of the `PlayBytesMessage` which bytes finished playing
-    pub id: String
+    pub id: String,
+    /// The site where the sound was played
+    #[serde(rename = "siteId")]
+    pub site_id: SiteId,
 }
 
 impl HermesMessage for PlayFinishedMessage {}

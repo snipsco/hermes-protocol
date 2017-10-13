@@ -146,8 +146,8 @@ macro_rules! test_suite {
                     with PlayBytesMessage { wav_bytes: vec![42; 1000], id: "my id".into(), site_id: "some site".into() };
             );
         t!(audio_server_play_finished_works :
-                    audio_server.subscribe_play_finished <= PlayFinishedMessage | audio_server_backend.publish_play_finished
-                    with PlayFinishedMessage { id: "my id".into() };
+                    audio_server.subscribe_play_finished { "some site".into() } <= PlayFinishedMessage | audio_server_backend.publish_play_finished
+                    with PlayFinishedMessage { id: "my id".into(), site_id: "some site".into() };
             );
         t!(audio_server_audio_frame_works :
                     audio_server.subscribe_audio_frame { "some site".into() } <= AudioFrameMessage | audio_server_backend.publish_audio_frame
