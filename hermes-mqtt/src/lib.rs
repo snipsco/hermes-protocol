@@ -186,19 +186,19 @@ impl MqttHermesProtocolHandler {
 
 macro_rules! s {
     ($n:ident<$t:ty> $topic:expr; ) => {
-        fn $n(&self, handler : Callback<$t>) -> Result<()> {
+        fn $n(&self, handler: Callback<$t>) -> Result<()> {
             self.mqtt_handler.subscribe_payload($topic, move |p| handler.call(p))
         }
     };
 
     ($n:ident<$t:ty>($($a:ident: $ta:ty),*) $topic:block) => {
-        fn $n(&self, $($a : $ta),*, handler : Callback<$t>) -> Result<()> {
+        fn $n(&self, $($a: $ta),*, handler: Callback<$t>) -> Result<()> {
             self.mqtt_handler.subscribe_payload($topic, move |p| handler.call(p))
         }
     };
 
     ($n:ident $topic:expr; ) => {
-        fn $n(&self, handler : Callback0) -> Result<()> {
+        fn $n(&self, handler: Callback0) -> Result<()> {
             self.mqtt_handler.subscribe($topic, move || handler.call())
         }
     };
@@ -206,7 +206,7 @@ macro_rules! s {
 
 macro_rules! s_bin {
     ($n:ident<$t:ty>($($a:ident: $ta:ty),*) $topic:block |$rt:ident, $p:ident| $decoder:block) => {
-        fn $n(&self, $($a : $ta),*, handler : Callback<$t>) -> Result<()> {
+        fn $n(&self, $($a: $ta),*, handler: Callback<$t>) -> Result<()> {
             self.mqtt_handler.subscribe_binary_payload($topic, move |$rt, $p| handler.call(&$decoder))
         }
     };
@@ -214,13 +214,13 @@ macro_rules! s_bin {
 
 macro_rules! p {
     ($n:ident<$t:ty> $topic:expr; ) => {
-        fn $n(&self, payload : $t) -> Result<()> {
+        fn $n(&self, payload: $t) -> Result<()> {
             self.mqtt_handler.publish_payload($topic, payload)
         }
     };
 
-    ($n:ident($payload:ident : $t:ty) $topic:block ) => {
-        fn $n(&self, $payload : $t) -> Result<()> {
+    ($n:ident($payload:ident: $t:ty) $topic:block ) => {
+        fn $n(&self, $payload: $t) -> Result<()> {
             self.mqtt_handler.publish_payload($topic, $payload)
         }
     };
@@ -233,8 +233,8 @@ macro_rules! p {
 }
 
 macro_rules! p_bin {
-    ($n:ident($payload:ident : $t:ty) $topic:block $bytes:block ) => {
-        fn $n(&self, $payload : $t) -> Result<()> {
+    ($n:ident($payload:ident: $t:ty) $topic:block $bytes:block ) => {
+        fn $n(&self, $payload: $t) -> Result<()> {
             self.mqtt_handler.publish_binary_payload($topic, $bytes)
         }
     };
@@ -377,7 +377,7 @@ impl AudioServerFacade for MqttComponentFacade {
     s_bin!(subscribe_audio_frame<AudioFrameMessage>(site_id: SiteId) { &HermesTopic::AudioServer(AudioServerCommand::AudioFrame(site_id)) }
             |topic, bytes| {
                 if let &HermesTopic::AudioServer(AudioServerCommand::AudioFrame(ref site_id)) = topic {
-                    AudioFrameMessage { site_id : site_id.to_owned(), wav_frame : bytes.into() }
+                    AudioFrameMessage { site_id: site_id.to_owned(), wav_frame: bytes.into() }
                 } else {
                     unreachable!()
                 }
@@ -395,7 +395,7 @@ impl AudioServerBackendFacade for MqttComponentFacade {
     s_bin!(subscribe_play_bytes<PlayBytesMessage>(site_id: SiteId) { &HermesTopic::AudioServer(AudioServerCommand::PlayBytes(site_id, "#".into())) }
             |topic, bytes| {
                 if let &HermesTopic::AudioServer(AudioServerCommand::PlayBytes(ref site_id, ref id)) = topic {
-                    PlayBytesMessage { site_id : site_id.to_owned(), id : id.to_owned(), wav_bytes : bytes.into() }
+                    PlayBytesMessage { session_id: None, site_id: site_id.to_owned(), id: id.to_owned(), wav_bytes: bytes.into() }
                 } else {
                     unreachable!()
                 }
@@ -576,20 +576,19 @@ mod tests {
         ::std::thread::sleep(::std::time::Duration::from_millis(200));
 
         let handler1 = HandlerHolder {
-            handler : MqttHermesProtocolHandler::new(&server_address).expect("could not create first client"),
-            server : Rc::clone(&server)
+            handler: MqttHermesProtocolHandler::new(&server_address).expect("could not create first client"),
+            server: Rc::clone(&server)
         };
 
         let handler2 = HandlerHolder {
-            handler : MqttHermesProtocolHandler::new(&server_address).expect("could not create second client"),
-            server : server
+            handler: MqttHermesProtocolHandler::new(&server_address).expect("could not create second client"),
+            server: server
         };
 
         (handler1, handler2)
     }
     //TODO make this work :)
-    //test_suite!();
+    test_suite!();
 
-
-    t_toggleable!(hotword_toggleable : hotword_backend | hotword);
+    //t_toggleable!(hotword_toggleable: hotword_backend | hotword);
 }

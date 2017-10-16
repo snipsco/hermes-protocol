@@ -7,12 +7,16 @@ use std;
 pub trait HermesMessage: ::std::fmt::Debug {}
 
 pub type SiteId = String;
+pub type SessionId = String;
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 pub struct SiteMessage {
     /// The site concerned
     #[serde(rename = "siteId")]
     pub site_id: SiteId,
+    /// An optional session id if there is a related session
+    #[serde(rename = "sessionId")]
+    pub session_id: Option<SessionId>,
 }
 
 impl HermesMessage for SiteMessage {}
@@ -28,6 +32,9 @@ pub struct TextCapturedMessage {
     /// The site where the text was captured
     #[serde(rename = "siteId")]
     pub site_id: SiteId,
+    /// An optional session id if there is a related session
+    #[serde(rename = "sessionId")]
+    pub session_id: Option<SessionId>,
 }
 
 impl HermesMessage for TextCapturedMessage {}
@@ -41,7 +48,10 @@ pub struct NluQueryMessage {
     pub intent_filter: Option<Vec<String>>,
     /// An optional id for the request, if provided it will be passed back in the
     /// response `NluIntentMessage` or `NluIntentNotRecognizedMessage`
-    pub id: Option<String>
+    pub id: Option<String>,
+    /// An optional session id if there is a related session
+    #[serde(rename = "sessionId")]
+    pub session_id: Option<SessionId>,
 }
 
 impl HermesMessage for NluQueryMessage {}
@@ -59,10 +69,12 @@ pub struct NluSlotQueryMessage {
     /// An optional id for the request, if provided it will be passed back in the
     /// response `SlotMessage`
     pub id: Option<String>,
+    /// An optional session id if there is a related session
+    #[serde(rename = "sessionId")]
+    pub session_id: Option<SessionId>,
 }
 
 impl HermesMessage for NluSlotQueryMessage {}
-
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 pub struct PlayBytesMessage {
@@ -76,6 +88,9 @@ pub struct PlayBytesMessage {
     /// The site where the bytes should be played
     #[serde(rename = "siteId")]
     pub site_id: SiteId,
+    /// An optional session id if there is a related session
+    #[serde(rename = "sessionId")]
+    pub session_id: Option<SessionId>,
 }
 
 impl HermesMessage for PlayBytesMessage {}
@@ -101,6 +116,9 @@ pub struct PlayFinishedMessage {
     /// The site where the sound was played
     #[serde(rename = "siteId")]
     pub site_id: SiteId,
+    /// An optional session id if there is a related session
+    #[serde(rename = "sessionId")]
+    pub session_id: Option<SessionId>,
 }
 
 impl HermesMessage for PlayFinishedMessage {}
@@ -116,6 +134,9 @@ pub struct SayMessage {
     /// The site where the message should be said
     #[serde(rename = "siteId")]
     pub site_id: SiteId,
+    /// An optional session id if there is a related session
+    #[serde(rename = "sessionId")]
+    pub session_id: Option<SessionId>,
 }
 
 impl HermesMessage for SayMessage {}
@@ -123,7 +144,10 @@ impl HermesMessage for SayMessage {}
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 pub struct SayFinishedMessage {
     /// The id of the `SayMessage` which was has been said
-    pub id: Option<String>
+    pub id: Option<String>,
+    /// An optional session id if there is a related session
+    #[serde(rename = "sessionId")]
+    pub session_id: Option<SessionId>,
 }
 
 impl HermesMessage for SayFinishedMessage {}
@@ -138,6 +162,9 @@ pub struct NluSlotMessage {
     pub intent_name: String,
     /// The resulting slot, if found
     pub slot: Option<Slot>,
+    /// An optional session id if there is a related session
+    #[serde(rename = "sessionId")]
+    pub session_id: Option<SessionId>,
 }
 
 impl HermesMessage for NluSlotMessage {}
@@ -148,6 +175,9 @@ pub struct NluIntentNotRecognizedMessage {
     pub id: Option<String>,
     /// The text that didn't match any intent
     pub input: String,
+    /// An optional session id if there is a related session
+    #[serde(rename = "sessionId")]
+    pub session_id: Option<SessionId>,
 }
 
 impl HermesMessage for NluIntentNotRecognizedMessage {}
@@ -162,10 +192,12 @@ pub struct NluIntentMessage {
     pub intent: IntentClassifierResult,
     /// The detected slots, if any
     pub slots: Option<Vec<Slot>>,
+    /// An optional session id if there is a related session
+    #[serde(rename = "sessionId")]
+    pub session_id: Option<SessionId>,
 }
 
 impl HermesMessage for NluIntentMessage {}
-
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct IntentMessage {
@@ -321,6 +353,9 @@ impl HermesMessage for VersionMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct ErrorMessage {
+    /// An optional session id if there is a related session
+    #[serde(rename = "sessionId")]
+    pub session_id: Option<SessionId>,
     /// The error that occurred
     pub error: String,
     /// Optional additional information on the context in which the error occurred
