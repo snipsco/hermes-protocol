@@ -220,21 +220,20 @@ impl HermesMessage for IntentMessage {}
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(tag = "from")]
 pub enum SessionInit {
-    /// Session was initiated by the user
-    User,
-    /// Session was initiated by a lambda, expecting a response from the user. Users responses will
-    /// be provided in the form of `IntentMessage`s
-    LambdaAction {
-        /// The text to say to the user
-        text: String,
+    /// The session expects a response from the user. Users responses will
+    /// be provided in the form of `IntentMessage`s.
+    Action {
+        /// An optional text to say to the user
+        text: Option<String>,
         /// An optional list of intent name to restrict the parsing of the user response to
         #[serde(rename = "intentFilter")]
         intent_filter: Option<Vec<String>>,
-
+        /// If the session cannot be started, it can be enqueued.
+        can_be_enqueued: bool,
     },
-    /// Session was initiated by a lambda, not expecting a response from the user. The session
-    /// will be closed one the text will be said
-    LambdaNotification {
+    /// The session doesn't expect a response from the user.
+    /// If the session cannot be started, it will enqueued.
+    Notification {
         text: String,
     }
 }

@@ -170,7 +170,7 @@ macro_rules! test_suite {
                     with SessionEndedMessage { session_id: "some id".into(), custom_data: None, termination: SessionTerminationType::Nominal };);
         t!(dialogue_start_session_works:
                     dialogue_backend.subscribe_start_session <= StartSessionMessage | dialogue.publish_start_session
-                    with StartSessionMessage { init: SessionInit::User, custom_data: None, site_id: None };);
+                    with StartSessionMessage { init: SessionInit::Action { text: None, intent_filter: None, can_be_enqueued: false }, custom_data: None, site_id: None };);
         t!(dialogue_continue_session_works:
                     dialogue_backend.subscribe_continue_session <= ContinueSessionMessage | dialogue.publish_continue_session
                     with ContinueSessionMessage { session_id: "some id".into(), text: "some text".into(), intent_filter: None  };);
