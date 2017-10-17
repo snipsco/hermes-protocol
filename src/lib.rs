@@ -119,6 +119,7 @@ pub trait NluBackendFacade: ComponentBackendFacade {
 pub trait AudioServerFacade: ComponentFacade {
     fn publish_play_bytes(&self, bytes: PlayBytesMessage) -> Result<()>;
     fn subscribe_play_finished(&self, site_id: SiteId, handler: Callback<PlayFinishedMessage>) -> Result<()>;
+    fn subscribe_all_play_finished(&self, handler: Callback<PlayFinishedMessage>) -> Result<()>;
     fn subscribe_audio_frame(&self, site_id: SiteId, handler: Callback<AudioFrameMessage>) -> Result<()>;
 }
 

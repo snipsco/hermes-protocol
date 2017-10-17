@@ -386,6 +386,7 @@ impl AudioServerFacade for MqttComponentFacade {
         { &HermesTopic::AudioServer(AudioServerCommand::PlayBytes(bytes.site_id, bytes.id)) }
         { bytes.wav_bytes });
     s!(subscribe_play_finished<PlayFinishedMessage>(site_id: SiteId) { &HermesTopic::AudioServer(AudioServerCommand::PlayFinished(site_id)) });
+    s!(subscribe_all_play_finished<PlayFinishedMessage> &HermesTopic::AudioServer(AudioServerCommand::PlayFinished("#".into())););
 }
 
 impl AudioServerBackendFacade for MqttComponentFacade {

@@ -25,6 +25,7 @@ struct Handler {
 
     as_play_bytes: HashMap<SiteId, Vec<Callback<PlayBytesMessage>>>,
     as_play_finished: HashMap<SiteId, Vec<Callback<PlayFinishedMessage>>>,
+    as_all_play_finished: Vec<Callback<PlayFinishedMessage>>,
     as_audio_frame: HashMap<SiteId, Vec<Callback<AudioFrameMessage>>>,
 
     hotword_detected: Vec<Callback<SiteMessage>>,
@@ -154,7 +155,6 @@ macro_rules! p {
             self.publish_payload(&format!("{}[{}]", &stringify!($field), &key), move |h| h.$field.get(&key).map(|it| Some(it)).unwrap_or(None), $payload)
         }
     };
-
 }
 
 struct InProcessComponent {
@@ -406,12 +406,24 @@ impl TtsBackendFacade for InProcessComponent {
 impl AudioServerFacade for InProcessComponent {
     p!(publish_play_bytes(bytes : PlayBytesMessage) as_play_bytes[bytes.site_id;]);
     s!(subscribe_play_finished<PlayFinishedMessage>(site_id: SiteId) { as_play_finished[site_id;] });
+    s!(subscribe_all_play_finished<PlayFinishedMessage> as_all_play_finished );
     s!(subscribe_audio_frame<AudioFrameMessage>(site_id: SiteId) { as_audio_frame[site_id;] });
 }
 
 impl AudioServerBackendFacade for InProcessComponent {
     s!(subscribe_play_bytes<PlayBytesMessage>(site_id: SiteId) { as_play_bytes[site_id;] });
-    p!(publish_play_finished(message: PlayFinishedMessage) as_play_finished[message.site_id;]);
+    fn publish_play_finished(&self, message: PlayFinishedMessage) -> Result<()> {
+        let site_id = message.site_id.to_string();
+
+        let _message = message.clone();
+
+        self.publish_payload(
+            &message.site_id,
+            move |h| h.as_play_finished.get(&site_id),
+            _message,
+        )?;
+        self.publish_payload("as_all_play_finished", move |h| Some(&h.as_all_play_finished), message)
+    }
     p!(publish_audio_frame(frame:AudioFrameMessage) as_audio_frame[frame.site_id;]);
 }
 
