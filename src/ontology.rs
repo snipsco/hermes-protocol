@@ -198,6 +198,8 @@ pub struct IntentMessage {
     pub session_id: String,
     /// The custom data that was given at the session creation
     pub custom_data: Option<String>,
+    /// The site where the intent was detected.
+    pub site_id: SiteId,
     /// The input that generated this intent
     pub input: String,
     /// The result of the intent classification
@@ -324,6 +326,8 @@ pub struct SessionEndedMessage {
     pub custom_data: Option<String>,
     /// How the session was ended
     pub termination: SessionTerminationType,
+    /// The site on which this session was ended.
+    pub site_id: SiteId,
 }
 
 impl HermesMessage for SessionEndedMessage {}

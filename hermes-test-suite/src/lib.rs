@@ -164,10 +164,10 @@ macro_rules! test_suite {
                     with SessionQueuedMessage { session_id: "some id".into(), custom_data: None, site_id: "some site".into() };);
         t!(dialogue_intent_works:
                     dialogue.subscribe_intents <= IntentMessage | dialogue_backend.publish_intent
-                    with IntentMessage { session_id: "some id".into(), custom_data: None,  input: "hello world".into(), intent: IntentClassifierResult { intent_name: "my intent".into(), probability: 0.73 }, slots: None  };);
+                    with IntentMessage { site_id: "some site".into(), session_id: "some id".into(), custom_data: None, input: "hello world".into(), intent: IntentClassifierResult { intent_name: "my intent".into(), probability: 0.73 }, slots: None };);
         t!(dialogue_session_ended_works:
                     dialogue.subscribe_session_ended <= SessionEndedMessage | dialogue_backend.publish_session_ended
-                    with SessionEndedMessage { session_id: "some id".into(), custom_data: None, termination: SessionTerminationType::Nominal };);
+                    with SessionEndedMessage { site_id: "some site".into(), session_id: "some id".into(), custom_data: None, termination: SessionTerminationType::Nominal };);
         t!(dialogue_start_session_works:
                     dialogue_backend.subscribe_start_session <= StartSessionMessage | dialogue.publish_start_session
                     with StartSessionMessage { init: SessionInit::Action { text: None, intent_filter: None, can_be_enqueued: false }, custom_data: None, site_id: None };);
