@@ -10,18 +10,18 @@ pub type SiteId = String;
 pub type SessionId = String;
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SiteMessage {
     /// The site concerned
-    #[serde(rename = "siteId")]
     pub site_id: SiteId,
     /// An optional session id if there is a related session
-    #[serde(rename = "sessionId")]
     pub session_id: Option<SessionId>,
 }
 
 impl HermesMessage for SiteMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct TextCapturedMessage {
     /// The text captured
     pub text: String,
@@ -30,100 +30,94 @@ pub struct TextCapturedMessage {
     /// The duration it took to do the processing
     pub seconds: f32,
     /// The site where the text was captured
-    #[serde(rename = "siteId")]
     pub site_id: SiteId,
     /// An optional session id if there is a related session
-    #[serde(rename = "sessionId")]
     pub session_id: Option<SessionId>,
 }
 
 impl HermesMessage for TextCapturedMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct NluQueryMessage {
     /// The text to run the NLU on
     pub input: String,
     /// An optional list of intents to restrict the NLU resolution on
-    #[serde(rename = "intentFilter")]
     pub intent_filter: Option<Vec<String>>,
     /// An optional id for the request, if provided it will be passed back in the
     /// response `NluIntentMessage` or `NluIntentNotRecognizedMessage`
     pub id: Option<String>,
     /// An optional session id if there is a related session
-    #[serde(rename = "sessionId")]
     pub session_id: Option<SessionId>,
 }
 
 impl HermesMessage for NluQueryMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct NluSlotQueryMessage {
     /// The text to run the slot detection on
     pub input: String,
-    #[serde(rename = "intentName")]
     /// The intent to use when doing the slot detection
     pub intent_name: String,
     /// The slot to search
-    #[serde(rename = "slotName")]
     pub slot_name: String,
     /// An optional id for the request, if provided it will be passed back in the
     /// response `SlotMessage`
     pub id: Option<String>,
     /// An optional session id if there is a related session
-    #[serde(rename = "sessionId")]
     pub session_id: Option<SessionId>,
 }
 
 impl HermesMessage for NluSlotQueryMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct PlayBytesMessage {
     /// An id for the request, it will be passed back in the `PlayFinishedMessage`
     pub id: String,
     /// The bytes of the wav to play (should be a regular wav with header)
     /// Note that serde json serialization is provided but in practice most handler impl will want
     /// to avoid the base64 encoding/decoding and give this a special treatment
-    #[serde(rename = "wavBytes", serialize_with = "as_base64", deserialize_with = "from_base64")]
+    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     pub wav_bytes: Vec<u8>,
     /// The site where the bytes should be played
-    #[serde(rename = "siteId")]
     pub site_id: SiteId,
     /// An optional session id if there is a related session
-    #[serde(rename = "sessionId")]
     pub session_id: Option<SessionId>,
 }
 
 impl HermesMessage for PlayBytesMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AudioFrameMessage {
     /// The bytes of the wav frame (should be a regular wav with header)
     /// Note that serde json serialization is provided but in practice most handler impl will want
     /// to avoid the base64 encoding/decoding and give this a special treatment
-    #[serde(rename = "wavFrame", serialize_with = "as_base64", deserialize_with = "from_base64")]
+    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     pub wav_frame: Vec<u8>,
     /// The site this frame originates from
-    #[serde(rename = "siteId")]
     pub site_id: SiteId,
 }
 
 impl HermesMessage for AudioFrameMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct PlayFinishedMessage {
     /// The id of the `PlayBytesMessage` which bytes finished playing
     pub id: String,
     /// The site where the sound was played
-    #[serde(rename = "siteId")]
     pub site_id: SiteId,
     /// An optional session id if there is a related session
-    #[serde(rename = "sessionId")]
     pub session_id: Option<SessionId>,
 }
 
 impl HermesMessage for PlayFinishedMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SayMessage {
     /// The text to say
     pub text: String,
@@ -132,27 +126,26 @@ pub struct SayMessage {
     /// An optional id for the request, it will be passed back in the `SayFinishedMessage`
     pub id: Option<String>,
     /// The site where the message should be said
-    #[serde(rename = "siteId")]
     pub site_id: SiteId,
     /// An optional session id if there is a related session
-    #[serde(rename = "sessionId")]
     pub session_id: Option<SessionId>,
 }
 
 impl HermesMessage for SayMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SayFinishedMessage {
     /// The id of the `SayMessage` which was has been said
     pub id: Option<String>,
     /// An optional session id if there is a related session
-    #[serde(rename = "sessionId")]
     pub session_id: Option<SessionId>,
 }
 
 impl HermesMessage for SayFinishedMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct NluSlotMessage {
     /// The id of the `NluSlotQueryMessage` that was processed
     pub id: Option<String>,
@@ -163,26 +156,26 @@ pub struct NluSlotMessage {
     /// The resulting slot, if found
     pub slot: Option<Slot>,
     /// An optional session id if there is a related session
-    #[serde(rename = "sessionId")]
     pub session_id: Option<SessionId>,
 }
 
 impl HermesMessage for NluSlotMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct NluIntentNotRecognizedMessage {
     /// The id of the `NluQueryMessage` that was processed
     pub id: Option<String>,
     /// The text that didn't match any intent
     pub input: String,
     /// An optional session id if there is a related session
-    #[serde(rename = "sessionId")]
     pub session_id: Option<SessionId>,
 }
 
 impl HermesMessage for NluIntentNotRecognizedMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct NluIntentMessage {
     /// The id of the `NluQueryMessage` that was processed
     pub id: Option<String>,
@@ -193,19 +186,17 @@ pub struct NluIntentMessage {
     /// The detected slots, if any
     pub slots: Option<Vec<Slot>>,
     /// An optional session id if there is a related session
-    #[serde(rename = "sessionId")]
     pub session_id: Option<SessionId>,
 }
 
 impl HermesMessage for NluIntentMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct IntentMessage {
     /// The session in with this intent was detected
-    #[serde(rename = "sessionId")]
     pub session_id: String,
     /// The custom data that was given at the session creation
-    #[serde(rename = "customData")]
     pub custom_data: Option<String>,
     /// The input that generated this intent
     pub input: String,
@@ -218,7 +209,7 @@ pub struct IntentMessage {
 impl HermesMessage for IntentMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
-#[serde(tag = "from")]
+#[serde(tag = "from", rename_all = "camelCase")]
 pub enum SessionInit {
     /// The session expects a response from the user. Users responses will
     /// be provided in the form of `IntentMessage`s.
@@ -226,7 +217,6 @@ pub enum SessionInit {
         /// An optional text to say to the user
         text: Option<String>,
         /// An optional list of intent name to restrict the parsing of the user response to
-        #[serde(rename = "intentFilter")]
         intent_filter: Option<Vec<String>>,
         /// If the session cannot be started, it can be enqueued.
         can_be_enqueued: bool,
@@ -239,46 +229,44 @@ pub enum SessionInit {
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct StartSessionMessage {
     /// The way this session was created
     pub init: SessionInit,
     /// An optional piece of data that will be given back in `IntentMessage` and
     /// `SessionQueuedMessage`, `SessionStartedMessage` and `SessionEndedMessage`that are related
     /// to this session
-    #[serde(rename = "customData")]
     pub custom_data: Option<String>,
     /// The site where the session should be started, a value of `None` will be interpreted as the
     /// default one
-    #[serde(rename = "siteId")]
     pub site_id: Option<SiteId>,
 }
 
 impl HermesMessage for StartSessionMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SessionStartedMessage {
     /// The id of the session that was started
     pub session_id: String,
     /// The custom data that was given at the session creation
-    #[serde(rename = "customData")]
     pub custom_data: Option<String>,
     /// The site on which this session was started
     pub site_id: SiteId,
     /// This optional field indicates this session is a reactivation of a previously ended session.
     /// This is for example provided when the user continues talking to the platform without saying
     /// the hotword again after a session was ended.
-    #[serde(rename = "reactivatedFromSessionId")]
     pub reactivated_from_session_id : Option<String>
 }
 
 impl HermesMessage for SessionStartedMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SessionQueuedMessage {
     /// The id of the session that was started
     pub session_id: String,
     /// The custom data that was given at the session creation
-    #[serde(rename = "customData")]
     pub custom_data: Option<String>,
     /// The site on which this session was started
     pub site_id: SiteId,
@@ -287,23 +275,22 @@ pub struct SessionQueuedMessage {
 impl HermesMessage for SessionQueuedMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ContinueSessionMessage {
     /// The id of the session this action applies to
-    #[serde(rename = "sessionId")]
     pub session_id: String,
     /// The text to say to the user
     pub text: String,
     /// An optional list of intent name to restrict the parsing of the user response to
-    #[serde(rename = "intentFilter")]
     pub intent_filter: Option<Vec<String>>
 }
 
 impl HermesMessage for ContinueSessionMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct EndSessionMessage {
     /// The id of the session to end
-    #[serde(rename = "sessionId")]
     pub session_id: String,
     /// An optional text to say to the user before ending the session
     pub text : Option<String>,
@@ -312,7 +299,7 @@ pub struct EndSessionMessage {
 impl HermesMessage for EndSessionMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
-#[serde(tag = "type")]
+#[serde(tag = "type", rename_all = "camelCase")]
 pub enum SessionTerminationType {
     /// The session ended as expected
     Nominal,
@@ -329,12 +316,11 @@ pub enum SessionTerminationType {
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SessionEndedMessage {
     /// The id of the session that was terminated
-    #[serde(rename = "sessionId")]
     pub session_id: String,
     /// The custom data that was given at the session creation
-    #[serde(rename = "customData")]
     pub custom_data: Option<String>,
     /// How the session was ended
     pub termination: SessionTerminationType,
@@ -343,6 +329,7 @@ pub struct SessionEndedMessage {
 impl HermesMessage for SessionEndedMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct VersionMessage {
     /// The version of the component
     pub version: semver::Version,
@@ -351,9 +338,9 @@ pub struct VersionMessage {
 impl HermesMessage for VersionMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ErrorMessage {
     /// An optional session id if there is a related session
-    #[serde(rename = "sessionId")]
     pub session_id: Option<SessionId>,
     /// The error that occurred
     pub error: String,
