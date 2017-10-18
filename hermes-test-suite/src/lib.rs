@@ -96,7 +96,7 @@ macro_rules! test_suite {
         t_component!(hotword_component: hotword_backend | hotword);
         t_toggleable!(hotword_toggleable: hotword_backend | hotword);
         t!(hotword_detected_works:
-                    hotword.subscribe_detected <= SiteMessage | hotword_backend.publish_detected
+                    hotword.subscribe_detected { "some site".into() } <= SiteMessage | hotword_backend.publish_detected
                     with SiteMessage { session_id: Some("123abc".into()), site_id: "some site".into() };);
 
         t_toggleable!(sound_feedback_toggleable: sound_feedback_backend | sound_feedback );

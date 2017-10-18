@@ -28,7 +28,7 @@ struct Handler {
     as_all_play_finished: Vec<Callback<PlayFinishedMessage>>,
     as_audio_frame: HashMap<SiteId, Vec<Callback<AudioFrameMessage>>>,
 
-    hotword_detected: Vec<Callback<SiteMessage>>,
+    hotword_detected: HashMap<SiteId, Vec<Callback<SiteMessage>>>,
 
     nlu_query: Vec<Callback<NluQueryMessage>>,
     nlu_partial_query: Vec<Callback<NluSlotQueryMessage>>,
@@ -372,11 +372,11 @@ impl ToggleableBackendFacade for InProcessComponent {
 }
 
 impl HotwordFacade for InProcessComponent {
-    s!(subscribe_detected<SiteMessage> hotword_detected);
+    s!(subscribe_detected<SiteMessage>(site_id: SiteId) { hotword_detected[site_id;] });
 }
 
 impl HotwordBackendFacade for InProcessComponent {
-    p!(publish_detected<SiteMessage> hotword_detected);
+    p!(publish_detected(m: SiteMessage) hotword_detected[m.site_id;]);
 }
 
 impl SoundFeedbackFacade for InProcessComponent {}
@@ -404,7 +404,7 @@ impl TtsBackendFacade for InProcessComponent {
 }
 
 impl AudioServerFacade for InProcessComponent {
-    p!(publish_play_bytes(bytes : PlayBytesMessage) as_play_bytes[bytes.site_id;]);
+    p!(publish_play_bytes(bytes: PlayBytesMessage) as_play_bytes[bytes.site_id;]);
     s!(subscribe_play_finished<PlayFinishedMessage>(site_id: SiteId) { as_play_finished[site_id;] });
     s!(subscribe_all_play_finished<PlayFinishedMessage> as_all_play_finished );
     s!(subscribe_audio_frame<AudioFrameMessage>(site_id: SiteId) { as_audio_frame[site_id;] });
