@@ -245,29 +245,29 @@ macro_rules! impl_component_facades_for {
     ($t:ty) => {
         impl ComponentFacade for $t {
             fn publish_version_request(&self) -> Result<()> {
-                self.mqtt_handler.publish(&HermesTopic::Component(self.component, ComponentCommand::VersionRequest))
+                self.mqtt_handler.publish(&HermesTopic::Component(None, self.component, ComponentCommand::VersionRequest))
             }
 
             fn subscribe_version(&self, handler: Callback<VersionMessage>) -> Result<()> {
-                self.mqtt_handler.subscribe_payload(&HermesTopic::Component(self.component, ComponentCommand::Version), move |p| handler.call(p))
+                self.mqtt_handler.subscribe_payload(&HermesTopic::Component(None, self.component, ComponentCommand::Version), move |p| handler.call(p))
             }
 
             fn subscribe_error(&self, handler: Callback<ErrorMessage>) -> Result<()> {
-                self.mqtt_handler.subscribe_payload(&HermesTopic::Component(self.component, ComponentCommand::Error), move |p| handler.call(p))
+                self.mqtt_handler.subscribe_payload(&HermesTopic::Component(None, self.component, ComponentCommand::Error), move |p| handler.call(p))
             }
         }
 
         impl ComponentBackendFacade for $t {
             fn subscribe_version_request(&self, handler: Callback0) -> Result<()> {
-                self.mqtt_handler.subscribe(&HermesTopic::Component(self.component, ComponentCommand::VersionRequest), move || handler.call())
+                self.mqtt_handler.subscribe(&HermesTopic::Component(None, self.component, ComponentCommand::VersionRequest), move || handler.call())
             }
 
             fn publish_version(&self, version: VersionMessage) -> Result<()> {
-                self.mqtt_handler.publish_payload(&HermesTopic::Component(self.component, ComponentCommand::Version), version)
+                self.mqtt_handler.publish_payload(&HermesTopic::Component(None, self.component, ComponentCommand::Version), version)
             }
 
             fn publish_error(&self, error: ErrorMessage) -> Result<()> {
-                self.mqtt_handler.publish_payload(&HermesTopic::Component(self.component, ComponentCommand::Error), error)
+                self.mqtt_handler.publish_payload(&HermesTopic::Component(None, self.component, ComponentCommand::Error), error)
             }
         }
     };
@@ -299,12 +299,67 @@ macro_rules! impl_toggleable_facades_for {
     };
 }
 
+macro_rules! impl_identifiable_toggleable_facades_for {
+    ($t:ty) => {
+        impl IdentifiableToggleableBackendFacade for $t {
+            fn subscribe_toggle_on(&self, site_id: SiteId, handler: Callback<SiteMessage>) -> Result<()> {
+                let topic = match self.component {
+                    Component::Hotword => HermesTopic::Hotword(site_id, HotwordCommand::ToggleOn),
+                    _ => self.toggle_on_topic.clone(), // Fallback to normal topic. We may want to panic here but who cares ?
+                };
+                self.mqtt_handler.subscribe_payload(&topic, move |p| handler.call(p))
+            }
+
+            fn subscribe_toggle_off(&self, site_id: SiteId, handler: Callback<SiteMessage>) -> Result<()> {
+                let topic = match self.component {
+                    Component::Hotword => HermesTopic::Hotword(site_id, HotwordCommand::ToggleOff),
+                    _ => self.toggle_off_topic.clone(), // Fallback to normal topic. We may want to panic here but who cares ?
+                };
+                self.mqtt_handler.subscribe_payload(&topic, move |p| handler.call(p))
+            }
+        }
+    };
+}
+
+macro_rules! impl_identifiable_component_facades_for {
+    ($t:ty) => {
+        impl IdentifiableComponentFacade for $t {
+            fn publish_version_request(&self, site_id: SiteId) -> Result<()> {
+                self.mqtt_handler.publish(&HermesTopic::Component(Some(site_id), self.component, ComponentCommand::VersionRequest))
+            }
+
+            fn subscribe_version(&self, site_id: SiteId, handler: Callback<VersionMessage>) -> Result<()> {
+                self.mqtt_handler.subscribe_payload(&HermesTopic::Component(Some(site_id), self.component, ComponentCommand::Version), move |p| handler.call(p))
+            }
+
+            fn subscribe_error(&self, site_id: SiteId, handler: Callback<ErrorMessage>) -> Result<()> {
+                self.mqtt_handler.subscribe_payload(&HermesTopic::Component(Some(site_id), self.component, ComponentCommand::Error), move |p| handler.call(p))
+            }
+        }
+
+        impl IdentifiableComponentBackendFacade for $t {
+            fn subscribe_version_request(&self, site_id: SiteId, handler: Callback0) -> Result<()> {
+                self.mqtt_handler.subscribe(&HermesTopic::Component(Some(site_id), self.component, ComponentCommand::VersionRequest), move || handler.call())
+            }
+
+            fn publish_version(&self, site_id: SiteId, version: VersionMessage) -> Result<()> {
+                self.mqtt_handler.publish_payload(&HermesTopic::Component(Some(site_id), self.component, ComponentCommand::Version), version)
+            }
+
+            fn publish_error(&self, site_id: SiteId, error: ErrorMessage) -> Result<()> {
+                self.mqtt_handler.publish_payload(&HermesTopic::Component(Some(site_id), self.component, ComponentCommand::Error), error)
+            }
+        }
+    }
+}
+
 struct MqttComponentFacade {
     component: Component,
     mqtt_handler: Arc<MqttHandler>
 }
 
 impl_component_facades_for!(MqttComponentFacade);
+impl_identifiable_component_facades_for!(MqttComponentFacade);
 
 struct MqttToggleableFacade {
     toggle_on_topic: HermesTopic,
@@ -323,6 +378,8 @@ struct MqttToggleableComponentFacade {
 
 impl_component_facades_for!(MqttToggleableComponentFacade);
 impl_toggleable_facades_for!(MqttToggleableComponentFacade);
+impl_identifiable_component_facades_for!(MqttToggleableComponentFacade);
+impl_identifiable_toggleable_facades_for!(MqttToggleableComponentFacade);
 
 impl HotwordFacade for MqttToggleableComponentFacade {
     s!(subscribe_detected<SiteMessage>(site_id: SiteId) { &HermesTopic::Hotword(site_id.into(), HotwordCommand::Detected) });

@@ -55,13 +55,20 @@ pub trait ToggleableBackendFacade: Send + Sync {
     fn subscribe_toggle_off(&self, handler: Callback<SiteMessage>) -> Result<()>;
 }
 
+/// The facade a component that can be toggled on an off at a specific site must use to receive
+/// its orders
+pub trait IdentifiableToggleableBackendFacade: Send + Sync {
+    fn subscribe_toggle_on(&self, site_id: SiteId, handler: Callback<SiteMessage>) -> Result<()>;
+    fn subscribe_toggle_off(&self, site_id: SiteId, handler: Callback<SiteMessage>) -> Result<()>;
+}
+
 /// The facade to interact with the hotword component
-pub trait HotwordFacade: ComponentFacade + ToggleableFacade {
+pub trait HotwordFacade: IdentifiableComponentFacade + ToggleableFacade {
     fn subscribe_detected(&self, site_id: SiteId, handler: Callback<SiteMessage>) -> Result<()>;
 }
 
 /// The facade the hotword feature must use receive its orders and publish detected hotwords
-pub trait HotwordBackendFacade: ComponentBackendFacade + ToggleableBackendFacade {
+pub trait HotwordBackendFacade: IdentifiableComponentBackendFacade + IdentifiableToggleableBackendFacade {
     fn publish_detected(&self, site: SiteMessage) -> Result<()>;
 }
 
@@ -116,7 +123,7 @@ pub trait NluBackendFacade: ComponentBackendFacade {
 }
 
 /// The facade to interact with the audio server
-pub trait AudioServerFacade: ComponentFacade {
+pub trait AudioServerFacade: IdentifiableComponentFacade {
     fn publish_play_bytes(&self, bytes: PlayBytesMessage) -> Result<()>;
     fn subscribe_play_finished(&self, site_id: SiteId, handler: Callback<PlayFinishedMessage>) -> Result<()>;
     fn subscribe_all_play_finished(&self, handler: Callback<PlayFinishedMessage>) -> Result<()>;
@@ -124,7 +131,7 @@ pub trait AudioServerFacade: ComponentFacade {
 }
 
 /// The facade the audio server must use to receive its orders and advertise when it has finished
-pub trait AudioServerBackendFacade: ComponentBackendFacade {
+pub trait AudioServerBackendFacade: IdentifiableComponentBackendFacade {
     fn subscribe_play_bytes(&self, site_id: SiteId, handler: Callback<PlayBytesMessage>) -> Result<()>;
     fn publish_play_finished(&self, status: PlayFinishedMessage) -> Result<()>;
     fn publish_audio_frame(&self, frame: AudioFrameMessage) -> Result<()>;
@@ -137,11 +144,25 @@ pub trait ComponentFacade: Send + Sync {
     fn subscribe_error(&self, handler: Callback<ErrorMessage>) -> Result<()>;
 }
 
+/// A generic facade used to interact with a component
+pub trait IdentifiableComponentFacade: Send + Sync {
+    fn publish_version_request(&self, site_id: SiteId) -> Result<()>;
+    fn subscribe_version(&self, site_id: SiteId, handler: Callback<VersionMessage>) -> Result<()>;
+    fn subscribe_error(&self, site_id: SiteId, handler: Callback<ErrorMessage>) -> Result<()>;
+}
+
 /// A generic facade all components must use to publish their errors and versions (when requested)
 pub trait ComponentBackendFacade: Send + Sync {
     fn subscribe_version_request(&self, handler: Callback0) -> Result<()>;
     fn publish_version(&self, version: VersionMessage) -> Result<()>;
     fn publish_error(&self, error: ErrorMessage) -> Result<()>;
+}
+
+/// A generic facade all components must use to publish their errors and versions (when requested)
+pub trait IdentifiableComponentBackendFacade: Send + Sync {
+    fn subscribe_version_request(&self, site_id: SiteId, handler: Callback0) -> Result<()>;
+    fn publish_version(&self, site_id: SiteId, version: VersionMessage) -> Result<()>;
+    fn publish_error(&self, site_id: SiteId, error: ErrorMessage) -> Result<()>;
 }
 
 /// The facade to use to interact with the dialogue manager, this is the principal interface that a

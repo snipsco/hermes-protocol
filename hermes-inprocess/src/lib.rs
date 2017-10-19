@@ -321,6 +321,99 @@ impl ComponentBackendFacade for InProcessComponent {
     }
 }
 
+impl IdentifiableComponentFacade for InProcessComponent {
+    fn publish_version_request(&self, site_id: SiteId) -> Result<()> {
+        let entry = identifiable_entry(&self.name, &site_id);
+        self.publish("component_version_request", move |h| {
+            &h.component_version_request
+                .get(&entry)
+                .unwrap_or(&h.empty_0)
+        })
+    }
+    fn subscribe_version(&self, site_id: SiteId, handler: Callback<VersionMessage>) -> Result<()> {
+        let entry = identifiable_entry(&self.name, &site_id);
+        self.subscribe_payload(
+            "component_version",
+            |h| {
+                h.component_version
+                    .entry(entry)
+                    .or_insert_with(|| vec![])
+            },
+            handler,
+        )
+    }
+    fn subscribe_error(&self, site_id: SiteId, handler: Callback<ErrorMessage>) -> Result<()> {
+        let entry = identifiable_entry(&self.name, &site_id);
+        self.subscribe_payload(
+            "component_error",
+            |h| {
+                h.component_error
+                    .entry(entry)
+                    .or_insert_with(|| vec![])
+            },
+            handler,
+        )
+    }
+}
+
+impl IdentifiableComponentBackendFacade for InProcessComponent {
+    fn subscribe_version_request(&self, site_id: SiteId, handler: Callback0) -> Result<()> {
+        let entry = identifiable_entry(&self.name, &site_id);
+        self.subscribe(
+            "component_version_request",
+            |h| {
+                h.component_version_request
+                    .entry(entry)
+                    .or_insert_with(|| vec![])
+            },
+            handler,
+        )
+    }
+    fn publish_version(&self, site_id: SiteId, version: VersionMessage) -> Result<()> {
+        let entry = identifiable_entry(&self.name, &site_id);
+        self.publish_payload(
+            "component_version",
+            move |h| {
+                h.component_version.get(&entry)
+            },
+            version,
+        )
+    }
+    fn publish_error(&self, site_id: SiteId, error: ErrorMessage) -> Result<()> {
+        let entry = identifiable_entry(&self.name, &site_id);
+        self.publish_payload(
+            "component_error",
+            move |h| { h.component_error.get(&entry) },
+            error,
+        )
+    }
+}
+
+impl IdentifiableToggleableBackendFacade for InProcessComponent {
+    fn subscribe_toggle_on(&self, site_id: SiteId, handler: Callback<SiteMessage>) -> Result<()> {
+        let entry = identifiable_entry(&self.name, &site_id);
+
+        self.subscribe_payload(
+            "toggle_on",
+            |h| h.toggle_on.entry(entry).or_insert_with(|| vec![]),
+            handler,
+        )
+    }
+    fn subscribe_toggle_off(&self, site_id: SiteId, handler: Callback<SiteMessage>) -> Result<()> {
+        let entry = identifiable_entry(&self.name, &site_id);
+
+        self.subscribe_payload(
+            "toggle_off",
+            |h| h.toggle_off.entry(entry).or_insert_with(|| vec![]),
+            handler,
+        )
+    }
+}
+
+fn identifiable_entry(component_name: &str, site_id: &str) -> String {
+    format!("{}-{}", component_name, site_id)
+}
+
 impl NluFacade for InProcessComponent {
     p!(publish_query<NluQueryMessage> nlu_query);
     p!(publish_partial_query<NluSlotQueryMessage> nlu_partial_query);
