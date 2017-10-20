@@ -666,7 +666,7 @@ mod tests {
 
         (handler1, handler2)
     }
-    
-    t_identifiable_component!(hotword_identifiable_component: hotword_backend | hotword);
+
+    t_identifiable_toggleable!(hotword_identifiable_toggleable: hotword_backend | hotword);    
     //test_suite!();
 }
