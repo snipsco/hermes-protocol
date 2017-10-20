@@ -403,11 +403,15 @@ impl SoundFeedbackFacade for MqttToggleableFacade {}
 impl SoundFeedbackBackendFacade for MqttToggleableFacade {}
 
 impl AsrFacade for MqttToggleableComponentFacade {
+    p!(publish_start_listening<SiteMessage> &HermesTopic::Asr(AsrCommand::StartListening););
+    p!(publish_stop_listening<SiteMessage> &HermesTopic::Asr(AsrCommand::StopListening););
     s!(subscribe_text_captured<TextCapturedMessage> &HermesTopic::Asr(AsrCommand::TextCaptured););
     s!(subscribe_partial_text_captured<TextCapturedMessage> &HermesTopic::Asr(AsrCommand::PartialTextCaptured););
 }
 
 impl AsrBackendFacade for MqttToggleableComponentFacade {
+    s!(subscribe_start_listening<SiteMessage> &HermesTopic::Asr(AsrCommand::StartListening););
+    s!(subscribe_stop_listening<SiteMessage> &HermesTopic::Asr(AsrCommand::StopListening););
     p!(publish_text_captured<TextCapturedMessage> &HermesTopic::Asr(AsrCommand::TextCaptured););
     p!(publish_partial_text_captured<TextCapturedMessage> &HermesTopic::Asr(AsrCommand::PartialTextCaptured););
 }

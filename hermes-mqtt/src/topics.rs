@@ -197,6 +197,8 @@ impl ToPath for HotwordCommand {}
 pub enum AsrCommand {
     ToggleOn,
     ToggleOff,
+    StartListening,
+    StopListening,
     TextCaptured,
     PartialTextCaptured,
 }
