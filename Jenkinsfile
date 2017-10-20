@@ -3,7 +3,7 @@
 def branchName = "${env.BRANCH_NAME}"
 
 node('jenkins-slave-ec2') {
-    env.PATH = "/usr/local/bin:${env.HOME}/.cargo/bin:${env.PATH}"
+    env.PATH = "/usr/local/bin:/usr/sbin:${env.HOME}/.cargo/bin:${env.PATH}"
 
     stage('Setup') {
         deleteDir()
