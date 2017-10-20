@@ -28,7 +28,8 @@ struct Handler {
     as_all_play_finished: Vec<Callback<PlayFinishedMessage>>,
     as_audio_frame: HashMap<SiteId, Vec<Callback<AudioFrameMessage>>>,
 
-    hotword_detected: HashMap<SiteId, Vec<Callback<SiteMessage>>>,
+    hotword_detected: HashMap<String, Vec<Callback<SiteMessage>>>,
+    hotword_all_detected: Vec<Callback<SiteMessage>>,
 
     nlu_query: Vec<Callback<NluQueryMessage>>,
     nlu_partial_query: Vec<Callback<NluSlotQueryMessage>>,
@@ -45,6 +46,8 @@ struct Handler {
 
     toggle_on: HashMap<ComponentName, Vec<Callback<SiteMessage>>>,
     toggle_off: HashMap<ComponentName, Vec<Callback<SiteMessage>>>,
+    toggle_on_0: Vec<Callback0>,
+    toggle_off_0: Vec<Callback0>,
 
     intent: HashMap<IntentName, Vec<Callback<IntentMessage>>>,
     intents: Vec<Callback<IntentMessage>>,
@@ -151,6 +154,13 @@ macro_rules! p {
 
     ($n:ident($payload:ident : $t:ty) $field:ident[$key:expr;] ) => {
         fn $n(&self, $payload : $t) -> Result<()> {
+            let key = $key.to_string();
+            self.publish_payload(&format!("{}[{}]", &stringify!($field), &key), move |h| h.$field.get(&key).map(|it| Some(it)).unwrap_or(None), $payload)
+        }
+    };
+
+    ($n:ident($param1:ident : $t1:ty : $payload:ident : $t:ty) $field:ident[$key:expr;] ) => {
+        fn $n(&self, $param1: $t1, $payload: $t) -> Result<()> {
             let key = $key.to_string();
             self.publish_payload(&format!("{}[{}]", &stringify!($field), &key), move |h| h.$field.get(&key).map(|it| Some(it)).unwrap_or(None), $payload)
         }
@@ -389,29 +399,38 @@ impl IdentifiableComponentBackendFacade for InProcessComponent {
     }
 }
 
-impl IdentifiableToggleableBackendFacade for InProcessComponent {
-    fn subscribe_toggle_on(&self, site_id: SiteId, handler: Callback<SiteMessage>) -> Result<()> {
-        let entry = identifiable_entry(&self.name, &site_id);
+impl IdentifiableToggleableFacade for InProcessComponent {
+    fn publish_toggle_on(&self, site: SiteMessage) -> Result<()> {
+        let component_name = self.name.to_string();
+        self.publish_payload("toggle_on", move |h| h.toggle_on.get(&component_name), site)
+    }
+    fn publish_toggle_off(&self, site: SiteMessage) -> Result<()> {
+        let component_name = self.name.to_string();
+        self.publish_payload("toggle_off", move |h| h.toggle_off.get(&component_name), site)
+    }
+}
 
+impl IdentifiableToggleableBackendFacade for InProcessComponent {
+    fn subscribe_toggle_on(&self, handler: Callback<SiteMessage>) -> Result<()> {
+        let component_name = self.name.to_string();
         self.subscribe_payload(
             "toggle_on",
-            |h| h.toggle_on.entry(entry).or_insert_with(|| vec![]),
+            |h| h.toggle_on.entry(component_name).or_insert_with(|| vec![]),
             handler,
         )
     }
-    fn subscribe_toggle_off(&self, site_id: SiteId, handler: Callback<SiteMessage>) -> Result<()> {
-        let entry = identifiable_entry(&self.name, &site_id);
-
+    fn subscribe_toggle_off(&self, handler: Callback<SiteMessage>) -> Result<()> {
+        let component_name = self.name.to_string();
         self.subscribe_payload(
             "toggle_off",
-            |h| h.toggle_off.entry(entry).or_insert_with(|| vec![]),
+            |h| h.toggle_off.entry(component_name).or_insert_with(|| vec![]),
             handler,
         )
     }
 }
 
-fn identifiable_entry(component_name: &str, site_id: &str) -> String {
-    format!("{}-{}", component_name, site_id)
+fn identifiable_entry(component_name: &str, id: &str) -> String {
+    format!("{}-{}", component_name, id)
 }
 
 impl NluFacade for InProcessComponent {
@@ -431,45 +450,65 @@ impl NluBackendFacade for InProcessComponent {
 }
 
 impl ToggleableFacade for InProcessComponent {
-    fn publish_toggle_on(&self, site: SiteMessage) -> Result<()> {
-        let component_name = self.name.to_string();
-        self.publish_payload("toggle_on", move |h| {
-            h.toggle_on.get(&component_name)
-        }, site)
+    fn publish_toggle_on(&self) -> Result<()> {
+        self.publish("toggle_on", move |h| &h.toggle_on_0)
     }
-    fn publish_toggle_off(&self, site: SiteMessage) -> Result<()> {
+    fn publish_toggle_off(&self) -> Result<()> {
         let component_name = self.name.to_string();
-        self.publish_payload("toggle_off", move |h| {
-            h.toggle_off.get(&component_name)
-        }, site)
+        self.publish("toggle_off", move |h| &h.toggle_off_0)
     }
 }
 
 impl ToggleableBackendFacade for InProcessComponent {
-    fn subscribe_toggle_on(&self, handler: Callback<SiteMessage>) -> Result<()> {
+    fn subscribe_toggle_on(&self, handler: Callback0) -> Result<()> {
         let component_name = self.name.to_string();
-        self.subscribe_payload(
+        self.subscribe(
             "toggle_on",
-            |h| h.toggle_on.entry(component_name).or_insert_with(|| vec![]),
+            |h| &mut h.toggle_on_0,
             handler,
         )
     }
-    fn subscribe_toggle_off(&self, handler: Callback<SiteMessage>) -> Result<()> {
+    fn subscribe_toggle_off(&self, handler: Callback0) -> Result<()> {
         let component_name = self.name.to_string();
-        self.subscribe_payload(
+        self.subscribe(
             "toggle_off",
-            |h| h.toggle_off.entry(component_name).or_insert_with(|| vec![]),
+            |h| &mut h.toggle_off_0,
             handler,
         )
     }
 }
 
 impl HotwordFacade for InProcessComponent {
-    s!(subscribe_detected<SiteMessage>(site_id: SiteId) { hotword_detected[site_id;] });
+    fn subscribe_detected(&self, id: String, handler: Callback<SiteMessage>) -> Result<()> {
+        self.subscribe_payload(
+            "hotword_detected",
+            |h| h.hotword_detected.entry(id).or_insert_with(|| vec![]),
+            handler,
+        )
+    }
+
+    fn subscribe_all_detected(&self, handler: Callback<SiteMessage>) -> Result<()> {
+        self.subscribe_payload(
+            "hotword_all_detected",
+            |h| &mut h.hotword_all_detected,
+            handler,
+        )
+    }
 }
 
 impl HotwordBackendFacade for InProcessComponent {
-    p!(publish_detected(m: SiteMessage) hotword_detected[m.site_id;]);
+    fn publish_detected(&self, id: String, message: SiteMessage) -> Result<()> {
+        self.publish_payload(
+            "hotword_detected",
+            move |h| h.hotword_detected.get(&id),
+            message.clone(),
+        )?;
+        self.publish_payload(
+            "hotword_all_detected",
+            move |h| Some(&h.hotword_all_detected),
+            message,
+        )
+    }
 }
 
 impl SoundFeedbackFacade for InProcessComponent {}
