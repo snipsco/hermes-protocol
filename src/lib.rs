@@ -65,6 +65,7 @@ pub trait IdentifiableToggleableBackendFacade: Send + Sync {
 /// The facade to interact with the hotword component
 pub trait HotwordFacade: IdentifiableComponentFacade + ToggleableFacade {
     fn subscribe_detected(&self, site_id: SiteId, handler: Callback<SiteMessage>) -> Result<()>;
+    fn subscribe_all_detected(&self, handler: Callback<SiteMessage>) -> Result<()>;
 }
 
 /// The facade the hotword feature must use receive its orders and publish detected hotwords

@@ -129,6 +129,9 @@ macro_rules! test_suite {
         t!(hotword_detected_works:
                     hotword.subscribe_detected { "some site".into() } <= SiteMessage | hotword_backend.publish_detected
                     with SiteMessage { session_id: Some("123abc".into()), site_id: "some site".into() };);
+        t!(hotword_all_detected_works:
+                    hotword.subscribe_all_detected <= SiteMessage | hotword_backend.publish_detected
+                    with SiteMessage { session_id: Some("123abc".into()), site_id: "some site".into() };);
 
         t_toggleable!(sound_feedback_toggleable: sound_feedback_backend | sound_feedback );
 
@@ -214,4 +217,3 @@ macro_rules! test_suite {
                     with EndSessionMessage { session_id: "some id".into(), text: None };);
     };
 }
-

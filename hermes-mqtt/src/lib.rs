@@ -383,6 +383,7 @@ impl_identifiable_toggleable_facades_for!(MqttToggleableComponentFacade);
 
 impl HotwordFacade for MqttToggleableComponentFacade {
     s!(subscribe_detected<SiteMessage>(site_id: SiteId) { &HermesTopic::Hotword(site_id.into(), HotwordCommand::Detected) });
+    s!(subscribe_all_detected<SiteMessage> &HermesTopic::Hotword("+".into(), HotwordCommand::Detected););
 }
 
 impl HotwordBackendFacade for MqttToggleableComponentFacade {
@@ -646,5 +647,5 @@ mod tests {
     //TODO make this work :)
     //test_suite!();
 
-    //t_toggleable!(hotword_toggleable: hotword_backend | hotword);
+    t_toggleable!(hotword_toggleable: hotword_backend | hotword);
 }
