@@ -23,13 +23,13 @@ pub trait FromPath<T: Sized> {
 pub enum HermesTopic {
     Feedback(FeedbackCommand),
     DialogueManager(DialogueManagerCommand),
-    Hotword(SiteId, HotwordCommand),
+    Hotword(Option<String>, HotwordCommand),
     Asr(AsrCommand),
     Tts(TtsCommand),
     Nlu(NluCommand),
     Intent(String),
-    Component(Option<SiteId>, Component, ComponentCommand),
-    AudioServer(SiteId, AudioServerCommand),
+    AudioServer(Option<SiteId>, AudioServerCommand),
+    Component(Option<String>, Component, ComponentCommand),
 }
 
 impl ToPath for HermesTopic {}
@@ -52,15 +52,20 @@ impl FromPath<Self> for HermesTopic {
 
         let parametric1 = if path_components.len() >= 1 {
             let p = path_components[path_components.len() - 1].as_os_str().to_string_lossy();
-            vec![HermesTopic::Intent(p.to_string())]
+            let audio_server = AudioServerCommand::iter().map(|cmd| HermesTopic::AudioServer(None, cmd));
+            let hotword = HotwordCommand::iter().map(|cmd| HermesTopic::Hotword(None, cmd));
+
+            let mut res: Vec<HermesTopic> = audio_server.chain(hotword).collect();
+            res.extend(vec![HermesTopic::Intent(p.to_string())]);
+            res
         } else {
             vec![]
         };
         let parametric2 = if path_components.len() >= 2 {
             let p1 = path_components[path_components.len() - 2].as_os_str().to_string_lossy();
             let p2 = path_components[path_components.len() - 1].as_os_str().to_string_lossy();
-            let audio_server = AudioServerCommand::iter().map(|cmd| HermesTopic::AudioServer(p1.to_string(), cmd));
-            let hotword = HotwordCommand::iter().map(|cmd| HermesTopic::Hotword(p1.to_string(), cmd));
+            let audio_server = AudioServerCommand::iter().map(|cmd| HermesTopic::AudioServer(Some(p1.to_string()), cmd));
+            let hotword = HotwordCommand::iter().map(|cmd| HermesTopic::Hotword(Some(p1.to_string()), cmd));
             let component = ComponentCommand::iter().flat_map(|cmd| {
                 Component::iter()
                     .map(|component| HermesTopic::Component(Some(p1.to_string()), component, cmd))
@@ -74,7 +79,7 @@ impl FromPath<Self> for HermesTopic {
             let p1 = path_components[path_components.len() - 3].as_os_str().to_string_lossy();
             let _ = path_components[path_components.len() - 2].as_os_str().to_string_lossy();
             let p3 = path_components[path_components.len() - 1].as_os_str().to_string_lossy();
-            vec![HermesTopic::AudioServer(p1.to_string(), AudioServerCommand::PlayBytes(p3.into()))]
+            vec![HermesTopic::AudioServer(Some(p1.to_string()), AudioServerCommand::PlayBytes(p3.into()))]
         } else {
             vec![]
         };
@@ -97,20 +102,32 @@ impl fmt::Display for HermesTopic {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let subpath = match *self {
             HermesTopic::Feedback(ref cmd) => format!("feedback/{}", cmd.as_path()),
-            HermesTopic::Hotword(ref site_id, ref cmd) => format!("{}/{}/{}", Component::Hotword.as_path(), site_id, cmd.as_path()),
+            HermesTopic::Hotword(ref opt_id, ref cmd) => {
+                if let Some(ref id) = opt_id.as_ref() {
+                    format!("{}/{}/{}", Component::Hotword.as_path(), id, cmd.as_path())
+                } else {
+                    format!("{}/{}", Component::Hotword.as_path(), cmd.as_path())
+                }
+            }
             HermesTopic::Asr(ref cmd) => format!("{}/{}", Component::Asr.as_path(), cmd.as_path()),
             HermesTopic::Tts(ref cmd) => format!("{}/{}", Component::Tts.as_path(), cmd.as_path()),
             HermesTopic::Nlu(ref cmd) => format!("{}/{}", Component::Nlu.as_path(), cmd.as_path()),
             HermesTopic::DialogueManager(ref cmd) => format!("{}/{}", Component::DialogueManager.as_path(), cmd.as_path()),
             HermesTopic::Intent(ref intent_name) => format!("intent/{}", intent_name),
-            HermesTopic::Component(ref opt_site_id, ref component, ref cmd) => {
-                if let Some(ref site_id) = opt_site_id.as_ref() {
-                    format!("{}/{}/{}", component.as_path(), site_id, cmd.as_path())
+            HermesTopic::Component(ref opt_id, ref component, ref cmd) => {
+                if let Some(ref id) = opt_id.as_ref() {
+                    format!("{}/{}/{}", component.as_path(), id, cmd.as_path())
                 } else {
                     format!("{}/{}", component.as_path(), cmd.as_path())
                 }
             }
-            HermesTopic::AudioServer(ref site_id, ref cmd) => format!("{}/{}/{}", Component::AudioServer.as_path(), site_id, cmd.as_path()),
+            HermesTopic::AudioServer(ref opt_site_id, ref cmd) => {
+                if let Some(ref site_id) = opt_site_id.as_ref() {
+                    format!("{}/{}/{}", Component::AudioServer.as_path(), site_id, cmd.as_path())
+                } else {
+                    format!("{}/{}", Component::AudioServer.as_path(), cmd.as_path())
+                }
+            }
         };
         write!(f, "hermes/{}", subpath)
     }
@@ -212,6 +229,8 @@ pub enum AudioServerCommand {
     AudioFrame,
     PlayBytes(String),
     PlayFinished,
+    ToggleOn,
+    ToggleOff,
 }
 
 impl fmt::Display for AudioServerCommand {
@@ -220,6 +239,8 @@ impl fmt::Display for AudioServerCommand {
             AudioServerCommand::AudioFrame => "audioFrame".to_owned(),
             AudioServerCommand::PlayBytes(ref id) => format!("playBytes/{}", id),
             AudioServerCommand::PlayFinished => "playFinished".to_owned(),
+            AudioServerCommand::ToggleOn => "toggleOn".to_owned(),
+            AudioServerCommand::ToggleOff => "toggleOff".to_owned(),
         };
         write!(f, "{}", subpath)
     }
@@ -257,9 +278,9 @@ mod tests {
             (HermesTopic::Feedback(FeedbackCommand::Sound(SoundCommand::ToggleOn)), "hermes/feedback/sound/toggleOn"),
             (HermesTopic::Feedback(FeedbackCommand::Sound(SoundCommand::ToggleOff)), "hermes/feedback/sound/toggleOff"),
 
-            (HermesTopic::Hotword("default".into(), HotwordCommand::ToggleOn), "hermes/hotword/default/toggleOn"),
-            (HermesTopic::Hotword("default".into(), HotwordCommand::ToggleOff), "hermes/hotword/default/toggleOff"),
-            (HermesTopic::Hotword("default".into(), HotwordCommand::Detected), "hermes/hotword/default/detected"),
+            (HermesTopic::Hotword(None, HotwordCommand::ToggleOn), "hermes/hotword/toggleOn"),
+            (HermesTopic::Hotword(None, HotwordCommand::ToggleOff), "hermes/hotword/toggleOff"),
+            (HermesTopic::Hotword(Some("default".into()), HotwordCommand::Detected), "hermes/hotword/default/detected"),
             (HermesTopic::Component(Some("default".into()), Component::Hotword, ComponentCommand::VersionRequest), "hermes/hotword/default/versionRequest"),
             (HermesTopic::Component(Some("default".into()), Component::Hotword, ComponentCommand::Version), "hermes/hotword/default/version"),
             (HermesTopic::Component(Some("default".into()), Component::Hotword, ComponentCommand::Error), "hermes/hotword/default/error"),
@@ -272,9 +293,11 @@ mod tests {
             (HermesTopic::Component(None, Component::Asr, ComponentCommand::Version), "hermes/asr/version"),
             (HermesTopic::Component(None, Component::Asr, ComponentCommand::Error), "hermes/asr/error"),
 
-            (HermesTopic::AudioServer("default".into(), AudioServerCommand::AudioFrame), "hermes/audioServer/default/audioFrame"),
-            (HermesTopic::AudioServer("default".into(), AudioServerCommand::PlayBytes("kikoo".into())), "hermes/audioServer/default/playBytes/kikoo"),
-            (HermesTopic::AudioServer("default".into(), AudioServerCommand::PlayFinished), "hermes/audioServer/default/playFinished"),
+            (HermesTopic::AudioServer(None, AudioServerCommand::ToggleOn), "hermes/audioServer/toggleOn"),
+            (HermesTopic::AudioServer(None, AudioServerCommand::ToggleOff), "hermes/audioServer/toggleOff"),
+            (HermesTopic::AudioServer(Some("default".into()), AudioServerCommand::AudioFrame), "hermes/audioServer/default/audioFrame"),
+            (HermesTopic::AudioServer(Some("default".into()), AudioServerCommand::PlayBytes("kikoo".into())), "hermes/audioServer/default/playBytes/kikoo"),
+            (HermesTopic::AudioServer(Some("default".into()), AudioServerCommand::PlayFinished), "hermes/audioServer/default/playFinished"),
             (HermesTopic::Component(Some("default".into()), Component::AudioServer, ComponentCommand::VersionRequest), "hermes/audioServer/default/versionRequest"),
             (HermesTopic::Component(Some("default".into()), Component::AudioServer, ComponentCommand::Version), "hermes/audioServer/default/version"),
             (HermesTopic::Component(Some("default".into()), Component::AudioServer, ComponentCommand::Error), "hermes/audioServer/default/error"),

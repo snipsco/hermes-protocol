@@ -218,6 +218,12 @@ macro_rules! p {
         }
     };
 
+    ($n:ident<$t:ty>($param1:ident: $t1:ty) $topic:block ) => {
+        fn $n(&self, $param1: $t1, payload: $t) -> Result<()> {
+            self.mqtt_handler.publish_payload($topic, payload)
+        }
+    };
+
     ($n:ident($payload:ident: $t:ty) $topic:block ) => {
         fn $n(&self, $payload: $t) -> Result<()> {
             self.mqtt_handler.publish_payload($topic, $payload)
@@ -278,6 +284,30 @@ macro_rules! impl_toggleable_facades_for {
     // to get the toggle on/off topics... I'm sad...
     ($t:ty) => {
         impl ToggleableFacade for $t {
+            fn publish_toggle_on(&self) -> Result<()> {
+                self.mqtt_handler.publish(&self.toggle_on_topic)
+            }
+
+            fn publish_toggle_off(&self) -> Result<()> {
+                self.mqtt_handler.publish(&self.toggle_off_topic)
+            }
+        }
+
+        impl ToggleableBackendFacade for $t {
+            fn subscribe_toggle_on(&self, handler: Callback0) -> Result<()> {
+                self.mqtt_handler.subscribe(&self.toggle_on_topic, move || handler.call())
+            }
+
+            fn subscribe_toggle_off(&self, handler: Callback0) -> Result<()> {
+                self.mqtt_handler.subscribe(&self.toggle_off_topic, move || handler.call())
+            }
+        }
+    };
+}
+
+macro_rules! impl_identifiable_toggleable_facades_for {
+    ($t:ty) => {
+        impl IdentifiableToggleableFacade for $t {
             fn publish_toggle_on(&self, site: SiteMessage) -> Result<()> {
                 self.mqtt_handler.publish_payload(&self.toggle_on_topic, site)
             }
@@ -287,35 +317,13 @@ macro_rules! impl_toggleable_facades_for {
             }
         }
 
-        impl ToggleableBackendFacade for $t {
+        impl IdentifiableToggleableBackendFacade for $t {
             fn subscribe_toggle_on(&self, handler: Callback<SiteMessage>) -> Result<()> {
                 self.mqtt_handler.subscribe_payload(&self.toggle_on_topic, move |p| handler.call(p))
             }
 
             fn subscribe_toggle_off(&self, handler: Callback<SiteMessage>) -> Result<()> {
                 self.mqtt_handler.subscribe_payload(&self.toggle_off_topic, move |p| handler.call(p))
-            }
-        }
-    };
-}
-
-macro_rules! impl_identifiable_toggleable_facades_for {
-    ($t:ty) => {
-        impl IdentifiableToggleableBackendFacade for $t {
-            fn subscribe_toggle_on(&self, site_id: SiteId, handler: Callback<SiteMessage>) -> Result<()> {
-                let topic = match self.component {
-                    Component::Hotword => HermesTopic::Hotword(site_id, HotwordCommand::ToggleOn),
-                    _ => self.toggle_on_topic.clone(), // Fallback to normal topic. We may want to panic here but who cares ?
-                };
-                self.mqtt_handler.subscribe_payload(&topic, move |p| handler.call(p))
-            }
-
-            fn subscribe_toggle_off(&self, site_id: SiteId, handler: Callback<SiteMessage>) -> Result<()> {
-                let topic = match self.component {
-                    Component::Hotword => HermesTopic::Hotword(site_id, HotwordCommand::ToggleOff),
-                    _ => self.toggle_off_topic.clone(), // Fallback to normal topic. We may want to panic here but who cares ?
-                };
-                self.mqtt_handler.subscribe_payload(&topic, move |p| handler.call(p))
             }
         }
     };
@@ -367,7 +375,7 @@ struct MqttToggleableFacade {
     mqtt_handler: Arc<MqttHandler>
 }
 
-impl_toggleable_facades_for!(MqttToggleableFacade);
+impl_identifiable_toggleable_facades_for!(MqttToggleableFacade);
 
 struct MqttToggleableComponentFacade {
     component: Component,
@@ -382,12 +390,12 @@ impl_identifiable_component_facades_for!(MqttToggleableComponentFacade);
 impl_identifiable_toggleable_facades_for!(MqttToggleableComponentFacade);
 
 impl HotwordFacade for MqttToggleableComponentFacade {
-    s!(subscribe_detected<SiteMessage>(site_id: SiteId) { &HermesTopic::Hotword(site_id.into(), HotwordCommand::Detected) });
-    s!(subscribe_all_detected<SiteMessage> &HermesTopic::Hotword("+".into(), HotwordCommand::Detected););
+    s!(subscribe_detected<SiteMessage>(id: String) { &HermesTopic::Hotword(Some(id), HotwordCommand::Detected) });
+    s!(subscribe_all_detected<SiteMessage> &HermesTopic::Hotword(Some("+".into()), HotwordCommand::Detected););
 }
 
 impl HotwordBackendFacade for MqttToggleableComponentFacade {
-    p!(publish_detected(message: SiteMessage) { &HermesTopic::Hotword(message.site_id.clone(), HotwordCommand::Detected) });
+    p!(publish_detected<SiteMessage>(id: String) { &HermesTopic::Hotword(Some(id), HotwordCommand::Detected) });
 }
 
 impl SoundFeedbackFacade for MqttToggleableFacade {}
@@ -430,35 +438,36 @@ impl NluBackendFacade for MqttComponentFacade {
     p!(publish_intent_not_recognized<NluIntentNotRecognizedMessage> &HermesTopic::Nlu(NluCommand::IntentNotRecognized););
 }
 
-impl AudioServerFacade for MqttComponentFacade {
-    s_bin!(subscribe_audio_frame<AudioFrameMessage>(site_id: SiteId) { &HermesTopic::AudioServer(site_id, AudioServerCommand::AudioFrame) }
+impl AudioServerFacade for MqttToggleableComponentFacade {
+    s_bin!(subscribe_audio_frame<AudioFrameMessage>(site_id: SiteId) { &HermesTopic::AudioServer(Some(site_id), AudioServerCommand::AudioFrame) }
             |topic, bytes| {
-                if let &HermesTopic::AudioServer(ref site_id, AudioServerCommand::AudioFrame) = topic {
+                if let &HermesTopic::AudioServer(Some(ref site_id), AudioServerCommand::AudioFrame) = topic {
                     AudioFrameMessage { site_id: site_id.to_owned(), wav_frame: bytes.into() }
                 } else {
                     unreachable!()
                 }
             });
     p_bin!(publish_play_bytes(bytes: PlayBytesMessage)
-        { &HermesTopic::AudioServer(bytes.site_id, AudioServerCommand::PlayBytes(bytes.id)) }
+        { &HermesTopic::AudioServer(Some(bytes.site_id), AudioServerCommand::PlayBytes(bytes.id)) }
         { bytes.wav_bytes });
-    s!(subscribe_play_finished<PlayFinishedMessage>(site_id: SiteId) { &HermesTopic::AudioServer(site_id, AudioServerCommand::PlayFinished) });
-    s!(subscribe_all_play_finished<PlayFinishedMessage> &HermesTopic::AudioServer("#".into(), AudioServerCommand::PlayFinished););
+    s!(subscribe_play_finished<PlayFinishedMessage>(site_id: SiteId) { &HermesTopic::AudioServer(Some(site_id), AudioServerCommand::PlayFinished) });
+    s!(subscribe_all_play_finished<PlayFinishedMessage> &HermesTopic::AudioServer(Some("#".into()), AudioServerCommand::PlayFinished););
 }
 
-impl AudioServerBackendFacade for MqttComponentFacade {
+impl AudioServerBackendFacade for MqttToggleableComponentFacade {
     p_bin!(publish_audio_frame(frame: AudioFrameMessage)
-        { &HermesTopic::AudioServer(frame.site_id, AudioServerCommand::AudioFrame) }
+        { &HermesTopic::AudioServer(Some(frame.site_id), AudioServerCommand::AudioFrame) }
         { frame.wav_frame });
-    s_bin!(subscribe_play_bytes<PlayBytesMessage>(site_id: SiteId) { &HermesTopic::AudioServer(site_id, AudioServerCommand::PlayBytes("#".into())) }
+    s_bin!(subscribe_play_bytes<PlayBytesMessage>(site_id: SiteId) { &HermesTopic::AudioServer(Some(site_id), AudioServerCommand::PlayBytes("#".into())) }
             |topic, bytes| {
-                if let &HermesTopic::AudioServer(ref site_id, AudioServerCommand::PlayBytes(ref id)) = topic {
-                    PlayBytesMessage { session_id: None, site_id: site_id.to_owned(), id: id.to_owned(), wav_bytes: bytes.into() }
+                // May be interesting to check for site_id equality
+                if let &HermesTopic::AudioServer(Some(ref site_id), AudioServerCommand::PlayBytes(ref request_id)) = topic {
+                    PlayBytesMessage { session_id: None, site_id: site_id.to_owned(), id: request_id.to_owned(), wav_bytes: bytes.into() }
                 } else {
                     unreachable!()
                 }
             });
-    p!(publish_play_finished(message: PlayFinishedMessage) { &HermesTopic::AudioServer(message.site_id.clone(), AudioServerCommand::PlayFinished) });
+    p!(publish_play_finished(message: PlayFinishedMessage) { &HermesTopic::AudioServer(Some(message.site_id.clone()), AudioServerCommand::PlayFinished) });
 }
 
 impl DialogueFacade for MqttToggleableComponentFacade {
@@ -487,8 +496,8 @@ impl MqttHermesProtocolHandler {
         Box::new(MqttToggleableComponentFacade {
             mqtt_handler: Arc::clone(&self.mqtt_handler),
             component: Component::Hotword,
-            toggle_on_topic: HermesTopic::Hotword("".into(), HotwordCommand::ToggleOn),
-            toggle_off_topic: HermesTopic::Hotword("".into(), HotwordCommand::ToggleOff)
+            toggle_on_topic: HermesTopic::Hotword(None, HotwordCommand::ToggleOn),
+            toggle_off_topic: HermesTopic::Hotword(None, HotwordCommand::ToggleOff)
         })
     }
 
@@ -515,6 +524,15 @@ impl MqttHermesProtocolHandler {
             component: Component::DialogueManager,
             toggle_on_topic: HermesTopic::DialogueManager(DialogueManagerCommand::ToggleOn),
             toggle_off_topic: HermesTopic::DialogueManager(DialogueManagerCommand::ToggleOff)
+        })
+    }
+
+    fn audio_server(&self) -> Box<MqttToggleableComponentFacade> {
+        Box::new(MqttToggleableComponentFacade {
+            mqtt_handler: Arc::clone(&self.mqtt_handler),
+            component: Component::AudioServer,
+            toggle_on_topic: HermesTopic::AudioServer(None, AudioServerCommand::ToggleOn),
+            toggle_off_topic: HermesTopic::AudioServer(None, AudioServerCommand::ToggleOff),
         })
     }
 
@@ -548,7 +566,7 @@ impl HermesProtocolHandler for MqttHermesProtocolHandler {
     }
 
     fn audio_server(&self) -> Box<AudioServerFacade> {
-        self.component(Component::AudioServer)
+        self.audio_server()
     }
 
     fn hotword_backend(&self) -> Box<HotwordBackendFacade> {
@@ -572,7 +590,7 @@ impl HermesProtocolHandler for MqttHermesProtocolHandler {
     }
 
     fn audio_server_backend(&self) -> Box<AudioServerBackendFacade> {
-        self.component(Component::AudioServer)
+        self.audio_server()
     }
 
     fn dialogue(&self) -> Box<DialogueFacade> {
