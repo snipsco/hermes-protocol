@@ -63,7 +63,6 @@ impl FromPath<Self> for HermesTopic {
         };
         let parametric2 = if path_components.len() >= 2 {
             let p1 = path_components[path_components.len() - 2].as_os_str().to_string_lossy();
-            let p2 = path_components[path_components.len() - 1].as_os_str().to_string_lossy();
             let audio_server = AudioServerCommand::iter().map(|cmd| HermesTopic::AudioServer(Some(p1.to_string()), cmd));
             let hotword = HotwordCommand::iter().map(|cmd| HermesTopic::Hotword(Some(p1.to_string()), cmd));
             let component = ComponentCommand::iter().flat_map(|cmd| {
@@ -77,7 +76,6 @@ impl FromPath<Self> for HermesTopic {
         };
         let parametric3 = if path_components.len() >= 3 {
             let p1 = path_components[path_components.len() - 3].as_os_str().to_string_lossy();
-            let _ = path_components[path_components.len() - 2].as_os_str().to_string_lossy();
             let p3 = path_components[path_components.len() - 1].as_os_str().to_string_lossy();
             vec![HermesTopic::AudioServer(Some(p1.to_string()), AudioServerCommand::PlayBytes(p3.into()))]
         } else {

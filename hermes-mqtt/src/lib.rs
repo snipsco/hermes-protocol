@@ -451,7 +451,7 @@ impl AudioServerFacade for MqttToggleableComponentFacade {
         { &HermesTopic::AudioServer(Some(bytes.site_id), AudioServerCommand::PlayBytes(bytes.id)) }
         { bytes.wav_bytes });
     s!(subscribe_play_finished<PlayFinishedMessage>(site_id: SiteId) { &HermesTopic::AudioServer(Some(site_id), AudioServerCommand::PlayFinished) });
-    s!(subscribe_all_play_finished<PlayFinishedMessage> &HermesTopic::AudioServer(Some("#".into()), AudioServerCommand::PlayFinished););
+    s!(subscribe_all_play_finished<PlayFinishedMessage> &HermesTopic::AudioServer(Some("+".into()), AudioServerCommand::PlayFinished););
 }
 
 impl AudioServerBackendFacade for MqttToggleableComponentFacade {
@@ -527,7 +527,7 @@ impl MqttHermesProtocolHandler {
         })
     }
 
-    fn audio_server(&self) -> Box<MqttToggleableComponentFacade> {
+    fn audio_server_component(&self) -> Box<MqttToggleableComponentFacade> {
         Box::new(MqttToggleableComponentFacade {
             mqtt_handler: Arc::clone(&self.mqtt_handler),
             component: Component::AudioServer,
@@ -566,7 +566,7 @@ impl HermesProtocolHandler for MqttHermesProtocolHandler {
     }
 
     fn audio_server(&self) -> Box<AudioServerFacade> {
-        self.audio_server()
+        self.audio_server_component()
     }
 
     fn hotword_backend(&self) -> Box<HotwordBackendFacade> {
@@ -590,7 +590,7 @@ impl HermesProtocolHandler for MqttHermesProtocolHandler {
     }
 
     fn audio_server_backend(&self) -> Box<AudioServerBackendFacade> {
-        self.audio_server()
+        self.audio_server_component()
     }
 
     fn dialogue(&self) -> Box<DialogueFacade> {
@@ -662,8 +662,6 @@ mod tests {
 
         (handler1, handler2)
     }
-    //TODO make this work :)
-    //test_suite!();
 
-    t_toggleable!(hotword_toggleable: hotword_backend | hotword);
+    test_suite!();
 }
