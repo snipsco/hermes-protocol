@@ -20,6 +20,8 @@ type ComponentName = String;
 
 #[derive(Default)]
 struct Handler {
+    asr_start_listening: Vec<Callback<SiteMessage>>,
+    asr_stop_listening: Vec<Callback<SiteMessage>>,
     asr_text_captured: Vec<Callback<TextCapturedMessage>>,
     asr_partial_text_captured: Vec<Callback<TextCapturedMessage>>,
 
@@ -454,14 +456,12 @@ impl ToggleableFacade for InProcessComponent {
         self.publish("toggle_on", move |h| &h.toggle_on_0)
     }
     fn publish_toggle_off(&self) -> Result<()> {
-        let component_name = self.name.to_string();
         self.publish("toggle_off", move |h| &h.toggle_off_0)
     }
 }
 
 impl ToggleableBackendFacade for InProcessComponent {
     fn subscribe_toggle_on(&self, handler: Callback0) -> Result<()> {
-        let component_name = self.name.to_string();
         self.subscribe(
             "toggle_on",
             |h| &mut h.toggle_on_0,
@@ -469,7 +469,6 @@ impl ToggleableBackendFacade for InProcessComponent {
         )
     }
     fn subscribe_toggle_off(&self, handler: Callback0) -> Result<()> {
-        let component_name = self.name.to_string();
         self.subscribe(
             "toggle_off",
             |h| &mut h.toggle_off_0,
@@ -516,11 +515,15 @@ impl SoundFeedbackFacade for InProcessComponent {}
 impl SoundFeedbackBackendFacade for InProcessComponent {}
 
 impl AsrFacade for InProcessComponent {
+    p!(publish_start_listening<SiteMessage> asr_start_listening);
+    p!(publish_stop_listening<SiteMessage> asr_stop_listening);
     s!(subscribe_text_captured<TextCapturedMessage> asr_text_captured);
     s!(subscribe_partial_text_captured<TextCapturedMessage> asr_partial_text_captured);
 }
 
 impl AsrBackendFacade for InProcessComponent {
+    s!(subscribe_start_listening<SiteMessage> asr_start_listening);
+    s!(subscribe_stop_listening<SiteMessage> asr_stop_listening);
     p!(publish_text_captured<TextCapturedMessage> asr_text_captured);
     p!(publish_partial_text_captured<TextCapturedMessage> asr_partial_text_captured);
 }
