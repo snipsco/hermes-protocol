@@ -227,6 +227,12 @@ macro_rules! test_suite {
         t!(asr_partial_text_captured_works:
                     asr.subscribe_partial_text_captured <= TextCapturedMessage | asr_backend.publish_partial_text_captured
                     with TextCapturedMessage { text: "hello world".into(), likelihood: 0.5, seconds: 4.2, site_id: "Some site".into(), session_id: Some("123abc".into()) };);
+        t!(asr_start_listening:
+                    asr_backend.subscribe_start_listening <= SiteMessage | asr.publish_start_listening
+                    with SiteMessage { session_id: Some("abc".into()), site_id: "some site".into() };);
+        t!(asr_stop_listening:
+                    asr_backend.subscribe_stop_listening <= SiteMessage | asr.publish_stop_listening
+                    with SiteMessage { session_id: Some("abc".into()), site_id: "some site".into() };);
 
         t_component!(tts_component: tts_backend | tts);
         t!(tts_say_works:
