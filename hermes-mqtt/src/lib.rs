@@ -204,6 +204,12 @@ macro_rules! s {
 }
 
 macro_rules! s_bin {
+    ($n:ident<$t:ty> $topic:block |$rt:ident, $p:ident| $decoder:block) => {
+        fn $n(&self, handler: Callback<$t>) -> Result<()> {
+            self.mqtt_handler.subscribe_binary_payload($topic, move |$rt, $p| handler.call(&$decoder))
+        }
+    };
+
     ($n:ident<$t:ty>($($a:ident: $ta:ty),*) $topic:block |$rt:ident, $p:ident| $decoder:block) => {
         fn $n(&self, $($a: $ta),*, handler: Callback<$t>) -> Result<()> {
             self.mqtt_handler.subscribe_binary_payload($topic, move |$rt, $p| handler.call(&$decoder))
@@ -462,9 +468,16 @@ impl AudioServerBackendFacade for MqttToggleableComponentFacade {
     p_bin!(publish_audio_frame(frame: AudioFrameMessage)
         { &HermesTopic::AudioServer(Some(frame.site_id), AudioServerCommand::AudioFrame) }
         { frame.wav_frame });
+    s_bin!(subscribe_all_play_bytes<PlayBytesMessage> { &HermesTopic::AudioServer(Some("+".into()), AudioServerCommand::PlayBytes("#".into())) }
+            |topic, bytes| {
+                if let &HermesTopic::AudioServer(Some(ref site_id), AudioServerCommand::PlayBytes(ref request_id)) = topic {
+                    PlayBytesMessage { session_id: None, site_id: site_id.to_owned(), id: request_id.to_owned(), wav_bytes: bytes.into() }
+                } else {
+                    unreachable!()
+                }
+            });
     s_bin!(subscribe_play_bytes<PlayBytesMessage>(site_id: SiteId) { &HermesTopic::AudioServer(Some(site_id), AudioServerCommand::PlayBytes("#".into())) }
             |topic, bytes| {
-                // May be interesting to check for site_id equality
                 if let &HermesTopic::AudioServer(Some(ref site_id), AudioServerCommand::PlayBytes(ref request_id)) = topic {
                     PlayBytesMessage { session_id: None, site_id: site_id.to_owned(), id: request_id.to_owned(), wav_bytes: bytes.into() }
                 } else {
@@ -667,6 +680,5 @@ mod tests {
         (handler1, handler2)
     }
 
-    t_identifiable_toggleable!(hotword_identifiable_toggleable: hotword_backend | hotword);    
     //test_suite!();
 }
