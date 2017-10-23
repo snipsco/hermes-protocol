@@ -271,6 +271,10 @@ macro_rules! test_suite {
                     audio_server_backend.subscribe_play_bytes { "some site".into() } <= PlayBytesMessage | audio_server.publish_play_bytes
                     with PlayBytesMessage { wav_bytes: vec![42; 1000], id: "my id".into(), site_id: "some site".into(), session_id: Some("abc".into()) };
             );
+        t!(audio_server_play_all_bytes_works:
+                    audio_server_backend.subscribe_all_play_bytes <= PlayBytesMessage | audio_server.publish_play_bytes
+                    with PlayBytesMessage { wav_bytes: vec![42; 1000], id: "my id".into(), site_id: "some site".into(), session_id: Some("abc".into()) };
+            );
         t!(audio_server_play_finished_works:
                     OneToMany
                     audio_server.subscribe_play_finished { "some site".into() } <= PlayFinishedMessage | audio_server_backend.publish_play_finished

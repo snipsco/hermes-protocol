@@ -176,6 +176,7 @@ pub trait AudioServerFacade: IdentifiableComponentFacade + IdentifiableToggleabl
 /// The facade the audio server must use to receive its orders and advertise when it has finished
 pub trait AudioServerBackendFacade: IdentifiableComponentBackendFacade + IdentifiableToggleableBackendFacade  {
     fn subscribe_play_bytes(&self, site_id: SiteId, handler: Callback<PlayBytesMessage>) -> Result<()>;
+    fn subscribe_all_play_bytes(&self, handler: Callback<PlayBytesMessage>) -> Result<()>;
     fn publish_play_finished(&self, status: PlayFinishedMessage) -> Result<()>;
     fn publish_audio_frame(&self, frame: AudioFrameMessage) -> Result<()>;
 }

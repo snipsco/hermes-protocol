@@ -26,6 +26,7 @@ struct Handler {
     asr_partial_text_captured: Vec<Callback<TextCapturedMessage>>,
 
     as_play_bytes: HashMap<SiteId, Vec<Callback<PlayBytesMessage>>>,
+    as_all_play_bytes: Vec<Callback<PlayBytesMessage>>,
     as_play_finished: HashMap<SiteId, Vec<Callback<PlayFinishedMessage>>>,
     as_all_play_finished: Vec<Callback<PlayFinishedMessage>>,
     as_audio_frame: HashMap<SiteId, Vec<Callback<AudioFrameMessage>>>,
@@ -539,7 +540,12 @@ impl TtsBackendFacade for InProcessComponent {
 }
 
 impl AudioServerFacade for InProcessComponent {
-    p!(publish_play_bytes(bytes: PlayBytesMessage) as_play_bytes[bytes.site_id;]);
+    fn publish_play_bytes(&self, bytes: PlayBytesMessage) -> Result<()> {
+        let site_id = bytes.site_id.to_string();
+        self.publish_payload("as_play_bytes", move |h| h.as_play_bytes.get(&site_id), bytes.clone())?;
+        self.publish_payload("as_all_play_bytes", move |h| Some(&h.as_all_play_bytes), bytes)
+    }
+
     s!(subscribe_play_finished<PlayFinishedMessage>(site_id: SiteId) { as_play_finished[site_id;] });
     s!(subscribe_all_play_finished<PlayFinishedMessage> as_all_play_finished );
     s!(subscribe_audio_frame<AudioFrameMessage>(site_id: SiteId) { as_audio_frame[site_id;] });
@@ -547,6 +553,7 @@ impl AudioServerFacade for InProcessComponent {
 
 impl AudioServerBackendFacade for InProcessComponent {
     s!(subscribe_play_bytes<PlayBytesMessage>(site_id: SiteId) { as_play_bytes[site_id;] });
+    s!(subscribe_all_play_bytes<PlayBytesMessage> as_all_play_bytes);
     fn publish_play_finished(&self, message: PlayFinishedMessage) -> Result<()> {
         let site_id = message.site_id.to_string();
 
