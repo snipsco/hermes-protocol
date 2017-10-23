@@ -1,0 +1,13 @@
+[package]
+name = "hermes-inprocess"
+version = "0.18.0-SNAPSHOT"
+authors = ["Thibaut Lorrain <thibaut.lorrain@snips.ai>"]
+
+[dependencies]
+hermes = { path = ".." }
+hermes-test-suite = { path = "../hermes-test-suite" }
+log = "0.3"
+
+[dev-dependencies]
+semver = "0.8"
+snips-queries-ontology = { git = "ssh://git@github.com/snipsco/snips-queries-ontology.git", tag = "0.4.4" }

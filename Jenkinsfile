@@ -3,7 +3,7 @@
 def branchName = "${env.BRANCH_NAME}"
 
 node('jenkins-slave-ec2') {
-    env.PATH = "/usr/local/bin:${env.HOME}/.cargo/bin:${env.PATH}"
+    env.PATH = "/usr/local/bin:/usr/sbin:${env.HOME}/.cargo/bin:${env.PATH}"
 
     stage('Setup') {
         deleteDir()
@@ -11,11 +11,11 @@ node('jenkins-slave-ec2') {
     }
 
     stage('Build') {
-        sh "ssh-agent sh -c 'ssh-add; cargo build --all-features'"
+        ssh_sh "cargo build --all"
     }
 
     stage('Test') {
-        sh "cargo test --all-features"
+        sh "cargo test --all"
     }
 
     stage('Jar') {

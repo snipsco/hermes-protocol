@@ -2,40 +2,21 @@ extern crate base64;
 #[macro_use]
 extern crate error_chain;
 extern crate snips_queries_ontology;
-#[cfg(feature = "ffi")]
-extern crate libc;
-#[cfg(any(feature = "mqtt", feature = "inprocess"))]
-#[macro_use]
-extern crate log;
-#[cfg(feature = "mqtt")]
-extern crate rumqtt;
 extern crate semver;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
-#[cfg(feature = "mqtt")]
-extern crate strum;
-#[cfg(feature = "mqtt")]
-#[macro_use]
-extern crate strum_macros;
 
 mod errors;
-#[cfg(feature = "mqtt")]
-mod mqtt;
-#[cfg(feature = "inprocess")]
-mod inprocess;
-#[cfg(feature = "ffi")]
-pub mod ffi;
 
 pub use errors::*;
-#[cfg(feature = "mqtt")]
-pub use mqtt::MqttHermesProtocolHandler;
-#[cfg(feature = "inprocess")]
-pub use inprocess::InProcessHermesProtocolHandler;
 
-use snips_queries_ontology::{IntentClassifierResult, Slot};
+mod ontology;
 
+pub use ontology::*;
+
+/// A struct wrapping a callback with one argument, create one with the `new` method
 pub struct Callback<T> {
     callback: Box<Fn(&T) -> () + Send + Sync>
 }
@@ -48,8 +29,9 @@ impl<T> Callback<T> {
     pub fn call(&self, arg: &T) { (self.callback)(arg) }
 }
 
+/// A struct wrapping a callback with no argument, create one with the `new` method
 pub struct Callback0 {
-     callback: Box<Fn() -> () + Send + Sync>
+    callback: Box<Fn() -> () + Send + Sync>
 }
 
 impl Callback0 {
@@ -60,104 +42,169 @@ impl Callback0 {
     pub fn call(&self) { (self.callback)() }
 }
 
-pub trait ToggleableFacade: Send + Sync {
-    fn publish_toggle_on(&self) -> Result<()>;
-    fn publish_toggle_off(&self) -> Result<()>;
-}
-
-pub trait ToggleableBackendFacade: Send + Sync {
-    fn subscribe_toggle_on(&self, handler: Callback0) -> Result<()>;
-    fn subscribe_toggle_off(&self, handler: Callback0) -> Result<()>;
-}
-
-pub trait HotwordFacade: ComponentFacade + ToggleableFacade {
-    fn publish_wait(&self) -> Result<()>;
-    fn subscribe_detected(&self, handler: Callback0) -> Result<()>;
-}
-
-pub trait HotwordBackendFacade: ComponentBackendFacade + ToggleableBackendFacade {
-    fn publish_detected(&self) -> Result<()>;
-    fn subscribe_wait(&self, handler: Callback0) -> Result<()>;
-}
-
-pub trait SoundFeedbackFacade: ToggleableFacade {}
-
-pub trait SoundFeedbackBackendFacade: ToggleableBackendFacade {}
-
-pub trait AsrFacade: ComponentFacade + ToggleableFacade {
-    fn subscribe_text_captured(&self, handler: Callback<TextCapturedMessage>) -> Result<()>;
-    fn subscribe_partial_text_captured(&self, handler: Callback<TextCapturedMessage>) -> Result<()>;
-}
-
-pub trait AsrBackendFacade: ComponentBackendFacade + ToggleableBackendFacade {
-    fn publish_text_captured(&self, text_captured: TextCapturedMessage) -> Result<()>;
-    fn publish_partial_text_captured(&self, text_captured: TextCapturedMessage) -> Result<()>;
-}
-
-pub trait TtsFacade: ComponentFacade {
-    fn publish_say(&self, to_say: SayMessage) -> Result<()>;
-    fn subscribe_say_finished(&self, handler: Callback0) -> Result<()>;
-}
-
-pub trait TtsBackendFacade: ComponentBackendFacade {
-    fn publish_say_finished(&self) -> Result<()>;
-    fn subscribe_say(&self, handler: Callback<SayMessage>) -> Result<()>;
-}
-
-pub trait NluFacade: ComponentFacade {
-    fn publish_query(&self, query: NluQueryMessage) -> Result<()>;
-    fn publish_partial_query(&self, query: NluSlotQueryMessage) -> Result<()>;
-    fn subscribe_slot_parsed(&self, handler: Callback<SlotMessage>) -> Result<()>;
-    fn subscribe_intent_parsed(&self, handler: Callback<IntentMessage>) -> Result<()>;
-    fn subscribe_intent_not_recognized(&self, handler: Callback<IntentNotRecognizedMessage>) -> Result<()>;
-}
-
-pub trait NluBackendFacade: ComponentBackendFacade {
-    fn subscribe_query(&self, handler: Callback<NluQueryMessage>) -> Result<()>;
-    fn subscribe_partial_query(&self, handler: Callback<NluSlotQueryMessage>) -> Result<()>;
-    fn publish_slot_parsed(&self, slot: SlotMessage) -> Result<()>;
-    fn publish_intent_parsed(&self, intent: IntentMessage) -> Result<()>;
-    fn publish_intent_not_recognized(&self, status: IntentNotRecognizedMessage) -> Result<()>;
-}
-
-pub trait AudioServerFacade: ComponentFacade {
-    fn publish_play_file(&self, file: PlayFileMessage) -> Result<()>;
-    fn publish_play_bytes(&self, bytes: PlayBytesMessage) -> Result<()>;
-    fn subscribe_play_finished(&self, handler: Callback<PlayFinishedMessage>) -> Result<()>;
-}
-
-pub trait AudioServerBackendFacade: ComponentBackendFacade {
-    fn subscribe_play_file(&self, handler: Callback<PlayFileMessage>) -> Result<()>;
-    fn subscribe_play_bytes(&self, handler: Callback<PlayBytesMessage>) -> Result<()>;
-    fn publish_play_finished(&self, status: PlayFinishedMessage) -> Result<()>;
-}
-
+/// A generic facade used to interact with a component
 pub trait ComponentFacade: Send + Sync {
     fn publish_version_request(&self) -> Result<()>;
     fn subscribe_version(&self, handler: Callback<VersionMessage>) -> Result<()>;
     fn subscribe_error(&self, handler: Callback<ErrorMessage>) -> Result<()>;
 }
 
-pub trait ComponentBackendFacade: Send + Sync{
+/// A generic facade used to interact with a component
+pub trait IdentifiableComponentFacade: Send + Sync {
+    fn publish_version_request(&self, id: String) -> Result<()>;
+    fn subscribe_version(&self, id: String, handler: Callback<VersionMessage>) -> Result<()>;
+    fn subscribe_error(&self, id: String, handler: Callback<ErrorMessage>) -> Result<()>;
+}
+
+/// A generic facade all components must use to publish their errors and versions (when requested)
+pub trait ComponentBackendFacade: Send + Sync {
     fn subscribe_version_request(&self, handler: Callback0) -> Result<()>;
     fn publish_version(&self, version: VersionMessage) -> Result<()>;
     fn publish_error(&self, error: ErrorMessage) -> Result<()>;
 }
 
+/// A generic facade all components must use to publish their errors and versions (when requested)
+pub trait IdentifiableComponentBackendFacade: Send + Sync {
+    fn subscribe_version_request(&self, id: String, handler: Callback0) -> Result<()>;
+    fn publish_version(&self, id: String, version: VersionMessage) -> Result<()>;
+    fn publish_error(&self, id: String, error: ErrorMessage) -> Result<()>;
+}
+
+/// A facade to interact with a component that can be toggled on an off at a specific site
+pub trait ToggleableFacade: Send + Sync {
+    fn publish_toggle_on(&self) -> Result<()>;
+    fn publish_toggle_off(&self) -> Result<()>;
+}
+
+/// The facade a component that can be toggled on an off at a specific site must use to receive
+/// its orders
+pub trait ToggleableBackendFacade: Send + Sync {
+    fn subscribe_toggle_on(&self, handler: Callback0) -> Result<()>;
+    fn subscribe_toggle_off(&self, handler: Callback0) -> Result<()>;
+}
+
+/// A facade to interact with a component that can be toggled on an off at a specific site
+pub trait IdentifiableToggleableFacade: Send + Sync {
+    fn publish_toggle_on(&self, site: SiteMessage) -> Result<()>;
+    fn publish_toggle_off(&self, site: SiteMessage) -> Result<()>;
+}
+
+/// The facade a component that can be toggled on an off at a specific site must use to receive
+/// its orders
+pub trait IdentifiableToggleableBackendFacade: Send + Sync {
+    fn subscribe_toggle_on(&self, handler: Callback<SiteMessage>) -> Result<()>;
+    fn subscribe_toggle_off(&self, handler: Callback<SiteMessage>) -> Result<()>;
+}
+
+//
+// COMPONENTS
+//
+
+/// The facade to interact with the hotword component
+pub trait HotwordFacade: IdentifiableComponentFacade + IdentifiableToggleableFacade {
+    fn subscribe_detected(&self, id: String, handler: Callback<SiteMessage>) -> Result<()>;
+    fn subscribe_all_detected(&self, handler: Callback<SiteMessage>) -> Result<()>;
+}
+
+/// The facade the hotword feature must use receive its orders and publish detected hotwords
+pub trait HotwordBackendFacade: IdentifiableComponentBackendFacade + IdentifiableToggleableBackendFacade {
+    fn publish_detected(&self, id: String, site: SiteMessage) -> Result<()>;
+}
+
+/// The facade used to toggle on and of the sound feedback at a specific site
+pub trait SoundFeedbackFacade: IdentifiableToggleableFacade {}
+
+/// The facade a component that manages sound feedback must use to receive its orders
+pub trait SoundFeedbackBackendFacade: IdentifiableToggleableBackendFacade {}
+
+/// The facade to interact with the automatic speech recognition component
+pub trait AsrFacade: ComponentFacade + ToggleableFacade {
+    fn publish_start_listening(&self, site: SiteMessage) -> Result<()>;
+    fn publish_stop_listening(&self, site: SiteMessage) -> Result<()>;
+    fn subscribe_text_captured(&self, handler: Callback<TextCapturedMessage>) -> Result<()>;
+    fn subscribe_partial_text_captured(&self, handler: Callback<TextCapturedMessage>) -> Result<()>;
+}
+
+/// The facade the automatic speech recognition must use to receive its orders and publish
+/// recognized text
+pub trait AsrBackendFacade: ComponentBackendFacade + ToggleableBackendFacade {
+    fn subscribe_start_listening(&self, handler: Callback<SiteMessage>) -> Result<()>;
+    fn subscribe_stop_listening(&self, handler: Callback<SiteMessage>) -> Result<()>;
+    fn publish_text_captured(&self, text_captured: TextCapturedMessage) -> Result<()>;
+    fn publish_partial_text_captured(&self, text_captured: TextCapturedMessage) -> Result<()>;
+}
+
+/// The facade to interact with the text to speech component
+pub trait TtsFacade: ComponentFacade {
+    fn publish_say(&self, to_say: SayMessage) -> Result<()>;
+    fn subscribe_say_finished(&self, handler: Callback<SayFinishedMessage>) -> Result<()>;
+}
+
+/// The facade the text to speech must use to receive its orders and advertise when it has finished
+pub trait TtsBackendFacade: ComponentBackendFacade {
+    fn publish_say_finished(&self, status: SayFinishedMessage) -> Result<()>;
+    fn subscribe_say(&self, handler: Callback<SayMessage>) -> Result<()>;
+}
+
+/// The facade to interact with the natural language understanding component
+pub trait NluFacade: ComponentFacade {
+    fn publish_query(&self, query: NluQueryMessage) -> Result<()>;
+    fn publish_partial_query(&self, query: NluSlotQueryMessage) -> Result<()>;
+    fn subscribe_slot_parsed(&self, handler: Callback<NluSlotMessage>) -> Result<()>;
+    fn subscribe_intent_parsed(&self, handler: Callback<NluIntentMessage>) -> Result<()>;
+    fn subscribe_intent_not_recognized(&self, handler: Callback<NluIntentNotRecognizedMessage>) -> Result<()>;
+}
+
+/// The facade the natural language understanding must use to receive its orders and publish
+/// its results
+pub trait NluBackendFacade: ComponentBackendFacade {
+    fn subscribe_query(&self, handler: Callback<NluQueryMessage>) -> Result<()>;
+    fn subscribe_partial_query(&self, handler: Callback<NluSlotQueryMessage>) -> Result<()>;
+    fn publish_slot_parsed(&self, slot: NluSlotMessage) -> Result<()>;
+    fn publish_intent_parsed(&self, intent: NluIntentMessage) -> Result<()>;
+    fn publish_intent_not_recognized(&self, status: NluIntentNotRecognizedMessage) -> Result<()>;
+}
+
+/// The facade to interact with the audio server
+pub trait AudioServerFacade: IdentifiableComponentFacade + IdentifiableToggleableFacade {
+    fn publish_play_bytes(&self, bytes: PlayBytesMessage) -> Result<()>;
+    fn subscribe_play_finished(&self, site_id: SiteId, handler: Callback<PlayFinishedMessage>) -> Result<()>;
+    fn subscribe_all_play_finished(&self, handler: Callback<PlayFinishedMessage>) -> Result<()>;
+    fn subscribe_audio_frame(&self, site_id: SiteId, handler: Callback<AudioFrameMessage>) -> Result<()>;
+}
+
+/// The facade the audio server must use to receive its orders and advertise when it has finished
+pub trait AudioServerBackendFacade: IdentifiableComponentBackendFacade + IdentifiableToggleableBackendFacade  {
+    fn subscribe_play_bytes(&self, site_id: SiteId, handler: Callback<PlayBytesMessage>) -> Result<()>;
+    fn publish_play_finished(&self, status: PlayFinishedMessage) -> Result<()>;
+    fn publish_audio_frame(&self, frame: AudioFrameMessage) -> Result<()>;
+}
+
+/// The facade to use to interact with the dialogue manager, this is the principal interface that a
+/// lambda should use
 pub trait DialogueFacade: ComponentFacade + ToggleableFacade {
+    fn subscribe_session_queued(&self, handler: Callback<SessionQueuedMessage>) -> Result<()>;
+    fn subscribe_session_started(&self, handler: Callback<SessionStartedMessage>) -> Result<()>;
     fn subscribe_intent(&self, intent_name: String, handler: Callback<IntentMessage>) -> Result<()>;
     fn subscribe_intents(&self, handler: Callback<IntentMessage>) -> Result<()>;
-    fn publish_say(&self, to_say: SayMessage) -> Result<()>;
-    fn publish_start_dialogue(&self) -> Result<()>;
+    fn subscribe_session_ended(&self, handler: Callback<SessionEndedMessage>) -> Result<()>;
+    fn publish_start_session(&self, start_session: StartSessionMessage) -> Result<()>;
+    fn publish_continue_session(&self, continue_session: ContinueSessionMessage) -> Result<()>;
+    fn publish_end_session(&self, end_session: EndSessionMessage) -> Result<()>;
 }
 
+/// The facade the dialogue manager must use to interact with the lambdas
 pub trait DialogueBackendFacade: ComponentBackendFacade + ToggleableBackendFacade {
+    fn publish_session_queued(&self, status: SessionQueuedMessage) -> Result<()>;
+    fn publish_session_started(&self, status: SessionStartedMessage) -> Result<()>;
     fn publish_intent(&self, intent: IntentMessage) -> Result<()>;
-    fn subscribe_say(&self, handler: Callback<SayMessage>) -> Result<()>;
-    fn subscribe_start_dialogue(&self, handler: Callback0) -> Result<()>;
+    fn publish_session_ended(&self, status: SessionEndedMessage) -> Result<()>;
+    fn subscribe_start_session(&self, handler: Callback<StartSessionMessage>) -> Result<()>;
+    fn subscribe_continue_session(&self, handler: Callback<ContinueSessionMessage>) -> Result<()>;
+    fn subscribe_end_session(&self, handler: Callback<EndSessionMessage>) -> Result<()>;
 }
 
-pub trait HermesProtocolHandler: Send + Sync{
+pub trait HermesProtocolHandler: Send + Sync {
     fn hotword(&self) -> Box<HotwordFacade>;
     fn sound_feedback(&self) -> Box<SoundFeedbackFacade>;
     fn asr(&self) -> Box<AsrFacade>;
@@ -172,131 +219,4 @@ pub trait HermesProtocolHandler: Send + Sync{
     fn nlu_backend(&self) -> Box<NluBackendFacade>;
     fn audio_server_backend(&self) -> Box<AudioServerBackendFacade>;
     fn dialogue_backend(&self) -> Box<DialogueBackendFacade>;
-}
-
-pub trait HermesMessage: ::std::fmt::Debug {
-}
-
-#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
-pub struct TextCapturedMessage {
-    pub text: String,
-    pub likelihood: f32,
-    pub seconds: f32,
-}
-
-impl HermesMessage for TextCapturedMessage {}
-
-#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
-pub struct NluQueryMessage {
-    pub text: String,
-    pub likelihood: Option<f32>,
-    pub seconds: Option<f32>,
-}
-
-impl HermesMessage for NluQueryMessage {}
-
-impl From<TextCapturedMessage> for NluQueryMessage {
-    fn from(input: TextCapturedMessage) -> Self {
-        NluQueryMessage {
-            text : input.text,
-            likelihood: Some(input.likelihood),
-            seconds: Some(input.seconds),
-        }
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
-pub struct NluSlotQueryMessage {
-    pub text: String,
-    pub likelihood: f32,
-    pub seconds: f32,
-    #[serde(rename = "intentName")]
-    pub intent_name: String,
-    #[serde(rename = "slotName")]
-    pub slot_name: String,
-}
-
-impl HermesMessage for NluSlotQueryMessage {}
-
-#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
-pub struct PlayFileMessage {
-    #[serde(rename = "filePath")]
-    pub file_path: String,
-}
-
-impl HermesMessage for PlayFileMessage {}
-
-#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
-pub struct PlayBytesMessage {
-    pub id: String,
-    #[serde(rename = "wavBytes", serialize_with = "as_base64", deserialize_with = "from_base64")]
-    pub wav_bytes: Vec<u8>,
-}
-
-impl HermesMessage for PlayBytesMessage {}
-
-#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
-pub struct PlayFinishedMessage {
-    pub id: String
-}
-
-impl HermesMessage for PlayFinishedMessage {}
-
-#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
-pub struct SayMessage {
-    pub text: String,
-    pub lang: Option<String>
-}
-
-impl HermesMessage for SayMessage {}
-
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
-pub struct SlotMessage {
-    pub slot: Option<Slot>,
-}
-
-impl HermesMessage for SlotMessage {}
-
-#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
-pub struct IntentNotRecognizedMessage {
-    pub text: String,
-}
-
-impl HermesMessage for IntentNotRecognizedMessage {}
-
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
-pub struct IntentMessage {
-    pub input: String,
-    pub intent: IntentClassifierResult,
-    pub slots: Option<Vec<Slot>>,
-}
-
-impl HermesMessage for IntentMessage {}
-
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
-pub struct VersionMessage {
-    pub version: semver::Version,
-}
-
-impl HermesMessage for VersionMessage {}
-
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
-pub struct ErrorMessage {
-    pub error: String,
-    pub context: Option<String>,
-}
-
-impl HermesMessage for ErrorMessage {}
-
-fn as_base64<S>(bytes: &[u8], serializer: S) -> std::result::Result<S::Ok, S::Error>
-    where S: serde::Serializer {
-    serializer.serialize_str(&base64::encode(bytes))
-}
-
-fn from_base64<'de, D>(deserializer: D) -> std::result::Result<Vec<u8>, D::Error>
-    where D: serde::Deserializer<'de> {
-    use serde::de::Error;
-    use serde::Deserialize;
-    String::deserialize(deserializer)
-        .and_then(|string| base64::decode(&string).map_err(|err| Error::custom(err.to_string())))
 }
