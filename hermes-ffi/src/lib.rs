@@ -1,11 +1,41 @@
+extern crate hermes;
+extern crate libc;
+extern crate snips_queries_ontology;
+
 use std::ffi::CString;
 use std::slice;
 use std::ptr::null;
 
-use errors::*;
-
-use libc;
+use hermes::{Result, ResultExt};
 use snips_queries_ontology::ffi::{CIntentClassifierResult, CSlot, CSlotList};
+
+macro_rules! convert_to_c_string {
+    ($string:expr) => {
+        CString::new($string).chain_err(||"Could not convert String to C Repr")?.into_raw()
+    };
+}
+
+macro_rules! convert_to_nullable_c_string {
+    ($opt:expr) => {
+        if let Some(s) = $opt {
+            convert_to_c_string!(s)
+        } else  {
+            null()
+        }
+    };
+}
+
+macro_rules! take_back_c_string {
+    ($pointer:expr) => {{ let _ = unsafe { CString::from_raw($pointer as *mut libc::c_char) }; }};
+}
+
+macro_rules! take_back_nullable_c_string {
+    ($pointer:expr) => {
+        if !$pointer.is_null() {
+            take_back_c_string!($pointer)
+        }
+    };
+}
 
 #[repr(C)]
 #[derive(Debug)]
@@ -16,9 +46,9 @@ pub struct CTextCapturedMessage {
 }
 
 impl CTextCapturedMessage {
-    pub fn from(input: ::TextCapturedMessage) -> Result<Self> {
+    pub fn from(input: hermes::TextCapturedMessage) -> Result<Self> {
         Ok(Self {
-            text: CString::new(input.text)?.into_raw(),
+            text: convert_to_c_string!(input.text),
             likelihood: input.likelihood,
             seconds: input.seconds,
         })
@@ -27,81 +57,59 @@ impl CTextCapturedMessage {
 
 impl Drop for CTextCapturedMessage {
     fn drop(&mut self) {
-        let _ = unsafe { CString::from_raw(self.text as *mut libc::c_char) };
+        take_back_c_string!(self.text);
     }
 }
 
 #[repr(C)]
 #[derive(Debug)]
 pub struct CNluQueryMessage {
-    pub text: *const libc::c_char,
-    pub likelihood: f32,
-    pub seconds: f32,
+    pub input: *const libc::c_char,
+    pub id: *const libc::c_char,
 }
 
 impl CNluQueryMessage {
-    pub fn from(input: ::NluQueryMessage) -> Result<Self> {
+    pub fn from(input: hermes::NluQueryMessage) -> Result<Self> {
         Ok(Self {
-            text: CString::new(input.text)?.into_raw(),
-            likelihood: input.likelihood.unwrap_or(0.0),
-            seconds: input.seconds.unwrap_or(0.0),
+            input: convert_to_c_string!(input.input),
+            id: convert_to_nullable_c_string!(input.id),
         })
     }
 }
 
 impl Drop for CNluQueryMessage {
     fn drop(&mut self) {
-        let _ = unsafe { CString::from_raw(self.text as *mut libc::c_char) };
+        take_back_c_string!(self.input);
+        take_back_nullable_c_string!(self.id);
     }
 }
 
 #[repr(C)]
 #[derive(Debug)]
 pub struct CNluSlotQueryMessage {
-    pub text: *const libc::c_char,
-    pub likelihood: f32,
-    pub seconds: f32,
+    pub input: *const libc::c_char,
+    pub id: *const libc::c_char,
     pub intent_name: *const libc::c_char,
     pub slot_name: *const libc::c_char,
 }
 
 impl CNluSlotQueryMessage {
-    pub fn from(input: ::NluSlotQueryMessage) -> Result<Self> {
+    pub fn from(input: hermes::NluSlotQueryMessage) -> Result<Self> {
         Ok(Self {
-            text: CString::new(input.text)?.into_raw(),
-            likelihood: input.likelihood,
-            seconds: input.seconds,
-            intent_name: CString::new(input.intent_name)?.into_raw(),
-            slot_name: CString::new(input.slot_name)?.into_raw(),
+            input: convert_to_c_string!(input.input),
+            id: convert_to_nullable_c_string!(input.id),
+            intent_name: convert_to_c_string!(input.intent_name),
+            slot_name: convert_to_c_string!(input.slot_name),
         })
     }
 }
 
 impl Drop for CNluSlotQueryMessage {
     fn drop(&mut self) {
-        let _ = unsafe { CString::from_raw(self.text as *mut libc::c_char) };
-        let _ = unsafe { CString::from_raw(self.intent_name as *mut libc::c_char) };
-        let _ = unsafe { CString::from_raw(self.slot_name as *mut libc::c_char) };
-    }
-}
-
-#[repr(C)]
-#[derive(Debug)]
-pub struct CPlayFileMessage {
-    pub file_path: *const libc::c_char,
-}
-
-impl CPlayFileMessage {
-    pub fn from(input: ::PlayFileMessage) -> Result<Self> {
-        Ok(Self {
-            file_path: CString::new(input.file_path)?.into_raw(),
-        })
-    }
-}
-
-impl Drop for CPlayFileMessage {
-    fn drop(&mut self) {
-        let _ = unsafe { CString::from_raw(self.file_path as *mut libc::c_char) };
+        take_back_c_string!(self.input);
+        take_back_nullable_c_string!(self.id);
+        take_back_c_string!(self.intent_name);
+        take_back_c_string!(self.slot_name);
     }
 }
 
@@ -114,9 +122,9 @@ pub struct CPlayBytesMessage {
 }
 
 impl CPlayBytesMessage {
-    pub fn from(input: ::PlayBytesMessage) -> Result<Self> {
+    pub fn from(input: hermes::PlayBytesMessage) -> Result<Self> {
         Ok(Self {
-            id: CString::new(input.id)?.into_raw(),
+            id: convert_to_c_string!(input.id),
             wav_bytes_len: input.wav_bytes.len() as libc::c_int,
             wav_bytes: Box::into_raw(input.wav_bytes.into_boxed_slice()) as *const u8,
         })
@@ -125,7 +133,7 @@ impl CPlayBytesMessage {
 
 impl Drop for CPlayBytesMessage {
     fn drop(&mut self) {
-        let _ = unsafe { CString::from_raw(self.id as *mut libc::c_char) };
+        take_back_c_string!(self.id);
         let _ = unsafe { Box::from_raw(slice::from_raw_parts_mut(self.wav_bytes as *mut u8, self.wav_bytes_len as usize)) };
     }
 }
@@ -137,16 +145,16 @@ pub struct CPlayFinishedMessage {
 }
 
 impl CPlayFinishedMessage {
-    pub fn from(input: ::PlayFinishedMessage) -> Result<Self> {
+    pub fn from(input: hermes::PlayFinishedMessage) -> Result<Self> {
         Ok(Self {
-            id: CString::new(input.id)?.into_raw(),
+            id: convert_to_c_string!(input.id),
         })
     }
 }
 
 impl Drop for CPlayFinishedMessage {
     fn drop(&mut self) {
-        let _ = unsafe { CString::from_raw(self.id as *mut libc::c_char) };
+        take_back_c_string!(self.id);
     }
 }
 
@@ -158,22 +166,18 @@ pub struct CSayMessage {
 }
 
 impl CSayMessage {
-    pub fn from(input: ::SayMessage) -> Result<Self> {
+    pub fn from(input: hermes::SayMessage) -> Result<Self> {
         Ok(Self {
-            text: CString::new(input.text)?.into_raw(),
-            lang: if let Some(s) = input.lang {
-                CString::new(s)?.into_raw()
-            } else {
-                null()
-            },
+            text: convert_to_c_string!(input.text),
+            lang: convert_to_nullable_c_string!(input.lang),
         })
     }
 }
 
 impl Drop for CSayMessage {
     fn drop(&mut self) {
-        let _ = unsafe { CString::from_raw(self.text as *mut libc::c_char) };
-        let _ = unsafe { CString::from_raw(self.lang as *mut libc::c_char) };
+        take_back_c_string!(self.text);
+        take_back_nullable_c_string!(self.lang);
     }
 }
 
@@ -184,10 +188,10 @@ pub struct CSlotMessage {
 }
 
 impl CSlotMessage {
-    pub fn from(input: ::SlotMessage) -> Result<Self> {
+    pub fn from(input: hermes::NluSlotMessage) -> Result<Self> {
         Ok(Self {
             slot: if let Some(s) = input.slot {
-                Box::into_raw(Box::new(CSlot::from(s)?)) as *const CSlot
+                Box::into_raw(Box::new(CSlot::from(s).chain_err(|| "Could not transform Slot into C Repr")?)) as *const CSlot
             } else {
                 null()
             },
@@ -206,20 +210,23 @@ impl Drop for CSlotMessage {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CIntentNotRecognizedMessage {
-    pub text: *const libc::c_char,
+    pub input: *const libc::c_char,
+    pub id : *const libc::c_char,
 }
 
 impl CIntentNotRecognizedMessage {
-    pub fn from(input: ::IntentNotRecognizedMessage) -> Result<Self> {
+    pub fn from(input: hermes::NluIntentNotRecognizedMessage) -> Result<Self> {
         Ok(Self {
-            text: CString::new(input.text)?.into_raw(),
+            input: convert_to_c_string!(input.input),
+            id: convert_to_nullable_c_string!(input.id),
         })
     }
 }
 
 impl Drop for CIntentNotRecognizedMessage {
     fn drop(&mut self) {
-        let _ = unsafe { CString::from_raw(self.text as *mut libc::c_char) };
+        take_back_c_string!(self.input);
+        take_back_nullable_c_string!(self.id);
     }
 }
 
@@ -232,12 +239,12 @@ pub struct CIntentMessage {
 }
 
 impl CIntentMessage {
-    pub fn from(input: ::IntentMessage) -> Result<Self> {
+    pub fn from(input: hermes::IntentMessage) -> Result<Self> {
         Ok(Self {
-            input: CString::new(input.input)?.into_raw(),
-            intent: Box::into_raw(Box::new(CIntentClassifierResult::from(input.intent)?)),
+            input: convert_to_c_string!(input.input),
+            intent: Box::into_raw(Box::new(CIntentClassifierResult::from(input.intent).chain_err(|| "Could not transform IntentClassifierResult into C Repr")?)),
             slots: if let Some(slots) = input.slots {
-                Box::into_raw(Box::new(CSlotList::from(slots)?)) as *const CSlotList
+                Box::into_raw(Box::new(CSlotList::from(slots).chain_err(|| "Could not transform Slot list into C Repr")?)) as *const CSlotList
             } else {
                 null()
             },
@@ -247,7 +254,7 @@ impl CIntentMessage {
 
 impl Drop for CIntentMessage {
     fn drop(&mut self) {
-        let _ = unsafe { CString::from_raw(self.input as *mut libc::c_char) };
+        take_back_c_string!(self.input);
         let _ = unsafe { Box::from_raw(self.intent as *mut CIntentClassifierResult) };
         if !self.slots.is_null() {
             let _ = unsafe { Box::from_raw(self.slots as *mut CSlotList) };
@@ -264,7 +271,7 @@ pub struct CVersionMessage {
 }
 
 impl CVersionMessage {
-    pub fn from(input: ::VersionMessage) -> Result<Self> {
+    pub fn from(input: hermes::VersionMessage) -> Result<Self> {
         Ok(Self {
             major: input.version.major,
             minor: input.version.minor,
@@ -281,22 +288,18 @@ pub struct CErrorMessage {
 }
 
 impl CErrorMessage {
-    pub fn from(input: ::ErrorMessage) -> Result<Self> {
+    pub fn from(input: hermes::ErrorMessage) -> Result<Self> {
         Ok(Self {
-            error: CString::new(input.error)?.into_raw(),
-            context: if let Some(s) = input.context {
-                CString::new(s)?.into_raw()
-            } else {
-                null()
-            },
+            error: convert_to_c_string!(input.error),
+            context: convert_to_nullable_c_string!(input.context),
         })
     }
 }
 
 impl Drop for CErrorMessage {
     fn drop(&mut self) {
-        let _ = unsafe { CString::from_raw(self.error as *mut libc::c_char) };
-        let _ = unsafe { CString::from_raw(self.context as *mut libc::c_char) };
+        take_back_c_string!(self.error);
+        take_back_nullable_c_string!(self.context);
     }
 }
 
