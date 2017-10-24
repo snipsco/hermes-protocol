@@ -4,7 +4,7 @@ use semver;
 use snips_queries_ontology::{IntentClassifierResult, Slot};
 use std;
 
-pub trait HermesMessage: ::std::fmt::Debug {}
+pub trait HermesMessage<'de>: ::std::fmt::Debug + ::serde::Deserialize<'de> + ::serde::Serialize {}
 
 pub type SiteId = String;
 pub type SessionId = String;
@@ -18,7 +18,7 @@ pub struct SiteMessage {
     pub session_id: Option<SessionId>,
 }
 
-impl HermesMessage for SiteMessage {}
+impl<'de> HermesMessage<'de> for SiteMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -35,7 +35,7 @@ pub struct TextCapturedMessage {
     pub session_id: Option<SessionId>,
 }
 
-impl HermesMessage for TextCapturedMessage {}
+impl<'de> HermesMessage<'de> for TextCapturedMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -51,7 +51,7 @@ pub struct NluQueryMessage {
     pub session_id: Option<SessionId>,
 }
 
-impl HermesMessage for NluQueryMessage {}
+impl<'de> HermesMessage<'de> for NluQueryMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -69,7 +69,7 @@ pub struct NluSlotQueryMessage {
     pub session_id: Option<SessionId>,
 }
 
-impl HermesMessage for NluSlotQueryMessage {}
+impl<'de> HermesMessage<'de> for NluSlotQueryMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -87,7 +87,7 @@ pub struct PlayBytesMessage {
     pub session_id: Option<SessionId>,
 }
 
-impl HermesMessage for PlayBytesMessage {}
+impl<'de> HermesMessage<'de> for PlayBytesMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -101,7 +101,7 @@ pub struct AudioFrameMessage {
     pub site_id: SiteId,
 }
 
-impl HermesMessage for AudioFrameMessage {}
+impl<'de> HermesMessage<'de> for AudioFrameMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -114,7 +114,7 @@ pub struct PlayFinishedMessage {
     pub session_id: Option<SessionId>,
 }
 
-impl HermesMessage for PlayFinishedMessage {}
+impl<'de> HermesMessage<'de> for PlayFinishedMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -131,7 +131,7 @@ pub struct SayMessage {
     pub session_id: Option<SessionId>,
 }
 
-impl HermesMessage for SayMessage {}
+impl<'de> HermesMessage<'de> for SayMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -142,7 +142,7 @@ pub struct SayFinishedMessage {
     pub session_id: Option<SessionId>,
 }
 
-impl HermesMessage for SayFinishedMessage {}
+impl<'de> HermesMessage<'de> for SayFinishedMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -159,7 +159,7 @@ pub struct NluSlotMessage {
     pub session_id: Option<SessionId>,
 }
 
-impl HermesMessage for NluSlotMessage {}
+impl<'de> HermesMessage<'de> for NluSlotMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -172,7 +172,7 @@ pub struct NluIntentNotRecognizedMessage {
     pub session_id: Option<SessionId>,
 }
 
-impl HermesMessage for NluIntentNotRecognizedMessage {}
+impl<'de> HermesMessage<'de> for NluIntentNotRecognizedMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -189,7 +189,7 @@ pub struct NluIntentMessage {
     pub session_id: Option<SessionId>,
 }
 
-impl HermesMessage for NluIntentMessage {}
+impl<'de> HermesMessage<'de> for NluIntentMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -208,7 +208,7 @@ pub struct IntentMessage {
     pub slots: Option<Vec<Slot>>,
 }
 
-impl HermesMessage for IntentMessage {}
+impl<'de> HermesMessage<'de> for IntentMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(tag = "from", rename_all = "camelCase")]
@@ -244,7 +244,7 @@ pub struct StartSessionMessage {
     pub site_id: Option<SiteId>,
 }
 
-impl HermesMessage for StartSessionMessage {}
+impl<'de> HermesMessage<'de> for StartSessionMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -261,7 +261,7 @@ pub struct SessionStartedMessage {
     pub reactivated_from_session_id : Option<String>
 }
 
-impl HermesMessage for SessionStartedMessage {}
+impl<'de> HermesMessage<'de> for SessionStartedMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -274,7 +274,7 @@ pub struct SessionQueuedMessage {
     pub site_id: SiteId,
 }
 
-impl HermesMessage for SessionQueuedMessage {}
+impl<'de> HermesMessage<'de> for SessionQueuedMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -287,7 +287,7 @@ pub struct ContinueSessionMessage {
     pub intent_filter: Option<Vec<String>>
 }
 
-impl HermesMessage for ContinueSessionMessage {}
+impl<'de> HermesMessage<'de> for ContinueSessionMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -298,7 +298,7 @@ pub struct EndSessionMessage {
     pub text : Option<String>,
 }
 
-impl HermesMessage for EndSessionMessage {}
+impl<'de> HermesMessage<'de> for EndSessionMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(tag = "type", rename_all = "camelCase")]
@@ -330,7 +330,7 @@ pub struct SessionEndedMessage {
     pub site_id: SiteId,
 }
 
-impl HermesMessage for SessionEndedMessage {}
+impl<'de> HermesMessage<'de> for SessionEndedMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -339,7 +339,7 @@ pub struct VersionMessage {
     pub version: semver::Version,
 }
 
-impl HermesMessage for VersionMessage {}
+impl<'de> HermesMessage<'de> for VersionMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -352,7 +352,7 @@ pub struct ErrorMessage {
     pub context: Option<String>,
 }
 
-impl HermesMessage for ErrorMessage {}
+impl<'de> HermesMessage<'de> for ErrorMessage {}
 
 fn as_base64<S>(bytes: &[u8], serializer: S) -> std::result::Result<S::Ok, S::Error>
     where S: serde::Serializer {
