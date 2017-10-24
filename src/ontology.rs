@@ -8,6 +8,7 @@ pub trait HermesMessage<'de>: ::std::fmt::Debug + ::serde::Deserialize<'de> + ::
 
 pub type SiteId = String;
 pub type SessionId = String;
+pub type RequestId = String;
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -46,7 +47,7 @@ pub struct NluQueryMessage {
     pub intent_filter: Option<Vec<String>>,
     /// An optional id for the request, if provided it will be passed back in the
     /// response `NluIntentMessage` or `NluIntentNotRecognizedMessage`
-    pub id: Option<String>,
+    pub id: Option<RequestId>,
     /// An optional session id if there is a related session
     pub session_id: Option<SessionId>,
 }
@@ -64,7 +65,7 @@ pub struct NluSlotQueryMessage {
     pub slot_name: String,
     /// An optional id for the request, if provided it will be passed back in the
     /// response `SlotMessage`
-    pub id: Option<String>,
+    pub id: Option<RequestId>,
     /// An optional session id if there is a related session
     pub session_id: Option<SessionId>,
 }
@@ -75,7 +76,7 @@ impl<'de> HermesMessage<'de> for NluSlotQueryMessage {}
 #[serde(rename_all = "camelCase")]
 pub struct PlayBytesMessage {
     /// An id for the request, it will be passed back in the `PlayFinishedMessage`
-    pub id: String,
+    pub id: RequestId,
     /// The bytes of the wav to play (should be a regular wav with header)
     /// Note that serde json serialization is provided but in practice most handler impl will want
     /// to avoid the base64 encoding/decoding and give this a special treatment
@@ -107,7 +108,7 @@ impl<'de> HermesMessage<'de> for AudioFrameMessage {}
 #[serde(rename_all = "camelCase")]
 pub struct PlayFinishedMessage {
     /// The id of the `PlayBytesMessage` which bytes finished playing
-    pub id: String,
+    pub id: RequestId,
     /// The site where the sound was played
     pub site_id: SiteId,
     /// An optional session id if there is a related session
@@ -124,7 +125,7 @@ pub struct SayMessage {
     /// The lang to use when saying the `text`, will use en_GB if not provided
     pub lang: Option<String>,
     /// An optional id for the request, it will be passed back in the `SayFinishedMessage`
-    pub id: Option<String>,
+    pub id: Option<RequestId>,
     /// The site where the message should be said
     pub site_id: SiteId,
     /// An optional session id if there is a related session
@@ -137,7 +138,7 @@ impl<'de> HermesMessage<'de> for SayMessage {}
 #[serde(rename_all = "camelCase")]
 pub struct SayFinishedMessage {
     /// The id of the `SayMessage` which was has been said
-    pub id: Option<String>,
+    pub id: Option<RequestId>,
     /// An optional session id if there is a related session
     pub session_id: Option<SessionId>,
 }
@@ -148,7 +149,7 @@ impl<'de> HermesMessage<'de> for SayFinishedMessage {}
 #[serde(rename_all = "camelCase")]
 pub struct NluSlotMessage {
     /// The id of the `NluSlotQueryMessage` that was processed
-    pub id: Option<String>,
+    pub id: Option<RequestId>,
     /// The input that was processed
     pub input: String,
     /// The intent used to find the slot
@@ -165,7 +166,7 @@ impl<'de> HermesMessage<'de> for NluSlotMessage {}
 #[serde(rename_all = "camelCase")]
 pub struct NluIntentNotRecognizedMessage {
     /// The id of the `NluQueryMessage` that was processed
-    pub id: Option<String>,
+    pub id: Option<RequestId>,
     /// The text that didn't match any intent
     pub input: String,
     /// An optional session id if there is a related session
@@ -178,7 +179,7 @@ impl<'de> HermesMessage<'de> for NluIntentNotRecognizedMessage {}
 #[serde(rename_all = "camelCase")]
 pub struct NluIntentMessage {
     /// The id of the `NluQueryMessage` that was processed
-    pub id: Option<String>,
+    pub id: Option<RequestId>,
     /// The input that was processed
     pub input: String,
     /// The result of the intent classification
