@@ -2,6 +2,7 @@ package ai.snips.hermes.ffi
 
 import ai.snips.hermes.IntentMessage
 import ai.snips.hermes.SessionStartedMessage
+import ai.snips.hermes.SessionQueuedMessage
 import ai.snips.queries.ontology.ffi.CIntentClassifierResult
 import ai.snips.queries.ontology.ffi.CSlots
 import ai.snips.queries.ontology.ffi.readString
@@ -60,4 +61,24 @@ class SessionStartedMessage(p: Pointer) : Structure(p), Structure.ByReference {
             customData = custom_data?.readString(),
             siteId = site_id.readString(),
             reactivatedFromSessionId = reactivated_from_session_id?.readString())
+}
+
+class SessionQueuedMessage(p: Pointer) : Structure(p), Structure.ByReference {
+    init {
+        read()
+    }
+
+    @JvmField
+    var session_id: Pointer? = null
+    @JvmField
+    var custom_data: Pointer? = null
+    @JvmField
+    var site_id: Pointer? = null
+
+    override fun getFieldOrder() = listOf("session_id", "custom_data", "site_id")
+
+    fun toSessionStartedMessage() = SessionQueuedMessage(
+            sessionId = session_id.readString(),
+            customData = custom_data?.readString(),
+            siteId = site_id.readString())
 }
