@@ -519,7 +519,7 @@ impl CSessionInitType {
 pub struct CActionSessionInit {
     text: *const libc::c_char, // Nullable
     intent_filter: *const CArrayString, // Nullable
-    can_be_enqueued: libc::c_int,
+    can_be_enqueued: libc::c_uchar,
 }
 
 impl CActionSessionInit {
