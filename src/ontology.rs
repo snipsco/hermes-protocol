@@ -259,7 +259,7 @@ pub struct SessionStartedMessage {
     /// This optional field indicates this session is a reactivation of a previously ended session.
     /// This is for example provided when the user continues talking to the platform without saying
     /// the hotword again after a session was ended.
-    pub reactivated_from_session_id : Option<String>
+    pub reactivated_from_session_id: Option<String>,
 }
 
 impl<'de> HermesMessage<'de> for SessionStartedMessage {}
@@ -296,7 +296,7 @@ pub struct EndSessionMessage {
     /// The id of the session to end
     pub session_id: String,
     /// An optional text to say to the user before ending the session
-    pub text : Option<String>,
+    pub text: Option<String>,
 }
 
 impl<'de> HermesMessage<'de> for EndSessionMessage {}
