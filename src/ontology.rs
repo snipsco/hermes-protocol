@@ -212,10 +212,11 @@ pub struct IntentMessage {
 impl<'de> HermesMessage<'de> for IntentMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
-#[serde(tag = "from", rename_all = "camelCase")]
+#[serde(tag = "type", rename_all = "camelCase")]
 pub enum SessionInit {
     /// The session expects a response from the user. Users responses will
     /// be provided in the form of `IntentMessage`s.
+    #[serde(rename_all = "camelCase")]
     Action {
         /// An optional text to say to the user
         text: Option<String>,
@@ -302,7 +303,7 @@ pub struct EndSessionMessage {
 impl<'de> HermesMessage<'de> for EndSessionMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
-#[serde(tag = "type", rename_all = "camelCase")]
+#[serde(tag = "reason", rename_all = "camelCase")]
 pub enum SessionTerminationType {
     /// The session ended as expected
     Nominal,
