@@ -1,7 +1,6 @@
 use hermes::SiteId;
 
 use std::{fmt, path};
-use strum::IntoEnumIterator;
 
 pub trait ToPath: ToString {
     fn as_path(&self) -> String {
@@ -34,65 +33,165 @@ pub enum HermesTopic {
 
 impl ToPath for HermesTopic {}
 
+impl HermesTopic {
+    fn parse_asr<'a, It: Iterator<Item=&'a str>>(mut comps: It) -> Option<HermesTopic> {
+        use HermesTopic::Asr;
+        use AsrCommand::*;
+        match comps.next() {
+            Some("toggleOn") => Some(Asr(ToggleOn)),
+            Some("toggleOff") => Some(Asr(ToggleOff)),
+            Some("textCaptured") => Some(Asr(TextCaptured)),
+            Some("partialTextCaptured") => Some(Asr(PartialTextCaptured)),
+            Some("versionRequest") =>
+                Some(HermesTopic::Component(None, Component::Asr, ComponentCommand::VersionRequest)),
+            Some("version") =>
+                Some(HermesTopic::Component(None, Component::Asr, ComponentCommand::Version)),
+            Some("error") =>
+                Some(HermesTopic::Component(None, Component::Asr, ComponentCommand::Error)),
+            _ => None
+        }
+    }
+
+    fn parse_audio_server<'a, It: Iterator<Item=&'a str>>(mut comps: It) -> Option<HermesTopic> {
+        use HermesTopic::AudioServer;
+        use AudioServerCommand::*;
+        match (comps.next(), comps.next(), comps.next()) {
+            (Some("toggleOn"), None, None) => Some(AudioServer(None, ToggleOn)),
+            (Some("toggleOff"), None, None) => Some(AudioServer(None, ToggleOff)),
+            (Some(site_id), Some("audioFrame"), None) => Some(AudioServer(Some(site_id.into()), AudioFrame)),
+            (Some(site_id), Some("playBytes"), Some(file)) =>
+                Some(AudioServer(Some(site_id.into()), PlayBytes(file.into()))),
+            (Some(site_id), Some("playFinished"), None) => Some(AudioServer(Some(site_id.into()), PlayFinished)),
+            (Some(site_id), Some("versionRequest"), None) =>
+                Some(HermesTopic::Component(Some(site_id.to_string()), Component::AudioServer, ComponentCommand::VersionRequest)),
+            (Some(site_id), Some("version"), None) =>
+                Some(HermesTopic::Component(Some(site_id.to_string()), Component::AudioServer, ComponentCommand::Version)),
+            (Some(site_id), Some("error"), None) =>
+                Some(HermesTopic::Component(Some(site_id.to_string()), Component::AudioServer, ComponentCommand::Error)),
+            _ => None
+        }
+    }
+
+    fn parse_dialogue_manager<'a, It: Iterator<Item=&'a str>>(mut comps: It) -> Option<HermesTopic> {
+        use HermesTopic::DialogueManager;
+        use DialogueManagerCommand::*;
+        let command = comps.next();
+        match command {
+            Some("toggleOn") => Some(DialogueManager(ToggleOn)),
+            Some("toggleOff") => Some(DialogueManager(ToggleOff)),
+            Some("startSession") => Some(DialogueManager(StartSession)),
+            Some("continueSession") => Some(DialogueManager(ContinueSession)),
+            Some("endSession") => Some(DialogueManager(EndSession)),
+            Some("sessionQueued") => Some(DialogueManager(SessionQueued)),
+            Some("sessionStarted") => Some(DialogueManager(SessionStarted)),
+            Some("sessionEnded") => Some(DialogueManager(SessionEnded)),
+            Some("versionRequest") =>
+                Some(HermesTopic::Component(None, Component::DialogueManager, ComponentCommand::VersionRequest)),
+            Some("version") =>
+                Some(HermesTopic::Component(None, Component::DialogueManager, ComponentCommand::Version)),
+            Some("error") =>
+                Some(HermesTopic::Component(None, Component::DialogueManager, ComponentCommand::Error)),
+            _ => None
+        }
+    }
+
+    fn parse_feedback<'a, It: Iterator<Item=&'a str>>(mut comps: It) -> Option<HermesTopic> {
+        use HermesTopic::Feedback;
+        let medium = comps.next();
+        let command = comps.next();
+        match (medium, command) {
+            (Some("sound"), Some("toggleOn")) => Some(Feedback(FeedbackCommand::Sound(SoundCommand::ToggleOn))),
+            (Some("sound"), Some("toggleOff")) => Some(Feedback(FeedbackCommand::Sound(SoundCommand::ToggleOff))),
+            _ => None
+        }
+    }
+
+    fn parse_hotword<'a, It: Iterator<Item=&'a str>>(mut comps: It) -> Option<HermesTopic> {
+        use HermesTopic::Hotword;
+        use HotwordCommand::*;
+        let one = comps.next();
+        let two = comps.next();
+        match (one, two) {
+            (Some("toggleOn"), None) => Some(Hotword(None, ToggleOn)),
+            (Some("toggleOff"), None) => Some(Hotword(None, ToggleOff)),
+            (Some(site_id), Some("detected")) => Some(Hotword(Some(site_id.to_string()), Detected)),
+            (Some(site_id), Some("versionRequest")) =>
+                Some(HermesTopic::Component(Some(site_id.to_string()), Component::Hotword, ComponentCommand::VersionRequest)),
+            (Some(site_id), Some("version")) =>
+                Some(HermesTopic::Component(Some(site_id.to_string()), Component::Hotword, ComponentCommand::Version)),
+            (Some(site_id), Some("error")) =>
+                Some(HermesTopic::Component(Some(site_id.to_string()), Component::Hotword, ComponentCommand::Error)),
+            _ => None
+        }
+    }
+
+    fn parse_intent<'a, It: Iterator<Item=&'a str>>(mut comps: It) -> Option<HermesTopic> {
+        use HermesTopic::Intent;
+        match comps.next() {
+            Some(name) => Some(Intent(name.into())),
+            _ => None
+        }
+    }
+
+    fn parse_nlu<'a, It: Iterator<Item=&'a str>>(mut comps: It) -> Option<HermesTopic> {
+        use HermesTopic::Nlu;
+        use NluCommand::*;
+        let command = comps.next();
+        match command {
+            Some("query") => Some(Nlu(Query)),
+            Some("partialQuery") => Some(Nlu(PartialQuery)),
+            Some("slotParsed") => Some(Nlu(SlotParsed)),
+            Some("intentParsed") => Some(Nlu(IntentParsed)),
+            Some("intentNotRecognized") => Some(Nlu(IntentNotRecognized)),
+            Some("versionRequest") =>
+                Some(HermesTopic::Component(None, Component::Nlu, ComponentCommand::VersionRequest)),
+            Some("version") =>
+                Some(HermesTopic::Component(None, Component::Nlu, ComponentCommand::Version)),
+            Some("error") =>
+                Some(HermesTopic::Component(None, Component::Nlu, ComponentCommand::Error)),
+            _ => None
+        }
+    }
+
+    fn parse_tts<'a, It: Iterator<Item=&'a str>>(mut comps: It) -> Option<HermesTopic> {
+        use HermesTopic::Tts;
+        use TtsCommand::*;
+        match comps.next() {
+            Some("say") => Some(Tts(Say)),
+            Some("sayFinished") => Some(Tts(SayFinished)),
+            Some("versionRequest") =>
+                Some(HermesTopic::Component(None, Component::Tts, ComponentCommand::VersionRequest)),
+            Some("version") =>
+                Some(HermesTopic::Component(None, Component::Tts, ComponentCommand::Version)),
+            Some("error") =>
+                Some(HermesTopic::Component(None, Component::Tts, ComponentCommand::Error)),
+            _ => None
+        }
+    }
+
+}
+
 impl FromPath<Self> for HermesTopic {
     fn from_path<P: AsRef<path::Path>>(path: P) -> Option<Self> {
-        let feedback = SoundCommand::iter().map(|cmd| HermesTopic::Feedback(FeedbackCommand::Sound(cmd)));
-        let asr = AsrCommand::iter().map(HermesTopic::Asr);
-        let tts = TtsCommand::iter().map(HermesTopic::Tts);
-        let nlu = NluCommand::iter().map(HermesTopic::Nlu);
-        let component = ComponentCommand::iter().flat_map(|cmd| {
-            Component::iter()
-                .map(|component| HermesTopic::Component(None, component, cmd))
-                .collect::<Vec<HermesTopic>>()
-        });
-        let dialogue_manager = DialogueManagerCommand::iter().map(HermesTopic::DialogueManager);
-
-        let path_components = path.as_ref().components()
-            .collect::<Vec<::std::path::Component>>();
-
-        let parametric1 = if path_components.len() >= 1 {
-            let p = path_components[path_components.len() - 1].as_os_str().to_string_lossy();
-            let audio_server = AudioServerCommand::iter().map(|cmd| HermesTopic::AudioServer(None, cmd));
-            let hotword = HotwordCommand::iter().map(|cmd| HermesTopic::Hotword(None, cmd));
-
-            let mut res: Vec<HermesTopic> = audio_server.chain(hotword).collect();
-            res.extend(vec![HermesTopic::Intent(p.to_string())]);
-            res
-        } else {
-            vec![]
-        };
-        let parametric2 = if path_components.len() >= 2 {
-            let p1 = path_components[path_components.len() - 2].as_os_str().to_string_lossy();
-            let audio_server = AudioServerCommand::iter().map(|cmd| HermesTopic::AudioServer(Some(p1.to_string()), cmd));
-            let hotword = HotwordCommand::iter().map(|cmd| HermesTopic::Hotword(Some(p1.to_string()), cmd));
-            let component = ComponentCommand::iter().flat_map(|cmd| {
-                Component::iter()
-                    .map(|component| HermesTopic::Component(Some(p1.to_string()), component, cmd))
-                    .collect::<Vec<HermesTopic>>()
-            });
-            audio_server.chain(hotword).chain(component).collect()
-        } else {
-            vec![]
-        };
-        let parametric3 = if path_components.len() >= 3 {
-            let p1 = path_components[path_components.len() - 3].as_os_str().to_string_lossy();
-            let p3 = path_components[path_components.len() - 1].as_os_str().to_string_lossy();
-            vec![HermesTopic::AudioServer(Some(p1.to_string()), AudioServerCommand::PlayBytes(p3.into()))]
-        } else {
-            vec![]
-        };
-
-        feedback
-            .chain(asr)
-            .chain(tts)
-            .chain(nlu)
-            .chain(dialogue_manager)
-            .chain(component)
-            .chain(parametric1)
-            .chain(parametric2)
-            .chain(parametric3)
-            .into_iter()
-            .find(|p| path::Path::new(&p.as_path()) == path.as_ref())
+        let comps:Vec<Option<&str>> = path.as_ref().components().map(|s| s.as_os_str().to_str()).collect();
+        // sanity checks
+        if comps.iter().any(Option::is_none) || comps.len() < 2 || comps[0] != Some("hermes") {
+            return None
+        }
+        let mut comps = comps.iter().skip(1).map(|c| c.unwrap()); // checked
+        match comps.next() {
+            // keep audio server first, despite alphabetical order (high
+            // traffic)
+            Some("audioServer") => HermesTopic::parse_audio_server(comps),
+            Some("asr") => HermesTopic::parse_asr(comps),
+            Some("dialogueManager") => HermesTopic::parse_dialogue_manager(comps),
+            Some("feedback") => HermesTopic::parse_feedback(comps),
+            Some("intent") => HermesTopic::parse_intent(comps),
+            Some("hotword") => HermesTopic::parse_hotword(comps),
+            Some("nlu") => HermesTopic::parse_nlu(comps),
+            Some("tts") => HermesTopic::parse_tts(comps),
+            _ => None
+        }
     }
 }
 
@@ -331,7 +430,7 @@ mod tests {
     #[test]
     fn enum_to_string_conversion_works() {
         for (expected_route, path) in routes() {
-            assert_eq!(HermesTopic::from_path(path), Some(expected_route));
+            assert_eq!(HermesTopic::from_path(path), Some(expected_route), "failed parsing {}", path);
         }
     }
 }
