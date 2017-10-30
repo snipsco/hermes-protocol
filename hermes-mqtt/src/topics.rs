@@ -168,7 +168,6 @@ impl HermesTopic {
             _ => None
         }
     }
-
 }
 
 impl FromPath<Self> for HermesTopic {
@@ -237,8 +236,6 @@ pub enum Component {
     Tts,
     Nlu,
     DialogueManager,
-    IntentParserManager,
-    SkillManager,
     AudioServer,
 }
 
@@ -286,8 +283,7 @@ impl ToPath for DialogueManagerCommand {}
 pub enum HotwordCommand {
     ToggleOn,
     ToggleOff,
-    Wait,
-    Detected
+    Detected,
 }
 
 impl ToPath for HotwordCommand {}
