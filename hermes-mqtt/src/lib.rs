@@ -90,7 +90,7 @@ impl MqttHandler {
             let r = serde_json::from_slice(m.payload.as_slice());
             match r {
                 Ok(p) => handler(&p),
-                Err(e) => warn!("Error while decoding object on topic {} : {:?}", &**m.topic, e)
+                Err(e) => warn!("Error while decoding object on topic {} : {}", &**m.topic, e)
             }
         })
     }

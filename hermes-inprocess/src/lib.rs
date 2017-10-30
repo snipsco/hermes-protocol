@@ -196,7 +196,7 @@ impl InProcessComponent {
         Ok(())
     }
 
-    fn publish_payload<F, M>(
+    fn publish_payload<'de, F, M>(
         &self,
         callback_name: &str,
         retrieve_callbacks: F,
@@ -204,7 +204,7 @@ impl InProcessComponent {
     ) -> Result<()>
         where
             F: FnOnce(&Handler) -> Option<&Vec<Callback<M>>> + Send + 'static,
-            M: HermesMessage + Send + 'static,
+            M: HermesMessage<'de> + Send + 'static,
     {
         debug!(
             "Publishing on '{}/{}' :\n{:#?}",
@@ -247,7 +247,7 @@ impl InProcessComponent {
             .map(|mut h| retrieve_callbacks(&mut h).push(callback))?)
     }
 
-    fn subscribe_payload<F, M>(
+    fn subscribe_payload<'de, F, M>(
         &self,
         callback_name: &str,
         retrieve_callbacks: F,
@@ -255,7 +255,7 @@ impl InProcessComponent {
     ) -> Result<()>
         where
             F: FnOnce(&mut Handler) -> &mut Vec<Callback<M>> + Send + 'static,
-            M: HermesMessage,
+            M: HermesMessage<'de>,
     {
         debug!("Subscribing on '{}/{}'", self.name, callback_name);
         Ok(self.handler

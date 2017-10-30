@@ -11,7 +11,6 @@ extern crate serde_json;
 mod errors;
 
 pub use errors::*;
-
 mod ontology;
 
 pub use ontology::*;

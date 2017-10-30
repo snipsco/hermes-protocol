@@ -1,6 +1,6 @@
 [package]
 name = "hermes"
-version = "0.19.0"
+version = "0.19.1"
 authors = [
     "Kevin Lefevre <kevin.lefevre@snips.ai>",
     "Thibaut Lorrain <thibaut.lorrain@snips.ai"
@@ -10,7 +10,7 @@ authors = [
 base64 = "0.7"
 error-chain = { version = "0.11", default-features = false }
 snips-queries-ontology = { git = "ssh://git@github.com/snipsco/snips-queries-ontology.git", tag = "0.4.4" }
-semver = { version = "0.8", features = ["serde"] }
+semver = { version = "0.9", features = ["serde"] }
 serde = "1.0"
 serde_derive = "1.0"
 serde_json = "1.0"

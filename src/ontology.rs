@@ -4,10 +4,11 @@ use semver;
 use snips_queries_ontology::{IntentClassifierResult, Slot};
 use std;
 
-pub trait HermesMessage: ::std::fmt::Debug {}
+pub trait HermesMessage<'de>: ::std::fmt::Debug + ::serde::Deserialize<'de> + ::serde::Serialize {}
 
 pub type SiteId = String;
 pub type SessionId = String;
+pub type RequestId = String;
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -18,7 +19,7 @@ pub struct SiteMessage {
     pub session_id: Option<SessionId>,
 }
 
-impl HermesMessage for SiteMessage {}
+impl<'de> HermesMessage<'de> for SiteMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -35,7 +36,7 @@ pub struct TextCapturedMessage {
     pub session_id: Option<SessionId>,
 }
 
-impl HermesMessage for TextCapturedMessage {}
+impl<'de> HermesMessage<'de> for TextCapturedMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -46,12 +47,12 @@ pub struct NluQueryMessage {
     pub intent_filter: Option<Vec<String>>,
     /// An optional id for the request, if provided it will be passed back in the
     /// response `NluIntentMessage` or `NluIntentNotRecognizedMessage`
-    pub id: Option<String>,
+    pub id: Option<RequestId>,
     /// An optional session id if there is a related session
     pub session_id: Option<SessionId>,
 }
 
-impl HermesMessage for NluQueryMessage {}
+impl<'de> HermesMessage<'de> for NluQueryMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -64,18 +65,18 @@ pub struct NluSlotQueryMessage {
     pub slot_name: String,
     /// An optional id for the request, if provided it will be passed back in the
     /// response `SlotMessage`
-    pub id: Option<String>,
+    pub id: Option<RequestId>,
     /// An optional session id if there is a related session
     pub session_id: Option<SessionId>,
 }
 
-impl HermesMessage for NluSlotQueryMessage {}
+impl<'de> HermesMessage<'de> for NluSlotQueryMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PlayBytesMessage {
     /// An id for the request, it will be passed back in the `PlayFinishedMessage`
-    pub id: String,
+    pub id: RequestId,
     /// The bytes of the wav to play (should be a regular wav with header)
     /// Note that serde json serialization is provided but in practice most handler impl will want
     /// to avoid the base64 encoding/decoding and give this a special treatment
@@ -87,7 +88,7 @@ pub struct PlayBytesMessage {
     pub session_id: Option<SessionId>,
 }
 
-impl HermesMessage for PlayBytesMessage {}
+impl<'de> HermesMessage<'de> for PlayBytesMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -101,20 +102,20 @@ pub struct AudioFrameMessage {
     pub site_id: SiteId,
 }
 
-impl HermesMessage for AudioFrameMessage {}
+impl<'de> HermesMessage<'de> for AudioFrameMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PlayFinishedMessage {
     /// The id of the `PlayBytesMessage` which bytes finished playing
-    pub id: String,
+    pub id: RequestId,
     /// The site where the sound was played
     pub site_id: SiteId,
     /// An optional session id if there is a related session
     pub session_id: Option<SessionId>,
 }
 
-impl HermesMessage for PlayFinishedMessage {}
+impl<'de> HermesMessage<'de> for PlayFinishedMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -124,31 +125,31 @@ pub struct SayMessage {
     /// The lang to use when saying the `text`, will use en_GB if not provided
     pub lang: Option<String>,
     /// An optional id for the request, it will be passed back in the `SayFinishedMessage`
-    pub id: Option<String>,
+    pub id: Option<RequestId>,
     /// The site where the message should be said
     pub site_id: SiteId,
     /// An optional session id if there is a related session
     pub session_id: Option<SessionId>,
 }
 
-impl HermesMessage for SayMessage {}
+impl<'de> HermesMessage<'de> for SayMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SayFinishedMessage {
     /// The id of the `SayMessage` which was has been said
-    pub id: Option<String>,
+    pub id: Option<RequestId>,
     /// An optional session id if there is a related session
     pub session_id: Option<SessionId>,
 }
 
-impl HermesMessage for SayFinishedMessage {}
+impl<'de> HermesMessage<'de> for SayFinishedMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NluSlotMessage {
     /// The id of the `NluSlotQueryMessage` that was processed
-    pub id: Option<String>,
+    pub id: Option<RequestId>,
     /// The input that was processed
     pub input: String,
     /// The intent used to find the slot
@@ -159,26 +160,26 @@ pub struct NluSlotMessage {
     pub session_id: Option<SessionId>,
 }
 
-impl HermesMessage for NluSlotMessage {}
+impl<'de> HermesMessage<'de> for NluSlotMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NluIntentNotRecognizedMessage {
     /// The id of the `NluQueryMessage` that was processed
-    pub id: Option<String>,
+    pub id: Option<RequestId>,
     /// The text that didn't match any intent
     pub input: String,
     /// An optional session id if there is a related session
     pub session_id: Option<SessionId>,
 }
 
-impl HermesMessage for NluIntentNotRecognizedMessage {}
+impl<'de> HermesMessage<'de> for NluIntentNotRecognizedMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NluIntentMessage {
     /// The id of the `NluQueryMessage` that was processed
-    pub id: Option<String>,
+    pub id: Option<RequestId>,
     /// The input that was processed
     pub input: String,
     /// The result of the intent classification
@@ -189,7 +190,7 @@ pub struct NluIntentMessage {
     pub session_id: Option<SessionId>,
 }
 
-impl HermesMessage for NluIntentMessage {}
+impl<'de> HermesMessage<'de> for NluIntentMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -208,13 +209,14 @@ pub struct IntentMessage {
     pub slots: Option<Vec<Slot>>,
 }
 
-impl HermesMessage for IntentMessage {}
+impl<'de> HermesMessage<'de> for IntentMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
-#[serde(tag = "from", rename_all = "camelCase")]
+#[serde(tag = "type", rename_all = "camelCase")]
 pub enum SessionInit {
     /// The session expects a response from the user. Users responses will
     /// be provided in the form of `IntentMessage`s.
+    #[serde(rename_all = "camelCase")]
     Action {
         /// An optional text to say to the user
         text: Option<String>,
@@ -244,7 +246,7 @@ pub struct StartSessionMessage {
     pub site_id: Option<SiteId>,
 }
 
-impl HermesMessage for StartSessionMessage {}
+impl<'de> HermesMessage<'de> for StartSessionMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -258,10 +260,10 @@ pub struct SessionStartedMessage {
     /// This optional field indicates this session is a reactivation of a previously ended session.
     /// This is for example provided when the user continues talking to the platform without saying
     /// the hotword again after a session was ended.
-    pub reactivated_from_session_id : Option<String>
+    pub reactivated_from_session_id: Option<String>,
 }
 
-impl HermesMessage for SessionStartedMessage {}
+impl<'de> HermesMessage<'de> for SessionStartedMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -274,7 +276,7 @@ pub struct SessionQueuedMessage {
     pub site_id: SiteId,
 }
 
-impl HermesMessage for SessionQueuedMessage {}
+impl<'de> HermesMessage<'de> for SessionQueuedMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -287,7 +289,7 @@ pub struct ContinueSessionMessage {
     pub intent_filter: Option<Vec<String>>
 }
 
-impl HermesMessage for ContinueSessionMessage {}
+impl<'de> HermesMessage<'de> for ContinueSessionMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -295,13 +297,13 @@ pub struct EndSessionMessage {
     /// The id of the session to end
     pub session_id: String,
     /// An optional text to say to the user before ending the session
-    pub text : Option<String>,
+    pub text: Option<String>,
 }
 
-impl HermesMessage for EndSessionMessage {}
+impl<'de> HermesMessage<'de> for EndSessionMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
-#[serde(tag = "type", rename_all = "camelCase")]
+#[serde(tag = "reason", rename_all = "camelCase")]
 pub enum SessionTerminationType {
     /// The session ended as expected
     Nominal,
@@ -330,7 +332,7 @@ pub struct SessionEndedMessage {
     pub site_id: SiteId,
 }
 
-impl HermesMessage for SessionEndedMessage {}
+impl<'de> HermesMessage<'de> for SessionEndedMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -339,7 +341,7 @@ pub struct VersionMessage {
     pub version: semver::Version,
 }
 
-impl HermesMessage for VersionMessage {}
+impl<'de> HermesMessage<'de> for VersionMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -352,7 +354,7 @@ pub struct ErrorMessage {
     pub context: Option<String>,
 }
 
-impl HermesMessage for ErrorMessage {}
+impl<'de> HermesMessage<'de> for ErrorMessage {}
 
 fn as_base64<S>(bytes: &[u8], serializer: S) -> std::result::Result<S::Ok, S::Error>
     where S: serde::Serializer {
