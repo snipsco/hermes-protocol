@@ -230,7 +230,7 @@ impl fmt::Display for HermesTopic {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, ToString, EnumIter)]
+#[derive(Debug, Clone, Copy, PartialEq, ToString)]
 pub enum Component {
     Hotword,
     Asr,
@@ -260,7 +260,7 @@ impl fmt::Display for FeedbackCommand {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, ToString, EnumIter)]
+#[derive(Debug, Clone, Copy, PartialEq, ToString)]
 pub enum SoundCommand {
     ToggleOn,
     ToggleOff,
@@ -268,7 +268,7 @@ pub enum SoundCommand {
 
 impl ToPath for SoundCommand {}
 
-#[derive(Debug, Clone, Copy, PartialEq, ToString, EnumIter)]
+#[derive(Debug, Clone, Copy, PartialEq, ToString)]
 pub enum DialogueManagerCommand {
     ToggleOn,
     ToggleOff,
@@ -282,7 +282,7 @@ pub enum DialogueManagerCommand {
 
 impl ToPath for DialogueManagerCommand {}
 
-#[derive(Debug, Clone, Copy, PartialEq, ToString, EnumIter)]
+#[derive(Debug, Clone, Copy, PartialEq, ToString)]
 pub enum HotwordCommand {
     ToggleOn,
     ToggleOff,
@@ -292,7 +292,7 @@ pub enum HotwordCommand {
 
 impl ToPath for HotwordCommand {}
 
-#[derive(Debug, Clone, Copy, PartialEq, ToString, EnumIter)]
+#[derive(Debug, Clone, Copy, PartialEq, ToString)]
 pub enum AsrCommand {
     ToggleOn,
     ToggleOff,
@@ -304,7 +304,7 @@ pub enum AsrCommand {
 
 impl ToPath for AsrCommand {}
 
-#[derive(Debug, Clone, Copy, PartialEq, ToString, EnumIter)]
+#[derive(Debug, Clone, Copy, PartialEq, ToString)]
 pub enum TtsCommand {
     Say,
     SayFinished,
@@ -312,7 +312,7 @@ pub enum TtsCommand {
 
 impl ToPath for TtsCommand {}
 
-#[derive(Debug, Clone, Copy, PartialEq, ToString, EnumIter)]
+#[derive(Debug, Clone, Copy, PartialEq, ToString)]
 pub enum NluCommand {
     Query,
     PartialQuery,
@@ -323,7 +323,7 @@ pub enum NluCommand {
 
 impl ToPath for NluCommand {}
 
-#[derive(Debug, Clone, PartialEq, EnumIter)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum AudioServerCommand {
     AudioFrame,
     PlayBytes(String),
@@ -347,7 +347,7 @@ impl fmt::Display for AudioServerCommand {
 
 impl ToPath for AudioServerCommand {}
 
-#[derive(Debug, Clone, Copy, PartialEq, ToString, EnumIter)]
+#[derive(Debug, Clone, Copy, PartialEq, ToString)]
 pub enum ComponentCommand {
     VersionRequest,
     Version,
