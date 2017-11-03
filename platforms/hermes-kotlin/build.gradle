@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = '1.1.4-3'
+    ext.kotlin_version = '1.1.51'
     repositories {
         jcenter()
     }
@@ -30,8 +30,8 @@ repositories {
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
-    compile 'ai.snips:snips-queries-ontology:0.4.3' // make sure we use the same version in rust...
-    compile 'net.java.dev.jna:jna:4.4.0'
+    compile 'ai.snips:snips-queries-ontology:0.5.0' // make sure we use the same version in rust...
+    compile 'net.java.dev.jna:jna:4.5.0'
 }
 
 apply plugin: 'maven'

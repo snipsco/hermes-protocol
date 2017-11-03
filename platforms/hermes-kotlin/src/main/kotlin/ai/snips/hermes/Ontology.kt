@@ -8,9 +8,7 @@ data class SessionStartedMessage(val sessionId: String, val customData: String?,
 data class SessionQueuedMessage(val sessionId: String, val customData: String?, val siteId: String)
 data class SessionEndedMessage(val sessionId: String, val customData: String?, val termination: SessionTermination, val siteId: String)
 
-// TODO : add converters to JSR310 / ThreeTen types
 sealed class SessionTermination(val type: SessionTermination.Type) {
-
     enum class Type {
         NOMINAL,
         SITE_UNAVAILABLE,

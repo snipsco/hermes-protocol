@@ -19,7 +19,7 @@ node('jenkins-slave-ec2') {
     }
 
     stage('Jar') {
-        sh "cd platforms/kotlin && ./gradlew jar"
+        sh "cd platforms/hermes-kotlin/ && ./gradlew jar"
     }
 
     switch (branchName) {
@@ -27,7 +27,7 @@ node('jenkins-slave-ec2') {
         case "master":
             stage("Upload jar") {
                 sh """
-                    cd platforms/kotlin
+                    cd platforms/hermes-kotlin/
                     ./gradlew uploadArchives -PnexusUsername="$NEXUS_USERNAME" -PnexusPassword="$NEXUS_PASSWORD"
                 """
             }
