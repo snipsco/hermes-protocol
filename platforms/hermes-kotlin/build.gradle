@@ -30,7 +30,7 @@ repositories {
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
-    compile 'ai.snips:snips-queries-ontology:0.4.4' // make sure we use the same version in rust...
+    compile 'ai.snips:snips-queries-ontology:0.5.0' // make sure we use the same version in rust...
     compile 'net.java.dev.jna:jna:4.5.0'
 }
 
