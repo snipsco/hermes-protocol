@@ -86,7 +86,7 @@ class CSessionQueuedMessage(p: Pointer) : Structure(p), Structure.ByReference {
 
     override fun getFieldOrder() = listOf("session_id", "custom_data", "site_id")
 
-    fun toSessionStartedMessage() = SessionQueuedMessage(
+    fun toSessionQueuedMessage() = SessionQueuedMessage(
             sessionId = session_id.readString(),
             customData = custom_data?.readString(),
             siteId = site_id.readString())

@@ -1,13 +1,13 @@
 extern crate hermes;
 extern crate libc;
-extern crate snips_queries_ontology;
+extern crate snips_queries_ontology_ffi;
 
 use std::ffi::CString;
 use std::slice;
 use std::ptr::null;
 
 use hermes::{Result, ResultExt};
-use snips_queries_ontology::ffi::{CIntentClassifierResult, CSlot, CSlotList};
+use snips_queries_ontology_ffi::{CIntentClassifierResult, CSlot, CSlotList};
 
 macro_rules! convert_to_c_string {
     ($string:expr) => {
