@@ -92,7 +92,7 @@ class CSessionQueuedMessage(p: Pointer) : Structure(p), Structure.ByReference {
             siteId = site_id.readString())
 }
 
-class CSessionTermination: Structure(), Structure.ByReference {
+class CSessionTermination: Structure(), Structure.ByValue {
     companion object {
         const val NOMINAL = 1
         const val SITE_UNAVAILABLE = 2
