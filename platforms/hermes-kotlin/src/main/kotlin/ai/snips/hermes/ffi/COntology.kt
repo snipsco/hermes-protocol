@@ -192,7 +192,7 @@ class CEndSessionMessage(p: Pointer?) : Structure(p), Structure.ByReference {
     @JvmField
     var text: Pointer? = null
 
-    override fun getFieldOrder() = listOf("session_id", "text", "intent_filter")
+    override fun getFieldOrder() = listOf("session_id", "text" )
 
     fun toEndSessionMessage() = EndSessionMessage(
             sessionId = session_id.readString(),
