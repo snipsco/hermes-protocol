@@ -811,7 +811,7 @@ impl CEndSessionMessage {
 
     pub fn to_end_session_message(&self) -> Result<hermes::EndSessionMessage> {
         Ok(hermes::EndSessionMessage {
-            session_id: create_rust_string_from!(self.text),
+            session_id: create_rust_string_from!(self.session_id),
             text: create_optional_rust_string_from!(self.text)
         })
     }
