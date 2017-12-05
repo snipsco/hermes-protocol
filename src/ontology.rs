@@ -19,6 +19,12 @@ pub struct SiteMessage {
     pub session_id: Option<SessionId>,
 }
 
+impl Default for SiteMessage {
+    fn default() -> Self {
+        Self { site_id: "default".into(), session_id: None }
+    }
+}
+
 impl<'de> HermesMessage<'de> for SiteMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
