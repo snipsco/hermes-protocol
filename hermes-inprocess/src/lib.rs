@@ -186,8 +186,12 @@ impl InProcessComponent {
         thread::spawn(move || {
             let result = _handler
                 .lock()
-                .map(|ref h| for callback in retrieve_callbacks(h) {
-                    callback.call();
+                .map(|ref h| {
+                    let callbacks = retrieve_callbacks(h);
+                    trace!("sending to {} callback(s)", callbacks.len());
+                    for callback in callbacks {
+                        callback.call();
+                    }
                 });
             if let Err(e) = result {
                 error!("Error while publishing an event : {}", e)
@@ -218,8 +222,11 @@ impl InProcessComponent {
             let result = _handler
                 .lock()
                 .map(|ref h| retrieve_callbacks(h)
-                    .map(|callbacks| for callback in callbacks {
-                        callback.call(&message);
+                    .map(|callbacks| {
+                        trace!("sending to {} callback(s)", callbacks.len());
+                        for callback in callbacks {
+                            callback.call(&message);
+                        }
                     }));
             if let Err(e) = result {
                 error!(
@@ -337,7 +344,7 @@ impl ComponentBackendFacade for InProcessComponent {
 impl IdentifiableComponentFacade for InProcessComponent {
     fn publish_version_request(&self, site_id: SiteId) -> Result<()> {
         let entry = identifiable_entry(&self.name, &site_id);
-        self.publish("component_version_request", move |h| {
+        self.publish(&format!("component_version_request[{}]", &site_id), move |h| {
             &h.component_version_request
                 .get(&entry)
                 .unwrap_or(&h.empty_0)
@@ -346,7 +353,7 @@ impl IdentifiableComponentFacade for InProcessComponent {
     fn subscribe_version(&self, site_id: SiteId, handler: Callback<VersionMessage>) -> Result<()> {
         let entry = identifiable_entry(&self.name, &site_id);
         self.subscribe_payload(
-            "component_version",
+            &format!("component_version[{}]", &site_id),
             |h| {
                 h.component_version
                     .entry(entry)
@@ -358,7 +365,7 @@ impl IdentifiableComponentFacade for InProcessComponent {
     fn subscribe_error(&self, site_id: SiteId, handler: Callback<ErrorMessage>) -> Result<()> {
         let entry = identifiable_entry(&self.name, &site_id);
         self.subscribe_payload(
-            "component_error",
+            &format!("component_error[{}]", &site_id),
             |h| {
                 h.component_error
                     .entry(entry)
@@ -373,7 +380,7 @@ impl IdentifiableComponentBackendFacade for InProcessComponent {
     fn subscribe_version_request(&self, site_id: SiteId, handler: Callback0) -> Result<()> {
         let entry = identifiable_entry(&self.name, &site_id);
         self.subscribe(
-            "component_version_request",
+            &format!("component_version_request[{}]", &site_id),
             |h| {
                 h.component_version_request
                     .entry(entry)
@@ -385,7 +392,7 @@ impl IdentifiableComponentBackendFacade for InProcessComponent {
     fn publish_version(&self, site_id: SiteId, version: VersionMessage) -> Result<()> {
         let entry = identifiable_entry(&self.name, &site_id);
         self.publish_payload(
-            "component_version",
+            &format!("component_version[{}]", &site_id),
             move |h| {
                 h.component_version.get(&entry)
             },
@@ -395,7 +402,7 @@ impl IdentifiableComponentBackendFacade for InProcessComponent {
     fn publish_error(&self, site_id: SiteId, error: ErrorMessage) -> Result<()> {
         let entry = identifiable_entry(&self.name, &site_id);
         self.publish_payload(
-            "component_error",
+            &format!("component_error[{}]", &site_id),
             move |h| { h.component_error.get(&entry) },
             error,
         )
@@ -481,7 +488,7 @@ impl ToggleableBackendFacade for InProcessComponent {
 impl HotwordFacade for InProcessComponent {
     fn subscribe_detected(&self, id: String, handler: Callback<SiteMessage>) -> Result<()> {
         self.subscribe_payload(
-            "hotword_detected",
+            &format!("hotword_detected[{}]", &id),
             |h| h.hotword_detected.entry(id).or_insert_with(|| vec![]),
             handler,
         )
@@ -499,7 +506,7 @@ impl HotwordFacade for InProcessComponent {
 impl HotwordBackendFacade for InProcessComponent {
     fn publish_detected(&self, id: String, message: SiteMessage) -> Result<()> {
         self.publish_payload(
-            "hotword_detected",
+            &format!("hotword_detected[{}]", &id),
             move |h| h.hotword_detected.get(&id),
             message.clone(),
         )?;
@@ -542,7 +549,7 @@ impl TtsBackendFacade for InProcessComponent {
 impl AudioServerFacade for InProcessComponent {
     fn publish_play_bytes(&self, bytes: PlayBytesMessage) -> Result<()> {
         let site_id = bytes.site_id.to_string();
-        self.publish_payload("as_play_bytes", move |h| h.as_play_bytes.get(&site_id), bytes.clone())?;
+        self.publish_payload(&format!("as_play_bytes[{}]", &site_id), move |h| h.as_play_bytes.get(&site_id), bytes.clone())?;
         self.publish_payload("as_all_play_bytes", move |h| Some(&h.as_all_play_bytes), bytes)
     }
 
@@ -560,7 +567,7 @@ impl AudioServerBackendFacade for InProcessComponent {
         let _message = message.clone();
 
         self.publish_payload(
-            &message.site_id,
+            &format!("as_play_finished[{}]", &site_id),
             move |h| h.as_play_finished.get(&site_id),
             _message,
         )?;
