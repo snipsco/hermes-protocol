@@ -11,14 +11,9 @@ buildscript {
 version = "0.52.0-SNAPSHOT"
 group = "ai.snips"
 
-
-// Apply the java-library plugin to add support for Java Library
 apply plugin: 'kotlin'
 
-// In this section you declare where to find the dependencies of your project
 repositories {
-    // Use jcenter for resolving your dependencies.
-    // You can declare any Maven/Ivy/file repository here.
     jcenter()
     maven {
         url "https://nexus-repository.snips.ai/repository/snips-maven-releases/"
@@ -30,7 +25,7 @@ repositories {
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
-    compile 'ai.snips:snips-queries-ontology:0.5.0' // make sure we use the same version in rust...
+    compile "ai.snips:snips-queries-ontology:$version"
     compile 'net.java.dev.jna:jna:4.5.0'
 }
 
