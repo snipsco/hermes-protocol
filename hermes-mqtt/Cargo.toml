@@ -7,7 +7,7 @@ authors = ["Thibaut Lorrain <thibaut.lorrain@snips.ai>"]
 hermes = { path = ".." }
 hermes-test-suite = { path = "../hermes-test-suite" }
 log = "0.3"
-rumqtt = { git = "https://github.com/snipsco/rumqtt.git", rev = "22eded3f8304" }
+rumqtt = { git = "https://github.com/snipsco/rumqtt", rev = "22eded3f8304" }
 serde = "1.0"
 serde_json = "1.0"
 strum = "0.8"
