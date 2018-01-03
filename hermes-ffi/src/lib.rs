@@ -2,7 +2,7 @@ extern crate hermes;
 extern crate libc;
 extern crate snips_queries_ontology_ffi;
 
-use std::ffi::CString;
+use std::ffi::{CStr, CString};
 use std::slice;
 use std::ptr::null;
 
@@ -70,11 +70,30 @@ macro_rules! take_back_nullable_c_array_string {
     }
 }
 
+macro_rules! create_rust_string_from {
+    ($pointer:expr) => {
+            unsafe { CStr::from_ptr($pointer) }
+                .to_str()
+                .map_err(|e| format!("UTF8 error: {:?}", e))?
+                .to_owned()
+    };
+}
+
+macro_rules! create_optional_rust_string_from {
+    ($pointer:expr) => {
+           match unsafe{ $pointer.as_ref() }  {
+                Some(thing) => Some(create_rust_string_from!(thing)),
+                None => None
+           }
+    };
+}
+
 #[repr(C)]
 #[derive(Debug)]
 pub struct CArrayString {
     pub data: *const *const libc::c_char,
-    pub size: libc::c_int, // Note: we can't use `libc::size_t` because it's not supported by JNA
+    // Note: we can't use `libc::size_t` because it's not supported by JNA
+    pub size: libc::c_int,
 }
 
 impl CArrayString {
@@ -86,6 +105,21 @@ impl CArrayString {
                 .collect::<Result<Vec<_>>>()?
                 .into_boxed_slice()) as *const *const libc::c_char,
         })
+    }
+
+    pub fn to_string_vec(&self) -> Result<Vec<String>> {
+        let mut result = vec![];
+
+        let strings = unsafe {
+            slice::from_raw_parts_mut(self.data as *mut *mut libc::c_char,
+                                      self.size as usize)
+        };
+
+        for s in strings {
+            result.push(create_rust_string_from!(*s))
+        }
+
+        Ok(result)
     }
 }
 
@@ -104,7 +138,8 @@ impl Drop for CArrayString {
 #[derive(Debug)]
 pub struct CSiteMessage {
     pub site_id: *const libc::c_char,
-    pub session_id: *const libc::c_char, // Nullable
+    // Nullable
+    pub session_id: *const libc::c_char,
 }
 
 impl CSiteMessage {
@@ -130,7 +165,8 @@ pub struct CTextCapturedMessage {
     pub likelihood: f32,
     pub seconds: f32,
     pub site_id: *const libc::c_char,
-    pub session_id: *const libc::c_char, // Nullable
+    // Nullable
+    pub session_id: *const libc::c_char,
 }
 
 impl CTextCapturedMessage {
@@ -157,9 +193,12 @@ impl Drop for CTextCapturedMessage {
 #[derive(Debug)]
 pub struct CNluQueryMessage {
     pub input: *const libc::c_char,
-    pub intent_filter: *const CArrayString, // Nullable 
-    pub id: *const libc::c_char, // Nullable
-    pub session_id: *const libc::c_char, // Nullable
+    // Nullable
+    pub intent_filter: *const CArrayString,
+    // Nullable
+    pub id: *const libc::c_char,
+    // Nullable
+    pub session_id: *const libc::c_char,
 }
 
 impl CNluQueryMessage {
@@ -188,8 +227,10 @@ pub struct CNluSlotQueryMessage {
     pub input: *const libc::c_char,
     pub intent_name: *const libc::c_char,
     pub slot_name: *const libc::c_char,
-    pub id: *const libc::c_char, // Nullable
-    pub session_id: *const libc::c_char, // Nullable
+    // Nullable
+    pub id: *const libc::c_char,
+    // Nullable
+    pub session_id: *const libc::c_char,
 }
 
 impl CNluSlotQueryMessage {
@@ -219,9 +260,11 @@ impl Drop for CNluSlotQueryMessage {
 pub struct CPlayBytesMessage {
     pub id: *const libc::c_char,
     pub wav_bytes: *const u8,
-    pub wav_bytes_len: libc::c_int, // Note: we can't use `libc_size_t` because JNA doesn't it
+    // Note: we can't use `libc::size_t` because it's not supported by JNA
+    pub wav_bytes_len: libc::c_int,
     pub site_id: *const libc::c_char,
-    pub session_id: *const libc::c_char, // Nullable
+    // Nullable
+    pub session_id: *const libc::c_char,
 }
 
 impl CPlayBytesMessage {
@@ -249,7 +292,8 @@ impl Drop for CPlayBytesMessage {
 #[derive(Debug)]
 pub struct CAudioFrameMessage {
     pub wav_frame: *const u8,
-    pub wav_frame_len: libc::c_int, // Note: we can't use `libc_size_t` because JNA doesn't it
+    // Note: we can't use `libc::size_t` because it's not supported by JNA
+    pub wav_frame_len: libc::c_int,
     pub site_id: *const libc::c_char,
 }
 
@@ -276,7 +320,8 @@ impl Drop for CAudioFrameMessage {
 pub struct CPlayFinishedMessage {
     pub id: *const libc::c_char,
     pub site_id: *const libc::c_char,
-    pub session_id: *const libc::c_char, // Nullable
+    // Nullable
+    pub session_id: *const libc::c_char,
 }
 
 impl CPlayFinishedMessage {
@@ -301,10 +346,13 @@ impl Drop for CPlayFinishedMessage {
 #[derive(Debug)]
 pub struct CSayMessage {
     pub text: *const libc::c_char,
-    pub lang: *const libc::c_char, // Nullable
-    pub id: *const libc::c_char, // Nullable
+    // Nullable
+    pub lang: *const libc::c_char,
+    // Nullable
+    pub id: *const libc::c_char,
     pub site_id: *const libc::c_char,
-    pub session_id: *const libc::c_char, // Nullable
+    // Nullable
+    pub session_id: *const libc::c_char,
 }
 
 impl CSayMessage {
@@ -332,8 +380,10 @@ impl Drop for CSayMessage {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CSayFinishedMessage {
-    pub id: *const libc::c_char, // Nullable
-    pub session_id: *const libc::c_char, // Nullable
+    // Nullable
+    pub id: *const libc::c_char,
+    // Nullable
+    pub session_id: *const libc::c_char,
 }
 
 impl CSayFinishedMessage {
@@ -355,11 +405,14 @@ impl Drop for CSayFinishedMessage {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CNluSlotMessage {
-    pub id: *const libc::c_char, // Nullable
+    // Nullable
+    pub id: *const libc::c_char,
     pub input: *const libc::c_char,
     pub intent_name: *const libc::c_char,
-    pub slot: *const CSlot, // Nullable
-    pub session_id: *const libc::c_char, // Nullable
+    // Nullable
+    pub slot: *const CSlot,
+    // Nullable
+    pub session_id: *const libc::c_char,
 }
 
 impl CNluSlotMessage {
@@ -396,8 +449,10 @@ impl Drop for CNluSlotMessage {
 #[derive(Debug)]
 pub struct CNluIntentNotRecognizedMessage {
     pub input: *const libc::c_char,
-    pub id: *const libc::c_char, // Nullable
-    pub session_id: *const libc::c_char, // Nullable
+    // Nullable
+    pub id: *const libc::c_char,
+    // Nullable
+    pub session_id: *const libc::c_char,
 }
 
 impl CNluIntentNotRecognizedMessage {
@@ -421,11 +476,14 @@ impl Drop for CNluIntentNotRecognizedMessage {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CNluIntentMessage {
-    pub id: *const libc::c_char, // Nullable
+    // Nullable
+    pub id: *const libc::c_char,
     pub input: *const libc::c_char,
     pub intent: *const CIntentClassifierResult,
-    pub slots: *const CSlotList, // Nullable
-    pub session_id: *const libc::c_char, //Nullable
+    // Nullable
+    pub slots: *const CSlotList,
+    //Nullable
+    pub session_id: *const libc::c_char,
 }
 
 impl CNluIntentMessage {
@@ -460,12 +518,14 @@ impl Drop for CNluIntentMessage {
 #[derive(Debug)]
 pub struct CIntentMessage {
     pub session_id: *const libc::c_char,
-    pub custom_data: *const libc::c_char, // Nullable
+    // Nullable
+    pub custom_data: *const libc::c_char,
     pub site_id: *const libc::c_char,
 
     pub input: *const libc::c_char,
     pub intent: *const CIntentClassifierResult,
-    pub slots: *const CSlotList, // Nullable
+    // Nullable
+    pub slots: *const CSlotList,
 }
 
 impl CIntentMessage {
@@ -517,8 +577,10 @@ impl CSessionInitType {
 #[repr(C)]
 #[derive(Debug, PartialEq)]
 pub struct CActionSessionInit {
-    text: *const libc::c_char, // Nullable
-    intent_filter: *const CArrayString, // Nullable
+    // Nullable
+    text: *const libc::c_char,
+    // Nullable
+    intent_filter: *const CArrayString,
     can_be_enqueued: libc::c_uchar,
 }
 
@@ -530,6 +592,17 @@ impl CActionSessionInit {
             can_be_enqueued: if can_be_enqueued { 1 } else { 0 }
         })
     }
+
+    pub fn to_action_session_init(&self) -> Result<hermes::SessionInit> {
+        Ok(hermes::SessionInit::Action {
+            text: create_optional_rust_string_from!(self.text),
+            intent_filter: match unsafe { self.intent_filter.as_ref() } {
+                Some(it) => Some(it.to_string_vec()?),
+                None => None
+            },
+            can_be_enqueued: self.can_be_enqueued == 1
+        })
+    }
 }
 
 impl Drop for CActionSessionInit {
@@ -538,7 +611,6 @@ impl Drop for CActionSessionInit {
         take_back_nullable_c_array_string!(self.intent_filter);
     }
 }
-
 
 
 #[repr(C)]
@@ -557,12 +629,24 @@ impl CSessionInit {
         let value: *const libc::c_void = match init {
             hermes::SessionInit::Action { text, intent_filter, can_be_enqueued } => {
                 Box::into_raw(Box::new(CActionSessionInit::new(text, intent_filter, can_be_enqueued)?)) as _
-            },
+            }
             hermes::SessionInit::Notification { text } => {
                 convert_to_c_string!(text) as _
             }
         };
         Ok(Self { init_type, value })
+    }
+
+    fn to_session_init(&self) -> Result<hermes::SessionInit> {
+        match self.init_type {
+            CSessionInitType::Action => unsafe { (self.value as *const CActionSessionInit).as_ref() }
+                .ok_or_else(|| "unexpected null pointer in SessionInit value")?
+                .to_action_session_init(),
+            CSessionInitType::Notification => Ok(hermes::SessionInit::Notification {
+                text: create_rust_string_from!((self.value as *const libc::c_char).as_ref()
+                        .ok_or_else(|| "unexpected null pointer in SessionInit value")?)
+            })
+        }
     }
 }
 
@@ -571,10 +655,10 @@ impl Drop for CSessionInit {
         match self.init_type {
             CSessionInitType::Action => {
                 take_back_c_string!(self.value);
-            },
+            }
             CSessionInitType::Notification => unsafe {
                 Box::from_raw(self.value as *mut CActionSessionInit);
-            },
+            }
         };
     }
 }
@@ -596,6 +680,14 @@ impl CStartSessionMessage {
             site_id: convert_to_nullable_c_string!(input.site_id),
         })
     }
+
+    pub fn to_start_session_message(&self) -> Result<hermes::StartSessionMessage> {
+        Ok(hermes::StartSessionMessage {
+            init: self.init.to_session_init()?,
+            custom_data: create_optional_rust_string_from!(self.custom_data),
+            site_id: create_optional_rust_string_from!(self.site_id)
+        })
+    }
 }
 
 impl Drop for CStartSessionMessage {
@@ -609,9 +701,11 @@ impl Drop for CStartSessionMessage {
 #[derive(Debug)]
 pub struct CSessionStartedMessage {
     pub session_id: *const libc::c_char,
-    pub custom_data: *const libc::c_char, // Nullable
+    // Nullable
+    pub custom_data: *const libc::c_char,
     pub site_id: *const libc::c_char,
-    pub reactivated_from_session_id: *const libc::c_char, // Nullable
+    // Nullable
+    pub reactivated_from_session_id: *const libc::c_char,
 }
 
 impl CSessionStartedMessage {
@@ -638,7 +732,8 @@ impl Drop for CSessionStartedMessage {
 #[derive(Debug)]
 pub struct CSessionQueuedMessage {
     pub session_id: *const libc::c_char,
-    pub custom_data: *const libc::c_char, // Nullable
+    // Nullable
+    pub custom_data: *const libc::c_char,
     pub site_id: *const libc::c_char,
 }
 
@@ -665,7 +760,8 @@ impl Drop for CSessionQueuedMessage {
 pub struct CContinueSessionMessage {
     pub session_id: *const libc::c_char,
     pub text: *const libc::c_char,
-    pub intent_filter: *const CArrayString, // Nullable 
+    // Nullable
+    pub intent_filter: *const CArrayString,
 }
 
 impl CContinueSessionMessage {
@@ -674,6 +770,17 @@ impl CContinueSessionMessage {
             session_id: convert_to_c_string!(input.session_id),
             text: convert_to_c_string!(input.text),
             intent_filter: convert_to_nullable_c_array_string!(input.intent_filter),
+        })
+    }
+
+    pub fn to_continue_session_message(&self) -> Result<hermes::ContinueSessionMessage> {
+        Ok(hermes::ContinueSessionMessage {
+            session_id: create_rust_string_from!(self.session_id),
+            text: create_rust_string_from!(self.text),
+            intent_filter: match unsafe { self.intent_filter.as_ref() } {
+                Some(it) => Some(it.to_string_vec()?),
+                None => None
+            },
         })
     }
 }
@@ -690,7 +797,8 @@ impl Drop for CContinueSessionMessage {
 #[derive(Debug)]
 pub struct CEndSessionMessage {
     pub session_id: *const libc::c_char,
-    pub text: *const libc::c_char, // Nullable
+    // Nullable
+    pub text: *const libc::c_char,
 }
 
 impl CEndSessionMessage {
@@ -698,6 +806,13 @@ impl CEndSessionMessage {
         Ok(Self {
             session_id: convert_to_c_string!(input.session_id),
             text: convert_to_nullable_c_string!(input.text),
+        })
+    }
+
+    pub fn to_end_session_message(&self) -> Result<hermes::EndSessionMessage> {
+        Ok(hermes::EndSessionMessage {
+            session_id: create_rust_string_from!(self.session_id),
+            text: create_optional_rust_string_from!(self.text)
         })
     }
 }
@@ -737,7 +852,8 @@ impl CSessionTerminationType {
 #[derive(Debug)]
 pub struct CSessionTermination {
     termination_type: CSessionTerminationType,
-    data: *const libc::c_char, // Nullable,
+    // Nullable,
+    data: *const libc::c_char,
 }
 
 impl CSessionTermination {
@@ -761,7 +877,8 @@ impl Drop for CSessionTermination {
 #[derive(Debug)]
 pub struct CSessionEndedMessage {
     pub session_id: *const libc::c_char,
-    pub custom_data: *const libc::c_char, // Nullable
+    // Nullable
+    pub custom_data: *const libc::c_char,
     pub termination: CSessionTermination,
     pub site_id: *const libc::c_char,
 }
@@ -806,9 +923,11 @@ impl CVersionMessage {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CErrorMessage {
-    pub session_id: *const libc::c_char, // Nullable
+    // Nullable
+    pub session_id: *const libc::c_char,
     pub error: *const libc::c_char,
-    pub context: *const libc::c_char, // Nullable
+    // Nullable
+    pub context: *const libc::c_char,
 }
 
 impl CErrorMessage {
