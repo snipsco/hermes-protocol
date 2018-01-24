@@ -4,633 +4,606 @@ extern crate hermes;
 extern crate hermes_test_suite;
 #[macro_use]
 extern crate log;
+extern crate ripb;
 #[cfg(test)]
 extern crate semver;
 #[cfg(test)]
 extern crate snips_queries_ontology;
 
-use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
-use std::thread;
+use std::fmt::Debug;
+use std::sync::Mutex;
+use std::marker::PhantomData;
 
 use hermes::*;
 
-type IntentName = String;
-type ComponentName = String;
-
-#[derive(Default)]
-struct Handler {
-    asr_start_listening: Vec<Callback<SiteMessage>>,
-    asr_stop_listening: Vec<Callback<SiteMessage>>,
-    asr_text_captured: Vec<Callback<TextCapturedMessage>>,
-    asr_partial_text_captured: Vec<Callback<TextCapturedMessage>>,
-
-    as_play_bytes: HashMap<SiteId, Vec<Callback<PlayBytesMessage>>>,
-    as_all_play_bytes: Vec<Callback<PlayBytesMessage>>,
-    as_play_finished: HashMap<SiteId, Vec<Callback<PlayFinishedMessage>>>,
-    as_all_play_finished: Vec<Callback<PlayFinishedMessage>>,
-    as_audio_frame: HashMap<SiteId, Vec<Callback<AudioFrameMessage>>>,
-
-    hotword_detected: HashMap<String, Vec<Callback<SiteMessage>>>,
-    hotword_all_detected: Vec<Callback<SiteMessage>>,
-
-    nlu_query: Vec<Callback<NluQueryMessage>>,
-    nlu_partial_query: Vec<Callback<NluSlotQueryMessage>>,
-    nlu_slot_parsed: Vec<Callback<NluSlotMessage>>,
-    nlu_intent_parsed: Vec<Callback<NluIntentMessage>>,
-    nlu_intent_not_recognized: Vec<Callback<NluIntentNotRecognizedMessage>>,
-
-    component_version_request: HashMap<ComponentName, Vec<Callback0>>,
-    component_version: HashMap<ComponentName, Vec<Callback<VersionMessage>>>,
-    component_error: HashMap<ComponentName, Vec<Callback<ErrorMessage>>>,
-
-    tts_say: Vec<Callback<SayMessage>>,
-    tts_say_finished: Vec<Callback<SayFinishedMessage>>,
-
-    toggle_on: HashMap<ComponentName, Vec<Callback<SiteMessage>>>,
-    toggle_off: HashMap<ComponentName, Vec<Callback<SiteMessage>>>,
-    toggle_on_0: Vec<Callback0>,
-    toggle_off_0: Vec<Callback0>,
-
-    intent: HashMap<IntentName, Vec<Callback<IntentMessage>>>,
-    intents: Vec<Callback<IntentMessage>>,
-
-    dialogue_start_session: Vec<Callback<StartSessionMessage>>,
-    dialogue_continue_session: Vec<Callback<ContinueSessionMessage>>,
-    dialogue_end_session: Vec<Callback<EndSessionMessage>>,
-    dialogue_session_started: Vec<Callback<SessionStartedMessage>>,
-    dialogue_session_ended: Vec<Callback<SessionEndedMessage>>,
-    dialogue_session_queued: Vec<Callback<SessionQueuedMessage>>,
-
-    empty_0: Vec<Callback0>,
-    // should always be empty
-}
-
-// -
-
 pub struct InProcessHermesProtocolHandler {
-    handler: Arc<Mutex<Handler>>,
+    bus: Mutex<ripb::Bus>,
 }
 
 impl InProcessHermesProtocolHandler {
     pub fn new() -> Result<Self> {
         Ok(Self {
-            handler: Arc::new(Mutex::new(Handler::default())),
+            bus: Mutex::new(ripb::Bus::new())
         })
     }
 
-    fn get_handler(&self, name: &str) -> Box<InProcessComponent> {
+    fn get_handler<T: Send + Sync>(&self, name: &str) -> Box<InProcessComponent<T>> {
+        let bus = self.bus.lock().unwrap().clone();
+        let subscriber = bus.create_subscriber();
         Box::new(InProcessComponent {
             name: name.to_string(),
-            handler: Arc::clone(&self.handler),
+            bus: Mutex::new(bus),
+            subscriber: Mutex::new(subscriber),
+            _phantom: PhantomData,
         })
     }
 }
 
 impl HermesProtocolHandler for InProcessHermesProtocolHandler {
     fn asr(&self) -> Box<AsrFacade> {
-        self.get_handler("asr")
+        self.get_handler::<Asr>("asr")
     }
     fn asr_backend(&self) -> Box<AsrBackendFacade> {
-        self.get_handler("asr")
+        self.get_handler::<Asr>("asr")
     }
     fn audio_server(&self) -> Box<AudioServerFacade> {
-        self.get_handler("audio_server")
+        self.get_handler::<AudioServer>("audio_server")
     }
     fn audio_server_backend(&self) -> Box<AudioServerBackendFacade> {
-        self.get_handler("audio_server")
+        self.get_handler::<AudioServer>("audio_server")
     }
     fn hotword(&self) -> Box<HotwordFacade> {
-        self.get_handler("hotword")
+        self.get_handler::<Hotword>("hotword")
     }
     fn hotword_backend(&self) -> Box<HotwordBackendFacade> {
-        self.get_handler("hotword")
+        self.get_handler::<Hotword>("hotword")
     }
     fn dialogue(&self) -> Box<DialogueFacade> {
-        self.get_handler("dialogue")
+        self.get_handler::<Dialogue>("dialogue")
     }
     fn dialogue_backend(&self) -> Box<DialogueBackendFacade> {
-        self.get_handler("dialogue")
+        self.get_handler::<Dialogue>("dialogue")
     }
     fn nlu(&self) -> Box<NluFacade> {
-        self.get_handler("nlu")
+        self.get_handler::<Nlu>("nlu")
     }
     fn nlu_backend(&self) -> Box<NluBackendFacade> {
-        self.get_handler("nlu")
+        self.get_handler::<Nlu>("nlu")
     }
     fn sound_feedback(&self) -> Box<SoundFeedbackFacade> {
-        self.get_handler("sound_feedback")
+        self.get_handler::<Sound>("sound_feedback")
     }
     fn sound_feedback_backend(&self) -> Box<SoundFeedbackBackendFacade> {
-        self.get_handler("sound_feedback")
+        self.get_handler::<Sound>("sound_feedback")
     }
     fn tts(&self) -> Box<TtsFacade> {
-        self.get_handler("tts")
+        self.get_handler::<Tts>("tts")
     }
     fn tts_backend(&self) -> Box<TtsBackendFacade> {
-        self.get_handler("tts")
+        self.get_handler::<Tts>("tts")
     }
 }
 
-// -
-
-macro_rules! s {
-    ($n:ident<$t:ty>($($a:ident : $ta:ty),*)  { $field:ident[$key:expr;] } ) => {
-        fn $n(&self, $($a : $ta),*, handler : Callback<$t>) -> Result<()> {
-            let key = $key.to_string();
-            self.subscribe_payload(&format!("{}[{}]", &stringify!($field), &key), |h| h.$field.entry(key).or_insert_with(|| vec![]), handler)
-        }
-    };
-    ($n:ident<$t:ty> $field:ident) => {
-        fn $n(&self, handler : Callback<$t>) -> Result<()> {
-            self.subscribe_payload(stringify!($field), |h| &mut h.$field, handler)
-        }
-    };
-}
-
-macro_rules! p {
-    ($n:ident<$t:ty> $field:ident) => {
-        fn $n(&self, payload : $t) -> Result<()> {
-            self.publish_payload(stringify!($field), |h| Some(&h.$field), payload)
-        }
-    };
-
-    ($n:ident($payload:ident : $t:ty) $field:ident[$key:expr;] ) => {
-        fn $n(&self, $payload : $t) -> Result<()> {
-            let key = $key.to_string();
-            self.publish_payload(&format!("{}[{}]", &stringify!($field), &key), move |h| h.$field.get(&key).map(|it| Some(it)).unwrap_or(None), $payload)
-        }
-    };
-
-    ($n:ident($param1:ident : $t1:ty : $payload:ident : $t:ty) $field:ident[$key:expr;] ) => {
-        fn $n(&self, $param1: $t1, $payload: $t) -> Result<()> {
-            let key = $key.to_string();
-            self.publish_payload(&format!("{}[{}]", &stringify!($field), &key), move |h| h.$field.get(&key).map(|it| Some(it)).unwrap_or(None), $payload)
-        }
-    };
-}
-
-struct InProcessComponent {
+struct InProcessComponent<T: Send + Sync> {
     name: String,
-    handler: Arc<Mutex<Handler>>,
+    bus: Mutex<ripb::Bus>,
+    subscriber: Mutex<ripb::Subscriber>,
+    _phantom: PhantomData<T>,
 }
 
-impl InProcessComponent {
-    fn publish<F>(&self, callback_name: &str, retrieve_callbacks: F) -> Result<()>
-        where
-            F: FnOnce(&Handler) -> &Vec<Callback0> + Send + 'static,
-    {
-        debug!("Publishing on '{}/{}'", self.name, callback_name);
-        let _handler = Arc::clone(&self.handler);
-
-        thread::spawn(move || {
-            let result = _handler
-                .lock()
-                .map(|ref h| {
-                    let callbacks = retrieve_callbacks(h);
-                    trace!("sending to {} callback(s)", callbacks.len());
-                    for callback in callbacks {
-                        callback.call();
-                    }
-                });
-            if let Err(e) = result {
-                error!("Error while publishing an event : {}", e)
-            }
-        });
+impl<T: Send + Sync> InProcessComponent<T> {
+    fn publish<M: ripb::Message + Debug + 'static>(&self, message: M) -> Result<()> {
+        debug!("Publishing {:?}", message);
+        let bus = self.bus.lock()?;
+        bus.publish(message);
         Ok(())
     }
 
-    fn publish_payload<'de, F, M>(
-        &self,
-        callback_name: &str,
-        retrieve_callbacks: F,
-        message: M,
-    ) -> Result<()>
-        where
-            F: FnOnce(&Handler) -> Option<&Vec<Callback<M>>> + Send + 'static,
-            M: HermesMessage<'de> + Send + 'static,
-    {
-        debug!(
-            "Publishing on '{}/{}' :\n{:#?}",
-            self.name,
-            callback_name,
-            &message
-        );
-        let _handler = Arc::clone(&self.handler);
-
-        thread::spawn(move || {
-            let result = _handler
-                .lock()
-                .map(|ref h| retrieve_callbacks(h)
-                    .map(|callbacks| {
-                        trace!("sending to {} callback(s)", callbacks.len());
-                        for callback in callbacks {
-                            callback.call(&message);
-                        }
-                    }));
-            if let Err(e) = result {
-                error!(
-                    "Error while publishing an event with payload: {:#?} : {}",
-                    &message,
-                    e
-                )
-            }
-        });
+    fn subscribe0<M: ripb::Message + 'static>(&self, callback: Callback0) -> Result<()> {
+        let subscriber = self.subscriber.lock()?;
+        subscriber.on_message(move |_: &M| callback.call());
         Ok(())
     }
 
-    fn subscribe<F>(
-        &self,
-        callback_name: &str,
-        retrieve_callbacks: F,
-        callback: Callback0,
-    ) -> Result<()>
-        where
-            F: FnOnce(&mut Handler) -> &mut Vec<Callback0> + Send + 'static,
-    {
-        debug!("Subscribing on '{}/{}'", self.name, callback_name);
-        Ok(self.handler
-            .lock()
-            .map(|mut h| retrieve_callbacks(&mut h).push(callback))?)
+    fn subscribe<M, P, C>(&self, callback: Callback<P>, converter: C) -> Result<()>
+        where M: ripb::Message + Debug + 'static,
+              P: 'static,
+              C: Fn(&M) -> &P + Send + 'static {
+        let subscriber = self.subscriber.lock()?;
+        subscriber.on_message(move |m: &M| callback.call(converter(m)));
+        Ok(())
     }
 
-    fn subscribe_payload<'de, F, M>(
-        &self,
-        callback_name: &str,
-        retrieve_callbacks: F,
-        callback: Callback<M>,
-    ) -> Result<()>
-        where
-            F: FnOnce(&mut Handler) -> &mut Vec<Callback<M>> + Send + 'static,
-            M: HermesMessage<'de>,
-    {
-        debug!("Subscribing on '{}/{}'", self.name, callback_name);
-        Ok(self.handler
-            .lock()
-            .map(|mut h| retrieve_callbacks(&mut h).push(callback))?)
+    fn subscribe0_filter<M, F>(&self, callback: Callback0, filter: F) -> Result<()>
+        where M: ripb::Message + 'static,
+              F: Fn(&M) -> bool + Send + 'static {
+        let subscriber = self.subscriber.lock()?;
+        subscriber.on_message(move |m: &M| if filter(m) { callback.call() });
+        Ok(())
+    }
+
+    fn subscribe_filter<M, P, C, F>(&self, callback: Callback<P>, converter: C, filter: F) -> Result<()>
+        where M: ripb::Message + Debug + 'static,
+              P: 'static,
+              C: Fn(&M) -> &P + Send + 'static,
+              F: Fn(&M) -> bool + Send + 'static {
+        let subscriber = self.subscriber.lock()?;
+        subscriber.on_message(move |m: &M| if filter(m) { callback.call(converter(m)) });
+        Ok(())
     }
 }
 
-impl ComponentFacade for InProcessComponent {
+macro_rules! subscribe {
+    ($sel:ident, $t:ty { $field:ident }, $handler:ident ) => {{
+        debug!("Subscribing on {}", stringify!($t));
+        $sel.subscribe($handler, |it: &$t| &it.$field)
+    }};
+    ($sel:ident, $t:ty, $handler:ident ) => {{
+        debug!("Subscribing on {}", stringify!($t));
+        $sel.subscribe0::<$t>($handler)
+    }};
+}
+
+macro_rules! subscribe_filter {
+    ($sel:ident, $t:ty { $field:ident }, $handler:ident, $filter:ident) => {{
+        debug!("Subscribing on {}", stringify!($t));
+        $sel.subscribe_filter($handler, |it: &$t| &it.$field, move |it: &$t| it.$field.$filter == $filter)
+    }};
+    ($sel:ident, $t:ty { $field:ident }, $handler:ident, $filter:ident, | $it:ident | $filter_path:block ) => {{
+        debug!("Subscribing on {}", stringify!($t));
+        $sel.subscribe_filter($handler, |it: &$t| &it.$field, move |$it: &$t| $filter_path == &$filter)
+    }};
+    ($sel:ident, $t:ty, $handler:ident, $filter:ident) => {{
+        debug!("Subscribing on {}", stringify!($t));
+        $sel.subscribe0_filter($handler, move |it: &$t| it.$filter == $filter)
+    }};
+}
+
+#[derive(Debug)]
+struct ComponentVersionRequest<T: Debug> { _phantom: PhantomData<T> }
+
+#[derive(Debug)]
+struct ComponentVersion<T: Debug> { version: VersionMessage, _phantom: PhantomData<T> }
+
+#[derive(Debug)]
+struct ComponentError<T: Debug> { error: ErrorMessage, _phantom: PhantomData<T> }
+
+impl<T: Send + Sync + Debug + 'static> ComponentFacade for InProcessComponent<T> {
     fn publish_version_request(&self) -> Result<()> {
-        let component_name = self.name.to_string();
-        self.publish("component_version_request", move |h| {
-            &h.component_version_request
-                .get(&component_name)
-                .unwrap_or(&h.empty_0)
-        })
+        self.publish(ComponentVersionRequest { _phantom: PhantomData } as ComponentVersionRequest<T>)
     }
     fn subscribe_version(&self, handler: Callback<VersionMessage>) -> Result<()> {
-        let component_name = self.name.to_string();
-        self.subscribe_payload(
-            "component_version",
-            |h| {
-                h.component_version
-                    .entry(component_name)
-                    .or_insert_with(|| vec![])
-            },
-            handler,
-        )
+        subscribe!(self, ComponentVersion<T> { version }, handler)
     }
     fn subscribe_error(&self, handler: Callback<ErrorMessage>) -> Result<()> {
-        let component_name = self.name.to_string();
-        self.subscribe_payload(
-            "component_error",
-            |h| {
-                h.component_error
-                    .entry(component_name)
-                    .or_insert_with(|| vec![])
-            },
-            handler,
-        )
+        subscribe!(self, ComponentError<T> { error }, handler)
     }
 }
 
-impl ComponentBackendFacade for InProcessComponent {
+impl<T: Send + Sync + Debug + 'static> ComponentBackendFacade for InProcessComponent<T> {
     fn subscribe_version_request(&self, handler: Callback0) -> Result<()> {
-        let component_name = self.name.to_string();
-        self.subscribe(
-            "component_version_request",
-            |h| {
-                h.component_version_request
-                    .entry(component_name)
-                    .or_insert_with(|| vec![])
-            },
-            handler,
-        )
+        subscribe!(self, ComponentVersionRequest<T>, handler)
     }
     fn publish_version(&self, version: VersionMessage) -> Result<()> {
-        let component_name = self.name.to_string();
-        self.publish_payload(
-            "component_version",
-            move |h| {
-                h.component_version.get(&component_name)
-            },
-            version,
-        )
+        let component_version: ComponentVersion<T> = ComponentVersion { version, _phantom: PhantomData };
+        self.publish(component_version)
     }
     fn publish_error(&self, error: ErrorMessage) -> Result<()> {
-        let component_name = self.name.to_string();
-        self.publish_payload(
-            "component_error",
-            move |h| {
-                h.component_error.get(&component_name)
-            },
-            error,
-        )
+        let component_error: ComponentError<T> = ComponentError { error, _phantom: PhantomData };
+        self.publish(component_error)
     }
 }
 
-impl IdentifiableComponentFacade for InProcessComponent {
+#[derive(Debug)]
+struct IdentifiableComponentVersionRequest<T: Debug> {
+    site_id: SiteId,
+    _phantom: PhantomData<T>,
+}
+
+#[derive(Debug)]
+struct IdentifiableComponentVersion<T: Debug> {
+    site_id: SiteId,
+    version: VersionMessage,
+    _phantom: PhantomData<T>,
+}
+
+#[derive(Debug)]
+struct IdentifiableComponentError<T: Debug> {
+    site_id: SiteId,
+    error: ErrorMessage,
+    _phantom: PhantomData<T>,
+}
+
+impl<T: Send + Sync + Debug + 'static> IdentifiableComponentFacade for InProcessComponent<T> {
     fn publish_version_request(&self, site_id: SiteId) -> Result<()> {
-        let entry = identifiable_entry(&self.name, &site_id);
-        self.publish(&format!("component_version_request[{}]", &site_id), move |h| {
-            &h.component_version_request
-                .get(&entry)
-                .unwrap_or(&h.empty_0)
-        })
+        let version_request: IdentifiableComponentVersionRequest<T> =
+            IdentifiableComponentVersionRequest { site_id, _phantom: PhantomData };
+        self.publish(version_request)
     }
     fn subscribe_version(&self, site_id: SiteId, handler: Callback<VersionMessage>) -> Result<()> {
-        let entry = identifiable_entry(&self.name, &site_id);
-        self.subscribe_payload(
-            &format!("component_version[{}]", &site_id),
-            |h| {
-                h.component_version
-                    .entry(entry)
-                    .or_insert_with(|| vec![])
-            },
-            handler,
-        )
+        subscribe_filter!(self, IdentifiableComponentVersion<T> { version }, handler, site_id, |it| {&it.site_id})
     }
     fn subscribe_error(&self, site_id: SiteId, handler: Callback<ErrorMessage>) -> Result<()> {
-        let entry = identifiable_entry(&self.name, &site_id);
-        self.subscribe_payload(
-            &format!("component_error[{}]", &site_id),
-            |h| {
-                h.component_error
-                    .entry(entry)
-                    .or_insert_with(|| vec![])
-            },
-            handler,
-        )
+        subscribe_filter!(self, IdentifiableComponentError<T> { error }, handler, site_id, |it| {&it.site_id})
     }
 }
 
-impl IdentifiableComponentBackendFacade for InProcessComponent {
+impl<T: Send + Sync + Debug + 'static> IdentifiableComponentBackendFacade for InProcessComponent<T> {
     fn subscribe_version_request(&self, site_id: SiteId, handler: Callback0) -> Result<()> {
-        let entry = identifiable_entry(&self.name, &site_id);
-        self.subscribe(
-            &format!("component_version_request[{}]", &site_id),
-            |h| {
-                h.component_version_request
-                    .entry(entry)
-                    .or_insert_with(|| vec![])
-            },
-            handler,
-        )
+        subscribe_filter!(self, IdentifiableComponentVersionRequest<T>, handler, site_id)
     }
     fn publish_version(&self, site_id: SiteId, version: VersionMessage) -> Result<()> {
-        let entry = identifiable_entry(&self.name, &site_id);
-        self.publish_payload(
-            &format!("component_version[{}]", &site_id),
-            move |h| {
-                h.component_version.get(&entry)
-            },
-            version,
-        )
+        let component_version: IdentifiableComponentVersion<T> =
+            IdentifiableComponentVersion { site_id, version, _phantom: PhantomData };
+        self.publish(component_version)
     }
     fn publish_error(&self, site_id: SiteId, error: ErrorMessage) -> Result<()> {
-        let entry = identifiable_entry(&self.name, &site_id);
-        self.publish_payload(
-            &format!("component_error[{}]", &site_id),
-            move |h| { h.component_error.get(&entry) },
-            error,
-        )
+        let component_error: IdentifiableComponentError<T> =
+            IdentifiableComponentError { site_id, error, _phantom: PhantomData };
+        self.publish(component_error)
     }
 }
 
-impl IdentifiableToggleableFacade for InProcessComponent {
+#[derive(Debug)]
+struct IdentifiableToggleableToggleOn<T> { site: SiteMessage, _phantom: PhantomData<T> }
+
+#[derive(Debug)]
+struct IdentifiableToggleableToggleOff<T> { site: SiteMessage, _phantom: PhantomData<T> }
+
+impl<T: Send + Sync + Debug + 'static> IdentifiableToggleableFacade for InProcessComponent<T> {
     fn publish_toggle_on(&self, site: SiteMessage) -> Result<()> {
-        let component_name = self.name.to_string();
-        self.publish_payload("toggle_on", move |h| h.toggle_on.get(&component_name), site)
+        let toggle_on: IdentifiableToggleableToggleOn<T> =
+            IdentifiableToggleableToggleOn { site, _phantom: PhantomData };
+        self.publish(toggle_on)
     }
     fn publish_toggle_off(&self, site: SiteMessage) -> Result<()> {
-        let component_name = self.name.to_string();
-        self.publish_payload("toggle_off", move |h| h.toggle_off.get(&component_name), site)
+        let toggle_off: IdentifiableToggleableToggleOff<T> =
+            IdentifiableToggleableToggleOff { site, _phantom: PhantomData };
+        self.publish(toggle_off)
     }
 }
 
-impl IdentifiableToggleableBackendFacade for InProcessComponent {
+impl<T: Send + Sync + Debug + 'static> IdentifiableToggleableBackendFacade for InProcessComponent<T> {
     fn subscribe_toggle_on(&self, handler: Callback<SiteMessage>) -> Result<()> {
-        let component_name = self.name.to_string();
-        self.subscribe_payload(
-            "toggle_on",
-            |h| h.toggle_on.entry(component_name).or_insert_with(|| vec![]),
-            handler,
-        )
+        subscribe!(self, IdentifiableToggleableToggleOn<T> { site }, handler)
     }
     fn subscribe_toggle_off(&self, handler: Callback<SiteMessage>) -> Result<()> {
-        let component_name = self.name.to_string();
-        self.subscribe_payload(
-            "toggle_off",
-            |h| h.toggle_off.entry(component_name).or_insert_with(|| vec![]),
-            handler,
-        )
+        subscribe!(self, IdentifiableToggleableToggleOff<T> { site }, handler)
     }
 }
 
-fn identifiable_entry(component_name: &str, id: &str) -> String {
-    format!("{}-{}", component_name, id)
+
+#[derive(Debug)]
+struct Nlu {}
+
+#[derive(Debug)]
+struct NluQuery { query: NluQueryMessage }
+
+#[derive(Debug)]
+struct NluPartialQuery { query: NluSlotQueryMessage }
+
+#[derive(Debug)]
+struct NluSlotParsed { slot: NluSlotMessage }
+
+#[derive(Debug)]
+struct NluIntentParsed { intent: NluIntentMessage }
+
+#[derive(Debug)]
+struct NluIntentNotRecognized { status: NluIntentNotRecognizedMessage }
+
+impl NluFacade for InProcessComponent<Nlu> {
+    fn publish_query(&self, query: NluQueryMessage) -> Result<()> {
+        self.publish(NluQuery { query })
+    }
+
+    fn publish_partial_query(&self, query: NluSlotQueryMessage) -> Result<()> {
+        self.publish(NluPartialQuery { query })
+    }
+
+    fn subscribe_slot_parsed(&self, handler: Callback<NluSlotMessage>) -> Result<()> {
+        subscribe!(self, NluSlotParsed { slot }, handler)
+    }
+
+    fn subscribe_intent_parsed(&self, handler: Callback<NluIntentMessage>) -> Result<()> {
+        subscribe!(self, NluIntentParsed { intent }, handler)
+    }
+
+    fn subscribe_intent_not_recognized(&self, handler: Callback<NluIntentNotRecognizedMessage>) -> Result<()> {
+        subscribe!(self, NluIntentNotRecognized { status }, handler)
+    }
 }
 
-impl NluFacade for InProcessComponent {
-    p!(publish_query<NluQueryMessage> nlu_query);
-    p!(publish_partial_query<NluSlotQueryMessage> nlu_partial_query);
-    s!(subscribe_slot_parsed<NluSlotMessage> nlu_slot_parsed);
-    s!(subscribe_intent_parsed<NluIntentMessage> nlu_intent_parsed);
-    s!(subscribe_intent_not_recognized<NluIntentNotRecognizedMessage> nlu_intent_not_recognized);
+impl NluBackendFacade for InProcessComponent<Nlu> {
+    fn subscribe_query(&self, handler: Callback<NluQueryMessage>) -> Result<()> {
+        subscribe!(self, NluQuery { query }, handler)
+    }
+
+    fn subscribe_partial_query(&self, handler: Callback<NluSlotQueryMessage>) -> Result<()> {
+        subscribe!(self, NluPartialQuery { query }, handler)
+    }
+
+    fn publish_slot_parsed(&self, slot: NluSlotMessage) -> Result<()> {
+        self.publish(NluSlotParsed { slot })
+    }
+
+    fn publish_intent_parsed(&self, intent: NluIntentMessage) -> Result<()> {
+        self.publish(NluIntentParsed { intent })
+    }
+
+    fn publish_intent_not_recognized(&self, status: NluIntentNotRecognizedMessage) -> Result<()> {
+        self.publish(NluIntentNotRecognized { status })
+    }
 }
 
-impl NluBackendFacade for InProcessComponent {
-    s!(subscribe_query<NluQueryMessage> nlu_query);
-    s!(subscribe_partial_query<NluSlotQueryMessage> nlu_partial_query);
-    p!(publish_slot_parsed<NluSlotMessage> nlu_slot_parsed);
-    p!(publish_intent_parsed<NluIntentMessage> nlu_intent_parsed);
-    p!(publish_intent_not_recognized<NluIntentNotRecognizedMessage> nlu_intent_not_recognized);
-}
+#[derive(Debug)]
+struct ToggleableToggleOn<T> { _phantom: PhantomData<T> }
 
-impl ToggleableFacade for InProcessComponent {
+#[derive(Debug)]
+struct ToggleableToggleOff<T> { _phantom: PhantomData<T> }
+
+impl<T: Send + Sync + Debug + 'static> ToggleableFacade for InProcessComponent<T> {
     fn publish_toggle_on(&self) -> Result<()> {
-        self.publish("toggle_on", move |h| &h.toggle_on_0)
+        let toggle_on: ToggleableToggleOn<T> = ToggleableToggleOn { _phantom: PhantomData };
+        self.publish(toggle_on)
     }
     fn publish_toggle_off(&self) -> Result<()> {
-        self.publish("toggle_off", move |h| &h.toggle_off_0)
+        let toggle_off: ToggleableToggleOff<T> = ToggleableToggleOff { _phantom: PhantomData };
+        self.publish(toggle_off)
     }
 }
 
-impl ToggleableBackendFacade for InProcessComponent {
+impl<T: Send + Sync + Debug + 'static> ToggleableBackendFacade for InProcessComponent<T> {
     fn subscribe_toggle_on(&self, handler: Callback0) -> Result<()> {
-        self.subscribe(
-            "toggle_on",
-            |h| &mut h.toggle_on_0,
-            handler,
-        )
+        subscribe!(self, ToggleableToggleOn<T>, handler)
     }
     fn subscribe_toggle_off(&self, handler: Callback0) -> Result<()> {
-        self.subscribe(
-            "toggle_off",
-            |h| &mut h.toggle_off_0,
-            handler,
-        )
+        subscribe!(self, ToggleableToggleOff<T>, handler)
     }
 }
 
-impl HotwordFacade for InProcessComponent {
+#[derive(Debug)]
+struct Hotword {}
+
+#[derive(Debug)]
+struct HotwordDetected { id: String, message: SiteMessage }
+
+impl HotwordFacade for InProcessComponent<Hotword> {
     fn subscribe_detected(&self, id: String, handler: Callback<SiteMessage>) -> Result<()> {
-        self.subscribe_payload(
-            &format!("hotword_detected[{}]", &id),
-            |h| h.hotword_detected.entry(id).or_insert_with(|| vec![]),
-            handler,
-        )
+        subscribe_filter!(self, HotwordDetected { message }, handler, id, |it| {&it.id})
     }
 
     fn subscribe_all_detected(&self, handler: Callback<SiteMessage>) -> Result<()> {
-        self.subscribe_payload(
-            "hotword_all_detected",
-            |h| &mut h.hotword_all_detected,
-            handler,
-        )
+        subscribe!(self, HotwordDetected { message }, handler)
     }
 }
 
-impl HotwordBackendFacade for InProcessComponent {
+impl HotwordBackendFacade for InProcessComponent<Hotword> {
     fn publish_detected(&self, id: String, message: SiteMessage) -> Result<()> {
-        self.publish_payload(
-            &format!("hotword_detected[{}]", &id),
-            move |h| h.hotword_detected.get(&id),
-            message.clone(),
-        )?;
-        self.publish_payload(
-            "hotword_all_detected",
-            move |h| Some(&h.hotword_all_detected),
-            message,
-        )
+        self.publish(HotwordDetected { id, message })
     }
 }
 
-impl SoundFeedbackFacade for InProcessComponent {}
+#[derive(Debug)]
+struct Sound {}
 
-impl SoundFeedbackBackendFacade for InProcessComponent {}
+impl SoundFeedbackFacade for InProcessComponent<Sound> {}
 
-impl AsrFacade for InProcessComponent {
-    p!(publish_start_listening<SiteMessage> asr_start_listening);
-    p!(publish_stop_listening<SiteMessage> asr_stop_listening);
-    s!(subscribe_text_captured<TextCapturedMessage> asr_text_captured);
-    s!(subscribe_partial_text_captured<TextCapturedMessage> asr_partial_text_captured);
+impl SoundFeedbackBackendFacade for InProcessComponent<Sound> {}
+
+#[derive(Debug)]
+struct Asr {}
+
+#[derive(Debug)]
+struct AsrStartListening { site: SiteMessage }
+
+#[derive(Debug)]
+struct AsrStopListening { site: SiteMessage }
+
+#[derive(Debug)]
+struct AsrTextCaptured { text_captured: TextCapturedMessage }
+
+#[derive(Debug)]
+struct AsrPartialTextCaptured { text_captured: TextCapturedMessage }
+
+impl AsrFacade for InProcessComponent<Asr> {
+    fn publish_start_listening(&self, site: SiteMessage) -> Result<()> {
+        self.publish(AsrStartListening { site })
+    }
+
+    fn publish_stop_listening(&self, site: SiteMessage) -> Result<()> {
+        self.publish(AsrStopListening { site })
+    }
+
+    fn subscribe_text_captured(&self, handler: Callback<TextCapturedMessage>) -> Result<()> {
+        subscribe!(self, AsrTextCaptured { text_captured }, handler)
+    }
+
+    fn subscribe_partial_text_captured(&self, handler: Callback<TextCapturedMessage>) -> Result<()> {
+        subscribe!(self, AsrPartialTextCaptured { text_captured }, handler)
+    }
 }
 
-impl AsrBackendFacade for InProcessComponent {
-    s!(subscribe_start_listening<SiteMessage> asr_start_listening);
-    s!(subscribe_stop_listening<SiteMessage> asr_stop_listening);
-    p!(publish_text_captured<TextCapturedMessage> asr_text_captured);
-    p!(publish_partial_text_captured<TextCapturedMessage> asr_partial_text_captured);
+impl AsrBackendFacade for InProcessComponent<Asr> {
+    fn subscribe_start_listening(&self, handler: Callback<SiteMessage>) -> Result<()> {
+        subscribe!(self, AsrStartListening { site }, handler)
+    }
+
+    fn subscribe_stop_listening(&self, handler: Callback<SiteMessage>) -> Result<()> {
+        subscribe!(self, AsrStopListening { site }, handler)
+    }
+
+    fn publish_text_captured(&self, text_captured: TextCapturedMessage) -> Result<()> {
+        self.publish(AsrTextCaptured { text_captured })
+    }
+
+    fn publish_partial_text_captured(&self, text_captured: TextCapturedMessage) -> Result<()> {
+        self.publish(AsrPartialTextCaptured { text_captured })
+    }
 }
 
-impl TtsFacade for InProcessComponent {
-    p!(publish_say<SayMessage> tts_say);
-    s!(subscribe_say_finished<SayFinishedMessage> tts_say_finished);
+#[derive(Debug)]
+struct Tts {}
+
+#[derive(Debug)]
+struct TtsSay { to_say: SayMessage }
+
+#[derive(Debug)]
+struct TtsSayFinished { status: SayFinishedMessage }
+
+impl TtsFacade for InProcessComponent<Tts> {
+    fn publish_say(&self, to_say: SayMessage) -> Result<()> {
+        self.publish(TtsSay { to_say })
+    }
+
+    fn subscribe_say_finished(&self, handler: Callback<SayFinishedMessage>) -> Result<()> {
+        subscribe!(self, TtsSayFinished { status }, handler)
+    }
 }
 
-impl TtsBackendFacade for InProcessComponent {
-    s!(subscribe_say<SayMessage> tts_say);
-    p!(publish_say_finished<SayFinishedMessage> tts_say_finished);
+impl TtsBackendFacade for InProcessComponent<Tts> {
+    fn publish_say_finished(&self, status: SayFinishedMessage) -> Result<()> {
+        self.publish(TtsSayFinished { status })
+    }
+
+    fn subscribe_say(&self, handler: Callback<SayMessage>) -> Result<()> {
+        subscribe!(self, TtsSay { to_say}, handler)
+    }
 }
 
-impl AudioServerFacade for InProcessComponent {
+#[derive(Debug)]
+struct AudioServer {}
+
+#[derive(Debug)]
+struct AudioServerPlayBytes { bytes: PlayBytesMessage }
+
+#[derive(Debug)]
+struct AudioServerPlayFinished { status: PlayFinishedMessage }
+
+#[derive(Debug)]
+struct AudioServerAudioFrame { frame: AudioFrameMessage }
+
+impl AudioServerFacade for InProcessComponent<AudioServer> {
     fn publish_play_bytes(&self, bytes: PlayBytesMessage) -> Result<()> {
-        let site_id = bytes.site_id.to_string();
-        self.publish_payload(&format!("as_play_bytes[{}]", &site_id), move |h| h.as_play_bytes.get(&site_id), bytes.clone())?;
-        self.publish_payload("as_all_play_bytes", move |h| Some(&h.as_all_play_bytes), bytes)
+        self.publish(AudioServerPlayBytes { bytes })
     }
 
-    s!(subscribe_play_finished<PlayFinishedMessage>(site_id: SiteId) { as_play_finished[site_id;] });
-    s!(subscribe_all_play_finished<PlayFinishedMessage> as_all_play_finished );
-    s!(subscribe_audio_frame<AudioFrameMessage>(site_id: SiteId) { as_audio_frame[site_id;] });
+    fn subscribe_play_finished(&self, site_id: SiteId, handler: Callback<PlayFinishedMessage>) -> Result<()> {
+        subscribe_filter!(self, AudioServerPlayFinished { status }, handler, site_id)
+    }
+
+    fn subscribe_all_play_finished(&self, handler: Callback<PlayFinishedMessage>) -> Result<()> {
+        subscribe!(self, AudioServerPlayFinished { status }, handler)
+    }
+
+    fn subscribe_audio_frame(&self, site_id: SiteId, handler: Callback<AudioFrameMessage>) -> Result<()> {
+        subscribe_filter!(self, AudioServerAudioFrame { frame}, handler, site_id)
+    }
 }
 
-impl AudioServerBackendFacade for InProcessComponent {
-    s!(subscribe_play_bytes<PlayBytesMessage>(site_id: SiteId) { as_play_bytes[site_id;] });
-    s!(subscribe_all_play_bytes<PlayBytesMessage> as_all_play_bytes);
-    fn publish_play_finished(&self, message: PlayFinishedMessage) -> Result<()> {
-        let site_id = message.site_id.to_string();
-
-        let _message = message.clone();
-
-        self.publish_payload(
-            &format!("as_play_finished[{}]", &site_id),
-            move |h| h.as_play_finished.get(&site_id),
-            _message,
-        )?;
-        self.publish_payload("as_all_play_finished", move |h| Some(&h.as_all_play_finished), message)
+impl AudioServerBackendFacade for InProcessComponent<AudioServer> {
+    fn subscribe_play_bytes(&self, site_id: SiteId, handler: Callback<PlayBytesMessage>) -> Result<()> {
+        subscribe_filter!(self, AudioServerPlayBytes { bytes }, handler, site_id)
     }
-    p!(publish_audio_frame(frame:AudioFrameMessage) as_audio_frame[frame.site_id;]);
+
+    fn subscribe_all_play_bytes(&self, handler: Callback<PlayBytesMessage>) -> Result<()> {
+        subscribe!(self, AudioServerPlayBytes { bytes }, handler)
+    }
+
+    fn publish_play_finished(&self, status: PlayFinishedMessage) -> Result<()> {
+        self.publish(AudioServerPlayFinished { status })
+    }
+
+    fn publish_audio_frame(&self, frame: AudioFrameMessage) -> Result<()> {
+        self.publish(AudioServerAudioFrame { frame })
+    }
 }
 
-impl DialogueFacade for InProcessComponent {
-    s!(subscribe_session_queued<SessionQueuedMessage> dialogue_session_queued);
-    s!(subscribe_session_started<SessionStartedMessage> dialogue_session_started);
+#[derive(Debug)]
+struct Dialogue {}
 
-    fn subscribe_intent(
-        &self,
-        intent_name: String,
-        handler: Callback<IntentMessage>,
-    ) -> Result<()> {
-        self.subscribe_payload(
-            &format!("intent_{}", intent_name),
-            |h| h.intent.entry(intent_name).or_insert_with(|| vec![]),
-            handler,
-        )
+#[derive(Debug)]
+struct DialogueSessionQueued { status: SessionQueuedMessage }
+
+#[derive(Debug)]
+struct DialogueSessionStarted { status: SessionStartedMessage }
+
+#[derive(Debug)]
+struct DialogueIntent { intent: IntentMessage }
+
+#[derive(Debug)]
+struct DialogueSessionEnded { status: SessionEndedMessage }
+
+#[derive(Debug)]
+struct DialogueStartSession { start_session: StartSessionMessage }
+
+#[derive(Debug)]
+struct DialogueContinueSession { continue_session: ContinueSessionMessage }
+
+#[derive(Debug)]
+struct DialogueEndSession { end_session: EndSessionMessage }
+
+impl DialogueFacade for InProcessComponent<Dialogue> {
+    fn subscribe_session_queued(&self, handler: Callback<SessionQueuedMessage>) -> Result<()> {
+        subscribe!(self, DialogueSessionQueued { status }, handler)
     }
 
-    fn subscribe_intents(
-        &self,
-        handler: Callback<IntentMessage>,
-    ) -> Result<()> {
-        self.subscribe_payload(
-            "intents",
-            |h| &mut h.intents,
-            handler,
-        )
+    fn subscribe_session_started(&self, handler: Callback<SessionStartedMessage>) -> Result<()> {
+        subscribe!(self, DialogueSessionStarted { status }, handler)
     }
 
-    s!(subscribe_session_ended<SessionEndedMessage> dialogue_session_ended);
-    p!(publish_start_session<StartSessionMessage> dialogue_start_session);
-    p!(publish_continue_session<ContinueSessionMessage> dialogue_continue_session);
-    p!(publish_end_session<EndSessionMessage> dialogue_end_session);
+    fn subscribe_intent(&self, intent_name: String, handler: Callback<IntentMessage>) -> Result<()> {
+        subscribe_filter!(self, DialogueIntent { intent }, handler, intent_name, |it| { &it.intent.intent.intent_name })
+    }
+
+    fn subscribe_intents(&self, handler: Callback<IntentMessage>) -> Result<()> {
+        subscribe!(self, DialogueIntent { intent }, handler)
+    }
+
+    fn subscribe_session_ended(&self, handler: Callback<SessionEndedMessage>) -> Result<()> {
+        subscribe!(self, DialogueSessionEnded { status }, handler)
+    }
+
+    fn publish_start_session(&self, start_session: StartSessionMessage) -> Result<()> {
+        self.publish(DialogueStartSession { start_session })
+    }
+
+    fn publish_continue_session(&self, continue_session: ContinueSessionMessage) -> Result<()> {
+        self.publish(DialogueContinueSession { continue_session })
+    }
+
+    fn publish_end_session(&self, end_session: EndSessionMessage) -> Result<()> {
+        self.publish(DialogueEndSession { end_session })
+    }
 }
 
-impl DialogueBackendFacade for InProcessComponent {
-    p!(publish_session_queued<SessionQueuedMessage> dialogue_session_queued);
-    p!(publish_session_started<SessionStartedMessage> dialogue_session_started);
+impl DialogueBackendFacade for InProcessComponent<Dialogue> {
+    fn publish_session_queued(&self, status: SessionQueuedMessage) -> Result<()> {
+        self.publish(DialogueSessionQueued { status })
+    }
+
+    fn publish_session_started(&self, status: SessionStartedMessage) -> Result<()> {
+        self.publish(DialogueSessionStarted { status })
+    }
 
     fn publish_intent(&self, intent: IntentMessage) -> Result<()> {
-        let intent_name = intent.intent.intent_name.to_string();
-
-        let _intent = intent.clone();
-
-        self.publish_payload(
-            &format!("intent_{}", &intent_name),
-            move |h| h.intent.get(&intent_name),
-            _intent,
-        )?;
-
-        self.publish_payload("intents", move |h| Some(&h.intents), intent)
+        self.publish(DialogueIntent { intent })
     }
 
-    p!(publish_session_ended<SessionEndedMessage> dialogue_session_ended);
-    s!(subscribe_start_session<StartSessionMessage> dialogue_start_session);
-    s!(subscribe_continue_session<ContinueSessionMessage> dialogue_continue_session);
-    s!(subscribe_end_session<EndSessionMessage> dialogue_end_session);
+    fn publish_session_ended(&self, status: SessionEndedMessage) -> Result<()> {
+        self.publish(DialogueSessionEnded { status })
+    }
+
+    fn subscribe_start_session(&self, handler: Callback<StartSessionMessage>) -> Result<()> {
+        subscribe!(self, DialogueStartSession { start_session }, handler)
+    }
+
+    fn subscribe_continue_session(&self, handler: Callback<ContinueSessionMessage>) -> Result<()> {
+        subscribe!(self, DialogueContinueSession { continue_session }, handler)
+    }
+
+    fn subscribe_end_session(&self, handler: Callback<EndSessionMessage>) -> Result<()> {
+        subscribe!(self, DialogueEndSession { end_session }, handler)
+    }
 }
 
 
