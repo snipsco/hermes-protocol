@@ -7,7 +7,7 @@ authors = ["Thibaut Lorrain <thibaut.lorrain@snips.ai>"]
 ripb = { git="ssh://git@github.com/snipsco/ripb", rev="4c5e31085" }
 hermes = { path = ".." }
 hermes-test-suite = { path = "../hermes-test-suite" }
-log = "0.3"
+log = "0.4"
 
 [dev-dependencies]
 semver = "0.9"
