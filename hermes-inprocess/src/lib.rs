@@ -12,7 +12,6 @@ extern crate snips_queries_ontology;
 
 use std::fmt::Debug;
 use std::sync::Mutex;
-use std::marker::PhantomData;
 
 use hermes::*;
 
@@ -27,73 +26,71 @@ impl InProcessHermesProtocolHandler {
         })
     }
 
-    fn get_handler<T: Send + Sync>(&self, name: &str) -> Box<InProcessComponent<T>> {
+    fn get_handler<T: Send + Sync + Debug>(&self, component: T) -> Box<InProcessComponent<T>> {
         let bus = self.bus.lock().unwrap().clone();
         let subscriber = bus.create_subscriber();
         Box::new(InProcessComponent {
-            name: name.to_string(),
+            component,
             bus: Mutex::new(bus),
             subscriber: Mutex::new(subscriber),
-            _phantom: PhantomData,
         })
     }
 }
 
 impl HermesProtocolHandler for InProcessHermesProtocolHandler {
     fn asr(&self) -> Box<AsrFacade> {
-        self.get_handler::<Asr>("asr")
+        self.get_handler(Asr)
     }
     fn asr_backend(&self) -> Box<AsrBackendFacade> {
-        self.get_handler::<Asr>("asr")
+        self.get_handler(Asr)
     }
     fn audio_server(&self) -> Box<AudioServerFacade> {
-        self.get_handler::<AudioServer>("audio_server")
+        self.get_handler(AudioServer)
     }
     fn audio_server_backend(&self) -> Box<AudioServerBackendFacade> {
-        self.get_handler::<AudioServer>("audio_server")
+        self.get_handler(AudioServer)
     }
     fn hotword(&self) -> Box<HotwordFacade> {
-        self.get_handler::<Hotword>("hotword")
+        self.get_handler(Hotword)
     }
     fn hotword_backend(&self) -> Box<HotwordBackendFacade> {
-        self.get_handler::<Hotword>("hotword")
+        self.get_handler(Hotword)
     }
     fn dialogue(&self) -> Box<DialogueFacade> {
-        self.get_handler::<Dialogue>("dialogue")
+        self.get_handler(Dialogue)
     }
     fn dialogue_backend(&self) -> Box<DialogueBackendFacade> {
-        self.get_handler::<Dialogue>("dialogue")
+        self.get_handler(Dialogue)
     }
     fn nlu(&self) -> Box<NluFacade> {
-        self.get_handler::<Nlu>("nlu")
+        self.get_handler(Nlu)
     }
     fn nlu_backend(&self) -> Box<NluBackendFacade> {
-        self.get_handler::<Nlu>("nlu")
+        self.get_handler(Nlu)
     }
     fn sound_feedback(&self) -> Box<SoundFeedbackFacade> {
-        self.get_handler::<Sound>("sound_feedback")
+        self.get_handler(Sound)
     }
     fn sound_feedback_backend(&self) -> Box<SoundFeedbackBackendFacade> {
-        self.get_handler::<Sound>("sound_feedback")
+        self.get_handler(Sound)
     }
     fn tts(&self) -> Box<TtsFacade> {
-        self.get_handler::<Tts>("tts")
+        self.get_handler(Tts)
     }
     fn tts_backend(&self) -> Box<TtsBackendFacade> {
-        self.get_handler::<Tts>("tts")
+        self.get_handler(Tts)
     }
 }
 
-struct InProcessComponent<T: Send + Sync> {
-    name: String,
+struct InProcessComponent<T: Send + Sync + Debug> {
+    component: T,
     bus: Mutex<ripb::Bus>,
     subscriber: Mutex<ripb::Subscriber>,
-    _phantom: PhantomData<T>,
 }
 
-impl<T: Send + Sync> InProcessComponent<T> {
+impl<T: Send + Sync + Debug> InProcessComponent<T> {
     fn publish<M: ripb::Message + Debug + 'static>(&self, message: M) -> Result<()> {
-        debug!("Publishing {:?}", message);
+        debug!("Publishing {:?}/{:#?}", self.component, message);
         let bus = self.bus.lock()?;
         bus.publish(message);
         Ok(())
@@ -135,42 +132,42 @@ impl<T: Send + Sync> InProcessComponent<T> {
 
 macro_rules! subscribe {
     ($sel:ident, $t:ty { $field:ident }, $handler:ident ) => {{
-        debug!("Subscribing on {}", stringify!($t));
+        debug!("Subscribing on {:?}/{}", $sel.component, stringify!($t));
         $sel.subscribe($handler, |it: &$t| &it.$field)
     }};
     ($sel:ident, $t:ty, $handler:ident ) => {{
-        debug!("Subscribing on {}", stringify!($t));
+        debug!("Subscribing on {:?}/{}", $sel.component, stringify!($t));
         $sel.subscribe0::<$t>($handler)
     }};
 }
 
 macro_rules! subscribe_filter {
     ($sel:ident, $t:ty { $field:ident }, $handler:ident, $filter:ident) => {{
-        debug!("Subscribing on {}", stringify!($t));
+        debug!("Subscribing on {:?}/{}", $sel.component, stringify!($t));
         $sel.subscribe_filter($handler, |it: &$t| &it.$field, move |it: &$t| it.$field.$filter == $filter)
     }};
     ($sel:ident, $t:ty { $field:ident }, $handler:ident, $filter:ident, | $it:ident | $filter_path:block ) => {{
-        debug!("Subscribing on {}", stringify!($t));
+        debug!("Subscribing on {:?}/{}", $sel.component, stringify!($t));
         $sel.subscribe_filter($handler, |it: &$t| &it.$field, move |$it: &$t| $filter_path == &$filter)
     }};
     ($sel:ident, $t:ty, $handler:ident, $filter:ident) => {{
-        debug!("Subscribing on {}", stringify!($t));
+        debug!("Subscribing on {:?}/{}", $sel.component, stringify!($t));
         $sel.subscribe0_filter($handler, move |it: &$t| it.$filter == $filter)
     }};
 }
 
 #[derive(Debug)]
-struct ComponentVersionRequest<T: Debug> { _phantom: PhantomData<T> }
+struct ComponentVersionRequest<T: Debug> { component: T }
 
 #[derive(Debug)]
-struct ComponentVersion<T: Debug> { version: VersionMessage, _phantom: PhantomData<T> }
+struct ComponentVersion<T: Debug> { version: VersionMessage, component: T }
 
 #[derive(Debug)]
-struct ComponentError<T: Debug> { error: ErrorMessage, _phantom: PhantomData<T> }
+struct ComponentError<T: Debug> { error: ErrorMessage, component: T }
 
-impl<T: Send + Sync + Debug + 'static> ComponentFacade for InProcessComponent<T> {
+impl<T: Send + Sync + Debug + Copy + 'static> ComponentFacade for InProcessComponent<T> {
     fn publish_version_request(&self) -> Result<()> {
-        self.publish(ComponentVersionRequest { _phantom: PhantomData } as ComponentVersionRequest<T>)
+        self.publish(ComponentVersionRequest { component: self.component } as ComponentVersionRequest<T>)
     }
     fn subscribe_version(&self, handler: Callback<VersionMessage>) -> Result<()> {
         subscribe!(self, ComponentVersion<T> { version }, handler)
@@ -180,16 +177,16 @@ impl<T: Send + Sync + Debug + 'static> ComponentFacade for InProcessComponent<T>
     }
 }
 
-impl<T: Send + Sync + Debug + 'static> ComponentBackendFacade for InProcessComponent<T> {
+impl<T: Send + Sync + Debug + Copy + 'static> ComponentBackendFacade for InProcessComponent<T> {
     fn subscribe_version_request(&self, handler: Callback0) -> Result<()> {
         subscribe!(self, ComponentVersionRequest<T>, handler)
     }
     fn publish_version(&self, version: VersionMessage) -> Result<()> {
-        let component_version: ComponentVersion<T> = ComponentVersion { version, _phantom: PhantomData };
+        let component_version: ComponentVersion<T> = ComponentVersion { version, component: self.component };
         self.publish(component_version)
     }
     fn publish_error(&self, error: ErrorMessage) -> Result<()> {
-        let component_error: ComponentError<T> = ComponentError { error, _phantom: PhantomData };
+        let component_error: ComponentError<T> = ComponentError { error, component: self.component };
         self.publish(component_error)
     }
 }
@@ -197,27 +194,27 @@ impl<T: Send + Sync + Debug + 'static> ComponentBackendFacade for InProcessCompo
 #[derive(Debug)]
 struct IdentifiableComponentVersionRequest<T: Debug> {
     site_id: SiteId,
-    _phantom: PhantomData<T>,
+    component: T,
 }
 
 #[derive(Debug)]
 struct IdentifiableComponentVersion<T: Debug> {
     site_id: SiteId,
     version: VersionMessage,
-    _phantom: PhantomData<T>,
+    component: T,
 }
 
 #[derive(Debug)]
 struct IdentifiableComponentError<T: Debug> {
     site_id: SiteId,
     error: ErrorMessage,
-    _phantom: PhantomData<T>,
+    component: T,
 }
 
-impl<T: Send + Sync + Debug + 'static> IdentifiableComponentFacade for InProcessComponent<T> {
+impl<T: Send + Sync + Debug + Copy + 'static> IdentifiableComponentFacade for InProcessComponent<T> {
     fn publish_version_request(&self, site_id: SiteId) -> Result<()> {
         let version_request: IdentifiableComponentVersionRequest<T> =
-            IdentifiableComponentVersionRequest { site_id, _phantom: PhantomData };
+            IdentifiableComponentVersionRequest { site_id, component: self.component };
         self.publish(version_request)
     }
     fn subscribe_version(&self, site_id: SiteId, handler: Callback<VersionMessage>) -> Result<()> {
@@ -228,37 +225,37 @@ impl<T: Send + Sync + Debug + 'static> IdentifiableComponentFacade for InProcess
     }
 }
 
-impl<T: Send + Sync + Debug + 'static> IdentifiableComponentBackendFacade for InProcessComponent<T> {
+impl<T: Send + Sync + Debug + Copy + 'static> IdentifiableComponentBackendFacade for InProcessComponent<T> {
     fn subscribe_version_request(&self, site_id: SiteId, handler: Callback0) -> Result<()> {
         subscribe_filter!(self, IdentifiableComponentVersionRequest<T>, handler, site_id)
     }
     fn publish_version(&self, site_id: SiteId, version: VersionMessage) -> Result<()> {
         let component_version: IdentifiableComponentVersion<T> =
-            IdentifiableComponentVersion { site_id, version, _phantom: PhantomData };
+            IdentifiableComponentVersion { site_id, version, component: self.component };
         self.publish(component_version)
     }
     fn publish_error(&self, site_id: SiteId, error: ErrorMessage) -> Result<()> {
         let component_error: IdentifiableComponentError<T> =
-            IdentifiableComponentError { site_id, error, _phantom: PhantomData };
+            IdentifiableComponentError { site_id, error, component: self.component };
         self.publish(component_error)
     }
 }
 
 #[derive(Debug)]
-struct IdentifiableToggleableToggleOn<T> { site: SiteMessage, _phantom: PhantomData<T> }
+struct IdentifiableToggleableToggleOn<T> { site: SiteMessage, component: T }
 
 #[derive(Debug)]
-struct IdentifiableToggleableToggleOff<T> { site: SiteMessage, _phantom: PhantomData<T> }
+struct IdentifiableToggleableToggleOff<T> { site: SiteMessage, component: T }
 
-impl<T: Send + Sync + Debug + 'static> IdentifiableToggleableFacade for InProcessComponent<T> {
+impl<T: Send + Sync + Debug + Copy + 'static> IdentifiableToggleableFacade for InProcessComponent<T> {
     fn publish_toggle_on(&self, site: SiteMessage) -> Result<()> {
         let toggle_on: IdentifiableToggleableToggleOn<T> =
-            IdentifiableToggleableToggleOn { site, _phantom: PhantomData };
+            IdentifiableToggleableToggleOn { site, component: self.component };
         self.publish(toggle_on)
     }
     fn publish_toggle_off(&self, site: SiteMessage) -> Result<()> {
         let toggle_off: IdentifiableToggleableToggleOff<T> =
-            IdentifiableToggleableToggleOff { site, _phantom: PhantomData };
+            IdentifiableToggleableToggleOff { site, component: self.component };
         self.publish(toggle_off)
     }
 }
@@ -273,8 +270,8 @@ impl<T: Send + Sync + Debug + 'static> IdentifiableToggleableBackendFacade for I
 }
 
 
-#[derive(Debug)]
-struct Nlu {}
+#[derive(Debug, Clone, Copy)]
+struct Nlu;
 
 #[derive(Debug)]
 struct NluQuery { query: NluQueryMessage }
@@ -336,18 +333,18 @@ impl NluBackendFacade for InProcessComponent<Nlu> {
 }
 
 #[derive(Debug)]
-struct ToggleableToggleOn<T> { _phantom: PhantomData<T> }
+struct ToggleableToggleOn<T> { component: T }
 
 #[derive(Debug)]
-struct ToggleableToggleOff<T> { _phantom: PhantomData<T> }
+struct ToggleableToggleOff<T> { component: T }
 
-impl<T: Send + Sync + Debug + 'static> ToggleableFacade for InProcessComponent<T> {
+impl<T: Send + Sync + Debug + Copy + 'static> ToggleableFacade for InProcessComponent<T> {
     fn publish_toggle_on(&self) -> Result<()> {
-        let toggle_on: ToggleableToggleOn<T> = ToggleableToggleOn { _phantom: PhantomData };
+        let toggle_on: ToggleableToggleOn<T> = ToggleableToggleOn { component: self.component };
         self.publish(toggle_on)
     }
     fn publish_toggle_off(&self) -> Result<()> {
-        let toggle_off: ToggleableToggleOff<T> = ToggleableToggleOff { _phantom: PhantomData };
+        let toggle_off: ToggleableToggleOff<T> = ToggleableToggleOff { component: self.component };
         self.publish(toggle_off)
     }
 }
@@ -361,8 +358,8 @@ impl<T: Send + Sync + Debug + 'static> ToggleableBackendFacade for InProcessComp
     }
 }
 
-#[derive(Debug)]
-struct Hotword {}
+#[derive(Debug, Clone, Copy)]
+struct Hotword;
 
 #[derive(Debug)]
 struct HotwordDetected { id: String, message: SiteMessage }
@@ -383,15 +380,15 @@ impl HotwordBackendFacade for InProcessComponent<Hotword> {
     }
 }
 
-#[derive(Debug)]
-struct Sound {}
+#[derive(Debug, Clone, Copy)]
+struct Sound;
 
 impl SoundFeedbackFacade for InProcessComponent<Sound> {}
 
 impl SoundFeedbackBackendFacade for InProcessComponent<Sound> {}
 
-#[derive(Debug)]
-struct Asr {}
+#[derive(Debug, Clone, Copy)]
+struct Asr;
 
 #[derive(Debug)]
 struct AsrStartListening { site: SiteMessage }
@@ -441,8 +438,8 @@ impl AsrBackendFacade for InProcessComponent<Asr> {
     }
 }
 
-#[derive(Debug)]
-struct Tts {}
+#[derive(Debug, Clone, Copy)]
+struct Tts;
 
 #[derive(Debug)]
 struct TtsSay { to_say: SayMessage }
@@ -470,8 +467,8 @@ impl TtsBackendFacade for InProcessComponent<Tts> {
     }
 }
 
-#[derive(Debug)]
-struct AudioServer {}
+#[derive(Debug, Clone, Copy)]
+struct AudioServer;
 
 #[derive(Debug)]
 struct AudioServerPlayBytes { bytes: PlayBytesMessage }
@@ -518,8 +515,8 @@ impl AudioServerBackendFacade for InProcessComponent<AudioServer> {
     }
 }
 
-#[derive(Debug)]
-struct Dialogue {}
+#[derive(Debug, Clone, Copy)]
+struct Dialogue;
 
 #[derive(Debug)]
 struct DialogueSessionQueued { status: SessionQueuedMessage }
