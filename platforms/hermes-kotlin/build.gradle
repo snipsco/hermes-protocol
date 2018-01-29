@@ -13,6 +13,9 @@ group = "ai.snips"
 
 apply plugin: 'kotlin'
 
+sourceCompatibility = "1.7"
+targetCompatibility = "1.7"
+
 repositories {
     jcenter()
     maven {
