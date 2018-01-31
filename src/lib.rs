@@ -1,12 +1,12 @@
 extern crate base64;
 #[macro_use]
 extern crate error_chain;
-extern crate snips_queries_ontology;
 extern crate semver;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
+extern crate snips_nlu_ontology;
 
 mod errors;
 

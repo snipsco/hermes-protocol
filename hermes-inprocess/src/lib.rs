@@ -8,7 +8,7 @@ extern crate ripb;
 #[cfg(test)]
 extern crate semver;
 #[cfg(test)]
-extern crate snips_queries_ontology;
+extern crate snips_nlu_ontology;
 
 use std::fmt::Debug;
 use std::sync::Mutex;

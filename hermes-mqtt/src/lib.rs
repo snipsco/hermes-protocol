@@ -12,7 +12,7 @@ extern crate semver;
 extern crate serde;
 extern crate serde_json;
 #[cfg(test)]
-extern crate snips_queries_ontology;
+extern crate snips_nlu_ontology;
 extern crate strum;
 #[macro_use]
 extern crate strum_macros;

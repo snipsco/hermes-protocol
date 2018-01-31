@@ -20,10 +20,10 @@ import ai.snips.hermes.SessionTermination.Timeout
 import ai.snips.hermes.SayFinishedMessage
 import ai.snips.hermes.SayMessage
 import ai.snips.hermes.StartSessionMessage
-import ai.snips.queries.ontology.ffi.CIntentClassifierResult
-import ai.snips.queries.ontology.ffi.CSlots
-import ai.snips.queries.ontology.ffi.readString
-import ai.snips.queries.ontology.ffi.toPointer
+import ai.snips.nlu.ontology.ffi.CIntentClassifierResult
+import ai.snips.nlu.ontology.ffi.CSlots
+import ai.snips.nlu.ontology.ffi.readString
+import ai.snips.nlu.ontology.ffi.toPointer
 import com.sun.jna.Memory
 import com.sun.jna.Pointer
 import com.sun.jna.Structure

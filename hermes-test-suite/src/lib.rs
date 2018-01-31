@@ -205,7 +205,7 @@ macro_rules! t_identifiable_component {
 #[macro_export]
 macro_rules! test_suite {
     () => {
-        use snips_queries_ontology::*;
+        use snips_nlu_ontology::*;
 
         t_identifiable_component!(hotword_identifiable_component: hotword_backend | hotword);
         t_identifiable_toggleable!(hotword_identifiable_toggleable: hotword_backend | hotword);
@@ -255,7 +255,7 @@ macro_rules! test_suite {
             );
         t!(nlu_slot_parsed_works:
                     nlu.subscribe_slot_parsed <= NluSlotMessage | nlu_backend.publish_slot_parsed
-                    with NluSlotMessage { id: None, input: "some input".into(), intent_name: "some intent".into(), slot: Some(Slot { slot_name: "my slot".into(), raw_value: "value".into(), value: ::snips_queries_ontology::SlotValue::Custom("my slot".into()), range: None, entity: "entity".into() }), session_id: Some("abc".into()) };
+                    with NluSlotMessage { id: None, input: "some input".into(), intent_name: "some intent".into(), slot: Some(Slot { slot_name: "my slot".into(), raw_value: "value".into(), value: ::snips_nlu_ontology::SlotValue::Custom("my slot".into()), range: None, entity: "entity".into() }), session_id: Some("abc".into()) };
             );
         t!(nlu_intent_parsed_works:
                     nlu.subscribe_intent_parsed <= NluIntentMessage | nlu_backend.publish_intent_parsed

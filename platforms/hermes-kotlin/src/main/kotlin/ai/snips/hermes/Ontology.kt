@@ -2,8 +2,8 @@ package ai.snips.hermes
 
 import ai.snips.hermes.SessionInit.Type.ACTION
 import ai.snips.hermes.SessionInit.Type.NOTIFICATION
-import ai.snips.queries.ontology.IntentClassifierResult
-import ai.snips.queries.ontology.Slot
+import ai.snips.nlu.ontology.IntentClassifierResult
+import ai.snips.nlu.ontology.Slot
 import org.parceler.Parcel
 import org.parceler.Parcel.Serialization.BEAN
 import org.parceler.ParcelConstructor

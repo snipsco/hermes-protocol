@@ -1,7 +1,7 @@
 use base64;
 use serde;
 use semver;
-use snips_queries_ontology::{IntentClassifierResult, Slot};
+use snips_nlu_ontology::{IntentClassifierResult, Slot};
 use std;
 
 pub trait HermesMessage<'de>: ::std::fmt::Debug + ::serde::Deserialize<'de> + ::serde::Serialize {}

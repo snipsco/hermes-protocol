@@ -20,4 +20,4 @@ uuid = { version = "0.5", features = ["v4", "serde"] }
 [dev-dependencies]
 rand = "*"
 semver = "0.9"
-snips-queries-ontology = { path="../../snips-queries-ontology" }
+snips-nlu-ontology = { path="../../snips-nlu-ontology" }
