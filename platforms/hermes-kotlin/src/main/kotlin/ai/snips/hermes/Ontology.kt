@@ -95,3 +95,18 @@ sealed class SessionTermination(val type: SessionTermination.Type) {
             @ParcelProperty("error") val error: String
     ) : SessionTermination(SessionTermination.Type.ERROR)
 }
+
+@Parcel(BEAN)
+data class SayMessage @ParcelConstructor constructor(
+    @ParcelProperty("text") val text: String,
+    @ParcelProperty("lang") val lang: String?,
+    @ParcelProperty("id") val id: String?,
+    @ParcelProperty("siteId") val siteId: String,
+    @ParcelProperty("sessionId") val sessionId: String?
+)
+
+@Parcel(BEAN)
+data class SayFinishedMessage @ParcelConstructor constructor(
+    @ParcelProperty("id") val id: String?,
+    @ParcelProperty("sessionId") val sessionId: String?
+)

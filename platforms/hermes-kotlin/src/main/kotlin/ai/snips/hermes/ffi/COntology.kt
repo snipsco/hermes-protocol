@@ -17,6 +17,8 @@ import ai.snips.hermes.SessionTermination.IntenNotRecognized
 import ai.snips.hermes.SessionTermination.Nominal
 import ai.snips.hermes.SessionTermination.SiteUnAvailable
 import ai.snips.hermes.SessionTermination.Timeout
+import ai.snips.hermes.SayFinishedMessage
+import ai.snips.hermes.SayMessage
 import ai.snips.hermes.StartSessionMessage
 import ai.snips.queries.ontology.ffi.CIntentClassifierResult
 import ai.snips.queries.ontology.ffi.CSlots
@@ -322,4 +324,56 @@ class CSessionEndedMessage(p: Pointer) : Structure(p), Structure.ByReference {
             customData = custom_data?.readString(),
             siteId = site_id.readString(),
             termination = termination!!.toSessionTermination())
+}
+
+class CSayMessage(p: Pointer) : Structure(p), Structure.ByReference {
+    init {
+        read()
+    }
+    @JvmField
+    var text: Pointer? = null
+    @JvmField
+    var lang: Pointer? = null
+    @JvmField
+    var id: Pointer? = null
+    @JvmField
+    var site_id: Pointer? = null
+    @JvmField
+    var session_id: Pointer? = null
+
+    override fun getFieldOrder() = listOf("text", "lang", "id", "site_id", "session_id")
+
+    fun toSayMessage() = SayMessage(
+            text = text.readString(),
+            lang = lang?.readString(),
+            id = id?.readString(),
+            siteId = site_id.readString(),
+            sessionId = session_id?.readString()
+    )
+}
+
+class CSayFinishedMessage(p: Pointer?) : Structure(p), Structure.ByReference {
+    companion object {
+        fun fromSayFinishedMessage(sayFinishedMessage: SayFinishedMessage) = CSayFinishedMessage(null).apply {
+            id = sayFinishedMessage.id?.toPointer()
+            session_id = sayFinishedMessage.sessionId?.toPointer()
+        }
+    }
+
+    init {
+        read()
+    }
+
+    @JvmField
+    var id: Pointer? = null
+
+    @JvmField
+    var session_id: Pointer? = null
+
+    override fun getFieldOrder() = listOf("id",  "session_id")
+
+    fun toSayFinishedMessage() = SayFinishedMessage(
+            id = id?.readString(),
+            sessionId = session_id?.readString()
+    )
 }

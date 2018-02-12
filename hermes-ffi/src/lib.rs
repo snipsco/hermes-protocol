@@ -393,6 +393,13 @@ impl CSayFinishedMessage {
             session_id: convert_to_nullable_c_string!(input.session_id),
         })
     }
+
+    pub fn to_say_finished_message(&self) -> Result<hermes::SayFinishedMessage> {
+        Ok(hermes::SayFinishedMessage {
+            id : create_optional_rust_string_from!(self.id),
+            session_id : create_optional_rust_string_from!(self.session_id)
+        })
+    }
 }
 
 impl Drop for CSayFinishedMessage {
