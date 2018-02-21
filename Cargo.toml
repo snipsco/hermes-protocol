@@ -9,7 +9,7 @@ authors = [
 [dependencies]
 base64 = "0.9"
 error-chain = { version = "0.11", default-features = false }
-snips-queries-ontology = { git = "ssh://git@github.com/snipsco/snips-nlu-ontology.git"}
+snips-nlu-ontology = { git = "ssh://git@github.com/snipsco/snips-nlu-ontology", branch = "develop" }
 semver = { version = "0.9", features = ["serde"] }
 serde = "1.0"
 serde_derive = "1.0"

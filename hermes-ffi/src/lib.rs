@@ -429,7 +429,7 @@ impl CNluSlotMessage {
             input: convert_to_c_string!(input.input),
             intent_name: convert_to_c_string!(input.intent_name),
             slot: if let Some(s) = input.slot {
-                Box::into_raw(Box::new(CSlot::from(s).chain_err(|| "Could not transform Slot into C Repr")?)) as *const CSlot
+                Box::into_raw(Box::new(CSlot::from(s))) as *const CSlot
             } else {
                 null()
             },
@@ -498,9 +498,9 @@ impl CNluIntentMessage {
         Ok(Self {
             id: convert_to_nullable_c_string!(input.id),
             input: convert_to_c_string!(input.input),
-            intent: Box::into_raw(Box::new(CIntentClassifierResult::from(input.intent).chain_err(|| "Could not transform IntentClassifierResult into C Repr")?)),
+            intent: Box::into_raw(Box::new(CIntentClassifierResult::from(input.intent))),
             slots: if let Some(slots) = input.slots {
-                Box::into_raw(Box::new(CSlotList::from(slots).chain_err(|| "Could not transform Slot list into C Repr")?)) as *const CSlotList
+                Box::into_raw(Box::new(CSlotList::from(slots))) as *const CSlotList
             } else {
                 null()
             },
@@ -542,9 +542,9 @@ impl CIntentMessage {
             custom_data: convert_to_nullable_c_string!(input.custom_data),
             site_id: convert_to_c_string!(input.site_id),
             input: convert_to_c_string!(input.input),
-            intent: Box::into_raw(Box::new(CIntentClassifierResult::from(input.intent).chain_err(|| "Could not transform IntentClassifierResult into C Repr")?)),
+            intent: Box::into_raw(Box::new(CIntentClassifierResult::from(input.intent))),
             slots: if let Some(slots) = input.slots {
-                Box::into_raw(Box::new(CSlotList::from(slots).chain_err(|| "Could not transform Slot list into C Repr")?)) as *const CSlotList
+                Box::into_raw(Box::new(CSlotList::from(slots))) as *const CSlotList
             } else {
                 null()
             },

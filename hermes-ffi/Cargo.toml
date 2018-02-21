@@ -6,4 +6,4 @@ authors = ["Thibaut Lorrain <thibaut.lorrain@snips.ai>"]
 [dependencies]
 hermes = { path = ".." }
 libc = "0.2"
-snips-queries-ontology-ffi = { git = "ssh://git@github.com/snipsco/snips-queries-ontology.git" }
+snips-nlu-ontology-ffi = { git = "ssh://git@github.com/snipsco/snips-nlu-ontology", branch = "develop" }
