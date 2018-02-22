@@ -20,4 +20,4 @@ uuid = { version = "0.5", features = ["v4", "serde"] }
 [dev-dependencies]
 rand = "*"
 semver = "0.9"
-snips-nlu-ontology = { git = "ssh://git@github.com/snipsco/snips-nlu-ontology", rev = "8086bef0" }
+snips-nlu-ontology = { git = "ssh://git@github.com/snipsco/snips-nlu-ontology", tag = "0.53.0" }
