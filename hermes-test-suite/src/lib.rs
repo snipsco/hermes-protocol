@@ -209,12 +209,12 @@ macro_rules! test_suite {
         t_identifiable_component!(hotword_identifiable_component: hotword_backend | hotword);
         t_identifiable_toggleable!(hotword_identifiable_toggleable: hotword_backend | hotword);
         t!(hotword_detected_works:
-                    hotword.subscribe_detected { "hotword_identifier".into() } <= SiteMessage | hotword_backend.publish_detected
-                    with SiteMessage { session_id: Some("123abc".into()), site_id: "some site".into() };);
+                    hotword.subscribe_detected { "hotword_identifier".into() } <= HotwordDetectedMessage | hotword_backend.publish_detected
+                    with HotwordDetectedMessage { model_id: "some model".into(), site_id: "some site".into() };);
         t!(hotword_all_detected_works:
                     ManyToOne
-                    hotword.subscribe_all_detected <= SiteMessage | hotword_backend.publish_detected { "hotword_identifier".into() }
-                    with SiteMessage { session_id: Some("123abc".into()), site_id: "some site".into() };);
+                    hotword.subscribe_all_detected <= HotwordDetectedMessage | hotword_backend.publish_detected { "hotword_identifier".into() }
+                    with HotwordDetectedMessage { model_id: "some model".into(), site_id: "some site".into() };);
 
         t_identifiable_toggleable!(sound_feedback_identifiable_toggleable: sound_feedback_backend | sound_feedback );
 

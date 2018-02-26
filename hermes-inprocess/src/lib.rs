@@ -451,23 +451,23 @@ struct Hotword;
 #[derive(Debug)]
 struct HotwordDetected {
     id: String,
-    message: SiteMessage,
+    message: HotwordDetectedMessage,
 }
 
 impl HotwordFacade for InProcessComponent<Hotword> {
-    fn subscribe_detected(&self, id: String, handler: Callback<SiteMessage>) -> Result<()> {
+    fn subscribe_detected(&self, id: String, handler: Callback<HotwordDetectedMessage>) -> Result<()> {
         subscribe_filter!(self, HotwordDetected { message }, handler, id, |it| {
             &it.id
         })
     }
 
-    fn subscribe_all_detected(&self, handler: Callback<SiteMessage>) -> Result<()> {
+    fn subscribe_all_detected(&self, handler: Callback<HotwordDetectedMessage>) -> Result<()> {
         subscribe!(self, HotwordDetected { message }, handler)
     }
 }
 
 impl HotwordBackendFacade for InProcessComponent<Hotword> {
-    fn publish_detected(&self, id: String, message: SiteMessage) -> Result<()> {
+    fn publish_detected(&self, id: String, message: HotwordDetectedMessage) -> Result<()> {
         self.publish(HotwordDetected { id, message })
     }
 }

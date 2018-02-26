@@ -34,6 +34,17 @@ impl<'de> HermesMessage<'de> for SiteMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct HotwordDetectedMessage {
+    /// The site where the text was captured
+    pub site_id: SiteId,
+    /// Which model was triggered
+    pub model_id: String,
+}
+
+impl<'de> HermesMessage<'de> for HotwordDetectedMessage {}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct TextCapturedMessage {
     /// The text captured
     pub text: String,
