@@ -201,7 +201,6 @@ macro_rules! t_identifiable_component {
         };
     }
 
-
 #[macro_export]
 macro_rules! test_suite {
     () => {

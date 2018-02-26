@@ -100,10 +100,13 @@ impl CArrayString {
     pub fn from(input: Vec<String>) -> Result<Self> {
         Ok(Self {
             size: input.len() as libc::c_int,
-            data: Box::into_raw(input.into_iter()
-                .map(|s| convert_to_c_string_result!(s))
-                .collect::<Result<Vec<_>>>()?
-                .into_boxed_slice()) as *const *const libc::c_char,
+            data: Box::into_raw(
+                input
+                    .into_iter()
+                    .map(|s| convert_to_c_string_result!(s))
+                    .collect::<Result<Vec<_>>>()?
+                    .into_boxed_slice(),
+            ) as *const *const libc::c_char,
         })
     }
 
@@ -111,8 +114,7 @@ impl CArrayString {
         let mut result = vec![];
 
         let strings = unsafe {
-            slice::from_raw_parts_mut(self.data as *mut *mut libc::c_char,
-                                      self.size as usize)
+            slice::from_raw_parts_mut(self.data as *mut *mut libc::c_char, self.size as usize)
         };
 
         for s in strings {
@@ -125,9 +127,12 @@ impl CArrayString {
 
 impl Drop for CArrayString {
     fn drop(&mut self) {
-        let _ = unsafe {
-            let y = Box::from_raw(slice::from_raw_parts_mut(self.data as *mut *mut libc::c_char, self.size as usize));
-            for p in y.into_iter() {
+        unsafe {
+            let y = Box::from_raw(slice::from_raw_parts_mut(
+                self.data as *mut *mut libc::c_char,
+                self.size as usize,
+            ));
+            for p in y.iter() {
                 CString::from_raw(*p);
             }
         };
@@ -282,7 +287,12 @@ impl CPlayBytesMessage {
 impl Drop for CPlayBytesMessage {
     fn drop(&mut self) {
         take_back_c_string!(self.id);
-        let _ = unsafe { Box::from_raw(slice::from_raw_parts_mut(self.wav_bytes as *mut u8, self.wav_bytes_len as usize)) };
+        let _ = unsafe {
+            Box::from_raw(slice::from_raw_parts_mut(
+                self.wav_bytes as *mut u8,
+                self.wav_bytes_len as usize,
+            ))
+        };
         take_back_c_string!(self.site_id);
         take_back_nullable_c_string!(self.session_id);
     }
@@ -309,11 +319,15 @@ impl CAudioFrameMessage {
 
 impl Drop for CAudioFrameMessage {
     fn drop(&mut self) {
-        let _ = unsafe { Box::from_raw(slice::from_raw_parts_mut(self.wav_frame as *mut u8, self.wav_frame_len as usize)) };
+        let _ = unsafe {
+            Box::from_raw(slice::from_raw_parts_mut(
+                self.wav_frame as *mut u8,
+                self.wav_frame_len as usize,
+            ))
+        };
         take_back_c_string!(self.site_id);
     }
 }
-
 
 #[repr(C)]
 #[derive(Debug)]
@@ -396,8 +410,8 @@ impl CSayFinishedMessage {
 
     pub fn to_say_finished_message(&self) -> Result<hermes::SayFinishedMessage> {
         Ok(hermes::SayFinishedMessage {
-            id : create_optional_rust_string_from!(self.id),
-            session_id : create_optional_rust_string_from!(self.session_id)
+            id: create_optional_rust_string_from!(self.id),
+            session_id: create_optional_rust_string_from!(self.session_id),
         })
     }
 }
@@ -574,9 +588,9 @@ pub enum CSessionInitType {
 
 impl CSessionInitType {
     pub fn from(slot_value: &hermes::SessionInit) -> Self {
-        match slot_value {
-            &hermes::SessionInit::Notification { .. } => CSessionInitType::Notification,
-            &hermes::SessionInit::Action { .. } => CSessionInitType::Action,
+        match *slot_value {
+            hermes::SessionInit::Notification { .. } => CSessionInitType::Notification,
+            hermes::SessionInit::Action { .. } => CSessionInitType::Action,
         }
     }
 }
@@ -592,11 +606,15 @@ pub struct CActionSessionInit {
 }
 
 impl CActionSessionInit {
-    pub fn new(text: Option<String>, intent_filter: Option<Vec<String>>, can_be_enqueued: bool) -> Result<Self> {
+    pub fn new(
+        text: Option<String>,
+        intent_filter: Option<Vec<String>>,
+        can_be_enqueued: bool,
+    ) -> Result<Self> {
         Ok(Self {
             text: convert_to_nullable_c_string!(text),
             intent_filter: convert_to_nullable_c_array_string!(intent_filter),
-            can_be_enqueued: if can_be_enqueued { 1 } else { 0 }
+            can_be_enqueued: if can_be_enqueued { 1 } else { 0 },
         })
     }
 
@@ -605,9 +623,9 @@ impl CActionSessionInit {
             text: create_optional_rust_string_from!(self.text),
             intent_filter: match unsafe { self.intent_filter.as_ref() } {
                 Some(it) => Some(it.to_string_vec()?),
-                None => None
+                None => None,
             },
-            can_be_enqueued: self.can_be_enqueued == 1
+            can_be_enqueued: self.can_be_enqueued == 1,
         })
     }
 }
@@ -618,7 +636,6 @@ impl Drop for CActionSessionInit {
         take_back_nullable_c_array_string!(self.intent_filter);
     }
 }
-
 
 #[repr(C)]
 #[derive(Debug)]
@@ -634,25 +651,32 @@ impl CSessionInit {
     fn from(init: hermes::SessionInit) -> Result<Self> {
         let init_type = CSessionInitType::from(&init);
         let value: *const libc::c_void = match init {
-            hermes::SessionInit::Action { text, intent_filter, can_be_enqueued } => {
-                Box::into_raw(Box::new(CActionSessionInit::new(text, intent_filter, can_be_enqueued)?)) as _
-            }
-            hermes::SessionInit::Notification { text } => {
-                convert_to_c_string!(text) as _
-            }
+            hermes::SessionInit::Action {
+                text,
+                intent_filter,
+                can_be_enqueued,
+            } => Box::into_raw(Box::new(CActionSessionInit::new(
+                text,
+                intent_filter,
+                can_be_enqueued,
+            )?)) as _,
+            hermes::SessionInit::Notification { text } => convert_to_c_string!(text) as _,
         };
         Ok(Self { init_type, value })
     }
 
     fn to_session_init(&self) -> Result<hermes::SessionInit> {
         match self.init_type {
-            CSessionInitType::Action => unsafe { (self.value as *const CActionSessionInit).as_ref() }
-                .ok_or_else(|| "unexpected null pointer in SessionInit value")?
-                .to_action_session_init(),
+            CSessionInitType::Action => {
+                unsafe { (self.value as *const CActionSessionInit).as_ref() }
+                    .ok_or_else(|| "unexpected null pointer in SessionInit value")?
+                    .to_action_session_init()
+            }
             CSessionInitType::Notification => Ok(hermes::SessionInit::Notification {
-                text: create_rust_string_from!((self.value as *const libc::c_char).as_ref()
-                        .ok_or_else(|| "unexpected null pointer in SessionInit value")?)
-            })
+                text: create_rust_string_from!((self.value as *const libc::c_char)
+                    .as_ref()
+                    .ok_or_else(|| "unexpected null pointer in SessionInit value")?),
+            }),
         }
     }
 }
@@ -665,11 +689,10 @@ impl Drop for CSessionInit {
             }
             CSessionInitType::Notification => unsafe {
                 Box::from_raw(self.value as *mut CActionSessionInit);
-            }
+            },
         };
     }
 }
-
 
 #[repr(C)]
 #[derive(Debug)]
@@ -692,7 +715,7 @@ impl CStartSessionMessage {
         Ok(hermes::StartSessionMessage {
             init: self.init.to_session_init()?,
             custom_data: create_optional_rust_string_from!(self.custom_data),
-            site_id: create_optional_rust_string_from!(self.site_id)
+            site_id: create_optional_rust_string_from!(self.site_id),
         })
     }
 }
@@ -721,7 +744,9 @@ impl CSessionStartedMessage {
             session_id: convert_to_c_string!(input.session_id),
             custom_data: convert_to_nullable_c_string!(input.custom_data),
             site_id: convert_to_c_string!(input.site_id),
-            reactivated_from_session_id: convert_to_nullable_c_string!(input.reactivated_from_session_id),
+            reactivated_from_session_id: convert_to_nullable_c_string!(
+                input.reactivated_from_session_id
+            ),
         })
     }
 }
@@ -786,7 +811,7 @@ impl CContinueSessionMessage {
             text: create_rust_string_from!(self.text),
             intent_filter: match unsafe { self.intent_filter.as_ref() } {
                 Some(it) => Some(it.to_string_vec()?),
-                None => None
+                None => None,
             },
         })
     }
@@ -819,7 +844,7 @@ impl CEndSessionMessage {
     pub fn to_end_session_message(&self) -> Result<hermes::EndSessionMessage> {
         Ok(hermes::EndSessionMessage {
             session_id: create_rust_string_from!(self.session_id),
-            text: create_optional_rust_string_from!(self.text)
+            text: create_optional_rust_string_from!(self.text),
         })
     }
 }
@@ -844,13 +869,17 @@ pub enum CSessionTerminationType {
 
 impl CSessionTerminationType {
     fn from(termination_type: &hermes::SessionTerminationType) -> CSessionTerminationType {
-        match termination_type {
-            &hermes::SessionTerminationType::Nominal => CSessionTerminationType::Nominal,
-            &hermes::SessionTerminationType::SiteUnavailable => CSessionTerminationType::SiteUnavailable,
-            &hermes::SessionTerminationType::AbortedByUser => CSessionTerminationType::AbortedByUser,
-            &hermes::SessionTerminationType::IntentNotRecognized => CSessionTerminationType::IntentNotRecognized,
-            &hermes::SessionTerminationType::Timeout => CSessionTerminationType::Timeout,
-            &hermes::SessionTerminationType::Error { .. } => CSessionTerminationType::Error,
+        match *termination_type {
+            hermes::SessionTerminationType::Nominal => CSessionTerminationType::Nominal,
+            hermes::SessionTerminationType::SiteUnavailable => {
+                CSessionTerminationType::SiteUnavailable
+            }
+            hermes::SessionTerminationType::AbortedByUser => CSessionTerminationType::AbortedByUser,
+            hermes::SessionTerminationType::IntentNotRecognized => {
+                CSessionTerminationType::IntentNotRecognized
+            }
+            hermes::SessionTerminationType::Timeout => CSessionTerminationType::Timeout,
+            hermes::SessionTerminationType::Error { .. } => CSessionTerminationType::Error,
         }
     }
 }
@@ -870,7 +899,10 @@ impl CSessionTermination {
             ::hermes::SessionTerminationType::Error { error } => convert_to_c_string!(error),
             _ => null(),
         };
-        Ok(Self { termination_type, data })
+        Ok(Self {
+            termination_type,
+            data,
+        })
     }
 }
 
@@ -918,7 +950,7 @@ pub struct CVersionMessage {
 }
 
 impl CVersionMessage {
-    pub fn from(input: hermes::VersionMessage) -> Result<Self> {
+    pub fn from(input: &hermes::VersionMessage) -> Result<Self> {
         Ok(Self {
             major: input.version.major,
             minor: input.version.minor,

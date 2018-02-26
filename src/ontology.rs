@@ -4,7 +4,9 @@ use semver;
 use snips_nlu_ontology::{IntentClassifierResult, Slot};
 use std;
 
-pub trait HermesMessage<'de>: ::std::fmt::Debug + ::serde::Deserialize<'de> + ::serde::Serialize {}
+pub trait HermesMessage<'de>
+    : ::std::fmt::Debug + ::serde::Deserialize<'de> + ::serde::Serialize {
+}
 
 pub type SiteId = String;
 pub type SessionId = String;
@@ -21,7 +23,10 @@ pub struct SiteMessage {
 
 impl Default for SiteMessage {
     fn default() -> Self {
-        Self { site_id: "default".into(), session_id: None }
+        Self {
+            site_id: "default".into(),
+            session_id: None,
+        }
     }
 }
 
@@ -233,9 +238,7 @@ pub enum SessionInit {
     },
     /// The session doesn't expect a response from the user.
     /// If the session cannot be started, it will enqueued.
-    Notification {
-        text: String,
-    }
+    Notification { text: String },
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
@@ -292,7 +295,7 @@ pub struct ContinueSessionMessage {
     /// The text to say to the user
     pub text: String,
     /// An optional list of intent name to restrict the parsing of the user response to
-    pub intent_filter: Option<Vec<String>>
+    pub intent_filter: Option<Vec<String>>,
 }
 
 impl<'de> HermesMessage<'de> for ContinueSessionMessage {}
@@ -322,7 +325,7 @@ pub enum SessionTerminationType {
     /// No response was received from one of the components in a timely manner
     Timeout,
     /// A generic error occurred
-    Error { error : String },
+    Error { error: String },
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
@@ -363,12 +366,16 @@ pub struct ErrorMessage {
 impl<'de> HermesMessage<'de> for ErrorMessage {}
 
 fn as_base64<S>(bytes: &[u8], serializer: S) -> std::result::Result<S::Ok, S::Error>
-    where S: serde::Serializer {
+where
+    S: serde::Serializer,
+{
     serializer.serialize_str(&base64::encode(bytes))
 }
 
 fn from_base64<'de, D>(deserializer: D) -> std::result::Result<Vec<u8>, D::Error>
-    where D: serde::Deserializer<'de> {
+where
+    D: serde::Deserializer<'de>,
+{
     use serde::de::Error;
     use serde::Deserialize;
     String::deserialize(deserializer)

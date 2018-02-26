@@ -17,28 +17,42 @@ pub use ontology::*;
 
 /// A struct wrapping a callback with one argument, create one with the `new` method
 pub struct Callback<T> {
-    callback: Box<Fn(&T) -> () + Send + Sync>
+    callback: Box<Fn(&T) -> () + Send + Sync>,
 }
 
 impl<T> Callback<T> {
-    pub fn new<F: 'static>(handler: F) -> Callback<T> where F: Fn(&T) -> () + Send + Sync {
-        Callback { callback: Box::new(handler) }
+    pub fn new<F: 'static>(handler: F) -> Callback<T>
+    where
+        F: Fn(&T) -> () + Send + Sync,
+    {
+        Callback {
+            callback: Box::new(handler),
+        }
     }
 
-    pub fn call(&self, arg: &T) { (self.callback)(arg) }
+    pub fn call(&self, arg: &T) {
+        (self.callback)(arg)
+    }
 }
 
 /// A struct wrapping a callback with no argument, create one with the `new` method
 pub struct Callback0 {
-    callback: Box<Fn() -> () + Send + Sync>
+    callback: Box<Fn() -> () + Send + Sync>,
 }
 
 impl Callback0 {
-    pub fn new<F: 'static>(handler: F) -> Callback0 where F: Fn() -> () + Send + Sync {
-        Callback0 { callback: Box::new(handler) }
+    pub fn new<F: 'static>(handler: F) -> Callback0
+    where
+        F: Fn() -> () + Send + Sync,
+    {
+        Callback0 {
+            callback: Box::new(handler),
+        }
     }
 
-    pub fn call(&self) { (self.callback)() }
+    pub fn call(&self) {
+        (self.callback)()
+    }
 }
 
 /// A generic facade used to interact with a component
@@ -100,13 +114,15 @@ pub trait IdentifiableToggleableBackendFacade: Send + Sync {
 //
 
 /// The facade to interact with the hotword component
-pub trait HotwordFacade: IdentifiableComponentFacade + IdentifiableToggleableFacade {
+pub trait HotwordFacade
+    : IdentifiableComponentFacade + IdentifiableToggleableFacade {
     fn subscribe_detected(&self, id: String, handler: Callback<SiteMessage>) -> Result<()>;
     fn subscribe_all_detected(&self, handler: Callback<SiteMessage>) -> Result<()>;
 }
 
 /// The facade the hotword feature must use receive its orders and publish detected hotwords
-pub trait HotwordBackendFacade: IdentifiableComponentBackendFacade + IdentifiableToggleableBackendFacade {
+pub trait HotwordBackendFacade
+    : IdentifiableComponentBackendFacade + IdentifiableToggleableBackendFacade {
     fn publish_detected(&self, id: String, site: SiteMessage) -> Result<()>;
 }
 
@@ -121,7 +137,8 @@ pub trait AsrFacade: ComponentFacade + ToggleableFacade {
     fn publish_start_listening(&self, site: SiteMessage) -> Result<()>;
     fn publish_stop_listening(&self, site: SiteMessage) -> Result<()>;
     fn subscribe_text_captured(&self, handler: Callback<TextCapturedMessage>) -> Result<()>;
-    fn subscribe_partial_text_captured(&self, handler: Callback<TextCapturedMessage>) -> Result<()>;
+    fn subscribe_partial_text_captured(&self, handler: Callback<TextCapturedMessage>)
+        -> Result<()>;
 }
 
 /// The facade the automatic speech recognition must use to receive its orders and publish
@@ -151,7 +168,10 @@ pub trait NluFacade: ComponentFacade {
     fn publish_partial_query(&self, query: NluSlotQueryMessage) -> Result<()>;
     fn subscribe_slot_parsed(&self, handler: Callback<NluSlotMessage>) -> Result<()>;
     fn subscribe_intent_parsed(&self, handler: Callback<NluIntentMessage>) -> Result<()>;
-    fn subscribe_intent_not_recognized(&self, handler: Callback<NluIntentNotRecognizedMessage>) -> Result<()>;
+    fn subscribe_intent_not_recognized(
+        &self,
+        handler: Callback<NluIntentNotRecognizedMessage>,
+    ) -> Result<()>;
 }
 
 /// The facade the natural language understanding must use to receive its orders and publish
@@ -165,16 +185,30 @@ pub trait NluBackendFacade: ComponentBackendFacade {
 }
 
 /// The facade to interact with the audio server
-pub trait AudioServerFacade: IdentifiableComponentFacade + IdentifiableToggleableFacade {
+pub trait AudioServerFacade
+    : IdentifiableComponentFacade + IdentifiableToggleableFacade {
     fn publish_play_bytes(&self, bytes: PlayBytesMessage) -> Result<()>;
-    fn subscribe_play_finished(&self, site_id: SiteId, handler: Callback<PlayFinishedMessage>) -> Result<()>;
+    fn subscribe_play_finished(
+        &self,
+        site_id: SiteId,
+        handler: Callback<PlayFinishedMessage>,
+    ) -> Result<()>;
     fn subscribe_all_play_finished(&self, handler: Callback<PlayFinishedMessage>) -> Result<()>;
-    fn subscribe_audio_frame(&self, site_id: SiteId, handler: Callback<AudioFrameMessage>) -> Result<()>;
+    fn subscribe_audio_frame(
+        &self,
+        site_id: SiteId,
+        handler: Callback<AudioFrameMessage>,
+    ) -> Result<()>;
 }
 
 /// The facade the audio server must use to receive its orders and advertise when it has finished
-pub trait AudioServerBackendFacade: IdentifiableComponentBackendFacade + IdentifiableToggleableBackendFacade  {
-    fn subscribe_play_bytes(&self, site_id: SiteId, handler: Callback<PlayBytesMessage>) -> Result<()>;
+pub trait AudioServerBackendFacade
+    : IdentifiableComponentBackendFacade + IdentifiableToggleableBackendFacade {
+    fn subscribe_play_bytes(
+        &self,
+        site_id: SiteId,
+        handler: Callback<PlayBytesMessage>,
+    ) -> Result<()>;
     fn subscribe_all_play_bytes(&self, handler: Callback<PlayBytesMessage>) -> Result<()>;
     fn publish_play_finished(&self, status: PlayFinishedMessage) -> Result<()>;
     fn publish_audio_frame(&self, frame: AudioFrameMessage) -> Result<()>;
@@ -185,7 +219,8 @@ pub trait AudioServerBackendFacade: IdentifiableComponentBackendFacade + Identif
 pub trait DialogueFacade: ComponentFacade + ToggleableFacade {
     fn subscribe_session_queued(&self, handler: Callback<SessionQueuedMessage>) -> Result<()>;
     fn subscribe_session_started(&self, handler: Callback<SessionStartedMessage>) -> Result<()>;
-    fn subscribe_intent(&self, intent_name: String, handler: Callback<IntentMessage>) -> Result<()>;
+    fn subscribe_intent(&self, intent_name: String, handler: Callback<IntentMessage>)
+        -> Result<()>;
     fn subscribe_intents(&self, handler: Callback<IntentMessage>) -> Result<()>;
     fn subscribe_session_ended(&self, handler: Callback<SessionEndedMessage>) -> Result<()>;
     fn publish_start_session(&self, start_session: StartSessionMessage) -> Result<()>;
@@ -194,7 +229,8 @@ pub trait DialogueFacade: ComponentFacade + ToggleableFacade {
 }
 
 /// The facade the dialogue manager must use to interact with the lambdas
-pub trait DialogueBackendFacade: ComponentBackendFacade + ToggleableBackendFacade {
+pub trait DialogueBackendFacade
+    : ComponentBackendFacade + ToggleableBackendFacade {
     fn publish_session_queued(&self, status: SessionQueuedMessage) -> Result<()>;
     fn publish_session_started(&self, status: SessionStartedMessage) -> Result<()>;
     fn publish_intent(&self, intent: IntentMessage) -> Result<()>;

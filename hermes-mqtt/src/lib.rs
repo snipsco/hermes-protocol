@@ -29,46 +29,77 @@ mod topics;
 use topics::*;
 
 struct MqttHandler {
-    pub mqtt_client: Mutex<rumqtt::MqttClient>
+    pub mqtt_client: Mutex<rumqtt::MqttClient>,
 }
 
 impl MqttHandler {
     pub fn publish(&self, topic: &HermesTopic) -> Result<()> {
-        self.mqtt_client.lock().map(|mut c| {
-            let topic = &*topic.as_path();
-            debug!("Publishing on MQTT topic '{}'", topic);
-            c.publish(topic).and_then(|p| p.send())
-        })?.chain_err(|| "Could not publish on MQTT")?;
+        self.mqtt_client
+            .lock()
+            .map(|mut c| {
+                let topic = &*topic.as_path();
+                debug!("Publishing on MQTT topic '{}'", topic);
+                c.publish(topic).and_then(|p| p.send())
+            })?
+            .chain_err(|| "Could not publish on MQTT")?;
         Ok(())
     }
 
-    pub fn publish_payload<P: serde::Serialize>(&self, topic: &HermesTopic, payload: P) -> Result<()> {
-        self.mqtt_client.lock().map(|mut c|
-            serde_json::to_vec(&payload).map(|p| {
-                let topic = &*topic.as_path();
-                debug!("Publishing on MQTT topic '{}', payload : {}", topic, if p.len() < 2048 {
-                    String::from_utf8_lossy(&p).to_string()
-                } else {
-                    format!("size = {}, start = {}", p.len(), String::from_utf8_lossy(&p[0..128]))
-                });
-                trace!("Payload : {}", String::from_utf8_lossy(&p));
-                c.publish(topic).map(|m| m.payload(p)).and_then(|p| p.send())
-            }
-            ))??.chain_err(|| "Could not publish on MQTT")?;
+    pub fn publish_payload<P: serde::Serialize>(
+        &self,
+        topic: &HermesTopic,
+        payload: P,
+    ) -> Result<()> {
+        self.mqtt_client
+            .lock()
+            .map(|mut c| {
+                serde_json::to_vec(&payload).map(|p| {
+                    let topic = &*topic.as_path();
+                    debug!(
+                        "Publishing on MQTT topic '{}', payload : {}",
+                        topic,
+                        if p.len() < 2048 {
+                            String::from_utf8_lossy(&p).to_string()
+                        } else {
+                            format!(
+                                "size = {}, start = {}",
+                                p.len(),
+                                String::from_utf8_lossy(&p[0..128])
+                            )
+                        }
+                    );
+                    trace!("Payload : {}", String::from_utf8_lossy(&p));
+                    c.publish(topic)
+                        .map(|m| m.payload(p))
+                        .and_then(|p| p.send())
+                })
+            })??
+            .chain_err(|| "Could not publish on MQTT")?;
         Ok(())
     }
 
     pub fn publish_binary_payload(&self, topic: &HermesTopic, payload: Vec<u8>) -> Result<()> {
-        self.mqtt_client.lock().map(|mut c| {
-            let topic = &*topic.as_path();
-            debug!("Publishing as binary on MQTT topic '{}', with size {}", topic, payload.len());
-            c.publish(topic).map(|m| m.payload(payload)).and_then(|p| p.send())
-        }
-        )?.chain_err(|| "Could not publish on MQTT")?;
+        self.mqtt_client
+            .lock()
+            .map(|mut c| {
+                let topic = &*topic.as_path();
+                debug!(
+                    "Publishing as binary on MQTT topic '{}', with size {}",
+                    topic,
+                    payload.len()
+                );
+                c.publish(topic)
+                    .map(|m| m.payload(payload))
+                    .and_then(|p| p.send())
+            })?
+            .chain_err(|| "Could not publish on MQTT")?;
         Ok(())
     }
 
-    pub fn subscribe<F>(&self, topic: &HermesTopic, handler: F) -> Result<()> where F: Fn() -> () + Send + Sync + 'static {
+    pub fn subscribe<F>(&self, topic: &HermesTopic, handler: F) -> Result<()>
+    where
+        F: Fn() -> () + Send + Sync + 'static,
+    {
         self.inner_subscribe(topic, move |m| {
             debug!("Received a message on MQTT topic '{:?}'", m.topic_name);
             handler()
@@ -76,31 +107,54 @@ impl MqttHandler {
     }
 
     pub fn subscribe_payload<F, P>(&self, topic: &HermesTopic, handler: F) -> Result<()>
-        where F: Fn(&P) -> () + Send + Sync + 'static,
-              P: serde::de::DeserializeOwned {
+    where
+        F: Fn(&P) -> () + Send + Sync + 'static,
+        P: serde::de::DeserializeOwned,
+    {
         self.inner_subscribe(topic, move |m| {
-            debug!("Received a message on MQTT topic '{:?}', payload : {}", m.topic_name, if m.payload.len() < 2048 {
-                String::from_utf8_lossy(&m.payload).to_string()
-            } else {
-                format!("size = {}, start = {}", m.payload.len(), String::from_utf8_lossy(&m.payload[0..128]))
-            });
+            debug!(
+                "Received a message on MQTT topic '{:?}', payload : {}",
+                m.topic_name,
+                if m.payload.len() < 2048 {
+                    String::from_utf8_lossy(&m.payload).to_string()
+                } else {
+                    format!(
+                        "size = {}, start = {}",
+                        m.payload.len(),
+                        String::from_utf8_lossy(&m.payload[0..128])
+                    )
+                }
+            );
             trace!("Payload : {}", String::from_utf8_lossy(&m.payload));
             let r = serde_json::from_slice(m.payload.as_slice());
             match r {
                 Ok(p) => handler(&p),
-                Err(e) => warn!("Error while decoding object on topic {:?} : {}", m.topic_name, e)
+                Err(e) => warn!(
+                    "Error while decoding object on topic {:?} : {}",
+                    m.topic_name, e
+                ),
             }
         })
     }
 
     pub fn subscribe_binary_payload<F>(&self, topic: &HermesTopic, handler: F) -> Result<()>
-        where F: Fn(&HermesTopic, &[u8]) -> () + Send + Sync + 'static {
+    where
+        F: Fn(&HermesTopic, &[u8]) -> () + Send + Sync + 'static,
+    {
         self.inner_subscribe(topic, move |m| {
-            debug!("Received a message on MQTT topic '{:?}', payload : {}", m.topic_name, if m.payload.len() < 2048 {
-                String::from_utf8_lossy(&m.payload).to_string()
-            } else {
-                format!("size = {}, start = {}", m.payload.len(), String::from_utf8_lossy(&m.payload[0..128]))
-            });
+            debug!(
+                "Received a message on MQTT topic '{:?}', payload : {}",
+                m.topic_name,
+                if m.payload.len() < 2048 {
+                    String::from_utf8_lossy(&m.payload).to_string()
+                } else {
+                    format!(
+                        "size = {}, start = {}",
+                        m.payload.len(),
+                        String::from_utf8_lossy(&m.payload[0..128])
+                    )
+                }
+            );
             trace!("Payload : {}", String::from_utf8_lossy(&m.payload));
             let topic = HermesTopic::from_path(&m.topic_name);
             if let Some(topic) = topic {
@@ -112,15 +166,21 @@ impl MqttHandler {
     }
 
     fn inner_subscribe<F>(&self, topic: &HermesTopic, callback: F) -> Result<()>
-        where F: Fn(&::rumqtt::Publish) -> () + Send + Sync + 'static {
+    where
+        F: Fn(&::rumqtt::Publish) -> () + Send + Sync + 'static,
+    {
         let mut client = self.mqtt_client.lock()?;
-        client.subscribe(topic.to_string(), Box::new(callback)).unwrap().send().unwrap();
+        client
+            .subscribe(topic.to_string(), Box::new(callback))
+            .unwrap()
+            .send()
+            .unwrap();
         Ok(())
     }
 }
 
 pub struct MqttHermesProtocolHandler {
-    mqtt_handler: Arc<MqttHandler>
+    mqtt_handler: Arc<MqttHandler>,
 }
 
 impl MqttHermesProtocolHandler {
@@ -129,12 +189,14 @@ impl MqttHermesProtocolHandler {
         let id = uuid::Uuid::new_v4().simple().to_string();
         let client_options = rumqtt::MqttOptions::new(id, broker_address) // FIXME
             .set_keep_alive(5);
-//            .set_reconnect(3); // FIXME
+        //            .set_reconnect(3); // FIXME
 
-        let mqtt_client = rumqtt::MqttClient::start(client_options)
-            .chain_err(|| "Could not start MQTT client")?;
+        let mqtt_client =
+            rumqtt::MqttClient::start(client_options).chain_err(|| "Could not start MQTT client")?;
 
-        let mqtt_handler = Arc::new(MqttHandler { mqtt_client: Mutex::new(mqtt_client) });
+        let mqtt_handler = Arc::new(MqttHandler {
+            mqtt_client: Mutex::new(mqtt_client),
+        });
 
         Ok(MqttHermesProtocolHandler { mqtt_handler })
     }
@@ -326,7 +388,7 @@ macro_rules! impl_identifiable_component_facades_for {
 
 struct MqttComponentFacade {
     component: Component,
-    mqtt_handler: Arc<MqttHandler>
+    mqtt_handler: Arc<MqttHandler>,
 }
 
 impl_component_facades_for!(MqttComponentFacade);
@@ -335,7 +397,7 @@ impl_identifiable_component_facades_for!(MqttComponentFacade);
 struct MqttToggleableFacade {
     toggle_on_topic: HermesTopic,
     toggle_off_topic: HermesTopic,
-    mqtt_handler: Arc<MqttHandler>
+    mqtt_handler: Arc<MqttHandler>,
 }
 
 impl_identifiable_toggleable_facades_for!(MqttToggleableFacade);
@@ -344,7 +406,7 @@ struct MqttToggleableComponentFacade {
     component: Component,
     toggle_on_topic: HermesTopic,
     toggle_off_topic: HermesTopic,
-    mqtt_handler: Arc<MqttHandler>
+    mqtt_handler: Arc<MqttHandler>,
 }
 
 impl_component_facades_for!(MqttToggleableComponentFacade);
@@ -408,7 +470,7 @@ impl NluBackendFacade for MqttComponentFacade {
 impl AudioServerFacade for MqttToggleableComponentFacade {
     s_bin!(subscribe_audio_frame<AudioFrameMessage>(site_id: SiteId) { &HermesTopic::AudioServer(Some(site_id), AudioServerCommand::AudioFrame) }
             |topic, bytes| {
-                if let &HermesTopic::AudioServer(Some(ref site_id), AudioServerCommand::AudioFrame) = topic {
+                if let HermesTopic::AudioServer(Some(ref site_id), AudioServerCommand::AudioFrame) = *topic {
                     AudioFrameMessage { site_id: site_id.to_owned(), wav_frame: bytes.into() }
                 } else {
                     unreachable!()
@@ -427,7 +489,7 @@ impl AudioServerBackendFacade for MqttToggleableComponentFacade {
         { frame.wav_frame });
     s_bin!(subscribe_all_play_bytes<PlayBytesMessage> { &HermesTopic::AudioServer(Some("+".into()), AudioServerCommand::PlayBytes("#".into())) }
             |topic, bytes| {
-                if let &HermesTopic::AudioServer(Some(ref site_id), AudioServerCommand::PlayBytes(ref request_id)) = topic {
+                if let HermesTopic::AudioServer(Some(ref site_id), AudioServerCommand::PlayBytes(ref request_id)) = *topic {
                     PlayBytesMessage { session_id: None, site_id: site_id.to_owned(), id: request_id.to_owned(), wav_bytes: bytes.into() }
                 } else {
                     unreachable!()
@@ -435,7 +497,7 @@ impl AudioServerBackendFacade for MqttToggleableComponentFacade {
             });
     s_bin!(subscribe_play_bytes<PlayBytesMessage>(site_id: SiteId) { &HermesTopic::AudioServer(Some(site_id), AudioServerCommand::PlayBytes("#".into())) }
             |topic, bytes| {
-                if let &HermesTopic::AudioServer(Some(ref site_id), AudioServerCommand::PlayBytes(ref request_id)) = topic {
+                if let HermesTopic::AudioServer(Some(ref site_id), AudioServerCommand::PlayBytes(ref request_id)) = *topic {
                     PlayBytesMessage { session_id: None, site_id: site_id.to_owned(), id: request_id.to_owned(), wav_bytes: bytes.into() }
                 } else {
                     unreachable!()
@@ -471,7 +533,7 @@ impl MqttHermesProtocolHandler {
             mqtt_handler: Arc::clone(&self.mqtt_handler),
             component: Component::Hotword,
             toggle_on_topic: HermesTopic::Hotword(None, HotwordCommand::ToggleOn),
-            toggle_off_topic: HermesTopic::Hotword(None, HotwordCommand::ToggleOff)
+            toggle_off_topic: HermesTopic::Hotword(None, HotwordCommand::ToggleOff),
         })
     }
 
@@ -479,7 +541,9 @@ impl MqttHermesProtocolHandler {
         Box::new(MqttToggleableFacade {
             mqtt_handler: Arc::clone(&self.mqtt_handler),
             toggle_on_topic: HermesTopic::Feedback(FeedbackCommand::Sound(SoundCommand::ToggleOn)),
-            toggle_off_topic: HermesTopic::Feedback(FeedbackCommand::Sound(SoundCommand::ToggleOff))
+            toggle_off_topic: HermesTopic::Feedback(FeedbackCommand::Sound(
+                SoundCommand::ToggleOff,
+            )),
         })
     }
 
@@ -488,7 +552,7 @@ impl MqttHermesProtocolHandler {
             mqtt_handler: Arc::clone(&self.mqtt_handler),
             component: Component::Asr,
             toggle_on_topic: HermesTopic::Asr(AsrCommand::ToggleOn),
-            toggle_off_topic: HermesTopic::Asr(AsrCommand::ToggleOff)
+            toggle_off_topic: HermesTopic::Asr(AsrCommand::ToggleOff),
         })
     }
 
@@ -497,7 +561,7 @@ impl MqttHermesProtocolHandler {
             mqtt_handler: Arc::clone(&self.mqtt_handler),
             component: Component::DialogueManager,
             toggle_on_topic: HermesTopic::DialogueManager(DialogueManagerCommand::ToggleOn),
-            toggle_off_topic: HermesTopic::DialogueManager(DialogueManagerCommand::ToggleOff)
+            toggle_off_topic: HermesTopic::DialogueManager(DialogueManagerCommand::ToggleOff),
         })
     }
 
@@ -513,7 +577,7 @@ impl MqttHermesProtocolHandler {
     fn component(&self, component: Component) -> Box<MqttComponentFacade> {
         Box::new(MqttComponentFacade {
             mqtt_handler: Arc::clone(&self.mqtt_handler),
-            component
+            component,
         })
     }
 }
@@ -576,7 +640,6 @@ impl HermesProtocolHandler for MqttHermesProtocolHandler {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -625,13 +688,15 @@ mod tests {
         ::std::thread::sleep(::std::time::Duration::from_millis(200));
 
         let handler1 = HandlerHolder {
-            handler: MqttHermesProtocolHandler::new(&server_address).expect("could not create first client"),
-            server: Rc::clone(&server)
+            handler: MqttHermesProtocolHandler::new(&server_address)
+                .expect("could not create first client"),
+            server: Rc::clone(&server),
         };
 
         let handler2 = HandlerHolder {
-            handler: MqttHermesProtocolHandler::new(&server_address).expect("could not create second client"),
-            server: server
+            handler: MqttHermesProtocolHandler::new(&server_address)
+                .expect("could not create second client"),
+            server: server,
         };
 
         (handler1, handler2)
