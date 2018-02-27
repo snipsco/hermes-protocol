@@ -1,3 +1,4 @@
+extern crate failure;
 extern crate hermes;
 #[cfg(test)]
 #[macro_use]
@@ -18,14 +19,14 @@ extern crate strum;
 extern crate strum_macros;
 extern crate uuid;
 
+mod topics;
+
 use std::string::ToString;
 use std::sync::Arc;
 use std::sync::Mutex;
-
+use failure::{ResultExt, SyncFailure};
 use hermes::*;
-
-mod topics;
-
+use hermes::errors::*;
 use topics::*;
 
 pub use rumqtt::{ MqttOptions, TlsOptions };
@@ -42,8 +43,10 @@ impl MqttHandler {
                 let topic = &*topic.as_path();
                 debug!("Publishing on MQTT topic '{}'", topic);
                 c.publish(topic).and_then(|p| p.send())
-            })?
-            .chain_err(|| "Could not publish on MQTT")?;
+                    .map_err(SyncFailure::new)
+            })
+            .map_err(PoisonLock::from)
+            .context("Could not publish on MQTT")??;
         Ok(())
     }
 
@@ -74,9 +77,11 @@ impl MqttHandler {
                     c.publish(topic)
                         .map(|m| m.payload(p))
                         .and_then(|p| p.send())
+                        .map_err(SyncFailure::new)
                 })
-            })??
-            .chain_err(|| "Could not publish on MQTT")?;
+            })
+            .map_err(PoisonLock::from)
+            .context("Could not publish on MQTT")???;
         Ok(())
     }
 
@@ -93,8 +98,10 @@ impl MqttHandler {
                 c.publish(topic)
                     .map(|m| m.payload(payload))
                     .and_then(|p| p.send())
-            })?
-            .chain_err(|| "Could not publish on MQTT")?;
+                    .map_err(SyncFailure::new)
+            })
+            .map_err(PoisonLock::from)
+            .context("Could not publish on MQTT")??;
         Ok(())
     }
 
@@ -171,7 +178,7 @@ impl MqttHandler {
     where
         F: Fn(&::rumqtt::Publish) -> () + Send + Sync + 'static,
     {
-        let mut client = self.mqtt_client.lock()?;
+        let mut client = self.mqtt_client.lock().map_err(PoisonLock::from)?;
         client
             .subscribe(topic.to_string(), Box::new(callback))
             .unwrap()
@@ -197,7 +204,7 @@ impl MqttHermesProtocolHandler {
     pub fn new_with_options(options: rumqtt::MqttOptions) -> Result<MqttHermesProtocolHandler> {
         let name = options.broker_addr.clone();
         let mqtt_client =
-            rumqtt::MqttClient::start(options).chain_err(|| "Could not start MQTT client")?;
+            rumqtt::MqttClient::start(options).map_err(SyncFailure::new).context("Could not start MQTT client")?;
 
         let mqtt_handler = Arc::new(MqttHandler {
             mqtt_client: Mutex::new(mqtt_client),

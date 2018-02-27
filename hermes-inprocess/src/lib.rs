@@ -1,3 +1,4 @@
+extern crate failure;
 extern crate hermes;
 #[cfg(test)]
 #[macro_use]
@@ -14,6 +15,7 @@ use std::fmt::Debug;
 use std::sync::Mutex;
 
 use hermes::*;
+use hermes::errors::*;
 
 pub struct InProcessHermesProtocolHandler {
     bus: Mutex<ripb::Bus>,
@@ -97,13 +99,13 @@ struct InProcessComponent<T: Send + Sync + Debug> {
 impl<T: Send + Sync + Debug> InProcessComponent<T> {
     fn publish<M: ripb::Message + Debug + 'static>(&self, message: M) -> Result<()> {
         debug!("Publishing {:?}/{:#?}", self.component, message);
-        let bus = self.bus.lock()?;
+        let bus = self.bus.lock().map_err(PoisonLock::from)?;
         bus.publish(message);
         Ok(())
     }
 
     fn subscribe0<M: ripb::Message + 'static>(&self, callback: Callback0) -> Result<()> {
-        let subscriber = self.subscriber.lock()?;
+        let subscriber = self.subscriber.lock().map_err(PoisonLock::from)?;
         subscriber.on_message(move |_: &M| callback.call());
         Ok(())
     }
@@ -114,7 +116,7 @@ impl<T: Send + Sync + Debug> InProcessComponent<T> {
         P: 'static,
         C: Fn(&M) -> &P + Send + 'static,
     {
-        let subscriber = self.subscriber.lock()?;
+        let subscriber = self.subscriber.lock().map_err(PoisonLock::from)?;
         subscriber.on_message(move |m: &M| callback.call(converter(m)));
         Ok(())
     }
@@ -124,7 +126,7 @@ impl<T: Send + Sync + Debug> InProcessComponent<T> {
         M: ripb::Message + 'static,
         F: Fn(&M) -> bool + Send + 'static,
     {
-        let subscriber = self.subscriber.lock()?;
+        let subscriber = self.subscriber.lock().map_err(PoisonLock::from)?;
         subscriber.on_message(move |m: &M| {
             if filter(m) {
                 callback.call()
@@ -145,7 +147,7 @@ impl<T: Send + Sync + Debug> InProcessComponent<T> {
         C: Fn(&M) -> &P + Send + 'static,
         F: Fn(&M) -> bool + Send + 'static,
     {
-        let subscriber = self.subscriber.lock()?;
+        let subscriber = self.subscriber.lock().map_err(PoisonLock::from)?;
         subscriber.on_message(move |m: &M| {
             if filter(m) {
                 callback.call(converter(m))

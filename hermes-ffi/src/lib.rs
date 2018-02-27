@@ -1,3 +1,5 @@
+#[macro_use]
+extern crate failure;
 extern crate hermes;
 extern crate libc;
 extern crate snips_nlu_ontology_ffi;
@@ -6,8 +8,11 @@ use std::ffi::{CStr, CString};
 use std::slice;
 use std::ptr::null;
 
-use hermes::{Result, ResultExt};
+use failure::ResultExt;
+
 use snips_nlu_ontology_ffi::{CIntentClassifierResult, CSlot, CSlotList};
+
+type Result<T> = ::std::result::Result<T, ::failure::Error>;
 
 macro_rules! convert_to_c_string {
     ($string:expr) => {
@@ -17,15 +22,16 @@ macro_rules! convert_to_c_string {
 
 macro_rules! convert_to_c_string_result {
     ($string:expr) => {
-        CString::new($string).chain_err(||"Could not convert String to C Repr").map(|s| s.into_raw())
+        CString::new($string).context("Could not convert String to C Repr").map_err(::failure::Error::from).map(|s| s.into_raw())
     };
 }
 
 macro_rules! convert_to_c_array_string {
     ($string_vec:expr) => {
-        Box::into_raw(Box::new(CArrayString::from($string_vec).chain_err(|| "Could not convert Vector of Strings to C Repr")?)) as *const CArrayString
+        Box::into_raw(Box::new(CArrayString::from($string_vec).context("Could not convert Vector of Strings to C Repr")?)) as *const CArrayString
     }
 }
+
 macro_rules! convert_to_nullable_c_array_string {
     ($opt:expr) => {
         if let Some(s) = $opt {
@@ -74,7 +80,7 @@ macro_rules! create_rust_string_from {
     ($pointer:expr) => {
             unsafe { CStr::from_ptr($pointer) }
                 .to_str()
-                .map_err(|e| format!("UTF8 error: {:?}", e))?
+                .context("cannot convert to utf-8")?
                 .to_owned()
     };
 }
@@ -669,13 +675,13 @@ impl CSessionInit {
         match self.init_type {
             CSessionInitType::Action => {
                 unsafe { (self.value as *const CActionSessionInit).as_ref() }
-                    .ok_or_else(|| "unexpected null pointer in SessionInit value")?
+                    .ok_or_else(|| format_err!("unexpected null pointer in SessionInit value"))?
                     .to_action_session_init()
             }
             CSessionInitType::Notification => Ok(hermes::SessionInit::Notification {
                 text: create_rust_string_from!((self.value as *const libc::c_char)
                     .as_ref()
-                    .ok_or_else(|| "unexpected null pointer in SessionInit value")?),
+                    .ok_or_else(|| format_err!("unexpected null pointer in SessionInit value"))?),
             }),
         }
     }

@@ -1,6 +1,6 @@
 extern crate base64;
 #[macro_use]
-extern crate error_chain;
+extern crate failure;
 extern crate semver;
 extern crate serde;
 #[macro_use]
@@ -8,12 +8,12 @@ extern crate serde_derive;
 extern crate serde_json;
 extern crate snips_nlu_ontology;
 
-mod errors;
-
-pub use errors::*;
+pub mod errors;
 mod ontology;
 
 pub use ontology::*;
+
+use errors::*;
 
 /// A struct wrapping a callback with one argument, create one with the `new` method
 pub struct Callback<T> {

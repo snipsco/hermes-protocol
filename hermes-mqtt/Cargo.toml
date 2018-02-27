@@ -7,6 +7,7 @@ authors = ["Thibaut Lorrain <thibaut.lorrain@snips.ai>"]
 ignored_rustc_triples = ["arm-linux-androideabi", "armv7-linux-androideabi","aarch64-linux-android", "i686-linux-android", "x86_64-linux-android", "aarch64-apple-ios", "armv7-apple-ios", "armv7s-apple-ios", "i386-apple-ios", "x86_64-apple-ios"]
 
 [dependencies]
+failure = "0.1"
 hermes = { path = ".." }
 hermes-test-suite = { path = "../hermes-test-suite" }
 log = "0.4"

@@ -4,6 +4,7 @@ version = "0.54.0-SNAPSHOT"
 authors = ["Thibaut Lorrain <thibaut.lorrain@snips.ai>"]
 
 [dependencies]
+failure = "0.1"
 ripb = { git="ssh://git@github.com/snipsco/ripb", rev="4c5e31085" }
 hermes = { path = ".." }
 hermes-test-suite = { path = "../hermes-test-suite" }

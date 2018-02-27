@@ -1,11 +1,15 @@
-error_chain! {
-    foreign_links {
-        Serde(::serde_json::Error);
-    }
-}
+use std::result;
+use std::sync::PoisonError;
+use failure;
 
-impl<T> ::std::convert::From<::std::sync::PoisonError<T>> for Error {
-    fn from(pe: ::std::sync::PoisonError<T>) -> Error {
-        format!("Poisoning error: {:?}", pe).into()
+pub type Result<T> = result::Result<T, failure::Error>;
+
+#[derive(Debug, Fail)]
+#[fail(display = "Can't lock thread")]
+pub struct PoisonLock;
+
+impl<T> From<PoisonError<T>> for PoisonLock {
+    fn from(_: PoisonError<T>) -> Self {
+        Self {}
     }
 }
