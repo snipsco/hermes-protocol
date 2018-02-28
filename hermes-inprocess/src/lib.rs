@@ -455,7 +455,11 @@ struct HotwordDetected {
 }
 
 impl HotwordFacade for InProcessComponent<Hotword> {
-    fn subscribe_detected(&self, id: String, handler: Callback<HotwordDetectedMessage>) -> Result<()> {
+    fn subscribe_detected(
+        &self,
+        id: String,
+        handler: Callback<HotwordDetectedMessage>,
+    ) -> Result<()> {
         subscribe_filter!(self, HotwordDetected { message }, handler, id, |it| {
             &it.id
         })

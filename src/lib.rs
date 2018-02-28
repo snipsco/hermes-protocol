@@ -116,7 +116,11 @@ pub trait IdentifiableToggleableBackendFacade: Send + Sync {
 /// The facade to interact with the hotword component
 pub trait HotwordFacade
     : IdentifiableComponentFacade + IdentifiableToggleableFacade {
-    fn subscribe_detected(&self, id: String, handler: Callback<HotwordDetectedMessage>) -> Result<()>;
+    fn subscribe_detected(
+        &self,
+        id: String,
+        handler: Callback<HotwordDetectedMessage>,
+    ) -> Result<()>;
     fn subscribe_all_detected(&self, handler: Callback<HotwordDetectedMessage>) -> Result<()>;
 }
 
