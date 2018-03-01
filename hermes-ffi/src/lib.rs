@@ -1,10 +1,19 @@
 #[macro_use]
+extern crate error_chain;
+#[macro_use]
 extern crate failure;
 extern crate hermes;
+extern crate hermes_mqtt;
+#[macro_use]
+extern crate lazy_static;
 extern crate libc;
 extern crate snips_nlu_ontology_ffi_macros;
 
-use std::ffi::{CStr, CString};
+
+use failure:: ResultExt;pub use protocol_handler::*;
+use snips_nlu_ontology_ffi::{CIntentClassifierResult, CSlot, CSlotList};
+use std::ffi::CString;
+use std::ptr::null;
 use std::slice;
 use std::ptr::null;
 
@@ -22,13 +31,13 @@ macro_rules! convert_to_c_string {
 
 macro_rules! convert_to_c_string_result {
     ($string:expr) => {
-        CString::new($string).context("Could not convert String to C Repr").map_err(::failure::Error::from).map(|s| s.into_raw())
+        ::std::ffi::CString::new($string).context("Could not convert String to C Repr").map_err(::failure::Error::from).map(|s| s.into_raw())
     };
 }
 
 macro_rules! convert_to_c_array_string {
     ($string_vec:expr) => {
-        Box::into_raw(Box::new(CArrayString::from($string_vec).context("Could not convert Vector of Strings to C Repr")?)) as *const CArrayString
+        Box::into_raw(Box::new(CArrayString::create_raw_from($string_vec).context("Could not convert Vector of Strings to C Repr")?)) as *const CArrayString
     }
 }
 
@@ -78,7 +87,7 @@ macro_rules! take_back_nullable_c_array_string {
 
 macro_rules! create_rust_string_from {
     ($pointer:expr) => {
-            unsafe { CStr::from_ptr($pointer) }
+            unsafe { ::std::ffi::CStr::from_ptr($pointer) }
                 .to_str()
                 .context("cannot convert to utf-8")?
                 .to_owned()
@@ -94,6 +103,16 @@ macro_rules! create_optional_rust_string_from {
     };
 }
 
+mod protocol_handler;
+
+pub trait CreateRawFrom<T>: Sized {
+    fn create_raw_from(input: T) -> Result<Self>;
+}
+
+pub trait ToRustStruct<T> {
+    fn to_rust_struct(&self) -> Result<T>;
+}
+
 #[repr(C)]
 #[derive(Debug)]
 pub struct CArrayString {
@@ -102,21 +121,8 @@ pub struct CArrayString {
     pub size: libc::c_int,
 }
 
-impl CArrayString {
-    pub fn from(input: Vec<String>) -> Result<Self> {
-        Ok(Self {
-            size: input.len() as libc::c_int,
-            data: Box::into_raw(
-                input
-                    .into_iter()
-                    .map(|s| convert_to_c_string_result!(s))
-                    .collect::<Result<Vec<_>>>()?
-                    .into_boxed_slice(),
-            ) as *const *const libc::c_char,
-        })
-    }
-
-    pub fn to_string_vec(&self) -> Result<Vec<String>> {
+impl ToRustStruct<Vec<String>> for CArrayString {
+    fn to_rust_struct(&self) -> Result<Vec<String>> {
         let mut result = vec![];
 
         let strings = unsafe {
@@ -128,6 +134,18 @@ impl CArrayString {
         }
 
         Ok(result)
+    }
+}
+
+impl CreateRawFrom<Vec<String>> for CArrayString {
+    fn create_raw_from(input: Vec<String>) -> Result<Self> {
+        Ok(Self {
+            size: input.len() as libc::c_int,
+            data: Box::into_raw(input.into_iter()
+                .map(|s| convert_to_c_string_result!(s))
+                .collect::<Result<Vec<_>>>()?
+                .into_boxed_slice()) as *const *const libc::c_char,
+        })
     }
 }
 
@@ -375,8 +393,8 @@ pub struct CSayMessage {
     pub session_id: *const libc::c_char,
 }
 
-impl CSayMessage {
-    pub fn from(input: hermes::SayMessage) -> Result<Self> {
+impl CreateRawFrom<hermes::SayMessage> for CSayMessage {
+    fn create_raw_from(input: hermes::SayMessage) -> Result<Self> {
         Ok(Self {
             text: convert_to_c_string!(input.text),
             lang: convert_to_nullable_c_string!(input.lang),
@@ -386,6 +404,31 @@ impl CSayMessage {
         })
     }
 }
+
+impl ToRustStruct<hermes::SayMessage> for CSayMessage {
+    fn to_rust_struct(&self) -> Result<hermes::SayMessage> {
+        Ok(hermes::SayMessage {
+            text: create_rust_string_from!(self.text),
+            lang: create_optional_rust_string_from!(self.lang),
+            id: create_optional_rust_string_from!(self.id),
+            site_id: create_rust_string_from!(self.site_id),
+            session_id: create_optional_rust_string_from!(self.session_id),
+        })
+    }
+}
+
+
+impl CSayMessage {
+    pub fn from(input: hermes::SayMessage) -> Result<Self> {
+        Self::create_raw_from(input)
+    }
+
+    pub fn to_say_message(&self) -> Result<hermes::SayMessage> {
+        self.to_rust_struct()
+    }
+}
+
+unsafe impl Sync for CSayMessage {}
 
 impl Drop for CSayMessage {
     fn drop(&mut self) {
@@ -555,8 +598,16 @@ pub struct CIntentMessage {
     pub slots: *const CSlotList,
 }
 
+unsafe impl Sync for CIntentMessage {}
+
 impl CIntentMessage {
     pub fn from(input: hermes::IntentMessage) -> Result<Self> {
+        Self::create_raw_from(input)
+    }
+}
+
+impl CreateRawFrom<hermes::IntentMessage> for CIntentMessage {
+    fn create_raw_from(input: hermes::IntentMessage) -> Result<Self> {
         Ok(Self {
             session_id: convert_to_c_string!(input.session_id),
             custom_data: convert_to_nullable_c_string!(input.custom_data),
@@ -628,7 +679,7 @@ impl CActionSessionInit {
         Ok(hermes::SessionInit::Action {
             text: create_optional_rust_string_from!(self.text),
             intent_filter: match unsafe { self.intent_filter.as_ref() } {
-                Some(it) => Some(it.to_string_vec()?),
+                Some(it) => Some(it.to_rust_struct()?),
                 None => None,
             },
             can_be_enqueued: self.can_be_enqueued == 1,
@@ -718,6 +769,12 @@ impl CStartSessionMessage {
     }
 
     pub fn to_start_session_message(&self) -> Result<hermes::StartSessionMessage> {
+        self.to_rust_struct()
+    }
+}
+
+impl ToRustStruct<hermes::StartSessionMessage> for CStartSessionMessage {
+    fn to_rust_struct(&self) -> Result<hermes::StartSessionMessage> {
         Ok(hermes::StartSessionMessage {
             init: self.init.to_session_init()?,
             custom_data: create_optional_rust_string_from!(self.custom_data),
@@ -744,8 +801,16 @@ pub struct CSessionStartedMessage {
     pub reactivated_from_session_id: *const libc::c_char,
 }
 
+unsafe impl Sync for CSessionStartedMessage {}
+
 impl CSessionStartedMessage {
     pub fn from(input: hermes::SessionStartedMessage) -> Result<Self> {
+        Self::create_raw_from(input)
+    }
+}
+
+impl CreateRawFrom<hermes::SessionStartedMessage> for CSessionStartedMessage {
+    fn create_raw_from(input: hermes::SessionStartedMessage) -> Result<Self> {
         Ok(Self {
             session_id: convert_to_c_string!(input.session_id),
             custom_data: convert_to_nullable_c_string!(input.custom_data),
@@ -775,8 +840,16 @@ pub struct CSessionQueuedMessage {
     pub site_id: *const libc::c_char,
 }
 
+unsafe impl Sync for CSessionQueuedMessage {}
+
 impl CSessionQueuedMessage {
     pub fn from(input: hermes::SessionQueuedMessage) -> Result<Self> {
+        Self::create_raw_from(input)
+    }
+}
+
+impl CreateRawFrom<hermes::SessionQueuedMessage> for CSessionQueuedMessage {
+    fn create_raw_from(input: hermes::SessionQueuedMessage) -> Result<Self> {
         Ok(Self {
             session_id: convert_to_c_string!(input.session_id),
             custom_data: convert_to_nullable_c_string!(input.custom_data),
@@ -812,11 +885,17 @@ impl CContinueSessionMessage {
     }
 
     pub fn to_continue_session_message(&self) -> Result<hermes::ContinueSessionMessage> {
+        self.to_rust_struct()
+    }
+}
+
+impl ToRustStruct<hermes::ContinueSessionMessage> for CContinueSessionMessage {
+    fn to_rust_struct(&self) -> Result<hermes::ContinueSessionMessage> {
         Ok(hermes::ContinueSessionMessage {
             session_id: create_rust_string_from!(self.session_id),
             text: create_rust_string_from!(self.text),
             intent_filter: match unsafe { self.intent_filter.as_ref() } {
-                Some(it) => Some(it.to_string_vec()?),
+                Some(it) => Some(it.to_rust_struct()?),
                 None => None,
             },
         })
@@ -848,6 +927,12 @@ impl CEndSessionMessage {
     }
 
     pub fn to_end_session_message(&self) -> Result<hermes::EndSessionMessage> {
+        self.to_rust_struct()
+    }
+}
+
+impl ToRustStruct<hermes::EndSessionMessage> for CEndSessionMessage {
+    fn to_rust_struct(&self) -> Result<hermes::EndSessionMessage> {
         Ok(hermes::EndSessionMessage {
             session_id: create_rust_string_from!(self.session_id),
             text: create_optional_rust_string_from!(self.text),
@@ -928,8 +1013,16 @@ pub struct CSessionEndedMessage {
     pub site_id: *const libc::c_char,
 }
 
+unsafe impl Sync for CSessionEndedMessage {}
+
 impl CSessionEndedMessage {
     pub fn from(input: hermes::SessionEndedMessage) -> Result<Self> {
+        Self::create_raw_from(input)
+    }
+}
+
+impl CreateRawFrom<hermes::SessionEndedMessage> for CSessionEndedMessage {
+    fn create_raw_from(input: hermes::SessionEndedMessage) -> Result<Self> {
         Ok(Self {
             session_id: convert_to_c_string!(input.session_id),
             custom_data: convert_to_nullable_c_string!(input.custom_data),

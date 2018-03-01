@@ -5,6 +5,8 @@ authors = ["Thibaut Lorrain <thibaut.lorrain@snips.ai>"]
 
 [dependencies]
 hermes = { path = ".." }
+lazy_static = { version="1.0" }
 failure = "0.1"
 libc = "0.2"
 snips-nlu-ontology-ffi-macros = { git = "https://github.com/snipsco/snips-nlu-ontology", tag = "0.54.0" }
+hermes-mqtt = { path = "../hermes-mqtt" }
