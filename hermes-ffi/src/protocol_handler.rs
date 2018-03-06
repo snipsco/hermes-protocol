@@ -185,20 +185,23 @@ generate_facade_wrapper!(CTtsBackendFacade for hermes::TtsBackendFacade,
 generate_facade_subscribe!(hermes_tts_backend_subscribe_say = CTtsBackendFacade:subscribe_say(|CSayMessage|));
 generate_facade_publish!(hermes_tts_backend_publish_say_finished = CTtsBackendFacade:publish_say_finished(CSayFinishedMessage));
 
-
 generate_facade_wrapper!(CNluFacade for hermes::NluFacade,
                          hermes_drop_nlu_facade,
                          hermes_protocol_handler_nlu_facade = handler.nlu);
-/*generate_facade_publish!(hermes_nlu_publish_query = CNluFacade:publish_query(CNluQueryMessage));
+generate_facade_publish!(hermes_nlu_publish_query = CNluFacade:publish_query(CNluQueryMessage));
 generate_facade_publish!(hermes_nlu_publish_partial_query = CNluFacade:publish_partial_query(CNluSlotQueryMessage));
 generate_facade_subscribe!(hermes_nlu_subscribe_slot_parsed = CNluFacade:subscribe_slot_parsed(|CNluSlotMessage|));
 generate_facade_subscribe!(hermes_nlu_subscribe_intent_parsed = CNluFacade:subscribe_intent_parsed(|CNluIntentMessage|));
 generate_facade_subscribe!(hermes_nlu_subscribe_intent_not_recognized = CNluFacade:subscribe_intent_not_recognized(|CNluIntentNotRecognizedMessage|));
-*/
 
 generate_facade_wrapper!(CNluBackendFacade for hermes::NluBackendFacade,
                          hermes_drop_nlu_backend_facade,
                          hermes_protocol_handler_nlu_backend_facade = handler.nlu_backend);
+generate_facade_subscribe!(hermes_nlu_backend_subscribe_query = CNluBackendFacade:subscribe_query(|CNluQueryMessage|));
+generate_facade_subscribe!(hermes_nlu_backend_subscribe_partial_query = CNluBackendFacade:subscribe_partial_query(|CNluSlotQueryMessage|));
+generate_facade_publish!(hermes_nlu_backend_publish_slot_parsed = CNluBackendFacade:publish_slot_parsed(CNluSlotMessage));
+generate_facade_publish!(hermes_nlu_backend_publish_intent_parsed = CNluBackendFacade:publish_intent_parsed(CNluIntentMessage));
+generate_facade_publish!(hermes_nlu_backend_publish_intent_not_recognized = CNluBackendFacade:publish_intent_not_recognized(CNluIntentNotRecognizedMessage));
 
 generate_facade_wrapper!(CDialogueFacade for hermes::DialogueFacade,
                          hermes_drop_dialogue_facade,
