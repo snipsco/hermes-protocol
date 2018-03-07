@@ -28,6 +28,8 @@ mod topics;
 
 use topics::*;
 
+pub use rumqtt::{ MqttOptions, TlsOptions };
+
 struct MqttHandler {
     pub mqtt_client: Mutex<rumqtt::MqttClient>,
 }
@@ -180,25 +182,28 @@ impl MqttHandler {
 }
 
 pub struct MqttHermesProtocolHandler {
+    name: String,
     mqtt_handler: Arc<MqttHandler>,
 }
 
 impl MqttHermesProtocolHandler {
     pub fn new(broker_address: &str) -> Result<MqttHermesProtocolHandler> {
         info!("Connecting to MQTT broker at address {}", broker_address);
-        let id = uuid::Uuid::new_v4().simple().to_string();
-        let client_options = rumqtt::MqttOptions::new(id, broker_address) // FIXME
-            .set_keep_alive(5);
-        //            .set_reconnect(3); // FIXME
+        let id = ::uuid::Uuid::new_v4().simple().to_string();
+        let client_options = rumqtt::MqttOptions::new(id, broker_address);
+        Self::new_with_options(client_options)
+    }
 
+    pub fn new_with_options(options: rumqtt::MqttOptions) -> Result<MqttHermesProtocolHandler> {
+        let name = options.broker_addr.clone();
         let mqtt_client =
-            rumqtt::MqttClient::start(client_options).chain_err(|| "Could not start MQTT client")?;
+            rumqtt::MqttClient::start(options).chain_err(|| "Could not start MQTT client")?;
 
         let mqtt_handler = Arc::new(MqttHandler {
             mqtt_client: Mutex::new(mqtt_client),
         });
 
-        Ok(MqttHermesProtocolHandler { mqtt_handler })
+        Ok(MqttHermesProtocolHandler { name, mqtt_handler })
     }
 }
 
@@ -637,6 +642,12 @@ impl HermesProtocolHandler for MqttHermesProtocolHandler {
 
     fn dialogue_backend(&self) -> Box<DialogueBackendFacade> {
         self.dialogue_component()
+    }
+}
+
+impl std::fmt::Display for MqttHermesProtocolHandler {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{} (MQTT)", self.name)
     }
 }
 

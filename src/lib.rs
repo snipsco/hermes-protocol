@@ -244,7 +244,7 @@ pub trait DialogueBackendFacade
     fn subscribe_end_session(&self, handler: Callback<EndSessionMessage>) -> Result<()>;
 }
 
-pub trait HermesProtocolHandler: Send + Sync {
+pub trait HermesProtocolHandler: Send + Sync + std::fmt::Display {
     fn hotword(&self) -> Box<HotwordFacade>;
     fn sound_feedback(&self) -> Box<SoundFeedbackFacade>;
     fn asr(&self) -> Box<AsrFacade>;

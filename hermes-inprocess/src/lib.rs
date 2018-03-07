@@ -82,6 +82,12 @@ impl HermesProtocolHandler for InProcessHermesProtocolHandler {
     }
 }
 
+impl std::fmt::Display for InProcessHermesProtocolHandler {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "Snips InProcess Bus")
+    }
+}
+
 struct InProcessComponent<T: Send + Sync + Debug> {
     component: T,
     bus: Mutex<ripb::Bus>,
