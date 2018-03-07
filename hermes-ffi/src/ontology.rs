@@ -1,6 +1,6 @@
 use ::Result;
 use failure::ResultExt;
-use ffi_utils::{AsRust, CArrayString, CReprOf, RawPointerConverter, RawBorrow};
+use ffi_utils::{AsRust, CArrayString, CReprOf, RawBorrow, RawPointerConverter};
 use hermes;
 use libc;
 use snips_nlu_ontology_ffi::{CIntentClassifierResult, CSlot, CSlotList};
@@ -168,10 +168,10 @@ impl CReprOf<hermes::NluQueryMessage> for CNluQueryMessage {
 impl AsRust<hermes::NluQueryMessage> for CNluQueryMessage {
     fn as_rust(&self) -> Result<hermes::NluQueryMessage> {
         Ok(hermes::NluQueryMessage {
-            input : create_rust_string_from!(self.input),
-            intent_filter : create_optional_rust_vec_string_from!(self.intent_filter),
-            id : create_optional_rust_string_from!(self.id),
-            session_id : create_optional_rust_string_from!(self.session_id),
+            input: create_rust_string_from!(self.input),
+            intent_filter: create_optional_rust_vec_string_from!(self.intent_filter),
+            id: create_optional_rust_string_from!(self.id),
+            session_id: create_optional_rust_string_from!(self.session_id),
         })
     }
 }
@@ -221,11 +221,11 @@ impl CReprOf<hermes::NluSlotQueryMessage> for CNluSlotQueryMessage {
 impl AsRust<hermes::NluSlotQueryMessage> for CNluSlotQueryMessage {
     fn as_rust(&self) -> Result<hermes::NluSlotQueryMessage> {
         Ok(hermes::NluSlotQueryMessage {
-            input : create_rust_string_from!(self.input),
-            intent_name : create_rust_string_from!(self.intent_name),
-            slot_name : create_rust_string_from!(self.slot_name),
-            id : create_optional_rust_string_from!(self.id),
-            session_id : create_optional_rust_string_from!(self.session_id),
+            input: create_rust_string_from!(self.input),
+            intent_name: create_rust_string_from!(self.intent_name),
+            slot_name: create_rust_string_from!(self.slot_name),
+            id: create_optional_rust_string_from!(self.id),
+            session_id: create_optional_rust_string_from!(self.session_id),
         })
     }
 }
@@ -253,14 +253,36 @@ pub struct CPlayBytesMessage {
     pub session_id: *const libc::c_char,
 }
 
+unsafe impl Sync for CPlayBytesMessage {}
+
 impl CPlayBytesMessage {
     pub fn from(input: hermes::PlayBytesMessage) -> Result<Self> {
+        Self::c_repr_of(input)
+    }
+}
+
+impl CReprOf<hermes::PlayBytesMessage> for CPlayBytesMessage {
+    fn c_repr_of(input: hermes::PlayBytesMessage) -> Result<Self> {
         Ok(Self {
             id: convert_to_c_string!(input.id),
             wav_bytes_len: input.wav_bytes.len() as libc::c_int,
             wav_bytes: Box::into_raw(input.wav_bytes.into_boxed_slice()) as *const u8,
             site_id: convert_to_c_string!(input.site_id),
             session_id: convert_to_nullable_c_string!(input.session_id),
+        })
+    }
+}
+
+impl AsRust<hermes::PlayBytesMessage> for CPlayBytesMessage {
+    fn as_rust(&self) -> Result<hermes::PlayBytesMessage> {
+        Ok(hermes::PlayBytesMessage {
+            id: create_rust_string_from!(self.id),
+            wav_bytes: unsafe {
+                slice::from_raw_parts(self.wav_bytes as *const u8,
+                                      self.wav_bytes_len as usize)
+            }.to_vec(),
+            site_id: create_rust_string_from!(self.site_id),
+            session_id: create_optional_rust_string_from!(self.session_id),
         })
     }
 }
@@ -288,12 +310,32 @@ pub struct CAudioFrameMessage {
     pub site_id: *const libc::c_char,
 }
 
+unsafe impl Sync for CAudioFrameMessage {}
+
 impl CAudioFrameMessage {
     pub fn from(input: hermes::AudioFrameMessage) -> Result<Self> {
+        Self::c_repr_of(input)
+    }
+}
+
+impl CReprOf<hermes::AudioFrameMessage> for CAudioFrameMessage {
+    fn c_repr_of(input: hermes::AudioFrameMessage) -> Result<Self> {
         Ok(Self {
             wav_frame_len: input.wav_frame.len() as libc::c_int,
             wav_frame: Box::into_raw(input.wav_frame.into_boxed_slice()) as *const u8,
             site_id: convert_to_c_string!(input.site_id),
+        })
+    }
+}
+
+impl AsRust<hermes::AudioFrameMessage> for CAudioFrameMessage {
+    fn as_rust(&self) -> Result<hermes::AudioFrameMessage> {
+        Ok(hermes::AudioFrameMessage {
+            wav_frame: unsafe {
+                slice::from_raw_parts(self.wav_frame as *const u8,
+                                      self.wav_frame_len as usize)
+            }.to_vec(),
+            site_id: create_rust_string_from!(self.site_id),
         })
     }
 }
@@ -319,12 +361,30 @@ pub struct CPlayFinishedMessage {
     pub session_id: *const libc::c_char,
 }
 
+unsafe impl Sync for CPlayFinishedMessage {}
+
 impl CPlayFinishedMessage {
     pub fn from(input: hermes::PlayFinishedMessage) -> Result<Self> {
+        Self::c_repr_of(input)
+    }
+}
+
+impl CReprOf<hermes::PlayFinishedMessage> for CPlayFinishedMessage {
+    fn c_repr_of(input: hermes::PlayFinishedMessage) -> Result<Self> {
         Ok(Self {
             id: convert_to_c_string!(input.id),
             site_id: convert_to_c_string!(input.site_id),
             session_id: convert_to_nullable_c_string!(input.session_id),
+        })
+    }
+}
+
+impl AsRust<hermes::PlayFinishedMessage> for CPlayFinishedMessage {
+    fn as_rust(&self) -> Result<hermes::PlayFinishedMessage> {
+        Ok(hermes::PlayFinishedMessage {
+            id: create_rust_string_from!(self.id),
+            site_id: create_rust_string_from!(self.site_id),
+            session_id: create_optional_rust_string_from!(self.session_id),
         })
     }
 }

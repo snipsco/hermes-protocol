@@ -203,6 +203,24 @@ generate_facade_publish!(hermes_nlu_backend_publish_slot_parsed = CNluBackendFac
 generate_facade_publish!(hermes_nlu_backend_publish_intent_parsed = CNluBackendFacade:publish_intent_parsed(CNluIntentMessage));
 generate_facade_publish!(hermes_nlu_backend_publish_intent_not_recognized = CNluBackendFacade:publish_intent_not_recognized(CNluIntentNotRecognizedMessage));
 
+
+generate_facade_wrapper!(CAudioServerFacade for hermes::AudioServerFacade,
+                         hermes_drop_audio_server_facade,
+                         hermes_protocol_handler_audio_server_facade = handler.audio_server);
+
+generate_facade_publish!(hermes_audio_server_publish_play_bytes = CAudioServerFacade:publish_play_bytes(CPlayBytesMessage));
+generate_facade_subscribe!(hermes_audio_server_subscribe_play_finished = CAudioServerFacade:subscribe_play_finished(site_id: ::std::ffi::CStr as libc::c_char, |CPlayFinishedMessage|));
+generate_facade_subscribe!(hermes_audio_server_subscribe_all_play_finished = CAudioServerFacade:subscribe_all_play_finished(|CPlayFinishedMessage|));
+generate_facade_subscribe!(hermes_audio_server_subscribe_audio_frame = CAudioServerFacade:subscribe_audio_frame(site_id: ::std::ffi::CStr as libc::c_char, |CAudioFrameMessage|));
+
+generate_facade_wrapper!(CAudioServerBackendFacade for hermes::AudioServerBackendFacade,
+                         hermes_drop_audio_server_backend_facade,
+                         hermes_protocol_handler_audio_server_backend_facade = handler.audio_server_backend);
+generate_facade_subscribe!(hermes_audio_server_backend_subscribe_play_bytes = CAudioServerBackendFacade:subscribe_play_bytes(site_id: ::std::ffi::CStr as libc::c_char,|CPlayBytesMessage|));
+generate_facade_subscribe!(hermes_audio_server_backend_subscribe_all_play_bytes = CAudioServerBackendFacade:subscribe_all_play_bytes(|CPlayBytesMessage|));
+generate_facade_publish!(hermes_audio_server_backend_publish_play_finished = CAudioServerBackendFacade:publish_play_finished(CPlayFinishedMessage));
+generate_facade_publish!(hermes_audio_server_backend_publish_audio_frame = CAudioServerBackendFacade:publish_audio_frame(CAudioFrameMessage));
+
 generate_facade_wrapper!(CDialogueFacade for hermes::DialogueFacade,
                          hermes_drop_dialogue_facade,
                          hermes_protocol_handler_dialogue_facade = handler.dialogue);
