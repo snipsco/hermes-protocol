@@ -16,6 +16,7 @@ extern crate snips_nlu_ontology;
 extern crate strum;
 #[macro_use]
 extern crate strum_macros;
+extern crate uuid;
 
 use std::string::ToString;
 use std::sync::Arc;
@@ -26,8 +27,6 @@ use hermes::*;
 mod topics;
 
 use topics::*;
-
-pub use rumqtt::{ MqttOptions, TlsOptions };
 
 struct MqttHandler {
     pub mqtt_client: Mutex<rumqtt::MqttClient>,
@@ -185,10 +184,15 @@ pub struct MqttHermesProtocolHandler {
 }
 
 impl MqttHermesProtocolHandler {
+    pub fn new(broker_address: &str) -> Result<MqttHermesProtocolHandler> {
+        info!("Connecting to MQTT broker at address {}", broker_address);
+        let id = uuid::Uuid::new_v4().simple().to_string();
+        let client_options = rumqtt::MqttOptions::new(id, broker_address) // FIXME
+            .set_keep_alive(5);
+        //            .set_reconnect(3); // FIXME
 
-    pub fn new_with_options(options: rumqtt::MqttOptions) -> Result<MqttHermesProtocolHandler> {
         let mqtt_client =
-            rumqtt::MqttClient::start(options).chain_err(|| "Could not start MQTT client")?;
+            rumqtt::MqttClient::start(client_options).chain_err(|| "Could not start MQTT client")?;
 
         let mqtt_handler = Arc::new(MqttHandler {
             mqtt_client: Mutex::new(mqtt_client),
