@@ -712,6 +712,20 @@ impl CReprOf<hermes::IntentMessage> for CIntentMessage {
     }
 }
 
+impl AsRust<hermes::IntentMessage> for CIntentMessage {
+    fn as_rust(&self) -> Result<hermes::IntentMessage> {
+        /*Ok(hermes::IntentMessage {
+            session_id: create_rust_string_from!(self.session_id),
+            custom_data: create_optional_rust_string_from!(self.custom_data),
+            site_id: create_rust_string_from!(self.site_id),
+            input: create_rust_string_from!(self.input),
+            intent: unsafe {CIntentClassifierResult::raw_borrow(self.intent) }?.as_rust()?, // TODO impl in snips-nlu-ontology
+            slots: if self.slots.is_null() { None }  else { unsafe {CSlotList::raw_borrow(self.slots)}?.as_rust()? }, // TODO impl in snips-nlu-ontology
+        })*/
+        bail!("Missing converter for CIntentClassifierResult and CSlotList, if you need this feature, please tell us !")
+    }
+}
+
 impl Drop for CIntentMessage {
     fn drop(&mut self) {
         take_back_c_string!(self.session_id);
@@ -848,8 +862,20 @@ pub struct CStartSessionMessage {
     pub site_id: *const libc::c_char,
 }
 
+unsafe impl Sync for CStartSessionMessage {}
+
 impl CStartSessionMessage {
     pub fn from(input: hermes::StartSessionMessage) -> Result<Self> {
+        Self::c_repr_of(input)
+    }
+
+    pub fn to_start_session_message(&self) -> Result<hermes::StartSessionMessage> {
+        self.as_rust()
+    }
+}
+
+impl CReprOf<hermes::StartSessionMessage> for CStartSessionMessage {
+    fn c_repr_of(input: hermes::StartSessionMessage) -> Result<Self> {
         Ok(Self {
             init: CSessionInit::from(input.init)?,
             custom_data: convert_to_nullable_c_string!(input.custom_data),
@@ -857,9 +883,6 @@ impl CStartSessionMessage {
         })
     }
 
-    pub fn to_start_session_message(&self) -> Result<hermes::StartSessionMessage> {
-        self.as_rust()
-    }
 }
 
 impl AsRust<hermes::StartSessionMessage> for CStartSessionMessage {
@@ -911,6 +934,19 @@ impl CReprOf<hermes::SessionStartedMessage> for CSessionStartedMessage {
     }
 }
 
+impl AsRust<hermes::SessionStartedMessage> for CSessionStartedMessage {
+    fn as_rust(&self) -> Result<hermes::SessionStartedMessage> {
+        Ok(hermes::SessionStartedMessage {
+            session_id: create_rust_string_from!(self.session_id),
+            custom_data: create_optional_rust_string_from!(self.custom_data),
+            site_id: create_rust_string_from!(self.site_id),
+            reactivated_from_session_id: create_optional_rust_string_from!(
+                self.reactivated_from_session_id
+            ),
+        })
+    }
+}
+
 impl Drop for CSessionStartedMessage {
     fn drop(&mut self) {
         take_back_c_string!(self.session_id);
@@ -947,6 +983,16 @@ impl CReprOf<hermes::SessionQueuedMessage> for CSessionQueuedMessage {
     }
 }
 
+impl AsRust<hermes::SessionQueuedMessage> for CSessionQueuedMessage {
+    fn as_rust(&self) -> Result<hermes::SessionQueuedMessage> {
+        Ok(hermes::SessionQueuedMessage {
+            session_id: create_rust_string_from!(self.session_id),
+            custom_data: create_optional_rust_string_from!(self.custom_data),
+            site_id: create_rust_string_from!(self.site_id),
+        })
+    }
+}
+
 impl Drop for CSessionQueuedMessage {
     fn drop(&mut self) {
         take_back_c_string!(self.session_id);
@@ -964,8 +1010,20 @@ pub struct CContinueSessionMessage {
     pub intent_filter: *const CArrayString,
 }
 
+unsafe impl Sync for CContinueSessionMessage {}
+
 impl CContinueSessionMessage {
     pub fn from(input: hermes::ContinueSessionMessage) -> Result<Self> {
+        Self::c_repr_of(input)
+    }
+
+    pub fn to_continue_session_message(&self) -> Result<hermes::ContinueSessionMessage> {
+        self.as_rust()
+    }
+}
+
+impl CReprOf<hermes::ContinueSessionMessage> for CContinueSessionMessage {
+    fn c_repr_of(input: hermes::ContinueSessionMessage) -> Result<Self> {
         Ok(Self {
             session_id: convert_to_c_string!(input.session_id),
             text: convert_to_c_string!(input.text),
@@ -973,9 +1031,6 @@ impl CContinueSessionMessage {
         })
     }
 
-    pub fn to_continue_session_message(&self) -> Result<hermes::ContinueSessionMessage> {
-        self.as_rust()
-    }
 }
 
 impl AsRust<hermes::ContinueSessionMessage> for CContinueSessionMessage {
@@ -1007,16 +1062,24 @@ pub struct CEndSessionMessage {
     pub text: *const libc::c_char,
 }
 
+unsafe impl Sync for CEndSessionMessage {}
+
 impl CEndSessionMessage {
     pub fn from(input: hermes::EndSessionMessage) -> Result<Self> {
-        Ok(Self {
-            session_id: convert_to_c_string!(input.session_id),
-            text: convert_to_nullable_c_string!(input.text),
-        })
+        Self::c_repr_of(input)
     }
 
     pub fn to_end_session_message(&self) -> Result<hermes::EndSessionMessage> {
         self.as_rust()
+    }
+}
+
+impl CReprOf<hermes::EndSessionMessage> for CEndSessionMessage {
+    fn c_repr_of(input: hermes::EndSessionMessage) -> Result<Self> {
+        Ok(Self {
+            session_id: convert_to_c_string!(input.session_id),
+            text: convert_to_nullable_c_string!(input.text),
+        })
     }
 }
 
@@ -1086,6 +1149,19 @@ impl CSessionTermination {
     }
 }
 
+impl AsRust<hermes::SessionTerminationType> for CSessionTermination {
+    fn as_rust(&self) -> Result<hermes::SessionTerminationType> {
+        Ok(match self.termination_type {
+            CSessionTerminationType::Nominal => hermes::SessionTerminationType::Nominal,
+            CSessionTerminationType::SiteUnavailable => hermes::SessionTerminationType::SiteUnavailable,
+            CSessionTerminationType::AbortedByUser => hermes::SessionTerminationType::AbortedByUser,
+            CSessionTerminationType::IntentNotRecognized => hermes::SessionTerminationType::IntentNotRecognized,
+            CSessionTerminationType::Timeout => hermes::SessionTerminationType::Timeout,
+            CSessionTerminationType::Error => hermes::SessionTerminationType::Error { error: create_rust_string_from!(self.data) },
+        })
+    }
+}
+
 impl Drop for CSessionTermination {
     fn drop(&mut self) {
         take_back_nullable_c_string!(self.data);
@@ -1117,6 +1193,17 @@ impl CReprOf<hermes::SessionEndedMessage> for CSessionEndedMessage {
             custom_data: convert_to_nullable_c_string!(input.custom_data),
             termination: CSessionTermination::from(input.termination)?,
             site_id: convert_to_c_string!(input.site_id),
+        })
+    }
+}
+
+impl AsRust<hermes::SessionEndedMessage> for CSessionEndedMessage {
+    fn as_rust(&self) -> Result<hermes::SessionEndedMessage> {
+        Ok(hermes::SessionEndedMessage {
+            session_id: create_rust_string_from!(self.session_id),
+            custom_data: create_optional_rust_string_from!(self.custom_data),
+            termination: self.termination.as_rust()?,
+            site_id: create_rust_string_from!(self.site_id),
         })
     }
 }
