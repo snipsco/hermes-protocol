@@ -1,12 +1,9 @@
+use failure::ResultExt;
+use ffi_utils::{AsRust, C_RESULT, CReprOf, LAST_ERROR, RawBorrow, RawPointerConverter};
 use hermes;
 use hermes::HermesProtocolHandler;
-use hermes_mqtt;
-use libc;
-
-use failure::ResultExt;
 use hermes::ResultExt as HResultExt;
-use ffi_utils:: {RawPointerConverter, RawBorrow, CReprOf, AsRust, LAST_ERROR, C_RESULT};
-
+use libc;
 use ontology::*;
 
 #[repr(C)]
@@ -14,18 +11,16 @@ pub struct CProtocolHandler {
     handler: *const HermesProtocolHandler
 }
 
-#[no_mangle]
-pub extern "C" fn hermes_protocol_handler_new_mqtt(handler: *mut *const CProtocolHandler) -> C_RESULT {
-    // TODO move that elsewhere, and destructor
-    fn doit(handler: *mut *const CProtocolHandler) -> hermes::Result<()>{
-        let cph = CProtocolHandler { handler: Box::into_raw(Box::new(hermes_mqtt::MqttHermesProtocolHandler::new("localhost:1883")?)) };
-        let ptr = CProtocolHandler::into_raw_pointer(cph);
-        unsafe {
-            *handler = ptr;
+impl CProtocolHandler {
+    pub fn new<T: HermesProtocolHandler + 'static>(handler : T) -> Self {
+        Self {
+            handler : T::into_raw_pointer(handler)
         }
-        Ok(())
     }
-    wrap!(doit(handler))
+
+    pub fn destroy<T: HermesProtocolHandler + 'static >(self) {
+        let _ = unsafe { T::from_raw_pointer(self.handler as *const T) };
+    }
 }
 
 #[no_mangle]
@@ -41,18 +36,18 @@ fn get_last_error(error: *mut *const libc::c_char) -> hermes::Result<()> {
 
 // TODO remove and directly use the ffi_utils version once we get rid of error-chain
 fn point_to_string(pointer: *mut *const libc::c_char, string: String) -> hermes::Result<()> {
-    Ok(::ffi_utils::point_to_string(pointer, string).compat().chain_err(||"could not convert to C Repr")?)
+    Ok(::ffi_utils::point_to_string(pointer, string).compat().chain_err(|| "could not convert to C Repr")?)
 }
 
-fn convert<T, U: AsRust<T>>(raw : *const U) -> hermes::Result<T> {
-    unsafe { (*raw).as_rust().compat().chain_err(||"could not convert pointer to rust struct") }
+fn convert<T, U: AsRust<T>>(raw: *const U) -> hermes::Result<T> {
+    unsafe { (*raw).as_rust().compat().chain_err(|| "could not convert pointer to rust struct") }
 }
 
-fn ptr_to_callback<T,U>(ptr: Option<unsafe extern "C" fn(*const U)>) -> hermes::Result<hermes::Callback<T>>
+fn ptr_to_callback<T, U>(ptr: Option<unsafe extern "C" fn(*const U)>) -> hermes::Result<hermes::Callback<T>>
     where
         T: Clone + Sync,
-        U: CReprOf<T> + Sync + 'static{
-    if let Some(ptr) = ptr  {
+        U: CReprOf<T> + Sync + 'static {
+    if let Some(ptr) = ptr {
         Ok(hermes::Callback::new(move |payload: &T| {
             let param = Box::into_raw(Box::new(U::c_repr_of(payload.clone()).unwrap()));
             unsafe { ptr(param) }

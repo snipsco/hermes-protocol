@@ -6,7 +6,6 @@ extern crate ffi_utils;
 #[macro_use]
 extern crate failure;
 extern crate hermes;
-extern crate hermes_mqtt;
 extern crate libc;
 extern crate snips_nlu_ontology_ffi_macros;
 
