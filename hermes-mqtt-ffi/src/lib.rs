@@ -5,6 +5,7 @@ extern crate failure;
 
 extern crate hermes;
 
+#[macro_use]
 extern crate hermes_ffi;
 
 extern crate hermes_mqtt;
@@ -18,9 +19,9 @@ use hermes::ResultExt as HResultExt;
 
 use failure::ResultExt;
 
-use hermes_ffi::CProtocolHandler;
+use hermes_ffi::*;
 
-use ffi_utils::{C_RESULT, RawPointerConverter};
+use ffi_utils::*;
 
 #[no_mangle]
 pub extern "C" fn hermes_protocol_handler_new_mqtt(handler: *mut *const CProtocolHandler, broker_address: *const libc::c_char) -> C_RESULT {
@@ -46,3 +47,5 @@ pub extern "C" fn hermes_destroy_mqtt_protocol_handler(handler: *mut CProtocolHa
     }
     wrap!(destroy_mqtt_handler(handler))
 }
+
+generate_hermes_c_symbols!();

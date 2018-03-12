@@ -4,7 +4,7 @@ version = "0.54.0-SNAPSHOT"
 authors = ["Thibaut Lorrain <thibaut.lorrain@snips.ai>"]
 
 [lib]
-crate-type = ["staticlib"]
+crate-type = ["cdylib"]
 
 [dependencies]
 error-chain = { version="0.11", default-features=false }
