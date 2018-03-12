@@ -8,7 +8,7 @@ buildscript {
     }
 }
 
-version = "0.53.5-RC3"
+version = "0.53.5-RC3-SNAPSHOT"
 group = "ai.snips"
 
 apply plugin: 'kotlin'
