@@ -10,7 +10,7 @@ ignored_rustc_triples = ["arm-linux-androideabi", "armv7-linux-androideabi","aar
 hermes = { path = ".." }
 hermes-test-suite = { path = "../hermes-test-suite" }
 log = "0.4"
-rumqtt = { git = "https://github.com/snipsco/rumqtt.git", rev = "a8b17bf" }
+rumqtt = { git = "https://github.com/snipsco/rumqtt", rev = "a8b17bf" }
 serde = "1.0"
 serde_json = "1.0"
 strum = "0.8"
@@ -20,4 +20,4 @@ uuid = { version = "0.5", features = ["v4"] }
 [dev-dependencies]
 rand = "*"
 semver = "0.9"
-snips-nlu-ontology = { git = "ssh://git@github.com/snipsco/snips-nlu-ontology", tag = "0.53.0" }
+snips-nlu-ontology = { git = "https://github.com/snipsco/snips-nlu-ontology", tag = "0.53.0" }
