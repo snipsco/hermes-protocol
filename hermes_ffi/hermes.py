@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from ctypes import byref, POINTER, c_char_p
-from ffi.ontology import CProtocolHandler, CDialogueFacade
+from ctypes import *
+from ffi.ontology import CProtocolHandler, CDialogueFacade, CContinueSessionMessage, CEndSessionMessage, CStartSessionMessage, CStringArray
 from ffi.utils import *
 from time import sleep
 
@@ -46,6 +46,21 @@ class Hermes(object):
     def subscribe_session_ended(self, user_callback_subscribe_session_ended):
         self._subscribe_session_ended_callback = user_callback_subscribe_session_ended
         hermes_dialogue_subscribe_session_started(self._facade, self._subscribe_session_ended_callback)
+        return self
+
+    def publish_continue_session(self, session_id, text, intent_filter):
+        cContinueSessionMessage = CContinueSessionMessage.build(session_id, text, intent_filter)
+        hermes_dialogue_publish_continue_session(self._facade, byref(cContinueSessionMessage))
+        return self
+
+    def publish_end_session(self, session_id, text):
+        cEndSessionMessage = CEndSessionMessage(session_id, text)
+        hermes_dialogue_publish_end_session(self._facade, byref(cEndSessionMessage))
+        return self
+
+    def publish_start_session(self, custom_data, site_id, value):
+        cStartSessionMessage = CStartSessionMessage.build(custom_data, site_id, value)
+        hermes_dialogue_publish_start_session(self._facade, byref(cStartSessionMessage))
         return self
 
     def start(self):

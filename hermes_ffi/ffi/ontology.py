@@ -1,4 +1,4 @@
-from ctypes import c_char_p, c_int32, c_float, c_void_p, POINTER, Structure
+from ctypes import c_char_p, c_int32, c_int, c_float, c_void_p, POINTER, pointer, Structure
 
 
 class CStringArray(Structure):
@@ -36,7 +36,16 @@ class CSayFinishedMessage(Structure):
 class CContinueSessionMessage(Structure):
     _fields_ = [("session_id", c_char_p),
                 ("text", c_char_p),
-                ("intent_filter", POINTER(CStringArray))]  # Not sure about this one ...
+                ("intent_filter", POINTER(CStringArray))]
+
+    @classmethod
+    def build(cls, session_id, text, intent_filter):
+        c_intent_filter = CStringArray()
+        c_intent_filter.size = c_int(len(intent_filter))
+        c_intent_filter.data = (c_char_p * len(intent_filter))(*intent_filter)
+
+        cContinueSessionMessage = cls(session_id, text, pointer(c_intent_filter))
+        return cContinueSessionMessage
 
 
 class CEndSessionMessage(Structure):
@@ -57,6 +66,12 @@ class CStartSessionMessage(Structure):
     _fields_ = [("init", CSessionInit),
                 ("custom_data", c_char_p),
                 ("site_id", c_char_p)]
+
+    @classmethod
+    def build(cls, custom_data, site_id, value):
+        INIT_TYPE = 2
+        cStartSessionMessage = cls(CSessionInit(c_int(INIT_TYPE), value), custom_data, site_id)
+        return cStartSessionMessage
 
 
 class CIntentClassifierResult(Structure):
