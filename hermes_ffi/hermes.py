@@ -1,51 +1,79 @@
 # -*- coding: utf-8 -*-
 
 from ctypes import *
-from ffi.ontology import CProtocolHandler, CDialogueFacade, CContinueSessionMessage, CEndSessionMessage, CStartSessionMessage, CStringArray
+from ffi.ontology import CProtocolHandler, CDialogueFacade, CContinueSessionMessage, CEndSessionMessage, \
+    CStartSessionMessage, CStringArray, CIntentMessage, CSessionStartedMessage, CSessionQueuedMessage, \
+    CSessionEndedMessage
 from ffi.utils import *
 from time import sleep
 
 
 class Hermes(object):
     def __init__(self, mqtt_server_address):
-        self._protocol_handler = POINTER(CProtocolHandler)()  # TODO: Destroy protocol handler
+        self.mqtt_server_address = mqtt_server_address
+
+        self._protocol_handler = POINTER(CProtocolHandler)()
         self._facade = POINTER(CDialogueFacade)()
 
-        lib.hermes_protocol_handler_new_mqtt(byref(self._protocol_handler), mqtt_server_address)
+        # References to callbacks called from C
+        self._c_subscribe_intent_callback = None
+        self._c_callback_subscribe_intents = None
+        self._c_callback_subscribe_session_started = None
+        self._c_callback_subscribe_session_queued = None
+        self._c_callback_subscribe_session_ended = None
+
+    def __enter__(self):
+        lib.hermes_protocol_handler_new_mqtt(byref(self._protocol_handler), self.mqtt_server_address)
 
         lib.hermes_protocol_handler_dialogue_facade(self._protocol_handler,
                                                     byref(self._facade))
 
-        # References to user-defined callbacks
-        self._subscribe_intent_callback = None
-        self._subscribe_intents_callback = None
-        self._subscribe_session_started_callback = None
-        self._subscribe_session_queued_callback = None
-        self._subscribe_session_ended_callback = None
+        return self
+
+    def __exit__(self, exception_type, exception_val, trace):
+        hermes_drop_dialogue_facade(self._facade)
+
+        return True
+
+    def _wraps(self, user_callback, callback_argtype, callback_restype, argtype):
+        def params_converter(func):
+            def called_with_good_params(*args, **kwargs):
+                parsed_args = (IntentMessage.from_c_repr(arg.contents) for arg in (args))
+                return func(self, *parsed_args)
+
+            return called_with_good_params
+
+        return CFUNCTYPE(callback_restype, POINTER(callback_argtype))(params_converter(user_callback))
 
     def subscribe_intent(self, intent_name, user_callback_subscribe_intent):
-        self._subscribe_intent_callback = user_callback_subscribe_intent
-        hermes_dialogue_subscribe_intent(self._facade, c_char_p(intent_name), self._subscribe_intent_callback)
+        self._c_callback_subscribe_intent = self._wraps(user_callback_subscribe_intent, CIntentMessage, c_void_p,
+                                                        IntentMessage)
+        hermes_dialogue_subscribe_intent(self._facade, c_char_p(intent_name), self._c_callback_subscribe_intent)
         return self
 
     def subscribe_intents(self, user_callback_subscribe_intents):
-        self._subscribe_intents_callback = user_callback_subscribe_intents
-        hermes_dialogue_subscribe_intents(self._facade, self._subscribe_intents_callback)
+        self._c_callback_subscribe_intents = self._wraps(user_callback_subscribe_intents, CIntentMessage, c_void_p,
+                                                         IntentMessage)
+        hermes_dialogue_subscribe_intents(self._facade, self._c_callback_subscribe_intents)
         return self
 
     def subscribe_session_started(self, user_callback_subscribe_session_started):
-        self._subscribe_session_started_callback = user_callback_subscribe_session_started
-        hermes_dialogue_subscribe_session_started(self._facade, self._subscribe_session_started_callback)
+        self._c_callback_subscribe_session_started = self._wraps(user_callback_subscribe_session_started,
+                                                                 CSessionStartedMessage, c_void_p,
+                                                                 SessionStartedMessage)
+        hermes_dialogue_subscribe_session_started(self._facade, self._c_callback_subscribe_session_started)
         return self
 
     def subscribe_session_queued(self, user_callback_subscribe_session_queued):
-        self._subscribe_session_queued_callback = user_callback_subscribe_session_queued
-        hermes_dialogue_subscribe_session_started(self._facade, self._subscribe_session_queued_callback)
+        self._c_callback_subscribe_session_queued = self._wraps(user_callback_subscribe_session_queued,
+                                                                CSessionQueuedMessage, c_void_p, SessionQueuedMessage)
+        hermes_dialogue_subscribe_session_started(self._facade, self._c_callback_subscribe_session_queued)
         return self
 
     def subscribe_session_ended(self, user_callback_subscribe_session_ended):
-        self._subscribe_session_ended_callback = user_callback_subscribe_session_ended
-        hermes_dialogue_subscribe_session_started(self._facade, self._subscribe_session_ended_callback)
+        self._c_callback_subscribe_session_ended = self._wraps(user_callback_subscribe_session_ended,
+                                                               CSessionEndedMessage, c_void_p, SessionEndedMessage)
+        hermes_dialogue_subscribe_session_started(self._facade, self._c_callback_subscribe_session_ended)
         return self
 
     def publish_continue_session(self, session_id, text, intent_filter):
