@@ -61,7 +61,6 @@ class IntentMessage(object):
         return cls(session_id, custom_data, site_id, input, intent, slots)
 
 
-
 class IntentClassifierResult(object):
     def __init__(self, intent_name, probability):
         self.intent_name = intent_name
@@ -73,3 +72,46 @@ class IntentClassifierResult(object):
         probability = c_repr.probability
         return cls(intent_name, probability)
 
+
+class SessionEndedMessage(object):
+    def __init__(self, session_id, custom_data, site_id):
+        self.session_id = session_id
+        self.custom_data = custom_data
+        self.site_id = site_id
+
+    @classmethod
+    def from_c_repr(cls, c_repr):
+        session_id = c_repr.session_id
+        custom_data = c_repr.custom_data
+        site_id = c_repr.site_id
+        return cls(session_id, custom_data, site_id)
+
+
+class SessionQueuedMessage(object):
+    def __init__(self, session_id, custom_data, site_id):
+        self.session_id = session_id
+        self.custom_data = custom_data
+        self.site_id = site_id
+
+    @classmethod
+    def from_c_repr(cls, c_repr):
+        session_id = c_repr.session_id
+        custom_data = c_repr.custom_data
+        site_id = c_repr.site_id
+        return cls(session_id, custom_data, site_id)
+
+
+class SessionStartedMessage(object):
+    def __init__(self, session_id, custom_data, site_id, reactivated_from_session_id):
+        self.session_id = session_id
+        self.custom_data = custom_data
+        self.site_id = site_id
+        self.reactivated_from_session_id = reactivated_from_session_id
+
+    @classmethod
+    def from_c_repr(cls, c_repr):
+        session_id = c_repr.session_id
+        custom_data = c_repr.custom_data
+        site_id = c_repr.site_id
+        reactivated_from_session_id = c_repr.reactivated_from_session_id
+        return cls(session_id, custom_data, site_id, reactivated_from_session_id)

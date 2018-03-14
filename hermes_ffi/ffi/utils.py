@@ -10,29 +10,6 @@ DYLIB_PATH = glob(os.path.join(DYLIB_DIR, DYLIB_NAME))[0]
 
 lib = cdll.LoadLibrary(DYLIB_PATH)
 
-
-# FFI decorators for callbacks
-
-def user_callback(argument_type):
-    def callback(user_callback):
-        def sanitized(*args):
-            parsed_args = (argument_type.from_c_repr(arg.contents) for arg in (args))
-            result = user_callback(*parsed_args)
-            return result
-
-        return sanitized
-
-    return callback
-
-
-def subscribe_callback(argument_type):
-    def decorate(func):
-        return CFUNCTYPE(c_void_p, POINTER(argument_type))(func)
-
-    return decorate
-
-
-
 # Shortcuts
 
 hermes_dialogue_publish_continue_session = lib.hermes_dialogue_publish_continue_session
@@ -46,16 +23,29 @@ hermes_dialogue_subscribe_session_queued = lib.hermes_dialogue_subscribe_session
 hermes_dialogue_subscribe_session_started = lib.hermes_dialogue_subscribe_session_started
 
 
+# FFI decorators
 
-# Unparametrized decorators
-# Those are kept if the generic solution doesn't work.
+def hermes_wrap(func):
+    def wrapper(self, *args, **kwargs):
+        return func(self, *args, **kwargs)
 
-"""
-def callback(user_callback):
-    def sanitized(*args):
-        parsed_args = (IntentMessage.from_c_repr(arg.contents) for arg in (args))
-        result = user_callback(*parsed_args)
-        return result
+    return wrapper
 
-    return sanitized
-"""
+
+def user_callback(argument_type):
+    def callback(user_callback):
+        def sanitized(self, *args):
+            parsed_args = (argument_type.from_c_repr(arg.contents) for arg in (args))
+            result = user_callback(self, *parsed_args)
+            return result
+
+        return sanitized
+
+    return callback
+
+
+def subscribe_callback(argument_type):
+    def decorate(func):
+        return CFUNCTYPE(c_void_p, POINTER(argument_type))(func)
+
+    return decorate
