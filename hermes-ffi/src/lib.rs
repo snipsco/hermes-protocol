@@ -2,7 +2,7 @@
 extern crate failure;
 extern crate hermes;
 extern crate libc;
-extern crate snips_nlu_ontology_ffi;
+extern crate snips_nlu_ontology_ffi_macros;
 
 use std::ffi::{CStr, CString};
 use std::slice;
@@ -10,7 +10,7 @@ use std::ptr::null;
 
 use failure::ResultExt;
 
-use snips_nlu_ontology_ffi::{CIntentClassifierResult, CSlot, CSlotList};
+use snips_nlu_ontology_ffi_macros::{CIntentClassifierResult, CSlot, CSlotList};
 
 type Result<T> = ::std::result::Result<T, ::failure::Error>;
 
