@@ -1,6 +1,6 @@
 [package]
 name = "hermes-test-suite"
-version = "0.53.5-RC3-SNAPSHOT"
+version = "0.53.7"
 authors = ["Thibaut Lorrain <thibaut.lorrain@snips.ai>"]
 
 [dependencies]
