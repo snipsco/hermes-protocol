@@ -4,7 +4,7 @@ import os
 from ctypes import cdll, CFUNCTYPE, c_void_p, POINTER
 from ..ontology import *
 
-DYLIB_NAME = "libhermes_mqtt_ffi.dy*"
+DYLIB_NAME = "libhermes_mqtt_ffi.*"
 DYLIB_DIR = os.path.join(os.path.dirname(__file__), "../dylib")
 DYLIB_PATH = glob(os.path.join(DYLIB_DIR, DYLIB_NAME))[0]
 
