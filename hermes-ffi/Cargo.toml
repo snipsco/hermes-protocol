@@ -1,6 +1,6 @@
 [package]
 name = "hermes-ffi"
-version = "0.53.9"
+version = "0.54.0-SNAPSHOT"
 authors = ["Thibaut Lorrain <thibaut.lorrain@snips.ai>"]
 
 [dependencies]
