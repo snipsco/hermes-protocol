@@ -1,5 +1,3 @@
-extern crate error_chain;
-
 #[macro_use]
 extern crate failure;
 
@@ -14,8 +12,6 @@ extern crate libc;
 
 #[macro_use]
 extern crate ffi_utils;
-
-use hermes::ResultExt as HResultExt;
 
 use failure::ResultExt;
 
@@ -34,14 +30,14 @@ pub extern "C" fn hermes_protocol_handler_new_mqtt(handler: *mut *const CProtoco
         }
         Ok(())
     }
-    wrap!(new_mqtt_handler(handler, broker_address).compat().chain_err(||"could not create handler"))
+    wrap!(new_mqtt_handler(handler, broker_address))
 }
 
 
 #[no_mangle]
 pub extern "C" fn hermes_destroy_mqtt_protocol_handler(handler: *mut CProtocolHandler) -> C_RESULT {
     fn destroy_mqtt_handler(handler: *mut CProtocolHandler) -> hermes::Result<()>{
-        let handler = unsafe  { CProtocolHandler::from_raw_pointer(handler) }.compat().chain_err(||"could not convert from raw pointer")?;
+        let handler = unsafe  { CProtocolHandler::from_raw_pointer(handler) }?;
         handler.destroy::<hermes_mqtt::MqttHermesProtocolHandler>();
         Ok(())
     }

@@ -84,8 +84,7 @@ macro_rules! generate_facade_publish {
         pub extern "C" fn $c_symbol(facade : *const $facade, $($qualifier_name : *const $qualifier_raw,)* message : *const $arg) -> C_RESULT {
             fn fun(facade : *const $facade, $($qualifier_name : *const $qualifier_raw,)* message : *const $arg) -> hermes::Result<()> {
                 let message = convert(message)?;
-                // TODO remove all these .compat().chain_err() when we get rid of error-chain
-                unsafe {(*facade).extract().$method($(<$qualifier as RawBorrow<$qualifier_raw>>::raw_borrow($qualifier_name).compat().chain_err(|| "could not borrow")?.as_rust().compat().chain_err(|| "could not convert to rust")?,)* message)}
+                unsafe {(*facade).extract().$method($(<$qualifier as RawBorrow<$qualifier_raw>>::raw_borrow($qualifier_name)?.as_rust()?,)* message)}
             }
 
             wrap!(fun(facade, $($qualifier_name,)* message))
@@ -101,8 +100,7 @@ macro_rules! generate_facade_subscribe {
         pub extern "C" fn $c_symbol(facade: *const $facade, $($filter_name : *const $filter_raw,)* handler: Option<unsafe extern "C" fn(*const $arg)>) -> C_RESULT {
             fn fun(facade: *const $facade, $($filter_name : *const $filter_raw,)* handler: Option<unsafe extern "C" fn(*const $arg)>) -> hermes::Result<()> {
                 let callback = ptr_to_callback(handler)?;
-                // TODO remove all these .compat().chain_err() when we get rid of error-chain
-                unsafe { (*facade).extract().$method($(<$filter as RawBorrow<$filter_raw>>::raw_borrow($filter_name).compat().chain_err(|| "could not borrow")?.as_rust().compat().chain_err(|| "could not convert to rust")?,)* callback) }
+                unsafe { (*facade).extract().$method($(<$filter as RawBorrow<$filter_raw>>::raw_borrow($filter_name)?.as_rust()?,)* callback) }
             }
 
             wrap!(fun(facade, $($filter_name,)* handler))
@@ -115,17 +113,12 @@ macro_rules! generate_hermes_c_symbols {
     () => {
 
     fn get_last_error(error: *mut *const libc::c_char) -> hermes::Result<()> {
-        point_to_string(error, LAST_ERROR.lock()?.clone())
-    }
-
-
-    // TODO remove and directly use the ffi_utils version once we get rid of error-chain
-    fn point_to_string(pointer: *mut *const libc::c_char, string: String) -> hermes::Result<()> {
-        Ok(::ffi_utils::point_to_string(pointer, string).compat().chain_err(|| "could not convert to C Repr")?)
+        use hermes::PoisonLock;
+        ::ffi_utils::point_to_string(error, ::ffi_utils::LAST_ERROR.lock().map_err(PoisonLock::from)?.clone())
     }
 
     fn convert<T, U: AsRust<T>>(raw: *const U) -> hermes::Result<T> {
-        unsafe { (*raw).as_rust().compat().chain_err(|| "could not convert pointer to rust struct") }
+        unsafe { (*raw).as_rust() }
     }
 
     fn ptr_to_callback<T, U>(ptr: Option<unsafe extern "C" fn(*const U)>) -> hermes::Result<hermes::Callback<T>>
@@ -138,8 +131,7 @@ macro_rules! generate_hermes_c_symbols {
                 unsafe { ptr(param) }
             }))
         } else {
-            // TODO replace this non-sense by a bail! once we get rid of error-chain
-            Err(format_err!("null pointer")).compat().chain_err(|| "got a null pointer")
+            Err(format_err!("null pointer"))
         }
     }
 

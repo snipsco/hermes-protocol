@@ -3,7 +3,7 @@ use failure::ResultExt;
 use ffi_utils::{AsRust, CArrayString, CReprOf, RawBorrow, RawPointerConverter};
 use hermes;
 use libc;
-use snips_nlu_ontology_ffi::{CIntentClassifierResult, CSlot, CSlotList};
+use snips_nlu_ontology_ffi_macros::{CIntentClassifierResult, CSlot, CSlotList};
 use std::ffi::CString;
 use std::ptr::null;
 use std::slice;

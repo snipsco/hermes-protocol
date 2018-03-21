@@ -26,7 +26,6 @@ use std::sync::Arc;
 use std::sync::Mutex;
 use failure::{ResultExt, SyncFailure};
 use hermes::*;
-use hermes::errors::*;
 use topics::*;
 
 pub use rumqtt::{ MqttOptions, TlsOptions };
