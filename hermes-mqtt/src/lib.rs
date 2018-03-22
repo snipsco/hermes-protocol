@@ -32,21 +32,14 @@ use topics::*;
 pub use rumqtt::{ MqttOptions, TlsOptions };
 
 struct MqttHandler {
-    pub mqtt_client: Mutex<rumqtt::MqttClient>,
+    mqtt_client: rumqtt::MqttClient,
 }
 
 impl MqttHandler {
     pub fn publish(&self, topic: &HermesTopic) -> Result<()> {
-        self.mqtt_client
-            .lock()
-            .map(|mut c| {
-                let topic = &*topic.as_path();
-                debug!("Publishing on MQTT topic '{}'", topic);
-                c.publish(topic).and_then(|p| p.send())
-                    .map_err(SyncFailure::new)
-            })
-            .map_err(PoisonLock::from)
-            .context("Could not publish on MQTT")??;
+        let topic = &*topic.as_path();
+        debug!("Publishing on MQTT topic '{}'", topic);
+        self.mqtt_client.publish(topic).and_then(|p| p.send()).map_err(SyncFailure::new)?;
         Ok(())
     }
 
@@ -55,53 +48,43 @@ impl MqttHandler {
         topic: &HermesTopic,
         payload: P,
     ) -> Result<()> {
-        self.mqtt_client
-            .lock()
-            .map(|mut c| {
-                serde_json::to_vec(&payload).map(|p| {
-                    let topic = &*topic.as_path();
-                    debug!(
-                        "Publishing on MQTT topic '{}', payload : {}",
-                        topic,
-                        if p.len() < 2048 {
-                            String::from_utf8_lossy(&p).to_string()
-                        } else {
-                            format!(
-                                "size = {}, start = {}",
-                                p.len(),
-                                String::from_utf8_lossy(&p[0..128])
-                            )
-                        }
-                    );
-                    trace!("Payload : {}", String::from_utf8_lossy(&p));
-                    c.publish(topic)
-                        .map(|m| m.payload(p))
-                        .and_then(|p| p.send())
-                        .map_err(SyncFailure::new)
-                })
-            })
-            .map_err(PoisonLock::from)
-            .context("Could not publish on MQTT")???;
+        serde_json::to_vec(&payload).map(|p| {
+            let topic = &*topic.as_path();
+            debug!(
+                "Publishing on MQTT topic '{}', payload : {}",
+                topic,
+                if p.len() < 2048 {
+                    String::from_utf8_lossy(&p).to_string()
+                } else {
+                    format!(
+                        "size = {}, start = {}",
+                        p.len(),
+                        String::from_utf8_lossy(&p[0..128])
+                    )
+                }
+            );
+            trace!("Payload : {}", String::from_utf8_lossy(&p));
+            self.mqtt_client.publish(topic)
+                .map(|m| m.payload(p))
+                .and_then(|p| p.send())
+                .map_err(SyncFailure::new)
+        })??;
         Ok(())
     }
 
     pub fn publish_binary_payload(&self, topic: &HermesTopic, payload: Vec<u8>) -> Result<()> {
-        self.mqtt_client
-            .lock()
-            .map(|mut c| {
-                let topic = &*topic.as_path();
-                debug!(
-                    "Publishing as binary on MQTT topic '{}', with size {}",
-                    topic,
-                    payload.len()
-                );
-                c.publish(topic)
-                    .map(|m| m.payload(payload))
-                    .and_then(|p| p.send())
-                    .map_err(SyncFailure::new)
-            })
-            .map_err(PoisonLock::from)
-            .context("Could not publish on MQTT")??;
+
+        let topic = &*topic.as_path();
+        debug!(
+            "Publishing as binary on MQTT topic '{}', with size {}",
+            topic,
+            payload.len()
+        );
+        self.mqtt_client.publish(topic)
+            .map(|m| m.payload(payload))
+            .and_then(|p| p.send())
+            .map_err(SyncFailure::new)?;
+
         Ok(())
     }
 
@@ -178,12 +161,7 @@ impl MqttHandler {
     where
         F: Fn(&::rumqtt::Publish) -> () + Send + Sync + 'static,
     {
-        let mut client = self.mqtt_client.lock().map_err(PoisonLock::from)?;
-        client
-            .subscribe(topic.to_string(), Box::new(callback))
-            .unwrap()
-            .send()
-            .unwrap();
+        self.mqtt_client.subscribe(topic.to_string(), Box::new(callback)).map_err(SyncFailure::new)?.send().map_err(SyncFailure::new)?;
         Ok(())
     }
 }
@@ -207,7 +185,7 @@ impl MqttHermesProtocolHandler {
             rumqtt::MqttClient::start(options).map_err(SyncFailure::new).context("Could not start MQTT client")?;
 
         let mqtt_handler = Arc::new(MqttHandler {
-            mqtt_client: Mutex::new(mqtt_client),
+            mqtt_client,
         });
 
         Ok(MqttHermesProtocolHandler { name, mqtt_handler })
