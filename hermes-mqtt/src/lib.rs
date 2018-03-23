@@ -178,7 +178,7 @@ impl MqttHermesProtocolHandler {
         Self::new_with_options(client_options)
     }
 
-    pub fn new_with_options(options: rumqtt::MqttOptions) -> Result<MqttHermesProtocolHandler> {
+    pub fn new_with_options(mut options: rumqtt::MqttOptions) -> Result<MqttHermesProtocolHandler> {
         let name = options.broker_addr.clone();
         options.max_packet_size = 10_000_000;
         let mqtt_client =
