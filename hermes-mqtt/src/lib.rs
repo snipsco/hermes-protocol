@@ -180,6 +180,7 @@ impl MqttHermesProtocolHandler {
 
     pub fn new_with_options(options: rumqtt::MqttOptions) -> Result<MqttHermesProtocolHandler> {
         let name = options.broker_addr.clone();
+        options.max_packet_size = 10_000_000;
         let mqtt_client =
             rumqtt::MqttClient::start(options).map_err(SyncFailure::new).context("Could not start MQTT client")?;
 
