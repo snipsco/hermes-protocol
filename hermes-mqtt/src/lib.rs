@@ -173,7 +173,6 @@ pub struct MqttHermesProtocolHandler {
 
 impl MqttHermesProtocolHandler {
     pub fn new(broker_address: &str) -> Result<MqttHermesProtocolHandler> {
-        info!("Connecting to MQTT broker at address {}", broker_address);
         let id = ::uuid::Uuid::new_v4().simple().to_string();
         let client_options = rumqtt::MqttOptions::new(id, broker_address);
         Self::new_with_options(client_options)
