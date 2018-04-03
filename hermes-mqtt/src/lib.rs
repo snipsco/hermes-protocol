@@ -23,7 +23,6 @@ mod topics;
 
 use std::string::ToString;
 use std::sync::Arc;
-use std::sync::Mutex;
 use failure::{ResultExt, SyncFailure};
 use hermes::*;
 use topics::*;
