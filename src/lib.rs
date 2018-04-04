@@ -8,7 +8,7 @@ extern crate serde_derive;
 extern crate serde_json;
 extern crate snips_nlu_ontology;
 
-mod errors;
+pub mod errors;
 
 mod ontology;
 
