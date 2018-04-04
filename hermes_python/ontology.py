@@ -34,7 +34,6 @@ class SlotMap(object):
         slots_list_length = c_slots_list_repr.size
         c_slots_array_repr = c_slots_list_repr.slots
 
-        Slot.from_c_repr(c_slots_array_repr[0])
         for i in range(slots_list_length):
             slot = Slot.from_c_repr(c_slots_array_repr[i])
             mapping[slot.slot_name] = slot

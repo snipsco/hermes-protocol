@@ -22,7 +22,7 @@ os.environ['CARGO_TARGET_DIR'] = CARGO_TARGET_DIR
 
 setup(
     name='hermes_python',
-    version='0.1.0',
+    version='0.1.1',
     description='Python bindings for Hermes',
     author='Anthony Reinette',
     author_email='dantho361@hotmail.com',
@@ -35,7 +35,7 @@ setup(
     license='MIT',
     keywords=['snips'],
     install_requires=[],
-    rust_extensions=[RustExtension(TARGET, CARGO_FILE_PATH, binding=Binding.NoBinding, dinghy=True, rust_x_compile_target="armv7-unknown-linux-gnueabihf", dinghy_platform="raspbian")],
+    rust_extensions=[RustExtension(TARGET, CARGO_FILE_PATH, binding=Binding.NoBinding)],
     test_suite="tests",
     packages=find_packages(),
     zip_safe=False
