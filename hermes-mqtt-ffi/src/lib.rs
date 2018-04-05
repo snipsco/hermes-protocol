@@ -23,7 +23,7 @@ use ffi_utils::*;
 pub extern "C" fn hermes_protocol_handler_new_mqtt(handler: *mut *const CProtocolHandler, broker_address: *const libc::c_char) -> SNIPS_RESULT {
     fn new_mqtt_handler(handler: *mut *const CProtocolHandler, broker_address: *const libc::c_char) -> Result<(), failure::Error>{
         let address = create_rust_string_from!(broker_address);
-        let cph = CProtocolHandler::new(hermes_mqtt::MqttHermesProtocolHandler::new(&address).map_err(|e| format_err!("Could not create hermes MQTT handler : {:?}", e))?);
+        let cph = CProtocolHandler::new(hermes_mqtt::MqttHermesProtocolHandler::new(&address).with_context(|e| format_err!("Could not create hermes MQTT handler : {:?}", e))?);
         let ptr = CProtocolHandler::into_raw_pointer(cph);
         unsafe {
             *handler = ptr;
