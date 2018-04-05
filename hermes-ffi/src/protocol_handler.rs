@@ -1,11 +1,6 @@
-//use failure::ResultExt;
-//use ffi_utils::{AsRust, C_RESULT, CReprOf, LAST_ERROR, RawBorrow, RawPointerConverter};
 use ffi_utils::RawPointerConverter;
-//use hermes;
 use hermes::HermesProtocolHandler;
-//use hermes::ResultExt as HResultExt;
-//use libc;
-//use ontology::*;
+
 
 #[repr(C)]
 pub struct CProtocolHandler {
@@ -30,9 +25,9 @@ impl CProtocolHandler {
 macro_rules! generate_destroy {
     ($c_symbol:ident for $cstruct:ty) => {
          #[no_mangle]
-        pub extern "C" fn $c_symbol(cstruct : *const $cstruct) -> C_RESULT {
+        pub extern "C" fn $c_symbol(cstruct : *const $cstruct) -> ::ffi_utils::SNIPS_RESULT {
             let _ = unsafe {<$cstruct as RawPointerConverter<$cstruct>>::from_raw_pointer(cstruct) };
-            C_RESULT::OK
+            ::ffi_utils::SNIPS_RESULT::SNIPS_RESULT_OK
         }
     };
 }
@@ -64,7 +59,7 @@ macro_rules! generate_facade_wrapper {
         generate_destroy!($drop_name for $wrapper_name);
 
         #[no_mangle]
-        pub extern "C" fn $getter_name(handler: *const CProtocolHandler, facade: *mut *const $wrapper_name) -> C_RESULT {
+        pub extern "C" fn $getter_name(handler: *const CProtocolHandler, facade: *mut *const $wrapper_name) -> ::ffi_utils::SNIPS_RESULT {
             fn fun(handler: *const CProtocolHandler, facade: *mut *const $wrapper_name) -> hermes::Result<()> {
                 let pointer = $wrapper_name::into_raw_pointer($wrapper_name::from(unsafe { (*(*handler).handler).$getter() }));
                 unsafe { *facade = pointer };
@@ -81,7 +76,7 @@ macro_rules! generate_facade_wrapper {
 macro_rules! generate_facade_publish {
     ($c_symbol:ident = $facade:ty:$method:ident($( + $qualifier_name:ident : $qualifier:ty as $qualifier_raw:ty,)* $arg:ty)) => {
         #[no_mangle]
-        pub extern "C" fn $c_symbol(facade : *const $facade, $($qualifier_name : *const $qualifier_raw,)* message : *const $arg) -> C_RESULT {
+        pub extern "C" fn $c_symbol(facade : *const $facade, $($qualifier_name : *const $qualifier_raw,)* message : *const $arg) -> ::ffi_utils::SNIPS_RESULT {
             fn fun(facade : *const $facade, $($qualifier_name : *const $qualifier_raw,)* message : *const $arg) -> hermes::Result<()> {
                 let message = convert(message)?;
                 unsafe {(*facade).extract().$method($(<$qualifier as RawBorrow<$qualifier_raw>>::raw_borrow($qualifier_name)?.as_rust()?,)* message)}
@@ -97,7 +92,7 @@ macro_rules! generate_facade_publish {
 macro_rules! generate_facade_subscribe {
     ($c_symbol:ident = $facade:ty:$method:ident($( $filter_name:ident : $filter:ty as $filter_raw:ty,)* | $arg:ty | )) => {
         #[no_mangle]
-        pub extern "C" fn $c_symbol(facade: *const $facade, $($filter_name : *const $filter_raw,)* handler: Option<unsafe extern "C" fn(*const $arg)>) -> C_RESULT {
+        pub extern "C" fn $c_symbol(facade: *const $facade, $($filter_name : *const $filter_raw,)* handler: Option<unsafe extern "C" fn(*const $arg)>) -> ::ffi_utils::SNIPS_RESULT {
             fn fun(facade: *const $facade, $($filter_name : *const $filter_raw,)* handler: Option<unsafe extern "C" fn(*const $arg)>) -> hermes::Result<()> {
                 let callback = ptr_to_callback(handler)?;
                 unsafe { (*facade).extract().$method($(<$filter as RawBorrow<$filter_raw>>::raw_borrow($filter_name)?.as_rust()?,)* callback) }
@@ -137,7 +132,7 @@ macro_rules! generate_hermes_c_symbols {
 
 
     #[no_mangle]
-    pub extern "C" fn hermes_get_last_error(error: *mut *const libc::c_char) -> C_RESULT {
+    pub extern "C" fn hermes_get_last_error(error: *mut *const libc::c_char) -> ::ffi_utils::SNIPS_RESULT {
         wrap!(get_last_error(error))
     }
 

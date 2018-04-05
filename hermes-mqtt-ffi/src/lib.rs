@@ -20,7 +20,7 @@ use hermes_ffi::*;
 use ffi_utils::*;
 
 #[no_mangle]
-pub extern "C" fn hermes_protocol_handler_new_mqtt(handler: *mut *const CProtocolHandler, broker_address: *const libc::c_char) -> C_RESULT {
+pub extern "C" fn hermes_protocol_handler_new_mqtt(handler: *mut *const CProtocolHandler, broker_address: *const libc::c_char) -> SNIPS_RESULT {
     fn new_mqtt_handler(handler: *mut *const CProtocolHandler, broker_address: *const libc::c_char) -> Result<(), failure::Error>{
         let address = create_rust_string_from!(broker_address);
         let cph = CProtocolHandler::new(hermes_mqtt::MqttHermesProtocolHandler::new(&address).map_err(|e| format_err!("Could not create hermes MQTT handler : {:?}", e))?);
@@ -35,7 +35,7 @@ pub extern "C" fn hermes_protocol_handler_new_mqtt(handler: *mut *const CProtoco
 
 
 #[no_mangle]
-pub extern "C" fn hermes_destroy_mqtt_protocol_handler(handler: *mut CProtocolHandler) -> C_RESULT {
+pub extern "C" fn hermes_destroy_mqtt_protocol_handler(handler: *mut CProtocolHandler) -> SNIPS_RESULT {
     fn destroy_mqtt_handler(handler: *mut CProtocolHandler) -> hermes::Result<()>{
         let handler = unsafe  { CProtocolHandler::from_raw_pointer(handler) }?;
         handler.destroy::<hermes_mqtt::MqttHermesProtocolHandler>();
