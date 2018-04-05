@@ -15,7 +15,6 @@ use std::fmt::Debug;
 use std::sync::Mutex;
 
 use hermes::*;
-use hermes::errors::*;
 
 pub struct InProcessHermesProtocolHandler {
     bus: Mutex<ripb::Bus>,
@@ -505,6 +504,10 @@ struct AsrStopListening {
 }
 
 #[derive(Debug)]
+struct AsrReload {
+}
+
+#[derive(Debug)]
 struct AsrTextCaptured {
     text_captured: TextCapturedMessage,
 }
@@ -521,6 +524,10 @@ impl AsrFacade for InProcessComponent<Asr> {
 
     fn publish_stop_listening(&self, site: SiteMessage) -> Result<()> {
         self.publish(AsrStopListening { site })
+    }
+
+    fn publish_reload(&self) -> Result<()> {
+        self.publish(AsrReload {})
     }
 
     fn subscribe_text_captured(&self, handler: Callback<TextCapturedMessage>) -> Result<()> {
@@ -542,6 +549,10 @@ impl AsrBackendFacade for InProcessComponent<Asr> {
 
     fn subscribe_stop_listening(&self, handler: Callback<SiteMessage>) -> Result<()> {
         subscribe!(self, AsrStopListening { site }, handler)
+    }
+
+    fn subscribe_reload(&self, handler: Callback0) -> Result<()> {
+        subscribe!(self, AsrReload, handler)
     }
 
     fn publish_text_captured(&self, text_captured: TextCapturedMessage) -> Result<()> {

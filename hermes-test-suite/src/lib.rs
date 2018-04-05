@@ -232,6 +232,8 @@ macro_rules! test_suite {
         t!(asr_stop_listening:
                     asr_backend.subscribe_stop_listening <= SiteMessage | asr.publish_stop_listening
                     with SiteMessage { session_id: Some("abc".into()), site_id: "some site".into() };);
+        t!(asr_reload:
+                asr_backend.subscribe_reload <= asr.publish_reload);
 
         t_component!(tts_component: tts_backend | tts);
         t!(tts_say_works:

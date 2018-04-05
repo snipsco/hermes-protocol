@@ -371,6 +371,7 @@ pub enum AsrCommand {
     StopListening,
     TextCaptured,
     PartialTextCaptured,
+    Reload,
 }
 
 impl ToPath for AsrCommand {}
@@ -540,6 +541,10 @@ mod tests {
             (
                 HermesTopic::Asr(AsrCommand::PartialTextCaptured),
                 "hermes/asr/partialTextCaptured",
+            ),
+            (
+                HermesTopic::Asr(AsrCommand::Reload),
+                "hermes/asr/reload",
             ),
             (
                 HermesTopic::Component(None, Component::Asr, ComponentCommand::VersionRequest),

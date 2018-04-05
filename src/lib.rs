@@ -140,6 +140,7 @@ pub trait SoundFeedbackBackendFacade: IdentifiableToggleableBackendFacade {}
 pub trait AsrFacade: ComponentFacade + ToggleableFacade {
     fn publish_start_listening(&self, site: SiteMessage) -> Result<()>;
     fn publish_stop_listening(&self, site: SiteMessage) -> Result<()>;
+    fn publish_reload(&self) -> Result<()>;
     fn subscribe_text_captured(&self, handler: Callback<TextCapturedMessage>) -> Result<()>;
     fn subscribe_partial_text_captured(&self, handler: Callback<TextCapturedMessage>)
         -> Result<()>;
@@ -150,6 +151,7 @@ pub trait AsrFacade: ComponentFacade + ToggleableFacade {
 pub trait AsrBackendFacade: ComponentBackendFacade + ToggleableBackendFacade {
     fn subscribe_start_listening(&self, handler: Callback<SiteMessage>) -> Result<()>;
     fn subscribe_stop_listening(&self, handler: Callback<SiteMessage>) -> Result<()>;
+    fn subscribe_reload(&self, handler: Callback0) -> Result<()>;
     fn publish_text_captured(&self, text_captured: TextCapturedMessage) -> Result<()>;
     fn publish_partial_text_captured(&self, text_captured: TextCapturedMessage) -> Result<()>;
 }
