@@ -372,6 +372,7 @@ pub enum AsrCommand {
     TextCaptured,
     PartialTextCaptured,
     Reload,
+    Inject,
 }
 
 impl ToPath for AsrCommand {}
@@ -545,6 +546,10 @@ mod tests {
             (
                 HermesTopic::Asr(AsrCommand::Reload),
                 "hermes/asr/reload",
+            ),
+            (
+                HermesTopic::Asr(AsrCommand::Inject),
+                "hermes/asr/inject",
             ),
             (
                 HermesTopic::Component(None, Component::Asr, ComponentCommand::VersionRequest),

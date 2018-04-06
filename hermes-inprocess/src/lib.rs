@@ -508,6 +508,11 @@ struct AsrReload {
 }
 
 #[derive(Debug)]
+struct AsrInject {
+    request: InjectionRequest,
+}
+
+#[derive(Debug)]
 struct AsrTextCaptured {
     text_captured: TextCapturedMessage,
 }
@@ -528,6 +533,10 @@ impl AsrFacade for InProcessComponent<Asr> {
 
     fn publish_reload(&self) -> Result<()> {
         self.publish(AsrReload {})
+    }
+
+    fn publish_injection_request(&self, request: InjectionRequest) -> Result<()> {
+        self.publish(AsrInject { request })
     }
 
     fn subscribe_text_captured(&self, handler: Callback<TextCapturedMessage>) -> Result<()> {
@@ -553,6 +562,10 @@ impl AsrBackendFacade for InProcessComponent<Asr> {
 
     fn subscribe_reload(&self, handler: Callback0) -> Result<()> {
         subscribe!(self, AsrReload, handler)
+    }
+
+    fn subscribe_injection_request(&self, handler: Callback<InjectionRequest>) -> Result<()> {
+        subscribe!(self, AsrInject { request }, handler)
     }
 
     fn publish_text_captured(&self, text_captured: TextCapturedMessage) -> Result<()> {

@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use base64;
 use serde;
 use semver;
@@ -166,6 +168,29 @@ pub struct SayFinishedMessage {
 }
 
 impl<'de> HermesMessage<'de> for SayFinishedMessage {}
+
+type Value = String;
+type Entity = String;
+type Prononciation = String;
+
+#[derive(Debug, Clone, PartialEq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum InjectionKind {
+    Add, Remove, Update,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct InjectionRequest {
+    /// The language of the model to update
+    pub language: String,
+    /// List of operations to execute in the order of the list on a model
+    pub operations: Vec<(InjectionKind, HashMap<Entity, Vec<Value>>)>,
+    /// List of pre-computed prononciations to add in a model
+    #[serde(default)]
+    pub lexicon: Vec<(Value, Vec<Prononciation>)>,
+}
+
+impl<'de> HermesMessage<'de> for InjectionRequest {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
