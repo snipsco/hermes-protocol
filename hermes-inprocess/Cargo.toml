@@ -1,6 +1,6 @@
 [package]
 name = "hermes-inprocess"
-version = "0.54.1"
+version = "0.55.0-SNAPSHOT"
 authors = ["Thibaut Lorrain <thibaut.lorrain@snips.ai>"]
 
 [dependencies]
