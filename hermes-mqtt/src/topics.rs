@@ -42,6 +42,8 @@ impl HermesTopic {
             Some("toggleOff") => Some(Asr(ToggleOff)),
             Some("textCaptured") => Some(Asr(TextCaptured)),
             Some("partialTextCaptured") => Some(Asr(PartialTextCaptured)),
+            Some("inject") => Some(Asr(Inject)),
+            Some("reload") => Some(Asr(Reload)),
             Some("versionRequest") => Some(HermesTopic::Component(
                 None,
                 Component::Asr,
