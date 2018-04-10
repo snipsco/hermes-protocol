@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 from glob import glob
 import os
 from ctypes import cdll, CFUNCTYPE, c_void_p, POINTER

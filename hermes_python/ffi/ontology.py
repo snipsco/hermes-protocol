@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from ctypes import c_char_p, c_int32, c_int, c_float, c_void_p, POINTER, pointer, Structure
 
 

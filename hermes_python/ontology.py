@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import
+from six.moves import range
 class Slot(object):
     def __init__(self, value, raw_value, entity, slot_name, range_start, range_end):
         self.value = None

@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import
 from ctypes import *
-from ffi.ontology import CProtocolHandler, CDialogueFacade, CContinueSessionMessage, CEndSessionMessage, \
+from .ffi.ontology import CProtocolHandler, CDialogueFacade, CContinueSessionMessage, CEndSessionMessage, \
     CStartSessionMessage, CStringArray, CIntentMessage, CSessionStartedMessage, CSessionQueuedMessage, \
     CSessionEndedMessage
-from ffi.utils import *
+from .ffi.utils import *
 from time import sleep
 
 
