@@ -1,6 +1,6 @@
 [package]
 name = "hermes"
-version = "0.55.0-RC5"
+version = "0.55.0-RC5-SNAPSHOT"
 authors = [
     "Kevin Lefevre <kevin.lefevre@snips.ai>",
     "Thibaut Lorrain <thibaut.lorrain@snips.ai"
