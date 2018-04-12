@@ -176,13 +176,12 @@ type Prononciation = String;
 #[derive(Debug, Clone, PartialEq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum InjectionKind {
-    Add, Remove, Update,
+    Add
+    // Not yet implemented : Remove, Update,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct InjectionRequest {
-    /// The language of the model to update
-    pub language: String,
     /// List of operations to execute in the order of the list on a model
     pub operations: Vec<(InjectionKind, HashMap<Entity, Vec<Value>>)>,
     /// List of pre-computed prononciations to add in a model
