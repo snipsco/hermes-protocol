@@ -236,7 +236,7 @@ macro_rules! test_suite {
                 asr_backend.subscribe_reload <= asr.publish_reload);
         t!(asr_injection_request:
                     asr_backend.subscribe_injection_request <= InjectionRequest | asr.publish_injection_request
-                    with InjectionRequest { language: "en".into(), operations: vec![], lexicon: vec![] };);
+                    with InjectionRequest { operations: vec![], lexicon: vec![] };);
 
         t_component!(tts_component: tts_backend | tts);
         t!(tts_say_works:
