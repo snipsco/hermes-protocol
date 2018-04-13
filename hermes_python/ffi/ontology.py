@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-from ctypes import c_char_p, c_int32, c_int, c_float, c_void_p, POINTER, pointer, Structure
+from ctypes import c_char_p, c_int32, c_int64, c_int, c_float, c_void_p, POINTER, pointer, Structure
 
 
 class CStringArray(Structure):
@@ -83,8 +83,7 @@ class CIntentClassifierResult(Structure):
 class CSlotValue(Structure):
     _fields_ = [
         ("value", c_void_p),
-        # TODO : Points to either a *const char, a CNumberValue, a COrdinalValue, a CInstantTimeValue, a CTimeIntervalValue, a CAmountOfMoneyValue, a CTemperatureValue or a CDurationValue depending on value_type
-        ("value_type", c_int32)
+        ("value_type", c_int32) # TODO : value_type is an enum
     ]
 
 
@@ -133,3 +132,40 @@ class CSessionStartedMessage(Structure):
                 ("custom_data", c_char_p),
                 ("site_id", c_char_p),
                 ("reactivated_from_session_id", c_char_p)]
+
+
+# Slot Types Structs
+
+class CAmountOfMoneyValue(Structure):
+    _fields_ = [("unit", c_char_p),
+                ("value", c_float),
+                ("precision", c_int)] # TODO : Precision is an enum.
+
+
+class CTemperatureValue(Structure):
+    _fields_ = [("unit", c_char_p),
+                ("value", c_float)]
+
+
+
+class CInstantTimeValue(Structure):
+    _fields_ = [("value", c_char_p),
+               ("grain", c_int), # TODO : CGrain is an enum ...
+               ("precision", c_int)] # TODO : Precision is an enum ...
+
+
+class CTimeIntervalValue(Structure):
+    _fields_ = [("from_date", c_char_p),
+                ("to_date", c_char_p)]
+
+class CDurationValue(Structure):
+    _fields_ = [("years", c_int64),
+                ("quarters", c_int64),
+                ("months", c_int64),
+                ("weeks", c_int64),
+                ("days", c_int64),
+                ("hours", c_int64),
+                ("minutes", c_int64),
+                ("seconds", c_int64),
+                ("precision", c_int)]
+
