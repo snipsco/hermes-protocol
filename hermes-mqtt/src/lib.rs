@@ -71,14 +71,14 @@ impl MqttHandler {
     }
 
     pub fn publish_binary_payload(&self, topic: &HermesTopic, payload: Vec<u8>) -> Result<()> {
-
         let topic = &*topic.as_path();
         debug!(
             "Publishing as binary on MQTT topic '{}', with size {}",
             topic,
             payload.len()
         );
-        self.mqtt_client.publish(topic)
+        self.mqtt_client
+            .publish(topic)
             .map(|m| m.payload(payload))
             .and_then(|p| p.send())
             .map_err(SyncFailure::new)?;
@@ -90,8 +90,13 @@ impl MqttHandler {
     where
         F: Fn() -> () + Send + Sync + 'static,
     {
+        let log_level = Self::log_level(topic);
         self.inner_subscribe(topic, move |m| {
-            debug!("Received a message on MQTT topic '{:?}'", m.topic_name);
+            log!(
+                log_level,
+                "Received a message on MQTT topic '{:?}'",
+                m.topic_name
+            );
             handler()
         })
     }
@@ -101,8 +106,10 @@ impl MqttHandler {
         F: Fn(&P) -> () + Send + Sync + 'static,
         P: serde::de::DeserializeOwned,
     {
+        let log_level = Self::log_level(topic);
         self.inner_subscribe(topic, move |m| {
-            debug!(
+            log!(
+                log_level,
                 "Received a message on MQTT topic '{:?}', payload : {}",
                 m.topic_name,
                 if m.payload.len() < 2048 {
@@ -131,8 +138,10 @@ impl MqttHandler {
     where
         F: Fn(&HermesTopic, &[u8]) -> () + Send + Sync + 'static,
     {
+        let log_level = Self::log_level(topic);
         self.inner_subscribe(topic, move |m| {
-            debug!(
+            log!(
+                log_level,
                 "Received a message on MQTT topic '{:?}', payload : {}",
                 m.topic_name,
                 if m.payload.len() < 2048 {
@@ -161,6 +170,13 @@ impl MqttHandler {
     {
         self.mqtt_client.subscribe(topic.to_string(), Box::new(callback)).map_err(SyncFailure::new)?.send().map_err(SyncFailure::new)?;
         Ok(())
+    }
+
+    fn log_level(topic: &HermesTopic) -> ::log::Level {
+        match *topic {
+            HermesTopic::AudioServer(_, AudioServerCommand::AudioFrame) => ::log::Level::Trace,
+            _ => ::log::Level::Debug,
+        }
     }
 }
 
