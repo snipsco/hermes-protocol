@@ -17,7 +17,7 @@ class Hermes(object):
         self._facade = POINTER(CDialogueFacade)()
 
         # References to callbacks called from C
-        self._c_subscribe_intent_callback = None
+        self._c_callback_subscribe_intent = []
         self._c_callback_subscribe_intents = None
         self._c_callback_subscribe_session_started = None
         self._c_callback_subscribe_session_queued = None
@@ -47,9 +47,11 @@ class Hermes(object):
         return CFUNCTYPE(callback_restype, POINTER(callback_argtype))(params_converter(user_callback))
 
     def subscribe_intent(self, intent_name, user_callback_subscribe_intent):
-        self._c_callback_subscribe_intent = self._wraps(user_callback_subscribe_intent, CIntentMessage, c_void_p,
-                                                        IntentMessage)
-        hermes_dialogue_subscribe_intent(self._facade, c_char_p(intent_name), self._c_callback_subscribe_intent)
+        self._c_callback_subscribe_intent.append(self._wraps(user_callback_subscribe_intent, CIntentMessage, c_void_p,
+                                                        IntentMessage))
+
+        number_of_callbacks = len(self._c_callback_subscribe_intent)
+        hermes_dialogue_subscribe_intent(self._facade, c_char_p(intent_name), self._c_callback_subscribe_intent[number_of_callbacks - 1]) # We retrieve the last callback we
         return self
 
     def subscribe_intents(self, user_callback_subscribe_intents):

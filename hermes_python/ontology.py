@@ -1,11 +1,44 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import absolute_import
+from collections import defaultdict
 from six.moves import range
 
 
 from ctypes import string_at, c_double
 from .ffi.ontology import CAmountOfMoneyValue, CTemperatureValue, CInstantTimeValue, CTimeIntervalValue, CDurationValue
+
+
+class IntentMessage(object):
+    def __init__(self, session_id, custom_data, site_id, input, intent, slots):
+        self.session_id = session_id
+        self.custom_data = custom_data
+        self.site_id = site_id
+        self.input = input
+        self.intent = intent
+        self.slots = slots
+
+    @classmethod
+    def from_c_repr(cls, c_repr):
+        session_id = c_repr.session_id
+        custom_data = c_repr.custom_data
+        site_id = c_repr.site_id
+        input = c_repr.input
+        intent = IntentClassifierResult.from_c_repr(c_repr.intent.contents)
+        slots = SlotMap.from_c_repr(c_repr.slots.contents)  # TODO : Handle no slot case !
+        return cls(session_id, custom_data, site_id, input, intent, slots)
+
+class IntentClassifierResult(object):
+    def __init__(self, intent_name, probability):
+        self.intent_name = intent_name
+        self.probability = probability
+
+    @classmethod
+    def from_c_repr(cls, c_repr):
+        intent_name = c_repr.intent_name
+        probability = c_repr.probability
+        return cls(intent_name, probability)
+
 
 class SlotMap(object):
     def __init__(self, mapping):
@@ -16,20 +49,33 @@ class SlotMap(object):
 
     @classmethod
     def from_c_repr(cls, c_slots_list_repr):
-        mapping = dict()
+        mapping = defaultdict(SlotsList)
 
         slots_list_length = c_slots_list_repr.size
         c_slots_array_repr = c_slots_list_repr.slots
 
         for i in range(slots_list_length):
             slot = Slot.from_c_repr(c_slots_array_repr[i])
-            mapping[slot.slot_name] = slot
+            mapping[slot.slot_name].append(slot)
         return cls(mapping)
 
 
+class SlotsList(list):  # An extension to make things easier to reach slot_values that are deeply nested in the IntentMessage datastructure.
+    def first(self):
+        if len(self) > 0:
+            return self[0].slot_value
+        else:
+            return None
+    def all(self):
+        if len(self) > 0:
+            return [element.slot_value for element in self]
+        else:
+            return None
+
+
 class Slot(object):
-    def __init__(self, value, raw_value, entity, slot_name, range_start, range_end):
-        self.value = value
+    def __init__(self, slot_value, raw_value, entity, slot_name, range_start, range_end):
+        self.slot_value = slot_value
         self.raw_value = raw_value
         self.entity = entity
         self.slot_name = slot_name
@@ -38,14 +84,15 @@ class Slot(object):
 
     @classmethod
     def from_c_repr(cls, c_repr):
-        value = SlotValue.from_c_repr(c_repr.value)
+        slot_value = SlotValue.from_c_repr(c_repr.value)
         raw_value = c_repr.raw_value
         entity = c_repr.entity
         slot_name = c_repr.slot_name
         range_start = c_repr.range_start
         range_end = c_repr.range_end
 
-        return cls(value, raw_value, entity, slot_name, range_start, range_end)
+        return cls(slot_value, raw_value, entity, slot_name, range_start, range_end)
+
 
 class SlotValue(object):
     def __init__(self, value_type, value):
@@ -53,14 +100,17 @@ class SlotValue(object):
         self.value = value
 
     @classmethod
-    def from_c_repr(cls, c_repr):
+    def from_c_repr(cls, c_repr):  # TODO : refactor to make it more generic
         value_type = c_repr.value_type
 
         if 1 == value_type:  # CUSTOM
-            value = string_at(c_repr.value)
+            c_repr_custom_value = c_repr.value
+            string_value = string_at(c_repr_custom_value)
+            value = CustomValue(string_value)
         elif 2 == value_type: # NUMBER
             c_repr_number = c_double.from_address(c_repr.value)
-            value = c_repr_number.value
+            number = c_repr_number.value
+            value = NumberValue(number)
         elif 3 == value_type: # ORDINAL
             value = None
         elif 4 == value_type: # INSTANTTIME
@@ -84,38 +134,27 @@ class SlotValue(object):
 
         return cls(value_type, value)
 
+    def first(self):
+        pass
+
+    def values(self):
+        pass
 
 
-class IntentMessage(object):
-    def __init__(self, session_id, custom_data, site_id, input, intent, slots):
+class SessionStartedMessage(object):
+    def __init__(self, session_id, custom_data, site_id, reactivated_from_session_id):
         self.session_id = session_id
         self.custom_data = custom_data
         self.site_id = site_id
-        self.input = input
-        self.intent = intent
-        self.slots = slots
+        self.reactivated_from_session_id = reactivated_from_session_id
 
     @classmethod
     def from_c_repr(cls, c_repr):
         session_id = c_repr.session_id
         custom_data = c_repr.custom_data
         site_id = c_repr.site_id
-        input = c_repr.input
-        intent = IntentClassifierResult.from_c_repr(c_repr.intent.contents)
-        slots = SlotMap.from_c_repr(c_repr.slots.contents)  # TODO : Handle no slot case !
-        return cls(session_id, custom_data, site_id, input, intent, slots)
-
-
-class IntentClassifierResult(object):
-    def __init__(self, intent_name, probability):
-        self.intent_name = intent_name
-        self.probability = probability
-
-    @classmethod
-    def from_c_repr(cls, c_repr):
-        intent_name = c_repr.intent_name
-        probability = c_repr.probability
-        return cls(intent_name, probability)
+        reactivated_from_session_id = c_repr.reactivated_from_session_id
+        return cls(session_id, custom_data, site_id, reactivated_from_session_id)
 
 
 class SessionEndedMessage(object):
@@ -146,20 +185,15 @@ class SessionQueuedMessage(object):
         return cls(session_id, custom_data, site_id)
 
 
-class SessionStartedMessage(object):
-    def __init__(self, session_id, custom_data, site_id, reactivated_from_session_id):
-        self.session_id = session_id
-        self.custom_data = custom_data
-        self.site_id = site_id
-        self.reactivated_from_session_id = reactivated_from_session_id
+class CustomValue(object):
+    def __init__(self, string_value):
+        self.value = string_value
 
-    @classmethod
-    def from_c_repr(cls, c_repr):
-        session_id = c_repr.session_id
-        custom_data = c_repr.custom_data
-        site_id = c_repr.site_id
-        reactivated_from_session_id = c_repr.reactivated_from_session_id
-        return cls(session_id, custom_data, site_id, reactivated_from_session_id)
+
+class NumberValue(object):
+    def __init__(self, value):
+        self.value = value
+
 
 
 class AmountOfMoneyValue(object):
