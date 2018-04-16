@@ -186,7 +186,7 @@ pub struct InjectionRequest {
     pub operations: Vec<(InjectionKind, HashMap<Entity, Vec<Value>>)>,
     /// List of pre-computed prononciations to add in a model
     #[serde(default)]
-    pub lexicon: Vec<(Value, Vec<Prononciation>)>,
+    pub lexicon: HashMap<Value, Vec<Prononciation>>,
 }
 
 impl<'de> HermesMessage<'de> for InjectionRequest {}
