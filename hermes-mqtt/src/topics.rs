@@ -35,8 +35,8 @@ impl ToPath for HermesTopic {}
 
 impl HermesTopic {
     fn parse_asr<'a, It: Iterator<Item = &'a str>>(mut comps: It) -> Option<HermesTopic> {
-        use HermesTopic::Asr;
         use AsrCommand::*;
+        use HermesTopic::Asr;
         match comps.next() {
             Some("toggleOn") => Some(Asr(ToggleOn)),
             Some("toggleOff") => Some(Asr(ToggleOff)),
@@ -64,8 +64,8 @@ impl HermesTopic {
     }
 
     fn parse_audio_server<'a, It: Iterator<Item = &'a str>>(mut comps: It) -> Option<HermesTopic> {
-        use HermesTopic::AudioServer;
         use AudioServerCommand::*;
+        use HermesTopic::AudioServer;
         match (comps.next(), comps.next(), comps.next()) {
             (Some("toggleOn"), None, None) => Some(AudioServer(None, ToggleOn)),
             (Some("toggleOff"), None, None) => Some(AudioServer(None, ToggleOff)),
@@ -100,8 +100,8 @@ impl HermesTopic {
     fn parse_dialogue_manager<'a, It: Iterator<Item = &'a str>>(
         mut comps: It,
     ) -> Option<HermesTopic> {
-        use HermesTopic::DialogueManager;
         use DialogueManagerCommand::*;
+        use HermesTopic::DialogueManager;
         let command = comps.next();
         match command {
             Some("toggleOn") => Some(DialogueManager(ToggleOn)),
@@ -545,14 +545,8 @@ mod tests {
                 HermesTopic::Asr(AsrCommand::PartialTextCaptured),
                 "hermes/asr/partialTextCaptured",
             ),
-            (
-                HermesTopic::Asr(AsrCommand::Reload),
-                "hermes/asr/reload",
-            ),
-            (
-                HermesTopic::Asr(AsrCommand::Inject),
-                "hermes/asr/inject",
-            ),
+            (HermesTopic::Asr(AsrCommand::Reload), "hermes/asr/reload"),
+            (HermesTopic::Asr(AsrCommand::Inject), "hermes/asr/inject"),
             (
                 HermesTopic::Component(None, Component::Asr, ComponentCommand::VersionRequest),
                 "hermes/asr/versionRequest",

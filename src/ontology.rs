@@ -1,13 +1,14 @@
 use std::collections::HashMap;
 
 use base64;
-use serde;
 use semver;
+use serde;
 use snips_nlu_ontology::{IntentClassifierResult, Slot};
 use std;
 
-pub trait HermesMessage<'de>
-    : ::std::fmt::Debug + ::serde::Deserialize<'de> + ::serde::Serialize {
+pub trait HermesMessage<'de>:
+    ::std::fmt::Debug + ::serde::Deserialize<'de> + ::serde::Serialize
+{
 }
 
 pub type SiteId = String;
@@ -176,8 +177,7 @@ type Prononciation = String;
 #[derive(Debug, Clone, PartialEq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum InjectionKind {
-    Add
-    // Not yet implemented : Remove, Update,
+    Add, // Not yet implemented : Remove, Update
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

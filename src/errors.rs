@@ -1,6 +1,6 @@
+use failure;
 use std::result;
 use std::sync::PoisonError;
-use failure;
 
 pub type Result<T> = result::Result<T, failure::Error>;
 

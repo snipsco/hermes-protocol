@@ -1,155 +1,214 @@
 #[macro_export]
 macro_rules! t {
-        ($name:ident:
-            $s_facade:ident.$s:ident <= $t:ty | $p_facade:ident.$p:ident
-            with $object:expr;) => {
-                #[test]
-                fn $name() {
-                    let (handler_source, handler_receiver) = create_handlers();
-                    let source = handler_source.$p_facade();
-                    let receiver = handler_receiver.$s_facade();
-                    let (tx, rx) = ::std::sync::mpsc::channel();
-                    let tx = ::std::sync::Mutex::new(tx);
-                    receiver.$s(::Callback::new(move |o: &$t| tx.lock().map(|it| it.send(o.clone())).unwrap().unwrap())).unwrap();
-                    let message = $object;
-                    source.$p(message.clone()).unwrap();
-                    let result = rx.recv_timeout(::std::time::Duration::from_secs(1));
-                    assert!(result.is_ok(), "didn't receive message after one second");
-                    assert_eq!(result.unwrap(), message)
-                }
-            };
-        ($name:ident:
-            $s_facade:ident.$s:ident <= $p_facade:ident.$p:ident) => {
-                #[test]
-                fn $name() {
-                    let (handler_source, handler_receiver) = create_handlers();
-                    let source = handler_source.$p_facade();
-                    let receiver = handler_receiver.$s_facade();
-                    let (tx, rx) = ::std::sync::mpsc::channel();
-                    let tx = ::std::sync::Mutex::new(tx);
-                    receiver.$s(::Callback0::new(move || tx.lock().map(|it| it.send(())).unwrap().unwrap())).unwrap();
-                    source.$p().unwrap();
-                    let result = rx.recv_timeout(::std::time::Duration::from_secs(1));
-                    assert!(result.is_ok(), "didn't receive message after one second");
-                }
-            };
-        ($name:ident:
-            $s_facade:ident.$s:ident $a:block <= $p_facade:ident.$p:ident) => {
-                #[test]
-                fn $name() {
-                    let (handler_source, handler_receiver) = create_handlers();
-                    let source = handler_source.$p_facade();
-                    let receiver = handler_receiver.$s_facade();
-                    let (tx, rx) = ::std::sync::mpsc::channel();
-                    let tx = ::std::sync::Mutex::new(tx);
-                    receiver.$s($a, ::Callback0::new(move || tx.lock().map(|it| it.send(())).unwrap().unwrap())).unwrap();
-                    source.$p($a).unwrap();
-                    let result = rx.recv_timeout(::std::time::Duration::from_secs(1));
-                    assert!(result.is_ok(), "didn't receive message after one second");
-                }
-            };
-        ($name:ident:
-            $s_facade:ident.$s:ident $a:block <= $t:ty | $p_facade:ident.$p:ident
-            with $object:expr;) => {
-                #[test]
-                fn $name() {
-                    let (handler_source, handler_receiver) = create_handlers();
-                    let source = handler_source.$p_facade();
-                    let receiver = handler_receiver.$s_facade();
-                    let (tx, rx) = ::std::sync::mpsc::channel();
-                    let tx = ::std::sync::Mutex::new(tx);
-                    receiver.$s($a, ::Callback::new(move |o: &$t| tx.lock().map(|it| it.send(o.clone())).unwrap().unwrap())).unwrap();
-                    let message = $object;
-                    source.$p($a, message.clone()).unwrap();
-                    let result = rx.recv_timeout(::std::time::Duration::from_secs(1));
-                    assert!(result.is_ok(), "didn't receive message after one second");
-                    assert_eq!(result.unwrap(), message)
-                }
-            };
-        ($name:ident:
-            OneToMany
-            $s_facade:ident.$s:ident $a:block <= $p_facade:ident.$p:ident) => {
-                #[test]
-                fn $name() {
-                    let (handler_source, handler_receiver) = create_handlers();
-                    let source = handler_source.$p_facade();
-                    let receiver = handler_receiver.$s_facade();
-                    let (tx, rx) = ::std::sync::mpsc::channel();
-                    let tx = ::std::sync::Mutex::new(tx);
-                    receiver.$s($a, ::Callback0::new(move || tx.lock().map(|it| it.send(())).unwrap().unwrap())).unwrap();
-                    source.$p($a).unwrap();
-                    let result = rx.recv_timeout(::std::time::Duration::from_secs(1));
-                    assert!(result.is_ok(), "didn't receive message after one second");
-                }
-            };
-        ($name:ident:
-            OneToMany
-            $s_facade:ident.$s:ident $a:block <= $t:ty | $p_facade:ident.$p:ident
-            with $object:expr;) => {
-                #[test]
-                fn $name() {
-                    let (handler_source, handler_receiver) = create_handlers();
-                    let source = handler_source.$p_facade();
-                    let receiver = handler_receiver.$s_facade();
-                    let (tx, rx) = ::std::sync::mpsc::channel();
-                    let tx = ::std::sync::Mutex::new(tx);
-                    receiver.$s($a, ::Callback::new(move |o: &$t| tx.lock().map(|it| it.send(o.clone())).unwrap().unwrap())).unwrap();
-                    let message = $object;
-                    source.$p(message.clone()).unwrap();
-                    let result = rx.recv_timeout(::std::time::Duration::from_secs(1));
-                    assert!(result.is_ok(), "didn't receive message after one second");
-                    assert_eq!(result.unwrap(), message)
-                }
-            };
-        ($name:ident:
-            ManyToOne
-            $s_facade:ident.$s:ident <= $p_facade:ident.$p:ident $a:block) => {
-                #[test]
-                fn $name() {
-                    let (handler_source, handler_receiver) = create_handlers();
-                    let source = handler_source.$p_facade();
-                    let receiver = handler_receiver.$s_facade();
-                    let (tx, rx) = ::std::sync::mpsc::channel();
-                    let tx = ::std::sync::Mutex::new(tx);
-                    receiver.$s(::Callback0::new(move || tx.lock().map(|it| it.send(())).unwrap().unwrap())).unwrap();
-                    source.$p($a).unwrap();
-                    let result = rx.recv_timeout(::std::time::Duration::from_secs(1));
-                    assert!(result.is_ok(), "didn't receive message after one second");
-                }
-            };
-        ($name:ident:
-            ManyToOne
-            $s_facade:ident.$s:ident <= $t:ty | $p_facade:ident.$p:ident $a:block
-            with $object:expr;) => {
-                #[test]
-                fn $name() {
-                    let (handler_source, handler_receiver) = create_handlers();
-                    let source = handler_source.$p_facade();
-                    let receiver = handler_receiver.$s_facade();
-                    let (tx, rx) = ::std::sync::mpsc::channel();
-                    let tx = ::std::sync::Mutex::new(tx);
-                    receiver.$s(::Callback::new(move |o: &$t| tx.lock().map(|it| it.send(o.clone())).unwrap().unwrap())).unwrap();
-                    let message = $object;
-                    source.$p($a, message.clone()).unwrap();
-                    let result = rx.recv_timeout(::std::time::Duration::from_secs(1));
-                    assert!(result.is_ok(), "didn't receive message after one second");
-                    assert_eq!(result.unwrap(), message)
-                }
-            };
-    }
+    (
+        $name:ident :
+        $s_facade:ident.
+        $s:ident <=
+        $t:ty |
+        $p_facade:ident.
+        $p:ident with
+        $object:expr;
+    ) => {
+        #[test]
+        fn $name() {
+            let (handler_source, handler_receiver) = create_handlers();
+            let source = handler_source.$p_facade();
+            let receiver = handler_receiver.$s_facade();
+            let (tx, rx) = ::std::sync::mpsc::channel();
+            let tx = ::std::sync::Mutex::new(tx);
+            receiver
+                .$s(::Callback::new(move |o: &$t| {
+                    tx.lock().map(|it| it.send(o.clone())).unwrap().unwrap()
+                }))
+                .unwrap();
+            let message = $object;
+            source.$p(message.clone()).unwrap();
+            let result = rx.recv_timeout(::std::time::Duration::from_secs(1));
+            assert!(result.is_ok(), "didn't receive message after one second");
+            assert_eq!(result.unwrap(), message)
+        }
+    };
+    ($name:ident : $s_facade:ident. $s:ident <= $p_facade:ident. $p:ident) => {
+        #[test]
+        fn $name() {
+            let (handler_source, handler_receiver) = create_handlers();
+            let source = handler_source.$p_facade();
+            let receiver = handler_receiver.$s_facade();
+            let (tx, rx) = ::std::sync::mpsc::channel();
+            let tx = ::std::sync::Mutex::new(tx);
+            receiver
+                .$s(::Callback0::new(move || {
+                    tx.lock().map(|it| it.send(())).unwrap().unwrap()
+                }))
+                .unwrap();
+            source.$p().unwrap();
+            let result = rx.recv_timeout(::std::time::Duration::from_secs(1));
+            assert!(result.is_ok(), "didn't receive message after one second");
+        }
+    };
+    ($name:ident : $s_facade:ident. $s:ident $a:block <= $p_facade:ident. $p:ident) => {
+        #[test]
+        fn $name() {
+            let (handler_source, handler_receiver) = create_handlers();
+            let source = handler_source.$p_facade();
+            let receiver = handler_receiver.$s_facade();
+            let (tx, rx) = ::std::sync::mpsc::channel();
+            let tx = ::std::sync::Mutex::new(tx);
+            receiver
+                .$s(
+                    $a,
+                    ::Callback0::new(move || tx.lock().map(|it| it.send(())).unwrap().unwrap()),
+                )
+                .unwrap();
+            source.$p($a).unwrap();
+            let result = rx.recv_timeout(::std::time::Duration::from_secs(1));
+            assert!(result.is_ok(), "didn't receive message after one second");
+        }
+    };
+    (
+        $name:ident :
+        $s_facade:ident.
+        $s:ident
+        $a:block <=
+        $t:ty |
+        $p_facade:ident.
+        $p:ident with
+        $object:expr;
+    ) => {
+        #[test]
+        fn $name() {
+            let (handler_source, handler_receiver) = create_handlers();
+            let source = handler_source.$p_facade();
+            let receiver = handler_receiver.$s_facade();
+            let (tx, rx) = ::std::sync::mpsc::channel();
+            let tx = ::std::sync::Mutex::new(tx);
+            receiver
+                .$s(
+                    $a,
+                    ::Callback::new(move |o: &$t| {
+                        tx.lock().map(|it| it.send(o.clone())).unwrap().unwrap()
+                    }),
+                )
+                .unwrap();
+            let message = $object;
+            source.$p($a, message.clone()).unwrap();
+            let result = rx.recv_timeout(::std::time::Duration::from_secs(1));
+            assert!(result.is_ok(), "didn't receive message after one second");
+            assert_eq!(result.unwrap(), message)
+        }
+    };
+    ($name:ident : OneToMany $s_facade:ident. $s:ident $a:block <= $p_facade:ident. $p:ident) => {
+        #[test]
+        fn $name() {
+            let (handler_source, handler_receiver) = create_handlers();
+            let source = handler_source.$p_facade();
+            let receiver = handler_receiver.$s_facade();
+            let (tx, rx) = ::std::sync::mpsc::channel();
+            let tx = ::std::sync::Mutex::new(tx);
+            receiver
+                .$s(
+                    $a,
+                    ::Callback0::new(move || tx.lock().map(|it| it.send(())).unwrap().unwrap()),
+                )
+                .unwrap();
+            source.$p($a).unwrap();
+            let result = rx.recv_timeout(::std::time::Duration::from_secs(1));
+            assert!(result.is_ok(), "didn't receive message after one second");
+        }
+    };
+    (
+        $name:ident : OneToMany
+        $s_facade:ident.
+        $s:ident
+        $a:block <=
+        $t:ty |
+        $p_facade:ident.
+        $p:ident with
+        $object:expr;
+    ) => {
+        #[test]
+        fn $name() {
+            let (handler_source, handler_receiver) = create_handlers();
+            let source = handler_source.$p_facade();
+            let receiver = handler_receiver.$s_facade();
+            let (tx, rx) = ::std::sync::mpsc::channel();
+            let tx = ::std::sync::Mutex::new(tx);
+            receiver
+                .$s(
+                    $a,
+                    ::Callback::new(move |o: &$t| {
+                        tx.lock().map(|it| it.send(o.clone())).unwrap().unwrap()
+                    }),
+                )
+                .unwrap();
+            let message = $object;
+            source.$p(message.clone()).unwrap();
+            let result = rx.recv_timeout(::std::time::Duration::from_secs(1));
+            assert!(result.is_ok(), "didn't receive message after one second");
+            assert_eq!(result.unwrap(), message)
+        }
+    };
+    ($name:ident : ManyToOne $s_facade:ident. $s:ident <= $p_facade:ident. $p:ident $a:block) => {
+        #[test]
+        fn $name() {
+            let (handler_source, handler_receiver) = create_handlers();
+            let source = handler_source.$p_facade();
+            let receiver = handler_receiver.$s_facade();
+            let (tx, rx) = ::std::sync::mpsc::channel();
+            let tx = ::std::sync::Mutex::new(tx);
+            receiver
+                .$s(::Callback0::new(move || {
+                    tx.lock().map(|it| it.send(())).unwrap().unwrap()
+                }))
+                .unwrap();
+            source.$p($a).unwrap();
+            let result = rx.recv_timeout(::std::time::Duration::from_secs(1));
+            assert!(result.is_ok(), "didn't receive message after one second");
+        }
+    };
+    (
+        $name:ident : ManyToOne
+        $s_facade:ident.
+        $s:ident <=
+        $t:ty |
+        $p_facade:ident.
+        $p:ident
+        $a:block with
+        $object:expr;
+    ) => {
+        #[test]
+        fn $name() {
+            let (handler_source, handler_receiver) = create_handlers();
+            let source = handler_source.$p_facade();
+            let receiver = handler_receiver.$s_facade();
+            let (tx, rx) = ::std::sync::mpsc::channel();
+            let tx = ::std::sync::Mutex::new(tx);
+            receiver
+                .$s(::Callback::new(move |o: &$t| {
+                    tx.lock().map(|it| it.send(o.clone())).unwrap().unwrap()
+                }))
+                .unwrap();
+            let message = $object;
+            source.$p($a, message.clone()).unwrap();
+            let result = rx.recv_timeout(::std::time::Duration::from_secs(1));
+            assert!(result.is_ok(), "didn't receive message after one second");
+            assert_eq!(result.unwrap(), message)
+        }
+    };
+}
 
 #[macro_export]
 macro_rules! t_toggleable {
-        ($name:ident: $f_back:ident | $f:ident) => {
-            mod $name {
-                use super::*;
-                t!(toggle_on_works:
-                        $f_back.subscribe_toggle_on <= $f.publish_toggle_on);
-                t!(toggle_off_works:
-                        $f_back.subscribe_toggle_off <= $f.publish_toggle_off);
-            }
-        };
-    }
+    ($name:ident : $f_back:ident | $f:ident) => {
+        mod $name {
+            use super::*;
+            t!(toggle_on_works:
+                                $f_back.subscribe_toggle_on <= $f.publish_toggle_on);
+            t!(toggle_off_works:
+                                $f_back.subscribe_toggle_off <= $f.publish_toggle_off);
+        }
+    };
+}
 
 #[macro_export]
 macro_rules! t_identifiable_toggleable {

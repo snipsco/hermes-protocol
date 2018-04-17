@@ -13,4 +13,3 @@ pub use protocol_handler::*;
 
 mod ontology;
 pub use ontology::*;
-

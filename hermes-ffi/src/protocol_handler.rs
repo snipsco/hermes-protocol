@@ -1,32 +1,30 @@
 use ffi_utils::RawPointerConverter;
 use hermes::HermesProtocolHandler;
 
-
 #[repr(C)]
 pub struct CProtocolHandler {
-    pub handler: *const HermesProtocolHandler
+    pub handler: *const HermesProtocolHandler,
 }
 
 impl CProtocolHandler {
-    pub fn new<T: HermesProtocolHandler + 'static>(handler : T) -> Self {
+    pub fn new<T: HermesProtocolHandler + 'static>(handler: T) -> Self {
         Self {
-            handler : T::into_raw_pointer(handler)
+            handler: T::into_raw_pointer(handler),
         }
     }
 
-    pub fn destroy<T: HermesProtocolHandler + 'static >(self) {
+    pub fn destroy<T: HermesProtocolHandler + 'static>(self) {
         let _ = unsafe { T::from_raw_pointer(self.handler as *const T) };
     }
 }
 
-
-
 #[macro_export]
 macro_rules! generate_destroy {
     ($c_symbol:ident for $cstruct:ty) => {
-         #[no_mangle]
-        pub extern "C" fn $c_symbol(cstruct : *const $cstruct) -> ::ffi_utils::SNIPS_RESULT {
-            let _ = unsafe {<$cstruct as RawPointerConverter<$cstruct>>::from_raw_pointer(cstruct) };
+        #[no_mangle]
+        pub extern "C" fn $c_symbol(cstruct: *const $cstruct) -> ::ffi_utils::SNIPS_RESULT {
+            let _ =
+                unsafe { <$cstruct as RawPointerConverter<$cstruct>>::from_raw_pointer(cstruct) };
             ::ffi_utils::SNIPS_RESULT::SNIPS_RESULT_OK
         }
     };
@@ -34,15 +32,23 @@ macro_rules! generate_destroy {
 
 #[macro_export]
 macro_rules! generate_facade_wrapper {
-    ($wrapper_name:ident for $facade:ty, $drop_name:ident, $getter_name:ident = handler.$getter:ident) => {
+    (
+        $wrapper_name:ident for
+        $facade:ty,
+        $drop_name:ident,
+        $getter_name:ident = handler.
+        $getter:ident
+    ) => {
         #[repr(C)]
         pub struct $wrapper_name {
-            facade: *const $facade
+            facade: *const $facade,
         }
 
         impl $wrapper_name {
             pub fn from(facade: Box<$facade>) -> Self {
-                Self { facade: Box::into_raw(facade) }
+                Self {
+                    facade: Box::into_raw(facade),
+                }
             }
 
             pub fn extract(&self) -> &$facade {
@@ -59,16 +65,23 @@ macro_rules! generate_facade_wrapper {
         generate_destroy!($drop_name for $wrapper_name);
 
         #[no_mangle]
-        pub extern "C" fn $getter_name(handler: *const CProtocolHandler, facade: *mut *const $wrapper_name) -> ::ffi_utils::SNIPS_RESULT {
-            fn fun(handler: *const CProtocolHandler, facade: *mut *const $wrapper_name) -> hermes::Result<()> {
-                let pointer = $wrapper_name::into_raw_pointer($wrapper_name::from(unsafe { (*(*handler).handler).$getter() }));
+        pub extern "C" fn $getter_name(
+            handler: *const CProtocolHandler,
+            facade: *mut *const $wrapper_name,
+        ) -> ::ffi_utils::SNIPS_RESULT {
+            fn fun(
+                handler: *const CProtocolHandler,
+                facade: *mut *const $wrapper_name,
+            ) -> hermes::Result<()> {
+                let pointer = $wrapper_name::into_raw_pointer($wrapper_name::from(unsafe {
+                    (*(*handler).handler).$getter()
+                }));
                 unsafe { *facade = pointer };
                 Ok(())
             }
 
             wrap!(fun(handler, facade))
         }
-
     };
 }
 
@@ -86,7 +99,6 @@ macro_rules! generate_facade_publish {
         }
     };
 }
-
 
 #[macro_export]
 macro_rules! generate_facade_subscribe {
@@ -265,5 +277,3 @@ macro_rules! generate_hermes_c_symbols {
     generate_destroy!(hermes_drop_error_message for CErrorMessage);
     };
 }
-
-

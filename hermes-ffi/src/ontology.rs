@@ -1,4 +1,3 @@
-use ::Result;
 use failure::ResultExt;
 use ffi_utils::{AsRust, CArrayString, CReprOf, RawBorrow, RawPointerConverter};
 use hermes;
@@ -7,6 +6,7 @@ use snips_nlu_ontology_ffi_macros::{CIntentClassifierResult, CSlot, CSlotList};
 use std::ffi::CString;
 use std::ptr::null;
 use std::slice;
+use Result;
 
 #[repr(C)]
 #[derive(Debug)]
@@ -176,7 +176,6 @@ impl AsRust<hermes::NluQueryMessage> for CNluQueryMessage {
     }
 }
 
-
 impl Drop for CNluQueryMessage {
     fn drop(&mut self) {
         take_back_c_string!(self.input);
@@ -230,7 +229,6 @@ impl AsRust<hermes::NluSlotQueryMessage> for CNluSlotQueryMessage {
     }
 }
 
-
 impl Drop for CNluSlotQueryMessage {
     fn drop(&mut self) {
         take_back_c_string!(self.input);
@@ -278,8 +276,7 @@ impl AsRust<hermes::PlayBytesMessage> for CPlayBytesMessage {
         Ok(hermes::PlayBytesMessage {
             id: create_rust_string_from!(self.id),
             wav_bytes: unsafe {
-                slice::from_raw_parts(self.wav_bytes as *const u8,
-                                      self.wav_bytes_len as usize)
+                slice::from_raw_parts(self.wav_bytes as *const u8, self.wav_bytes_len as usize)
             }.to_vec(),
             site_id: create_rust_string_from!(self.site_id),
             session_id: create_optional_rust_string_from!(self.session_id),
@@ -332,8 +329,7 @@ impl AsRust<hermes::AudioFrameMessage> for CAudioFrameMessage {
     fn as_rust(&self) -> Result<hermes::AudioFrameMessage> {
         Ok(hermes::AudioFrameMessage {
             wav_frame: unsafe {
-                slice::from_raw_parts(self.wav_frame as *const u8,
-                                      self.wav_frame_len as usize)
+                slice::from_raw_parts(self.wav_frame as *const u8, self.wav_frame_len as usize)
             }.to_vec(),
             site_id: create_rust_string_from!(self.site_id),
         })
@@ -433,7 +429,6 @@ impl AsRust<hermes::SayMessage> for CSayMessage {
         })
     }
 }
-
 
 impl CSayMessage {
     pub fn from(input: hermes::SayMessage) -> Result<Self> {
@@ -846,7 +841,7 @@ impl Drop for CSessionInit {
         match self.init_type {
             CSessionInitType::Action => unsafe {
                 let _ = CActionSessionInit::from_raw_pointer(self.value as _);
-            }
+            },
             CSessionInitType::Notification => {
                 take_back_c_string!(self.value as *const libc::c_char);
             }
@@ -882,7 +877,6 @@ impl CReprOf<hermes::StartSessionMessage> for CStartSessionMessage {
             site_id: convert_to_nullable_c_string!(input.site_id),
         })
     }
-
 }
 
 impl AsRust<hermes::StartSessionMessage> for CStartSessionMessage {
@@ -1030,7 +1024,6 @@ impl CReprOf<hermes::ContinueSessionMessage> for CContinueSessionMessage {
             intent_filter: convert_to_nullable_c_array_string!(input.intent_filter),
         })
     }
-
 }
 
 impl AsRust<hermes::ContinueSessionMessage> for CContinueSessionMessage {
@@ -1153,11 +1146,17 @@ impl AsRust<hermes::SessionTerminationType> for CSessionTermination {
     fn as_rust(&self) -> Result<hermes::SessionTerminationType> {
         Ok(match self.termination_type {
             CSessionTerminationType::Nominal => hermes::SessionTerminationType::Nominal,
-            CSessionTerminationType::SiteUnavailable => hermes::SessionTerminationType::SiteUnavailable,
+            CSessionTerminationType::SiteUnavailable => {
+                hermes::SessionTerminationType::SiteUnavailable
+            }
             CSessionTerminationType::AbortedByUser => hermes::SessionTerminationType::AbortedByUser,
-            CSessionTerminationType::IntentNotRecognized => hermes::SessionTerminationType::IntentNotRecognized,
+            CSessionTerminationType::IntentNotRecognized => {
+                hermes::SessionTerminationType::IntentNotRecognized
+            }
             CSessionTerminationType::Timeout => hermes::SessionTerminationType::Timeout,
-            CSessionTerminationType::Error => hermes::SessionTerminationType::Error { error: create_rust_string_from!(self.data) },
+            CSessionTerminationType::Error => hermes::SessionTerminationType::Error {
+                error: create_rust_string_from!(self.data),
+            },
         })
     }
 }

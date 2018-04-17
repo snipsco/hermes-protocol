@@ -157,11 +157,11 @@ impl<T: Send + Sync + Debug> InProcessComponent<T> {
 }
 
 macro_rules! subscribe {
-    ($sel:ident, $t:ty { $field:ident }, $handler:ident ) => {{
+    ($sel:ident, $t:ty { $field:ident }, $handler:ident) => {{
         debug!("Subscribing on {:?}/{}", $sel.component, stringify!($t));
         $sel.subscribe($handler, |it: &$t| &it.$field)
     }};
-    ($sel:ident, $t:ty, $handler:ident ) => {{
+    ($sel:ident, $t:ty, $handler:ident) => {{
         debug!("Subscribing on {:?}/{}", $sel.component, stringify!($t));
         $sel.subscribe0::<$t>($handler)
     }};
@@ -170,11 +170,26 @@ macro_rules! subscribe {
 macro_rules! subscribe_filter {
     ($sel:ident, $t:ty { $field:ident }, $handler:ident, $filter:ident) => {{
         debug!("Subscribing on {:?}/{}", $sel.component, stringify!($t));
-        $sel.subscribe_filter($handler, |it: &$t| &it.$field, move |it: &$t| it.$field.$filter == $filter)
+        $sel.subscribe_filter(
+            $handler,
+            |it: &$t| &it.$field,
+            move |it: &$t| it.$field.$filter == $filter,
+        )
     }};
-    ($sel:ident, $t:ty { $field:ident }, $handler:ident, $filter:ident, | $it:ident | $filter_path:block ) => {{
+    (
+        $sel:ident,
+        $t:ty { $field:ident },
+        $handler:ident,
+        $filter:ident, |
+        $it:ident |
+        $filter_path:block
+    ) => {{
         debug!("Subscribing on {:?}/{}", $sel.component, stringify!($t));
-        $sel.subscribe_filter($handler, |it: &$t| &it.$field, move |$it: &$t| $filter_path == &$filter)
+        $sel.subscribe_filter(
+            $handler,
+            |it: &$t| &it.$field,
+            move |$it: &$t| $filter_path == &$filter,
+        )
     }};
     ($sel:ident, $t:ty, $handler:ident, $filter:ident) => {{
         debug!("Subscribing on {:?}/{}", $sel.component, stringify!($t));
@@ -504,8 +519,7 @@ struct AsrStopListening {
 }
 
 #[derive(Debug)]
-struct AsrReload {
-}
+struct AsrReload {}
 
 #[derive(Debug)]
 struct AsrInject {

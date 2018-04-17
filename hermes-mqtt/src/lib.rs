@@ -21,13 +21,13 @@ extern crate uuid;
 
 mod topics;
 
-use std::string::ToString;
-use std::sync::Arc;
 use failure::{ResultExt, SyncFailure};
 use hermes::*;
+use std::string::ToString;
+use std::sync::Arc;
 use topics::*;
 
-pub use rumqtt::{ MqttOptions, TlsOptions };
+pub use rumqtt::{MqttOptions, TlsOptions};
 
 struct MqttHandler {
     mqtt_client: rumqtt::MqttClient,
@@ -37,7 +37,10 @@ impl MqttHandler {
     pub fn publish(&self, topic: &HermesTopic) -> Result<()> {
         let topic = &*topic.as_path();
         debug!("Publishing on MQTT topic '{}'", topic);
-        self.mqtt_client.publish(topic).and_then(|p| p.send()).map_err(SyncFailure::new)?;
+        self.mqtt_client
+            .publish(topic)
+            .and_then(|p| p.send())
+            .map_err(SyncFailure::new)?;
         Ok(())
     }
 
@@ -62,7 +65,8 @@ impl MqttHandler {
                 }
             );
             trace!("Payload : {}", String::from_utf8_lossy(&p));
-            self.mqtt_client.publish(topic)
+            self.mqtt_client
+                .publish(topic)
                 .map(|m| m.payload(p))
                 .and_then(|p| p.send())
                 .map_err(SyncFailure::new)
@@ -168,7 +172,11 @@ impl MqttHandler {
     where
         F: Fn(&::rumqtt::Publish) -> () + Send + Sync + 'static,
     {
-        self.mqtt_client.subscribe(topic.to_string(), Box::new(callback)).map_err(SyncFailure::new)?.send().map_err(SyncFailure::new)?;
+        self.mqtt_client
+            .subscribe(topic.to_string(), Box::new(callback))
+            .map_err(SyncFailure::new)?
+            .send()
+            .map_err(SyncFailure::new)?;
         Ok(())
     }
 
@@ -195,12 +203,11 @@ impl MqttHermesProtocolHandler {
     pub fn new_with_options(mut options: rumqtt::MqttOptions) -> Result<MqttHermesProtocolHandler> {
         let name = options.broker_addr.clone();
         options.max_packet_size = 10_000_000;
-        let mqtt_client =
-            rumqtt::MqttClient::start(options).map_err(SyncFailure::new).context("Could not start MQTT client")?;
+        let mqtt_client = rumqtt::MqttClient::start(options)
+            .map_err(SyncFailure::new)
+            .context("Could not start MQTT client")?;
 
-        let mqtt_handler = Arc::new(MqttHandler {
-            mqtt_client,
-        });
+        let mqtt_handler = Arc::new(MqttHandler { mqtt_client });
 
         Ok(MqttHermesProtocolHandler { name, mqtt_handler })
     }
@@ -280,29 +287,48 @@ macro_rules! impl_component_facades_for {
     ($t:ty) => {
         impl ComponentFacade for $t {
             fn publish_version_request(&self) -> Result<()> {
-                self.mqtt_handler.publish(&HermesTopic::Component(None, self.component, ComponentCommand::VersionRequest))
+                self.mqtt_handler.publish(&HermesTopic::Component(
+                    None,
+                    self.component,
+                    ComponentCommand::VersionRequest,
+                ))
             }
 
             fn subscribe_version(&self, handler: Callback<VersionMessage>) -> Result<()> {
-                self.mqtt_handler.subscribe_payload(&HermesTopic::Component(None, self.component, ComponentCommand::Version), move |p| handler.call(p))
+                self.mqtt_handler.subscribe_payload(
+                    &HermesTopic::Component(None, self.component, ComponentCommand::Version),
+                    move |p| handler.call(p),
+                )
             }
 
             fn subscribe_error(&self, handler: Callback<ErrorMessage>) -> Result<()> {
-                self.mqtt_handler.subscribe_payload(&HermesTopic::Component(None, self.component, ComponentCommand::Error), move |p| handler.call(p))
+                self.mqtt_handler.subscribe_payload(
+                    &HermesTopic::Component(None, self.component, ComponentCommand::Error),
+                    move |p| handler.call(p),
+                )
             }
         }
 
         impl ComponentBackendFacade for $t {
             fn subscribe_version_request(&self, handler: Callback0) -> Result<()> {
-                self.mqtt_handler.subscribe(&HermesTopic::Component(None, self.component, ComponentCommand::VersionRequest), move || handler.call())
+                self.mqtt_handler.subscribe(
+                    &HermesTopic::Component(None, self.component, ComponentCommand::VersionRequest),
+                    move || handler.call(),
+                )
             }
 
             fn publish_version(&self, version: VersionMessage) -> Result<()> {
-                self.mqtt_handler.publish_payload(&HermesTopic::Component(None, self.component, ComponentCommand::Version), version)
+                self.mqtt_handler.publish_payload(
+                    &HermesTopic::Component(None, self.component, ComponentCommand::Version),
+                    version,
+                )
             }
 
             fn publish_error(&self, error: ErrorMessage) -> Result<()> {
-                self.mqtt_handler.publish_payload(&HermesTopic::Component(None, self.component, ComponentCommand::Error), error)
+                self.mqtt_handler.publish_payload(
+                    &HermesTopic::Component(None, self.component, ComponentCommand::Error),
+                    error,
+                )
             }
         }
     };
@@ -324,11 +350,13 @@ macro_rules! impl_toggleable_facades_for {
 
         impl ToggleableBackendFacade for $t {
             fn subscribe_toggle_on(&self, handler: Callback0) -> Result<()> {
-                self.mqtt_handler.subscribe(&self.toggle_on_topic, move || handler.call())
+                self.mqtt_handler
+                    .subscribe(&self.toggle_on_topic, move || handler.call())
             }
 
             fn subscribe_toggle_off(&self, handler: Callback0) -> Result<()> {
-                self.mqtt_handler.subscribe(&self.toggle_off_topic, move || handler.call())
+                self.mqtt_handler
+                    .subscribe(&self.toggle_off_topic, move || handler.call())
             }
         }
     };
@@ -338,21 +366,25 @@ macro_rules! impl_identifiable_toggleable_facades_for {
     ($t:ty) => {
         impl IdentifiableToggleableFacade for $t {
             fn publish_toggle_on(&self, site: SiteMessage) -> Result<()> {
-                self.mqtt_handler.publish_payload(&self.toggle_on_topic, site)
+                self.mqtt_handler
+                    .publish_payload(&self.toggle_on_topic, site)
             }
 
             fn publish_toggle_off(&self, site: SiteMessage) -> Result<()> {
-                self.mqtt_handler.publish_payload(&self.toggle_off_topic, site)
+                self.mqtt_handler
+                    .publish_payload(&self.toggle_off_topic, site)
             }
         }
 
         impl IdentifiableToggleableBackendFacade for $t {
             fn subscribe_toggle_on(&self, handler: Callback<SiteMessage>) -> Result<()> {
-                self.mqtt_handler.subscribe_payload(&self.toggle_on_topic, move |p| handler.call(p))
+                self.mqtt_handler
+                    .subscribe_payload(&self.toggle_on_topic, move |p| handler.call(p))
             }
 
             fn subscribe_toggle_off(&self, handler: Callback<SiteMessage>) -> Result<()> {
-                self.mqtt_handler.subscribe_payload(&self.toggle_off_topic, move |p| handler.call(p))
+                self.mqtt_handler
+                    .subscribe_payload(&self.toggle_off_topic, move |p| handler.call(p))
             }
         }
     };
@@ -362,32 +394,71 @@ macro_rules! impl_identifiable_component_facades_for {
     ($t:ty) => {
         impl IdentifiableComponentFacade for $t {
             fn publish_version_request(&self, site_id: SiteId) -> Result<()> {
-                self.mqtt_handler.publish(&HermesTopic::Component(Some(site_id), self.component, ComponentCommand::VersionRequest))
+                self.mqtt_handler.publish(&HermesTopic::Component(
+                    Some(site_id),
+                    self.component,
+                    ComponentCommand::VersionRequest,
+                ))
             }
 
-            fn subscribe_version(&self, site_id: SiteId, handler: Callback<VersionMessage>) -> Result<()> {
-                self.mqtt_handler.subscribe_payload(&HermesTopic::Component(Some(site_id), self.component, ComponentCommand::Version), move |p| handler.call(p))
+            fn subscribe_version(
+                &self,
+                site_id: SiteId,
+                handler: Callback<VersionMessage>,
+            ) -> Result<()> {
+                self.mqtt_handler.subscribe_payload(
+                    &HermesTopic::Component(
+                        Some(site_id),
+                        self.component,
+                        ComponentCommand::Version,
+                    ),
+                    move |p| handler.call(p),
+                )
             }
 
-            fn subscribe_error(&self, site_id: SiteId, handler: Callback<ErrorMessage>) -> Result<()> {
-                self.mqtt_handler.subscribe_payload(&HermesTopic::Component(Some(site_id), self.component, ComponentCommand::Error), move |p| handler.call(p))
+            fn subscribe_error(
+                &self,
+                site_id: SiteId,
+                handler: Callback<ErrorMessage>,
+            ) -> Result<()> {
+                self.mqtt_handler.subscribe_payload(
+                    &HermesTopic::Component(Some(site_id), self.component, ComponentCommand::Error),
+                    move |p| handler.call(p),
+                )
             }
         }
 
         impl IdentifiableComponentBackendFacade for $t {
             fn subscribe_version_request(&self, site_id: SiteId, handler: Callback0) -> Result<()> {
-                self.mqtt_handler.subscribe(&HermesTopic::Component(Some(site_id), self.component, ComponentCommand::VersionRequest), move || handler.call())
+                self.mqtt_handler.subscribe(
+                    &HermesTopic::Component(
+                        Some(site_id),
+                        self.component,
+                        ComponentCommand::VersionRequest,
+                    ),
+                    move || handler.call(),
+                )
             }
 
             fn publish_version(&self, site_id: SiteId, version: VersionMessage) -> Result<()> {
-                self.mqtt_handler.publish_payload(&HermesTopic::Component(Some(site_id), self.component, ComponentCommand::Version), version)
+                self.mqtt_handler.publish_payload(
+                    &HermesTopic::Component(
+                        Some(site_id),
+                        self.component,
+                        ComponentCommand::Version,
+                    ),
+                    version,
+                )
             }
 
             fn publish_error(&self, site_id: SiteId, error: ErrorMessage) -> Result<()> {
-                self.mqtt_handler.publish_payload(&HermesTopic::Component(Some(site_id), self.component, ComponentCommand::Error), error)
+                self.mqtt_handler.publish_payload(
+                    &HermesTopic::Component(Some(site_id), self.component, ComponentCommand::Error),
+                    error,
+                )
             }
         }
-    }
+    };
 }
 
 struct MqttComponentFacade {

@@ -114,8 +114,7 @@ pub trait IdentifiableToggleableBackendFacade: Send + Sync {
 //
 
 /// The facade to interact with the hotword component
-pub trait HotwordFacade
-    : IdentifiableComponentFacade + IdentifiableToggleableFacade {
+pub trait HotwordFacade: IdentifiableComponentFacade + IdentifiableToggleableFacade {
     fn subscribe_detected(
         &self,
         id: String,
@@ -125,8 +124,9 @@ pub trait HotwordFacade
 }
 
 /// The facade the hotword feature must use receive its orders and publish detected hotwords
-pub trait HotwordBackendFacade
-    : IdentifiableComponentBackendFacade + IdentifiableToggleableBackendFacade {
+pub trait HotwordBackendFacade:
+    IdentifiableComponentBackendFacade + IdentifiableToggleableBackendFacade
+{
     fn publish_detected(&self, id: String, message: HotwordDetectedMessage) -> Result<()>;
 }
 
@@ -143,7 +143,8 @@ pub trait AsrFacade: ComponentFacade + ToggleableFacade {
     fn publish_reload(&self) -> Result<()>;
     fn publish_injection_request(&self, request: InjectionRequest) -> Result<()>;
     fn subscribe_text_captured(&self, handler: Callback<TextCapturedMessage>) -> Result<()>;
-    fn subscribe_partial_text_captured(&self, handler: Callback<TextCapturedMessage>) -> Result<()>;
+    fn subscribe_partial_text_captured(&self, handler: Callback<TextCapturedMessage>)
+        -> Result<()>;
 }
 
 /// The facade the automatic speech recognition must use to receive its orders and publish
@@ -192,8 +193,7 @@ pub trait NluBackendFacade: ComponentBackendFacade {
 }
 
 /// The facade to interact with the audio server
-pub trait AudioServerFacade
-    : IdentifiableComponentFacade + IdentifiableToggleableFacade {
+pub trait AudioServerFacade: IdentifiableComponentFacade + IdentifiableToggleableFacade {
     fn publish_play_bytes(&self, bytes: PlayBytesMessage) -> Result<()>;
     fn subscribe_play_finished(
         &self,
@@ -209,8 +209,9 @@ pub trait AudioServerFacade
 }
 
 /// The facade the audio server must use to receive its orders and advertise when it has finished
-pub trait AudioServerBackendFacade
-    : IdentifiableComponentBackendFacade + IdentifiableToggleableBackendFacade {
+pub trait AudioServerBackendFacade:
+    IdentifiableComponentBackendFacade + IdentifiableToggleableBackendFacade
+{
     fn subscribe_play_bytes(
         &self,
         site_id: SiteId,
@@ -236,8 +237,7 @@ pub trait DialogueFacade: ComponentFacade + ToggleableFacade {
 }
 
 /// The facade the dialogue manager must use to interact with the lambdas
-pub trait DialogueBackendFacade
-    : ComponentBackendFacade + ToggleableBackendFacade {
+pub trait DialogueBackendFacade: ComponentBackendFacade + ToggleableBackendFacade {
     fn publish_session_queued(&self, status: SessionQueuedMessage) -> Result<()>;
     fn publish_session_started(&self, status: SessionStartedMessage) -> Result<()>;
     fn publish_intent(&self, intent: IntentMessage) -> Result<()>;
