@@ -1,5 +1,5 @@
 use failure::ResultExt;
-use ffi_utils::{AsRust, CArrayString, CReprOf, RawBorrow, RawPointerConverter};
+use ffi_utils::{AsRust, CStringArray, CReprOf, RawBorrow, RawPointerConverter};
 use hermes;
 use libc;
 use snips_nlu_ontology_ffi_macros::{CIntentClassifierResult, CSlot, CSlotList};
@@ -139,7 +139,7 @@ impl Drop for CTextCapturedMessage {
 pub struct CNluQueryMessage {
     pub input: *const libc::c_char,
     // Nullable
-    pub intent_filter: *const CArrayString,
+    pub intent_filter: *const CStringArray,
     // Nullable
     pub id: *const libc::c_char,
     // Nullable
@@ -158,7 +158,7 @@ impl CReprOf<hermes::NluQueryMessage> for CNluQueryMessage {
     fn c_repr_of(input: hermes::NluQueryMessage) -> Result<Self> {
         Ok(Self {
             input: convert_to_c_string!(input.input),
-            intent_filter: convert_to_nullable_c_array_string!(input.intent_filter),
+            intent_filter: convert_to_nullable_c_string_array!(input.intent_filter),
             id: convert_to_nullable_c_string!(input.id),
             session_id: convert_to_nullable_c_string!(input.session_id),
         })
@@ -179,7 +179,7 @@ impl AsRust<hermes::NluQueryMessage> for CNluQueryMessage {
 impl Drop for CNluQueryMessage {
     fn drop(&mut self) {
         take_back_c_string!(self.input);
-        take_back_nullable_c_array_string!(self.intent_filter);
+        take_back_nullable_c_string_array!(self.intent_filter);
         take_back_nullable_c_string!(self.id);
         take_back_nullable_c_string!(self.session_id);
     }
@@ -756,7 +756,7 @@ pub struct CActionSessionInit {
     // Nullable
     text: *const libc::c_char,
     // Nullable
-    intent_filter: *const CArrayString,
+    intent_filter: *const CStringArray,
     can_be_enqueued: libc::c_uchar,
 }
 
@@ -768,7 +768,7 @@ impl CActionSessionInit {
     ) -> Result<Self> {
         Ok(Self {
             text: convert_to_nullable_c_string!(text),
-            intent_filter: convert_to_nullable_c_array_string!(intent_filter),
+            intent_filter: convert_to_nullable_c_string_array!(intent_filter),
             can_be_enqueued: if can_be_enqueued { 1 } else { 0 },
         })
     }
@@ -788,7 +788,7 @@ impl CActionSessionInit {
 impl Drop for CActionSessionInit {
     fn drop(&mut self) {
         take_back_nullable_c_string!(self.text);
-        take_back_nullable_c_array_string!(self.intent_filter);
+        take_back_nullable_c_string_array!(self.intent_filter);
     }
 }
 
@@ -1001,7 +1001,7 @@ pub struct CContinueSessionMessage {
     pub session_id: *const libc::c_char,
     pub text: *const libc::c_char,
     // Nullable
-    pub intent_filter: *const CArrayString,
+    pub intent_filter: *const CStringArray,
 }
 
 unsafe impl Sync for CContinueSessionMessage {}
@@ -1021,7 +1021,7 @@ impl CReprOf<hermes::ContinueSessionMessage> for CContinueSessionMessage {
         Ok(Self {
             session_id: convert_to_c_string!(input.session_id),
             text: convert_to_c_string!(input.text),
-            intent_filter: convert_to_nullable_c_array_string!(input.intent_filter),
+            intent_filter: convert_to_nullable_c_string_array!(input.intent_filter),
         })
     }
 }
@@ -1043,7 +1043,7 @@ impl Drop for CContinueSessionMessage {
     fn drop(&mut self) {
         take_back_c_string!(self.session_id);
         take_back_c_string!(self.text);
-        take_back_nullable_c_array_string!(self.intent_filter);
+        take_back_nullable_c_string_array!(self.intent_filter);
     }
 }
 
