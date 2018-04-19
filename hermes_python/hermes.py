@@ -3,8 +3,8 @@
 from __future__ import absolute_import
 from ctypes import *
 from .ffi.ontology import CProtocolHandler, CDialogueFacade, CContinueSessionMessage, CEndSessionMessage, \
-    CStartSessionMessage, CStringArray, CIntentMessage, CSessionStartedMessage, CSessionQueuedMessage, \
-    CSessionEndedMessage
+    CStartSessionMessageAction, CStartSessionMessageNotification, CStringArray, CIntentMessage, CSessionStartedMessage, CSessionQueuedMessage, \
+    CSessionEndedMessage, CSessionInitNotification, CSessionInitAction, CActionSessionInit
 from .ffi.utils import *
 from time import sleep
 
@@ -39,7 +39,7 @@ class Hermes(object):
     def _wraps(self, user_callback, callback_argtype, callback_restype, argtype):
         def params_converter(func):
             def called_with_good_params(*args, **kwargs):
-                parsed_args = (IntentMessage.from_c_repr(arg.contents) for arg in (args))
+                parsed_args = (argtype.from_c_repr(arg.contents) for arg in (args))
                 return func(self, *parsed_args)
 
             return called_with_good_params
@@ -70,13 +70,13 @@ class Hermes(object):
     def subscribe_session_queued(self, user_callback_subscribe_session_queued):
         self._c_callback_subscribe_session_queued = self._wraps(user_callback_subscribe_session_queued,
                                                                 CSessionQueuedMessage, c_void_p, SessionQueuedMessage)
-        hermes_dialogue_subscribe_session_started(self._facade, self._c_callback_subscribe_session_queued)
+        hermes_dialogue_subscribe_session_queued(self._facade, self._c_callback_subscribe_session_queued)
         return self
 
     def subscribe_session_ended(self, user_callback_subscribe_session_ended):
         self._c_callback_subscribe_session_ended = self._wraps(user_callback_subscribe_session_ended,
                                                                CSessionEndedMessage, c_void_p, SessionEndedMessage)
-        hermes_dialogue_subscribe_session_started(self._facade, self._c_callback_subscribe_session_ended)
+        hermes_dialogue_subscribe_session_ended(self._facade, self._c_callback_subscribe_session_ended)
         return self
 
     def publish_continue_session(self, session_id, text, intent_filter):
@@ -89,8 +89,15 @@ class Hermes(object):
         hermes_dialogue_publish_end_session(self._facade, byref(cEndSessionMessage))
         return self
 
-    def publish_start_session(self, custom_data, site_id, value):
-        cStartSessionMessage = CStartSessionMessage.build(custom_data, site_id, value)
+    def publish_start_session_notification(self, site_id, session_init_value, custom_data):
+        init = CSessionInitNotification.build(session_init_value)
+        cStartSessionMessage = CStartSessionMessageNotification.build(init, custom_data, site_id)
+        hermes_dialogue_publish_start_session(self._facade, byref(cStartSessionMessage))
+        return self
+
+    def publish_start_session_action(self, site_id, session_init_text, session_init_intent_filter, session_init_can_be_enqueued, custom_data):
+        init = CSessionInitAction.build(session_init_text, session_init_intent_filter, session_init_can_be_enqueued)
+        cStartSessionMessage = CStartSessionMessageAction.build(init, custom_data, site_id)
         hermes_dialogue_publish_start_session(self._facade, byref(cStartSessionMessage))
         return self
 

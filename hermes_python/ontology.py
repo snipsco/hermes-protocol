@@ -146,7 +146,6 @@ class SessionStartedMessage(object):
         self.session_id = session_id
         self.custom_data = custom_data
         self.site_id = site_id
-        self.reactivated_from_session_id = reactivated_from_session_id
 
     @classmethod
     def from_c_repr(cls, c_repr):
@@ -158,17 +157,19 @@ class SessionStartedMessage(object):
 
 
 class SessionEndedMessage(object):
-    def __init__(self, session_id, custom_data, site_id):
+    def __init__(self, session_id, custom_data, site_id, termination):
         self.session_id = session_id
         self.custom_data = custom_data
         self.site_id = site_id
+        self.termination = termination
 
     @classmethod
     def from_c_repr(cls, c_repr):
         session_id = c_repr.session_id
         custom_data = c_repr.custom_data
         site_id = c_repr.site_id
-        return cls(session_id, custom_data, site_id)
+        termination = SessionTermination.from_c_repr(c_repr.termination)
+        return cls(session_id, custom_data, site_id, termination)
 
 
 class SessionQueuedMessage(object):
@@ -184,6 +185,17 @@ class SessionQueuedMessage(object):
         site_id = c_repr.site_id
         return cls(session_id, custom_data, site_id)
 
+
+class SessionTermination(object):
+    def __init__(self, termination_type, data):
+        self.termination_type = termination_type
+        self.data = data
+
+    @classmethod
+    def from_c_repr(cls, c_repr):
+        termination_type = c_repr.termination_type
+        data = c_repr.data
+        return cls(termination_type, data)
 
 class CustomValue(object):
     def __init__(self, string_value):

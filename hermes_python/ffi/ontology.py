@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-from ctypes import c_char_p, c_int32, c_int64, c_int, c_float, c_void_p, POINTER, pointer, Structure
+from ctypes import c_char_p, c_int32, c_int64, c_int, c_float, c_uint8, c_void_p, POINTER, pointer, Structure, byref
 
 
 class CStringArray(Structure):
@@ -53,26 +53,60 @@ class CEndSessionMessage(Structure):
     _fields_ = [("session_id", c_char_p),
                 ("text", c_char_p)]
 
-
-class CSessionInitType(Structure):
-    _fields_ = []
-
-
 class CSessionInit(Structure):
-    _fields_ = [("init_type", c_int32),
-                ("value", c_char_p)]
+    _fields_ = [("init_type", c_int32)]  # 1 : Action, 2: Notification
+
+class CActionSessionInit(Structure):
+    _fields_ = [("text", c_char_p),
+                ("intent_filter", POINTER(CStringArray)),
+                ("can_be_enqueued", c_uint8)] \
+
+    @classmethod
+    def build(cls, text, intent_filter, can_be_enqueued_boolean):
+        c_intent_filter = CStringArray()
+        c_intent_filter.size = c_int(len(intent_filter))
+        c_intent_filter.data = (c_char_p * len(intent_filter))(*intent_filter)
+
+        can_be_enqueued = 1 if can_be_enqueued_boolean else 0
+
+        return cls(text, pointer(c_intent_filter), can_be_enqueued)
 
 
-class CStartSessionMessage(Structure):
-    _fields_ = [("init", CSessionInit),
+class CSessionInitAction(CSessionInit):
+    _fields_ = [("value", POINTER(CActionSessionInit))]
+
+    @classmethod
+    def build(cls, text, intent_filter, can_be_enqueued_boolean):
+        cActionSessionInit = CActionSessionInit.build(text, intent_filter, can_be_enqueued_boolean)
+        return cls(c_int(1), pointer(cActionSessionInit))
+
+
+class CSessionInitNotification(CSessionInit):
+    _fields_ = [("value", c_char_p)]
+
+    @classmethod
+    def build(cls, value):
+        return cls(c_int(0), value)
+
+
+class CStartSessionMessageAction(Structure):
+    _fields_ = [("init", CSessionInitAction),
                 ("custom_data", c_char_p),
                 ("site_id", c_char_p)]
 
     @classmethod
-    def build(cls, custom_data, site_id, value):
-        INIT_TYPE = 2
-        cStartSessionMessage = cls(CSessionInit(c_int(INIT_TYPE), value), custom_data, site_id)
-        return cStartSessionMessage
+    def build(cls, init, custom_data, site_id):
+        return cls(init, custom_data, site_id)
+
+class CStartSessionMessageNotification(Structure):
+    _fields_ = [("init", CSessionInitNotification),
+                ("custom_data", c_char_p),
+                ("site_id", c_char_p)]
+
+    @classmethod
+    def build(cls, init, custom_data, site_id):
+        return cls(init, custom_data, site_id)
+
 
 
 class CIntentClassifierResult(Structure):
@@ -113,11 +147,14 @@ class CIntentMessage(Structure):
                 ("intent", POINTER(CIntentClassifierResult)),
                 ("slots", POINTER(CSlotList))]
 
+class CSessionTermination(Structure):
+    _fields_ = [("termination_type", c_int),
+                ("data", c_char_p)]
 
 class CSessionEndedMessage(Structure):
     _fields_ = [("session_id", c_char_p),
                 ("custom_data", c_char_p),
-                ("termination", c_void_p),
+                ("termination", CSessionTermination),
                 ("site_id", c_char_p)]
 
 
@@ -132,6 +169,7 @@ class CSessionStartedMessage(Structure):
                 ("custom_data", c_char_p),
                 ("site_id", c_char_p),
                 ("reactivated_from_session_id", c_char_p)]
+
 
 
 # Slot Types Structs

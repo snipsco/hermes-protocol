@@ -22,7 +22,7 @@ os.environ['CARGO_TARGET_DIR'] = CARGO_TARGET_DIR
 
 setup(
     name='hermes_python',
-    version='0.1.6',
+    version='0.1.15',
     description='Python bindings for Hermes',
     author='Anthony Reinette',
     author_email='dantho361@hotmail.com',
