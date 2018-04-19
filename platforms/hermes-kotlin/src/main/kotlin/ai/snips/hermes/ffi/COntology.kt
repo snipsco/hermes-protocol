@@ -29,13 +29,13 @@ import com.sun.jna.Pointer
 import com.sun.jna.Structure
 
 
-class CArrayString(p: Pointer?) : Structure(p), Structure.ByReference {
+class CStringArray(p: Pointer?) : Structure(p), Structure.ByReference {
     init {
         read()
     }
 
     companion object {
-        fun fromStringList(list: List<String>) = CArrayString(null).apply {
+        fun fromStringList(list: List<String>) = CStringArray(null).apply {
             size = list.size
             data = Memory(Pointer.SIZE * list.size.toLong()).apply {
                 list.forEachIndexed { i, s ->
@@ -61,7 +61,7 @@ class CActionSessionInit(p: Pointer?) : Structure(p), Structure.ByReference {
     companion object {
         fun fromActionSessionInit(actionSessionInit: SessionInit.Action) = CActionSessionInit(null).apply {
             text = actionSessionInit.text?.toPointer()
-            intent_filter = if(actionSessionInit.intentFilter.isEmpty()) null else CArrayString.fromStringList(actionSessionInit.intentFilter).pointer
+            intent_filter = if(actionSessionInit.intentFilter.isEmpty()) null else CStringArray.fromStringList(actionSessionInit.intentFilter).pointer
             can_be_enqueued = if (actionSessionInit.canBeEnqueued) 1 else 0
         }
     }
@@ -81,7 +81,7 @@ class CActionSessionInit(p: Pointer?) : Structure(p), Structure.ByReference {
 
     fun toSessionInit() = SessionInit.Action(
             text = text?.readString(),
-            intentFilter = intent_filter?.let { CArrayString(it).toStringList() } ?: listOf(),
+            intentFilter = intent_filter?.let { CStringArray(it).toStringList() } ?: listOf(),
             canBeEnqueued = can_be_enqueued == 1.toByte()
     )
 }
@@ -157,7 +157,7 @@ class CContinueSessionMessage(p: Pointer?) : Structure(p), Structure.ByReference
         fun fromContinueSessionMessage(continueSessionMessage: ContinueSessionMessage) = CContinueSessionMessage(null).apply {
             session_id = continueSessionMessage.sessionId.toPointer()
             text = continueSessionMessage.text.toPointer()
-            intent_filter =  if(continueSessionMessage.intentFilter.isEmpty()) null else CArrayString.fromStringList(continueSessionMessage.intentFilter).pointer
+            intent_filter =  if(continueSessionMessage.intentFilter.isEmpty()) null else CStringArray.fromStringList(continueSessionMessage.intentFilter).pointer
         }
     }
 
@@ -173,7 +173,7 @@ class CContinueSessionMessage(p: Pointer?) : Structure(p), Structure.ByReference
     fun toContinueSessionMessage() = ContinueSessionMessage(
             sessionId = session_id.readString(),
             text = text.readString(),
-            intentFilter = intent_filter?.let { CArrayString(it).toStringList() } ?: listOf()
+            intentFilter = intent_filter?.let { CStringArray(it).toStringList() } ?: listOf()
     )
 }
 

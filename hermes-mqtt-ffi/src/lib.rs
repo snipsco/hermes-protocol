@@ -1,15 +1,12 @@
 #[macro_use]
 extern crate failure;
-
 extern crate hermes;
-
 #[macro_use]
 extern crate hermes_ffi;
-
 extern crate hermes_mqtt;
-
 extern crate libc;
-
+#[macro_use]
+extern crate lazy_static;
 #[macro_use]
 extern crate ffi_utils;
 
@@ -18,6 +15,8 @@ use failure::ResultExt;
 use hermes_ffi::*;
 
 use ffi_utils::*;
+
+generate_error_handling!(hermes_get_last_error);
 
 #[no_mangle]
 pub extern "C" fn hermes_protocol_handler_new_mqtt(

@@ -119,11 +119,6 @@ macro_rules! generate_facade_subscribe {
 macro_rules! generate_hermes_c_symbols {
     () => {
 
-    fn get_last_error(error: *mut *const libc::c_char) -> hermes::Result<()> {
-        use hermes::PoisonLock;
-        ::ffi_utils::point_to_string(error, ::ffi_utils::LAST_ERROR.lock().map_err(PoisonLock::from)?.clone())
-    }
-
     fn convert<T, U: AsRust<T>>(raw: *const U) -> hermes::Result<T> {
         unsafe { (*raw).as_rust() }
     }
@@ -140,12 +135,6 @@ macro_rules! generate_hermes_c_symbols {
         } else {
             Err(format_err!("null pointer"))
         }
-    }
-
-
-    #[no_mangle]
-    pub extern "C" fn hermes_get_last_error(error: *mut *const libc::c_char) -> ::ffi_utils::SNIPS_RESULT {
-        wrap!(get_last_error(error))
     }
 
     generate_facade_wrapper!(CHotwordFacade for hermes::HotwordFacade,
