@@ -117,7 +117,7 @@ pub trait IdentifiableToggleableBackendFacade: Send + Sync {
 pub trait HotwordFacade: IdentifiableComponentFacade + IdentifiableToggleableFacade {
     fn subscribe_detected(
         &self,
-        id: String,
+        site_id: String,
         handler: Callback<HotwordDetectedMessage>,
     ) -> Result<()>;
     fn subscribe_all_detected(&self, handler: Callback<HotwordDetectedMessage>) -> Result<()>;
@@ -127,7 +127,7 @@ pub trait HotwordFacade: IdentifiableComponentFacade + IdentifiableToggleableFac
 pub trait HotwordBackendFacade:
     IdentifiableComponentBackendFacade + IdentifiableToggleableBackendFacade
 {
-    fn publish_detected(&self, id: String, message: HotwordDetectedMessage) -> Result<()>;
+    fn publish_detected(&self, site_id: String, message: HotwordDetectedMessage) -> Result<()>;
 }
 
 /// The facade used to toggle on and of the sound feedback at a specific site

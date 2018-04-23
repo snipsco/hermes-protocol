@@ -490,12 +490,12 @@ impl_identifiable_component_facades_for!(MqttToggleableComponentFacade);
 impl_identifiable_toggleable_facades_for!(MqttToggleableComponentFacade);
 
 impl HotwordFacade for MqttToggleableComponentFacade {
-    s!(subscribe_detected<HotwordDetectedMessage>(id: String) { &HermesTopic::Hotword(Some(id), HotwordCommand::Detected) });
+    s!(subscribe_detected<HotwordDetectedMessage>(site_id: String) { &HermesTopic::Hotword(Some(site_id), HotwordCommand::Detected) });
     s!(subscribe_all_detected<HotwordDetectedMessage> &HermesTopic::Hotword(Some("+".into()), HotwordCommand::Detected););
 }
 
 impl HotwordBackendFacade for MqttToggleableComponentFacade {
-    p!(publish_detected<HotwordDetectedMessage>(id: String) { &HermesTopic::Hotword(Some(id), HotwordCommand::Detected) });
+    p!(publish_detected<HotwordDetectedMessage>(site_id: String) { &HermesTopic::Hotword(Some(site_id), HotwordCommand::Detected) });
 }
 
 impl SoundFeedbackFacade for MqttToggleableFacade {}
