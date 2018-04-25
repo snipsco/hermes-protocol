@@ -52,7 +52,7 @@ impl MqttHandler {
         serde_json::to_vec(&payload).map(|p| {
             let topic = &*topic.as_path();
             debug!(
-                "Publishing on MQTT topic '{}', payload : {}",
+                "Publishing on MQTT topic '{}', payload: {}",
                 topic,
                 if p.len() < 2048 {
                     String::from_utf8_lossy(&p).to_string()
@@ -64,7 +64,7 @@ impl MqttHandler {
                     )
                 }
             );
-            trace!("Payload : {}", String::from_utf8_lossy(&p));
+            trace!("Payload: {}", String::from_utf8_lossy(&p));
             self.mqtt_client
                 .publish(topic)
                 .map(|m| m.payload(p))
@@ -114,7 +114,7 @@ impl MqttHandler {
         self.inner_subscribe(topic, move |m| {
             log!(
                 log_level,
-                "Received a message on MQTT topic '{:?}', payload : {}",
+                "Received a message on MQTT topic '{:?}', payload: {}",
                 m.topic_name,
                 if m.payload.len() < 2048 {
                     String::from_utf8_lossy(&m.payload).to_string()
@@ -126,12 +126,12 @@ impl MqttHandler {
                     )
                 }
             );
-            trace!("Payload : {}", String::from_utf8_lossy(&m.payload));
+            trace!("Payload: {}", String::from_utf8_lossy(&m.payload));
             let r = serde_json::from_slice(m.payload.as_slice());
             match r {
                 Ok(p) => handler(&p),
                 Err(e) => warn!(
-                    "Error while decoding object on topic {:?} : {}",
+                    "Error while decoding object on topic {:?}: {}",
                     m.topic_name, e
                 ),
             }
@@ -146,7 +146,7 @@ impl MqttHandler {
         self.inner_subscribe(topic, move |m| {
             log!(
                 log_level,
-                "Received a message on MQTT topic '{:?}', payload : {}",
+                "Received a message on MQTT topic '{:?}', payload: {}",
                 m.topic_name,
                 if m.payload.len() < 2048 {
                     String::from_utf8_lossy(&m.payload).to_string()
@@ -158,12 +158,12 @@ impl MqttHandler {
                     )
                 }
             );
-            trace!("Payload : {}", String::from_utf8_lossy(&m.payload));
+            trace!("Payload: {}", String::from_utf8_lossy(&m.payload));
             let topic = HermesTopic::from_path(&m.topic_name);
             if let Some(topic) = topic {
                 handler(&topic, &m.payload)
             } else {
-                error!("could not parse topic : {:?}", m.topic_name)
+                error!("could not parse topic: {:?}", m.topic_name)
             }
         })
     }

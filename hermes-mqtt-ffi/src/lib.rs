@@ -30,7 +30,7 @@ pub extern "C" fn hermes_protocol_handler_new_mqtt(
     ) -> Result<(), failure::Error> {
         let address = create_rust_string_from!(broker_address);
         let cph = CProtocolHandler::new(hermes_mqtt::MqttHermesProtocolHandler::new(&address)
-            .with_context(|e| format_err!("Could not create hermes MQTT handler : {:?}", e))?);
+            .with_context(|e| format_err!("Could not create hermes MQTT handler: {:?}", e))?);
         let ptr = CProtocolHandler::into_raw_pointer(cph);
         unsafe {
             *handler = ptr;

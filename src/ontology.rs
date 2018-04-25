@@ -177,7 +177,7 @@ type Prononciation = String;
 #[derive(Debug, Clone, PartialEq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum InjectionKind {
-    Add, // Not yet implemented : Remove, Update
+    Add, // Not yet implemented: Remove, Update
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
