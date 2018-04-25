@@ -11,6 +11,16 @@ from .ffi.ontology import CAmountOfMoneyValue, CTemperatureValue, CInstantTimeVa
 
 class IntentMessage(object):
     def __init__(self, session_id, custom_data, site_id, input, intent, slots):
+        """
+        A python representation of the intent parsed by the NLU engine.
+
+        :param session_id: Identifier of the dialogue session during which this intent was parsed.
+        :param custom_data: Custom data passed by the Dialogue Manager in the current dialogue session.
+        :param site_id: Site where the user interaction took place.
+        :param input: The user input that has generated this intent.
+        :param intent: Structured description of the intent classification.
+        :param slots: Structured description of the detected slots for this intent if any.
+        """
         self.session_id = session_id
         self.custom_data = custom_data
         self.site_id = site_id
@@ -30,6 +40,12 @@ class IntentMessage(object):
 
 class IntentClassifierResult(object):
     def __init__(self, intent_name, probability):
+        """
+        Structured description of the intent classification.
+
+        :param intent_name: name of the intent.
+        :param probability: probability that the parsed sentence is the `intent_name` intent.
+        """
         self.intent_name = intent_name
         self.probability = probability
 
@@ -42,6 +58,11 @@ class IntentClassifierResult(object):
 
 class SlotMap(object):
     def __init__(self, mapping):
+        """
+        Data structure that stores Slot objects and lets you access them.
+
+        :param mapping: An dictionnary that is used internally for storage of slot values.
+        """
         self.__data = mapping
 
     def __getattr__(self, name):
@@ -62,11 +83,19 @@ class SlotMap(object):
 
 class SlotsList(list):  # An extension to make things easier to reach slot_values that are deeply nested in the IntentMessage datastructure.
     def first(self):
+        """
+
+        :return:
+        """
         if len(self) > 0:
             return self[0].slot_value
         else:
             return None
     def all(self):
+        """
+
+        :return:
+        """
         if len(self) > 0:
             return [element.slot_value for element in self]
         else:
@@ -75,6 +104,16 @@ class SlotsList(list):  # An extension to make things easier to reach slot_value
 
 class Slot(object):
     def __init__(self, slot_value, raw_value, entity, slot_name, range_start, range_end):
+        """
+        Structured description of a detected slot.
+
+        :param slot_value: an slotValue object that represents the value of the parsed slot.
+        :param raw_value: the raw value of the slot, not parsed.
+        :param entity:
+        :param slot_name: name of the slot.
+        :param range_start: index at which the slot begins.
+        :param range_end: index at which the slot ends.
+        """
         self.slot_value = slot_value
         self.raw_value = raw_value
         self.entity = entity
@@ -96,6 +135,12 @@ class Slot(object):
 
 class SlotValue(object):
     def __init__(self, value_type, value):
+        """
+        A structured representation of values a slot can take.
+
+        :param value_type: a constant that defines the type of the Slot Value between : Custom, Number, Ordinal, InstantTime, TimeInterval, AmountOfMoney, Temperature, Duration and Percentage.
+        :param value: The parsed value according to the value_type of the slot.
+        """
         self.value_type = value_type
         self.value = value
 
@@ -143,6 +188,14 @@ class SlotValue(object):
 
 class SessionStartedMessage(object):
     def __init__(self, session_id, custom_data, site_id, reactivated_from_session_id):
+        """
+        A message that the handler receives from the Dialogue Manager when a session is started.
+
+        :param session_id: Session identifier that was started.
+        :param custom_data: Custom data provided in the start session request on.
+        :param site_id:  Site where the user interaction is taking place.
+        :param reactivated_from_session_id: This field is left blank voluntarily.
+        """
         self.session_id = session_id
         self.custom_data = custom_data
         self.site_id = site_id
@@ -158,6 +211,14 @@ class SessionStartedMessage(object):
 
 class SessionEndedMessage(object):
     def __init__(self, session_id, custom_data, site_id, termination):
+        """
+        A message that the handler receives from the Dialogue Manager when a session is ended.
+
+        :param session_id: Session identifier that was started.
+        :param custom_data: Custom data provided in the start session request on.
+        :param site_id: Site where the user interaction is taking place.
+        :param termination: Structured description of why the session has been ended.
+        """
         self.session_id = session_id
         self.custom_data = custom_data
         self.site_id = site_id
@@ -174,6 +235,13 @@ class SessionEndedMessage(object):
 
 class SessionQueuedMessage(object):
     def __init__(self, session_id, custom_data, site_id):
+        """
+        A message that the handler receives from the Dialogue Manager when a session is queued.
+
+        :param session_id: Session identifier that was started.
+        :param custom_data: Custom data provided in the start session request on.
+        :param site_id: Site where the user interaction is taking place
+        """
         self.session_id = session_id
         self.custom_data = custom_data
         self.site_id = site_id
@@ -188,6 +256,11 @@ class SessionQueuedMessage(object):
 
 class SessionTermination(object):
     def __init__(self, termination_type, data):
+        """
+
+        :param termination_type:
+        :param data: the reason why the session was ended
+        """
         self.termination_type = termination_type
         self.data = data
 
@@ -199,17 +272,34 @@ class SessionTermination(object):
 
 class CustomValue(object):
     def __init__(self, string_value):
+        """
+        A structured representation of Custom Value slot type.
+
+        :param string_value: a string value
+        """
         self.value = string_value
 
 
 class NumberValue(object):
     def __init__(self, value):
+        """
+        A structured representation of Number Value slot type.
+
+        :param value:
+        """
         self.value = value
 
 
 
 class AmountOfMoneyValue(object):
     def __init__(self, unit, value, precision):
+        """
+        A structured representation of a slot type that represents an amount of money.
+
+        :param unit: monetary unit.
+        :param value: the amount of money in unit.
+        :param precision: numerical precision.
+        """
         self.unit = unit
         self.value = value
         self.precision = precision
@@ -225,6 +315,12 @@ class AmountOfMoneyValue(object):
 
 class TemperatureValue(object):
     def __init__(self, unit, value):
+        """
+        A structured representation of a slot type that represents a temperature.
+
+        :param unit: unit used to measure the temperature.
+        :param value: value expressed in unit unit.
+        """
         self.unit = unit
         self.value = value
 
@@ -237,6 +333,13 @@ class TemperatureValue(object):
 
 class InstantTimeValue(object):
     def __init__(self, value, grain, precision):
+        """
+        A structured representation of a slot type that represents a date.
+
+        :param value:
+        :param grain:
+        :param precision:
+        """
         self.value = value
         self.grain = grain
         self.precision = precision
@@ -252,6 +355,12 @@ class InstantTimeValue(object):
 
 class TimeIntervalValue(object):
     def __init__(self, from_date, to_date):
+        """
+        A structured representation of a slot type that represents a time interval.
+
+        :param from_date: date at which starts the interval.
+        :param to_date: date at which the interval ends.
+        """
         self.from_date = from_date
         self.to_date = to_date
 
@@ -264,6 +373,19 @@ class TimeIntervalValue(object):
 
 class DurationValue(object):
     def __init__(self, years, quarters, months, weeks, days, hours, minutes, seconds, precision):
+        """
+        A structured representation of a slot type that represents a duration.
+
+        :param years: number of years the duration lasts.
+        :param quarters: number of quarters the duration lasts.
+        :param months: number of months the duration lasts.
+        :param weeks: number of weeks the duration lasts.
+        :param days: number of days the duration lasts.
+        :param hours: number of hours the duration lasts.
+        :param minutes: number of minutes the duration lasts.
+        :param seconds: number of seconds the duration lasts.
+        :param precision:
+        """
         self.years = years
         self.quarters = quarters
         self.months = months

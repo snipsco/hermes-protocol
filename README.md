@@ -99,7 +99,6 @@ correctness
     - `hermes-kotlin` jvm impl
 
 ## License
-
 ### Apache 2.0/MIT
 
 Licensed under either of
