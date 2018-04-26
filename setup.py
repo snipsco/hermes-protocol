@@ -22,10 +22,10 @@ os.environ['CARGO_TARGET_DIR'] = CARGO_TARGET_DIR
 
 setup(
     name='hermes_python',
-    version='0.1.15',
+    version='0.1.16',
     description='Python bindings for Hermes',
     author='Anthony Reinette',
-    author_email='dantho361@hotmail.com',
+    author_email='anthony.reinette@snips.ai',
     url='https://github.com/snipsco/snips-platform/tree/main/hermes-ffi-python-extension/hermes-protocol/hermes-ffi/platforms/hermes-python',
     classifiers=[
         'Programming Language :: Python :: 2',
