@@ -88,7 +88,7 @@ class SlotsList(list):  # An extension to make things easier to reach slot_value
         :return:
         """
         if len(self) > 0:
-            return self[0].slot_value
+            return self[0].slot_value.value
         else:
             return None
     def all(self):
@@ -97,7 +97,7 @@ class SlotsList(list):  # An extension to make things easier to reach slot_value
         :return:
         """
         if len(self) > 0:
-            return [element.slot_value for element in self]
+            return [element.slot_value.value for element in self]
         else:
             return None
 
@@ -156,8 +156,6 @@ class SlotValue(object):
             c_repr_number = c_double.from_address(c_repr.value)
             number = c_repr_number.value
             value = NumberValue(number)
-        elif 3 == value_type: # ORDINAL
-            value = None
         elif 4 == value_type: # INSTANTTIME
             c_repr_instant_time_value = CInstantTimeValue.from_address(c_repr.value)
             value = InstantTimeValue.from_c_repr(c_repr_instant_time_value)
@@ -179,11 +177,6 @@ class SlotValue(object):
 
         return cls(value_type, value)
 
-    def first(self):
-        pass
-
-    def values(self):
-        pass
 
 
 class SessionStartedMessage(object):
