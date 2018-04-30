@@ -1,3 +1,5 @@
+#![allow(non_camel_case_types)]
+
 use failure::ResultExt;
 use ffi_utils::{AsRust, CStringArray, CReprOf, RawBorrow, RawPointerConverter};
 use hermes;
@@ -735,16 +737,16 @@ impl Drop for CIntentMessage {
 
 #[repr(C)]
 #[derive(Debug, PartialEq)]
-pub enum CSessionInitType {
-    Action = 1,
-    Notification = 2,
+pub enum SNIPS_SESSION_INIT_TYPE {
+    SNIPS_SESSION_INIT_TYPE_ACTION = 1,
+    SNIPS_SESSION_INIT_TYPE_NOTIFICATION = 2,
 }
 
-impl CSessionInitType {
+impl SNIPS_SESSION_INIT_TYPE {
     pub fn from(slot_value: &hermes::SessionInit) -> Self {
         match *slot_value {
-            hermes::SessionInit::Notification { .. } => CSessionInitType::Notification,
-            hermes::SessionInit::Action { .. } => CSessionInitType::Action,
+            hermes::SessionInit::Notification { .. } => SNIPS_SESSION_INIT_TYPE::SNIPS_SESSION_INIT_TYPE_NOTIFICATION,
+            hermes::SessionInit::Action { .. } => SNIPS_SESSION_INIT_TYPE::SNIPS_SESSION_INIT_TYPE_ACTION,
         }
     }
 }
@@ -794,7 +796,7 @@ impl Drop for CActionSessionInit {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CSessionInit {
-    init_type: CSessionInitType,
+    init_type: SNIPS_SESSION_INIT_TYPE,
     /**
      * Points to either a *const char, a *const CActionSessionInit
      */
@@ -803,7 +805,7 @@ pub struct CSessionInit {
 
 impl CSessionInit {
     fn from(init: hermes::SessionInit) -> Result<Self> {
-        let init_type = CSessionInitType::from(&init);
+        let init_type = SNIPS_SESSION_INIT_TYPE::from(&init);
         let value: *const libc::c_void = match init {
             hermes::SessionInit::Action {
                 text,
@@ -821,12 +823,12 @@ impl CSessionInit {
 
     fn to_session_init(&self) -> Result<hermes::SessionInit> {
         match self.init_type {
-            CSessionInitType::Action => {
+            SNIPS_SESSION_INIT_TYPE::SNIPS_SESSION_INIT_TYPE_ACTION => {
                 unsafe { (self.value as *const CActionSessionInit).as_ref() }
                     .ok_or_else(|| format_err!("unexpected null pointer in SessionInit value"))?
                     .to_action_session_init()
             }
-            CSessionInitType::Notification => Ok(hermes::SessionInit::Notification {
+            SNIPS_SESSION_INIT_TYPE::SNIPS_SESSION_INIT_TYPE_NOTIFICATION => Ok(hermes::SessionInit::Notification {
                 text: create_rust_string_from!((self.value as *const libc::c_char)
                     .as_ref()
                     .ok_or_else(|| format_err!("unexpected null pointer in SessionInit value"))?),
@@ -838,10 +840,10 @@ impl CSessionInit {
 impl Drop for CSessionInit {
     fn drop(&mut self) {
         match self.init_type {
-            CSessionInitType::Action => unsafe {
+            SNIPS_SESSION_INIT_TYPE::SNIPS_SESSION_INIT_TYPE_ACTION => unsafe {
                 let _ = CActionSessionInit::from_raw_pointer(self.value as _);
             },
-            CSessionInitType::Notification => {
+            SNIPS_SESSION_INIT_TYPE::SNIPS_SESSION_INIT_TYPE_NOTIFICATION => {
                 take_back_c_string!(self.value as *const libc::c_char);
             }
         };
@@ -1093,28 +1095,36 @@ impl Drop for CEndSessionMessage {
 
 #[repr(C)]
 #[derive(Debug)]
-pub enum CSessionTerminationType {
-    Nominal = 1,
-    SiteUnavailable = 2,
-    AbortedByUser = 3,
-    IntentNotRecognized = 4,
-    Timeout = 5,
-    Error = 6,
+pub enum SNIPS_SESSION_TERMINATION_TYPE {
+    SNIPS_SESSION_TERMINATION_TYPE_NOMINAL = 1,
+    SNIPS_SESSION_TERMINATION_TYPE_SITE_UNAVAILABLE = 2,
+    SNIPS_SESSION_TERMINATION_TYPE_ABORTED_BY_USER = 3,
+    SNIPS_SESSION_TERMINATION_TYPE_INTENT_NOT_RECOGNIZED = 4,
+    SNIPS_SESSION_TERMINATION_TYPE_TIMEOUT = 5,
+    SNIPS_SESSION_TERMINATION_TYPE_ERROR = 6,
 }
 
-impl CSessionTerminationType {
-    fn from(termination_type: &hermes::SessionTerminationType) -> CSessionTerminationType {
+impl SNIPS_SESSION_TERMINATION_TYPE {
+    fn from(termination_type: &hermes::SessionTerminationType) -> SNIPS_SESSION_TERMINATION_TYPE {
         match *termination_type {
-            hermes::SessionTerminationType::Nominal => CSessionTerminationType::Nominal,
+            hermes::SessionTerminationType::Nominal => {
+                SNIPS_SESSION_TERMINATION_TYPE::SNIPS_SESSION_TERMINATION_TYPE_NOMINAL
+            }
             hermes::SessionTerminationType::SiteUnavailable => {
-                CSessionTerminationType::SiteUnavailable
+                SNIPS_SESSION_TERMINATION_TYPE::SNIPS_SESSION_TERMINATION_TYPE_SITE_UNAVAILABLE
             }
-            hermes::SessionTerminationType::AbortedByUser => CSessionTerminationType::AbortedByUser,
+            hermes::SessionTerminationType::AbortedByUser => {
+                SNIPS_SESSION_TERMINATION_TYPE::SNIPS_SESSION_TERMINATION_TYPE_ABORTED_BY_USER
+            }
             hermes::SessionTerminationType::IntentNotRecognized => {
-                CSessionTerminationType::IntentNotRecognized
+                SNIPS_SESSION_TERMINATION_TYPE::SNIPS_SESSION_TERMINATION_TYPE_INTENT_NOT_RECOGNIZED
             }
-            hermes::SessionTerminationType::Timeout => CSessionTerminationType::Timeout,
-            hermes::SessionTerminationType::Error { .. } => CSessionTerminationType::Error,
+            hermes::SessionTerminationType::Timeout => {
+                SNIPS_SESSION_TERMINATION_TYPE::SNIPS_SESSION_TERMINATION_TYPE_TIMEOUT
+            }
+            hermes::SessionTerminationType::Error { .. } => {
+                SNIPS_SESSION_TERMINATION_TYPE::SNIPS_SESSION_TERMINATION_TYPE_ERROR
+            }
         }
     }
 }
@@ -1122,14 +1132,14 @@ impl CSessionTerminationType {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CSessionTermination {
-    termination_type: CSessionTerminationType,
+    termination_type: SNIPS_SESSION_TERMINATION_TYPE,
     // Nullable,
     data: *const libc::c_char,
 }
 
 impl CSessionTermination {
     fn from(termination: ::hermes::SessionTerminationType) -> Result<Self> {
-        let termination_type = CSessionTerminationType::from(&termination);
+        let termination_type = SNIPS_SESSION_TERMINATION_TYPE::from(&termination);
         let data: *const libc::c_char = match termination {
             ::hermes::SessionTerminationType::Error { error } => convert_to_c_string!(error),
             _ => null(),
@@ -1144,16 +1154,22 @@ impl CSessionTermination {
 impl AsRust<hermes::SessionTerminationType> for CSessionTermination {
     fn as_rust(&self) -> Result<hermes::SessionTerminationType> {
         Ok(match self.termination_type {
-            CSessionTerminationType::Nominal => hermes::SessionTerminationType::Nominal,
-            CSessionTerminationType::SiteUnavailable => {
+            SNIPS_SESSION_TERMINATION_TYPE::SNIPS_SESSION_TERMINATION_TYPE_NOMINAL => {
+                hermes::SessionTerminationType::Nominal
+            }
+            SNIPS_SESSION_TERMINATION_TYPE::SNIPS_SESSION_TERMINATION_TYPE_SITE_UNAVAILABLE => {
                 hermes::SessionTerminationType::SiteUnavailable
             }
-            CSessionTerminationType::AbortedByUser => hermes::SessionTerminationType::AbortedByUser,
-            CSessionTerminationType::IntentNotRecognized => {
+            SNIPS_SESSION_TERMINATION_TYPE::SNIPS_SESSION_TERMINATION_TYPE_ABORTED_BY_USER => {
+                hermes::SessionTerminationType::AbortedByUser
+            }
+            SNIPS_SESSION_TERMINATION_TYPE::SNIPS_SESSION_TERMINATION_TYPE_INTENT_NOT_RECOGNIZED => {
                 hermes::SessionTerminationType::IntentNotRecognized
             }
-            CSessionTerminationType::Timeout => hermes::SessionTerminationType::Timeout,
-            CSessionTerminationType::Error => hermes::SessionTerminationType::Error {
+            SNIPS_SESSION_TERMINATION_TYPE::SNIPS_SESSION_TERMINATION_TYPE_TIMEOUT => {
+                hermes::SessionTerminationType::Timeout
+            }
+            SNIPS_SESSION_TERMINATION_TYPE::SNIPS_SESSION_TERMINATION_TYPE_ERROR => hermes::SessionTerminationType::Error {
                 error: create_rust_string_from!(self.data),
             },
         })
