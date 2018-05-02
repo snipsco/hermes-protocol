@@ -9,4 +9,4 @@ ffi-utils = { git = "https://github.com/snipsco/snips-utils-rs" }
 hermes = { path = ".." }
 lazy_static = { version="1.0" }
 libc = "0.2"
-snips-nlu-ontology-ffi-macros = { git = "https://github.com/snipsco/snips-nlu-ontology", tag = "0.54.3" }
+snips-nlu-ontology-ffi-macros = { git = "https://github.com/snipsco/snips-nlu-ontology", tag = "0.55.0" }
