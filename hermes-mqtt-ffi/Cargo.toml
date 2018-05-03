@@ -8,7 +8,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 failure = "0.1"
-ffi-utils = { git = "https://github.com/snipsco/snips-utils-rs" }
+ffi-utils = { git = "https://github.com/snipsco/snips-utils-rs", rev = "b1f4af3" }
 hermes = { path = ".." }
 hermes-ffi = { path = "../hermes-ffi" }
 hermes-mqtt = { path = "../hermes-mqtt" }
