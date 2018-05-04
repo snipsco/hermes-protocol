@@ -1,6 +1,6 @@
 [package]
 name = "hermes-mqtt-ffi"
-version = "0.55.3-RC1-SNAPSHOT"
+version = "0.55.3"
 authors = ["Thibaut Lorrain <thibaut.lorrain@snips.ai>"]
 
 [lib]
