@@ -6,7 +6,9 @@ from .ffi.ontology import CProtocolHandler, CDialogueFacade, CContinueSessionMes
     CStartSessionMessageAction, CStartSessionMessageNotification, CStringArray, CIntentMessage, CSessionStartedMessage, CSessionQueuedMessage, \
     CSessionEndedMessage, CSessionInitNotification, CSessionInitAction, CActionSessionInit
 from .ffi.utils import *
+import threading
 from time import sleep
+
 
 
 class Hermes(object):
@@ -23,6 +25,8 @@ class Hermes(object):
         self._c_callback_subscribe_session_queued = None
         self._c_callback_subscribe_session_ended = None
 
+        self._thread_terminate = False
+
     def __enter__(self):
         lib.hermes_protocol_handler_new_mqtt(byref(self._protocol_handler), self.mqtt_server_address)
 
@@ -32,6 +36,9 @@ class Hermes(object):
         return self
 
     def __exit__(self, exception_type, exception_val, trace):
+        if self._thread is not None:
+            self.loop_stop()
+
         hermes_drop_dialogue_facade(self._facade)
 
         return True
@@ -198,8 +205,36 @@ class Hermes(object):
 
     def start(self):
         """
-        starts to listen to events of the Dialogue Manager. Has to be called if you registered callbacks.
+        DEPRECATED. This method is just kept for compatibility with previous versions of the library.
+        :return:
+        """
+        self.loop_forever()
+
+    def loop_forever(self):
+        """
+        This is a convenience method to loop forever in a blocking fashion.
         :return: None
         """
         while 1:
+            if (self._thread_terminate):
+                break
             sleep(.1)
+
+    def loop_start(self):
+        """
+        to set a thread running to call a infinite loop for you.
+        :return: None
+        """
+        self._thread_terminate = False
+        self._thread = threading.Thread(target=self.loop_forever)
+        self._thread.daemon = True
+        self._thread.start()
+
+    def loop_stop(self, force=False):
+        if self._thread is None:
+            return
+
+        self._thread_terminate = True
+        if threading.currentThread() != self._thread:
+            self._thread.join()
+            self._thread = None
