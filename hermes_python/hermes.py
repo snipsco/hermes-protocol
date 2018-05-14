@@ -25,6 +25,7 @@ class Hermes(object):
         self._c_callback_subscribe_session_queued = None
         self._c_callback_subscribe_session_ended = None
 
+        self._thread = None
         self._thread_terminate = False
 
     def __enter__(self):
