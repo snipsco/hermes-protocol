@@ -66,7 +66,7 @@ class SlotMap(object):
         self.__data = mapping
 
     def __getattr__(self, name):
-        return self.__data.get(name, None)
+        return self.__data[name]
 
     @classmethod
     def from_c_repr(cls, c_slots_list_repr):
