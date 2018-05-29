@@ -16,3 +16,6 @@ include 'services:webservice'
 */
 
 rootProject.name = 'hermes'
+
+
+include ":hermes-kotlin-test"

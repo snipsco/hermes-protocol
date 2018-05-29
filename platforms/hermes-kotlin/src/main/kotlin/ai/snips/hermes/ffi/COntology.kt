@@ -3,6 +3,8 @@ package ai.snips.hermes.ffi
 import ai.snips.hermes.ContinueSessionMessage
 import ai.snips.hermes.EndSessionMessage
 import ai.snips.hermes.IntentMessage
+import ai.snips.hermes.SayFinishedMessage
+import ai.snips.hermes.SayMessage
 import ai.snips.hermes.SessionEndedMessage
 import ai.snips.hermes.SessionInit
 import ai.snips.hermes.SessionInit.Action
@@ -17,8 +19,6 @@ import ai.snips.hermes.SessionTermination.IntenNotRecognized
 import ai.snips.hermes.SessionTermination.Nominal
 import ai.snips.hermes.SessionTermination.SiteUnAvailable
 import ai.snips.hermes.SessionTermination.Timeout
-import ai.snips.hermes.SayFinishedMessage
-import ai.snips.hermes.SayMessage
 import ai.snips.hermes.StartSessionMessage
 import ai.snips.nlu.ontology.ffi.CIntentClassifierResult
 import ai.snips.nlu.ontology.ffi.CSlots
@@ -28,12 +28,7 @@ import com.sun.jna.Memory
 import com.sun.jna.Pointer
 import com.sun.jna.Structure
 
-
 class CStringArray(p: Pointer?) : Structure(p), Structure.ByReference {
-    init {
-        read()
-    }
-
     companion object {
         fun fromStringList(list: List<String>) = CStringArray(null).apply {
             size = list.size
@@ -50,6 +45,12 @@ class CStringArray(p: Pointer?) : Structure(p), Structure.ByReference {
     @JvmField
     var size: Int = -1
 
+    // be careful this block must be below the field definition if you don't want the native values read by JNA
+    // overridden by the default ones
+    init {
+        read()
+    }
+
     override fun getFieldOrder() = listOf("data", "size")
 
     fun toStringList() = if (size > 0) {
@@ -61,27 +62,29 @@ class CActionSessionInit(p: Pointer?) : Structure(p), Structure.ByReference {
     companion object {
         fun fromActionSessionInit(actionSessionInit: SessionInit.Action) = CActionSessionInit(null).apply {
             text = actionSessionInit.text?.toPointer()
-            intent_filter = if(actionSessionInit.intentFilter.isEmpty()) null else CStringArray.fromStringList(actionSessionInit.intentFilter).pointer
+            intent_filter = if (actionSessionInit.intentFilter.isEmpty()) null else CStringArray.fromStringList(actionSessionInit.intentFilter)
             can_be_enqueued = if (actionSessionInit.canBeEnqueued) 1 else 0
         }
-    }
-
-    init {
-        read()
     }
 
     @JvmField
     var text: Pointer? = null
     @JvmField
-    var intent_filter: Pointer? = null
+    var intent_filter: CStringArray? = null
     @JvmField
     var can_be_enqueued: Byte = -1
+
+    // be careful this block must be below the field definition if you don't want the native values read by JNA
+    // overridden by the default ones
+    init {
+        read()
+    }
 
     override fun getFieldOrder() = listOf("text", "intent_filter", "can_be_enqueued")
 
     fun toSessionInit() = SessionInit.Action(
             text = text?.readString(),
-            intentFilter = intent_filter?.let { CStringArray(it).toStringList() } ?: listOf(),
+            intentFilter = intent_filter?.toStringList() ?: listOf(),
             canBeEnqueued = can_be_enqueued == 1.toByte()
     )
 }
@@ -92,10 +95,10 @@ class CSessionInit : Structure(), Structure.ByValue {
         const val NOTIFICATION = 2
 
         fun fromSessionInit(sessionInit: SessionInit) = CSessionInit().apply {
-            when(sessionInit.type) {
+            when (sessionInit.type) {
                 Type.ACTION -> {
                     init_type = ACTION
-                    value = CActionSessionInit.fromActionSessionInit(sessionInit as Action).pointer
+                    value = CActionSessionInit.fromActionSessionInit(sessionInit as Action).apply { write() }.pointer
                 }
                 Type.NOTIFICATION -> {
                     init_type = NOTIFICATION
@@ -128,16 +131,18 @@ class CStartSessionMessage(p: Pointer?) : Structure(p), Structure.ByReference {
         }
     }
 
-    init {
-        read()
-    }
-
     @JvmField
     var init: CSessionInit? = null
     @JvmField
     var custom_data: Pointer? = null
     @JvmField
     var site_id: Pointer? = null
+
+    // be careful this block must be below the field definition if you don't want the native values read by JNA
+    // overridden by the default ones
+    init {
+        read()
+    }
 
     override fun getFieldOrder() = listOf("init", "custom_data", "site_id")
 
@@ -149,15 +154,11 @@ class CStartSessionMessage(p: Pointer?) : Structure(p), Structure.ByReference {
 }
 
 class CContinueSessionMessage(p: Pointer?) : Structure(p), Structure.ByReference {
-    init {
-        read()
-    }
-
     companion object {
         fun fromContinueSessionMessage(continueSessionMessage: ContinueSessionMessage) = CContinueSessionMessage(null).apply {
             session_id = continueSessionMessage.sessionId.toPointer()
             text = continueSessionMessage.text.toPointer()
-            intent_filter =  if(continueSessionMessage.intentFilter.isEmpty()) null else CStringArray.fromStringList(continueSessionMessage.intentFilter).pointer
+            intent_filter = if (continueSessionMessage.intentFilter.isEmpty()) null else CStringArray.fromStringList(continueSessionMessage.intentFilter)
         }
     }
 
@@ -166,14 +167,20 @@ class CContinueSessionMessage(p: Pointer?) : Structure(p), Structure.ByReference
     @JvmField
     var text: Pointer? = null
     @JvmField
-    var intent_filter: Pointer? = null
+    var intent_filter: CStringArray? = null
+
+    // be careful this block must be below the field definition if you don't want the native values read by JNA
+    // overridden by the default ones
+    init {
+        read()
+    }
 
     override fun getFieldOrder() = listOf("session_id", "text", "intent_filter")
 
     fun toContinueSessionMessage() = ContinueSessionMessage(
             sessionId = session_id.readString(),
             text = text.readString(),
-            intentFilter = intent_filter?.let { CStringArray(it).toStringList() } ?: listOf()
+            intentFilter = intent_filter?.toStringList() ?: listOf()
     )
 }
 
@@ -185,16 +192,18 @@ class CEndSessionMessage(p: Pointer?) : Structure(p), Structure.ByReference {
         }
     }
 
-    init {
-        read()
-    }
-
     @JvmField
     var session_id: Pointer? = null
     @JvmField
     var text: Pointer? = null
 
-    override fun getFieldOrder() = listOf("session_id", "text" )
+    // be careful this block must be below the field definition if you don't want the native values read by JNA
+    // overridden by the default ones
+    init {
+        read()
+    }
+
+    override fun getFieldOrder() = listOf("session_id", "text")
 
     fun toEndSessionMessage() = EndSessionMessage(
             sessionId = session_id.readString(),
@@ -204,10 +213,6 @@ class CEndSessionMessage(p: Pointer?) : Structure(p), Structure.ByReference {
 
 
 class CIntentMessage(p: Pointer) : Structure(p), Structure.ByReference {
-    init {
-        read()
-    }
-
     @JvmField
     var session_id: Pointer? = null
     @JvmField
@@ -221,6 +226,12 @@ class CIntentMessage(p: Pointer) : Structure(p), Structure.ByReference {
     @JvmField
     var slots: CSlots? = null
 
+    // be careful this block must be below the field definition if you don't want the native values read by JNA
+    // overridden by the default ones
+    init {
+        read()
+    }
+
     override fun getFieldOrder() = listOf("session_id", "custom_data", "site_id", "input", "intent", "slots")
 
     fun toIntentMessage() = IntentMessage(
@@ -233,10 +244,6 @@ class CIntentMessage(p: Pointer) : Structure(p), Structure.ByReference {
 }
 
 class CSessionStartedMessage(p: Pointer) : Structure(p), Structure.ByReference {
-    init {
-        read()
-    }
-
     @JvmField
     var session_id: Pointer? = null
     @JvmField
@@ -245,6 +252,12 @@ class CSessionStartedMessage(p: Pointer) : Structure(p), Structure.ByReference {
     var site_id: Pointer? = null
     @JvmField
     var reactivated_from_session_id: Pointer? = null
+
+    // be careful this block must be below the field definition if you don't want the native values read by JNA
+    // overridden by the default ones
+    init {
+        read()
+    }
 
     override fun getFieldOrder() = listOf("session_id", "custom_data", "site_id", "reactivated_from_session_id")
 
@@ -256,16 +269,18 @@ class CSessionStartedMessage(p: Pointer) : Structure(p), Structure.ByReference {
 }
 
 class CSessionQueuedMessage(p: Pointer) : Structure(p), Structure.ByReference {
-    init {
-        read()
-    }
-
     @JvmField
     var session_id: Pointer? = null
     @JvmField
     var custom_data: Pointer? = null
     @JvmField
     var site_id: Pointer? = null
+
+    // be careful this block must be below the field definition if you don't want the native values read by JNA
+    // overridden by the default ones
+    init {
+        read()
+    }
 
     override fun getFieldOrder() = listOf("session_id", "custom_data", "site_id")
 
@@ -304,10 +319,6 @@ class CSessionTermination : Structure(), Structure.ByValue {
 }
 
 class CSessionEndedMessage(p: Pointer) : Structure(p), Structure.ByReference {
-    init {
-        read()
-    }
-
     @JvmField
     var session_id: Pointer? = null
     @JvmField
@@ -316,6 +327,12 @@ class CSessionEndedMessage(p: Pointer) : Structure(p), Structure.ByReference {
     var termination: CSessionTermination? = null
     @JvmField
     var site_id: Pointer? = null
+
+    // be careful this block must be below the field definition if you don't want the native values read by JNA
+    // overridden by the default ones
+    init {
+        read()
+    }
 
     override fun getFieldOrder() = listOf("session_id", "custom_data", "termination", "site_id")
 
@@ -327,9 +344,6 @@ class CSessionEndedMessage(p: Pointer) : Structure(p), Structure.ByReference {
 }
 
 class CSayMessage(p: Pointer) : Structure(p), Structure.ByReference {
-    init {
-        read()
-    }
     @JvmField
     var text: Pointer? = null
     @JvmField
@@ -340,6 +354,12 @@ class CSayMessage(p: Pointer) : Structure(p), Structure.ByReference {
     var site_id: Pointer? = null
     @JvmField
     var session_id: Pointer? = null
+
+    // be careful this block must be below the field definition if you don't want the native values read by JNA
+    // overridden by the default ones
+    init {
+        read()
+    }
 
     override fun getFieldOrder() = listOf("text", "lang", "id", "site_id", "session_id")
 
@@ -360,17 +380,19 @@ class CSayFinishedMessage(p: Pointer?) : Structure(p), Structure.ByReference {
         }
     }
 
-    init {
-        read()
-    }
-
     @JvmField
     var id: Pointer? = null
 
     @JvmField
     var session_id: Pointer? = null
 
-    override fun getFieldOrder() = listOf("id",  "session_id")
+    // be careful this block must be below the field definition if you don't want the native values read by JNA
+    // overridden by the default ones
+    init {
+        read()
+    }
+
+    override fun getFieldOrder() = listOf("id", "session_id")
 
     fun toSayFinishedMessage() = SayFinishedMessage(
             id = id?.readString(),

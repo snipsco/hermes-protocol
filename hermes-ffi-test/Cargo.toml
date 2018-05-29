@@ -1,0 +1,16 @@
+[package]
+name = "hermes-ffi-test"
+version = "0.1.0"
+authors = ["Thibaut Lorrain <thibaut.lorrain@snips.ai>"]
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+failure = "0.1"
+hermes = { path = ".." }
+hermes-ffi = { path = "../hermes-ffi" }
+ffi-utils = { git = "https://github.com/snipsco/snips-utils-rs", rev = "b1f4af3" }
+lazy_static = "1.0"
+libc = "0.2"
+

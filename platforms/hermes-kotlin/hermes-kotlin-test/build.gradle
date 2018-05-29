@@ -1,0 +1,68 @@
+buildscript {
+    ext.kotlin_version = '1.2.10'
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+apply plugin: 'kotlin'
+
+
+repositories {
+    mavenLocal()
+    jcenter()
+    maven {
+        url "https://nexus-repository.snips.ai/repository/snips-maven-releases/"
+    }
+    maven {
+        url "https://nexus-repository.snips.ai/repository/snips-maven-snapshots/"
+    }
+}
+
+dependencies {
+    compile rootProject
+
+    testCompile 'junit:junit:4.12'
+    testCompile 'com.google.truth:truth:0.36'
+}
+
+
+def buildType = project.hasProperty("debug") ? "debug" : "release"
+println "Using build type $buildType"
+
+def rustTargetPath = project.hasProperty("rustTargetPath") ? project.rustTargetPath : "../../../../target"
+println "Using rust target path ${new File(rustTargetPath).canonicalPath}"
+
+
+def soForJar = [
+        ["$rustTargetPath/$buildType/libhermes_ffi_test.so", "linux-x86-64", "linuxNative" ],
+        ["$rustTargetPath/$buildType/libhermes_ffi_test.dylib", "darwin", "macOsNative" ],
+        ["$rustTargetPath/arm-unknown-linux-gnueabihf/$buildType/libhermes_ffi_test.so", "linux-arm", "linuxArmCross"]
+]
+
+
+def jniLibsDir = new File(buildDir, "jniLibs")
+
+soForJar.forEach {
+    def taskName = "copySo${it[2].capitalize()}ForJar"
+    def soFile = file(it[0])
+    def destDir = new File(jniLibsDir, it[1])
+
+    task(taskName, type: Copy) {
+        from soFile
+        into destDir
+    }
+    processResources.dependsOn(taskName)
+
+}
+
+sourceSets {
+    main {
+        resources {
+            srcDir jniLibsDir
+        }
+    }
+}

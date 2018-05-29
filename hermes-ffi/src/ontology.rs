@@ -1,13 +1,13 @@
 #![allow(non_camel_case_types)]
 
 use failure::ResultExt;
-use ffi_utils::{AsRust, CStringArray, CReprOf, RawBorrow, RawPointerConverter};
+use ffi_utils::{AsRust, CReprOf, CStringArray, RawBorrow, RawPointerConverter};
 use hermes;
 use libc;
+use Result;
 use snips_nlu_ontology_ffi_macros::{CIntentClassifierResult, CSlot, CSlotList};
 use std::ptr::null;
 use std::slice;
-use Result;
 
 #[repr(C)]
 #[derive(Debug)]
@@ -1273,5 +1273,139 @@ impl Drop for CErrorMessage {
         take_back_nullable_c_string!(self.session_id);
         take_back_c_string!(self.error);
         take_back_nullable_c_string!(self.context);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use spectral::prelude::*;
+    use super::*;
+
+    fn round_trip_test<T, U>(input: T) where T: Clone + PartialEq + ::std::fmt::Debug, U: CReprOf<T> + AsRust<T> {
+        let c = U::c_repr_of(input.clone()).expect("could not convert to c_repr");
+
+        let result = c.as_rust().expect("could not convert back to rust");
+
+        assert_that!(result).is_equal_to(input);
+    }
+
+
+    #[test]
+    fn round_trip_session_started() {
+        round_trip_test::<_, CSessionStartedMessage>(hermes::SessionStartedMessage {
+            site_id : "siteid".into(),
+            custom_data : Some("custom".into()),
+            session_id : "session id".into(),
+            reactivated_from_session_id : Some("other session id".into())
+        });
+
+        round_trip_test::<_, CSessionStartedMessage>(hermes::SessionStartedMessage {
+            site_id : "siteid".into(),
+            custom_data : None,
+            session_id : "session id".into(),
+            reactivated_from_session_id : None
+        })
+    }
+
+    #[test]
+    fn round_trip_session_ended() {
+        round_trip_test::<_, CSessionEndedMessage>(hermes::SessionEndedMessage {
+            site_id : "siteid".into(),
+            custom_data : Some("custom".into()),
+            session_id : "session id".into(),
+            termination : hermes::SessionTerminationType::Nominal,
+        });
+
+        round_trip_test::<_, CSessionEndedMessage>(hermes::SessionEndedMessage {
+            site_id : "siteid".into(),
+            custom_data : None,
+            session_id : "session_id".into(),
+            termination : hermes::SessionTerminationType::Error{error: "this is my error".into()},
+        })
+    }
+
+    #[test]
+    fn round_trip_session_queued() {
+        round_trip_test::<_, CSessionQueuedMessage>(hermes::SessionQueuedMessage {
+            site_id : "siteid".into(),
+            custom_data : Some("custom".into()),
+            session_id : "session id".into(),
+        });
+
+        round_trip_test::<_, CSessionQueuedMessage>(hermes::SessionQueuedMessage {
+            site_id : "siteid".into(),
+            custom_data : None,
+            session_id : "session_id".into(),
+        })
+    }
+
+
+    #[test]
+    fn round_trip_start_session() {
+        round_trip_test::<_, CStartSessionMessage>(hermes::StartSessionMessage {
+            init: hermes::SessionInit::Notification {
+                text: "text".into()
+            },
+            custom_data: Some("thing".into()),
+            site_id: Some("site".into()),
+
+        });
+
+        round_trip_test::<_, CStartSessionMessage>(hermes::StartSessionMessage {
+            init: hermes::SessionInit::Action {
+                intent_filter: Some(vec!["filter1".into(), "filter2".into()]),
+                text: Some("text".into()),
+                can_be_enqueued: true,
+            },
+            custom_data: Some("thing".into()),
+            site_id: Some("site".into()),
+
+        });
+
+        round_trip_test::<_, CStartSessionMessage>(hermes::StartSessionMessage {
+            init: hermes::SessionInit::Action {
+                intent_filter: None,
+                text: None,
+                can_be_enqueued: false,
+            },
+            custom_data: None,
+            site_id: None,
+
+        });
+    }
+
+    #[test]
+    fn round_trip_continue_session() {
+        round_trip_test::<_, CContinueSessionMessage>(hermes::ContinueSessionMessage {
+            session_id: "my session id".into(),
+            text: "some text".into(),
+            intent_filter: Some(vec!["filter1".into(), "filter2".into()]),
+        });
+
+        round_trip_test::<_, CContinueSessionMessage>(hermes::ContinueSessionMessage {
+            session_id: "my session id".into(),
+            text: "some text".into(),
+            intent_filter: None,
+        });
+
+        round_trip_test::<_, CContinueSessionMessage>(hermes::ContinueSessionMessage {
+            session_id: "my session id".into(),
+            text: "some text".into(),
+            intent_filter: Some(vec![]),
+        });
+    }
+
+    #[test]
+    fn round_trip_end_session() {
+        round_trip_test::<_, CEndSessionMessage>(hermes::EndSessionMessage {
+            session_id: "my session id".into(),
+            text: Some("some text".into()),
+        });
+
+        round_trip_test::<_, CEndSessionMessage>(hermes::EndSessionMessage {
+            session_id: "my session id".into(),
+            text: None,
+        });
+
     }
 }
