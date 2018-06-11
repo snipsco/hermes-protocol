@@ -6,6 +6,7 @@ use hermes;
 use libc;
 use Result;
 use snips_nlu_ontology_ffi_macros::{CIntentClassifierResult, CSlot, CSlotList};
+use std::collections::HashMap;
 use std::ptr::null;
 use std::slice;
 
@@ -1279,6 +1280,200 @@ impl Drop for CErrorMessage {
     }
 }
 
+#[repr(C)]
+#[derive(Debug)]
+pub struct CMapStringToStringArrayEntry {
+    pub key: *const libc::c_char,
+    pub value: CStringArray,
+}
+
+impl Drop for CMapStringToStringArrayEntry {
+    fn drop(&mut self) {
+        take_back_c_string!(self.key);
+    }
+}
+
+impl CReprOf<(String, Vec<String>)> for CMapStringToStringArrayEntry {
+    fn c_repr_of(input: (String, Vec<String>)) -> Result<Self> {
+        Ok(Self {
+            key: convert_to_c_string!(input.0),
+            value: CStringArray::c_repr_of(input.1)?,
+        })
+    }
+}
+
+impl AsRust<(String, Vec<String>)> for CMapStringToStringArrayEntry {
+    fn as_rust(&self) -> Result<(String, Vec<String>)> {
+        Ok((create_rust_string_from!(self.key), self.value.as_rust()?))
+    }
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct CMapStringToStringArray {
+    pub entries: *const CMapStringToStringArrayEntry,
+    pub count: libc::c_int,
+}
+
+impl Drop for CMapStringToStringArray {
+    fn drop(&mut self) {
+        let _ = unsafe {
+            Box::from_raw(::std::slice::from_raw_parts_mut(
+                self.entries as *mut CMapStringToStringArrayEntry,
+                self.count as usize,
+            ))
+        };
+    }
+}
+
+impl CReprOf<HashMap<String, Vec<String>>> for CMapStringToStringArray {
+    fn c_repr_of(input: HashMap<String, Vec<String>>) -> Result<Self> {
+        Ok(Self {
+            count: input.len() as libc::c_int,
+            entries: Box::into_raw(
+                input
+                    .into_iter()
+                    .map(|e| CMapStringToStringArrayEntry::c_repr_of(e))
+                    .collect::<Result<Vec<CMapStringToStringArrayEntry>>>()
+                    .context("Could not convert map to C Repr")?
+                    .into_boxed_slice(),
+            ) as *const CMapStringToStringArrayEntry,
+        })
+    }
+}
+
+impl AsRust<HashMap<String, Vec<String>>> for CMapStringToStringArray {
+    fn as_rust(&self) -> Result<HashMap<String, Vec<String>>> {
+        let mut result = HashMap::with_capacity(self.count as usize);
+
+        for e in unsafe { slice::from_raw_parts(self.entries, self.count as usize) } {
+            let (key, value) = e.as_rust()?;
+            result.insert(key, value);
+        }
+
+        Ok(result)
+    }
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub enum SNIPS_INJECTION_KIND {
+    SNIPS_INJECTION_KIND_ADD = 1
+}
+
+impl CReprOf<hermes::InjectionKind> for SNIPS_INJECTION_KIND {
+    fn c_repr_of(input: hermes::InjectionKind) -> Result<Self> {
+        Ok(match input {
+            hermes::InjectionKind::Add => SNIPS_INJECTION_KIND::SNIPS_INJECTION_KIND_ADD
+        })
+    }
+}
+
+impl AsRust<hermes::InjectionKind> for SNIPS_INJECTION_KIND {
+    fn as_rust(&self) -> Result<hermes::InjectionKind> {
+        Ok(match self {
+            SNIPS_INJECTION_KIND::SNIPS_INJECTION_KIND_ADD => hermes::InjectionKind::Add
+        })
+    }
+}
+
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct CInjectionRequestOperation {
+    pub kind: SNIPS_INJECTION_KIND,
+    pub values: CMapStringToStringArray,
+}
+
+
+impl CReprOf<(hermes::InjectionKind, HashMap<String, Vec<String>>)> for CInjectionRequestOperation {
+    fn c_repr_of(input: (hermes::InjectionKind, HashMap<String, Vec<String>>)) -> Result<Self> {
+        Ok(Self {
+            kind: SNIPS_INJECTION_KIND::c_repr_of(input.0)?,
+            values: CMapStringToStringArray::c_repr_of(input.1)?,
+        })
+    }
+}
+
+impl AsRust<(hermes::InjectionKind, HashMap<String, Vec<String>>)> for CInjectionRequestOperation {
+    fn as_rust(&self) -> Result<(hermes::InjectionKind, HashMap<String, Vec<String>>)> {
+        Ok((self.kind.as_rust()?, self.values.as_rust()?))
+    }
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct CInjectionRequestOperations {
+    pub operations: *const CInjectionRequestOperation,
+    pub count: libc::c_int,
+}
+
+
+impl Drop for CInjectionRequestOperations {
+    fn drop(&mut self) {
+        let _ = unsafe {
+            Box::from_raw(::std::slice::from_raw_parts_mut(
+                self.operations as *mut CInjectionRequestOperation,
+                self.count as usize,
+            ))
+        };
+    }
+}
+
+impl CReprOf<Vec<(hermes::InjectionKind, HashMap<String, Vec<String>>)>> for CInjectionRequestOperations {
+    fn c_repr_of(input: Vec<(hermes::InjectionKind, HashMap<String, Vec<String>>)>) -> Result<Self> {
+        Ok(Self {
+            count: input.len() as libc::c_int,
+            operations: Box::into_raw(
+                input
+                    .into_iter()
+                    .map(|e| CInjectionRequestOperation::c_repr_of(e))
+                    .collect::<Result<Vec<CInjectionRequestOperation>>>()
+                    .context("Could not convert map to C Repr")?
+                    .into_boxed_slice(),
+            ) as *const CInjectionRequestOperation,
+        })
+    }
+}
+
+impl AsRust<Vec<(hermes::InjectionKind, HashMap<String, Vec<String>>)>> for CInjectionRequestOperations {
+    fn as_rust(&self) -> Result<Vec<(hermes::InjectionKind, HashMap<String, Vec<String>>)>> {
+        let mut result = Vec::with_capacity(self.count as usize);
+
+        for e in unsafe { slice::from_raw_parts(self.operations, self.count as usize) } {
+            result.push(e.as_rust()?);
+        }
+
+        Ok(result)
+    }
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct CInjectionRequest {
+    operations: CInjectionRequestOperations,
+    lexicon: CMapStringToStringArray,
+}
+
+impl CReprOf<hermes::InjectionRequest> for CInjectionRequest {
+    fn c_repr_of(input: hermes::InjectionRequest) -> Result<Self> {
+        Ok(Self {
+            operations: CInjectionRequestOperations::c_repr_of(input.operations)?,
+            lexicon: CMapStringToStringArray::c_repr_of(input.lexicon)?,
+        })
+    }
+}
+
+
+impl AsRust<hermes::InjectionRequest> for CInjectionRequest {
+    fn as_rust(&self) -> Result<hermes::InjectionRequest> {
+        Ok(hermes::InjectionRequest {
+            operations: self.operations.as_rust()?,
+            lexicon: self.lexicon.as_rust()?,
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use spectral::prelude::*;
@@ -1296,49 +1491,49 @@ mod tests {
     #[test]
     fn round_trip_session_started() {
         round_trip_test::<_, CSessionStartedMessage>(hermes::SessionStartedMessage {
-            site_id : "siteid".into(),
-            custom_data : Some("custom".into()),
-            session_id : "session id".into(),
-            reactivated_from_session_id : Some("other session id".into())
+            site_id: "siteid".into(),
+            custom_data: Some("custom".into()),
+            session_id: "session id".into(),
+            reactivated_from_session_id: Some("other session id".into()),
         });
 
         round_trip_test::<_, CSessionStartedMessage>(hermes::SessionStartedMessage {
-            site_id : "siteid".into(),
-            custom_data : None,
-            session_id : "session id".into(),
-            reactivated_from_session_id : None
+            site_id: "siteid".into(),
+            custom_data: None,
+            session_id: "session id".into(),
+            reactivated_from_session_id: None,
         })
     }
 
     #[test]
     fn round_trip_session_ended() {
         round_trip_test::<_, CSessionEndedMessage>(hermes::SessionEndedMessage {
-            site_id : "siteid".into(),
-            custom_data : Some("custom".into()),
-            session_id : "session id".into(),
-            termination : hermes::SessionTerminationType::Nominal,
+            site_id: "siteid".into(),
+            custom_data: Some("custom".into()),
+            session_id: "session id".into(),
+            termination: hermes::SessionTerminationType::Nominal,
         });
 
         round_trip_test::<_, CSessionEndedMessage>(hermes::SessionEndedMessage {
-            site_id : "siteid".into(),
-            custom_data : None,
-            session_id : "session_id".into(),
-            termination : hermes::SessionTerminationType::Error{error: "this is my error".into()},
+            site_id: "siteid".into(),
+            custom_data: None,
+            session_id: "session_id".into(),
+            termination: hermes::SessionTerminationType::Error { error: "this is my error".into() },
         })
     }
 
     #[test]
     fn round_trip_session_queued() {
         round_trip_test::<_, CSessionQueuedMessage>(hermes::SessionQueuedMessage {
-            site_id : "siteid".into(),
-            custom_data : Some("custom".into()),
-            session_id : "session id".into(),
+            site_id: "siteid".into(),
+            custom_data: Some("custom".into()),
+            session_id: "session id".into(),
         });
 
         round_trip_test::<_, CSessionQueuedMessage>(hermes::SessionQueuedMessage {
-            site_id : "siteid".into(),
-            custom_data : None,
-            session_id : "session_id".into(),
+            site_id: "siteid".into(),
+            custom_data: None,
+            session_id: "session_id".into(),
         })
     }
 
@@ -1409,6 +1604,87 @@ mod tests {
             session_id: "my session id".into(),
             text: None,
         });
+    }
 
+    #[test]
+    fn round_trip_map_string_to_string_array_entry() {
+        round_trip_test::<_, CMapStringToStringArrayEntry>(
+            ("hello".to_string(), vec!["hello".to_string(), "world".to_string()])
+        );
+
+        round_trip_test::<_, CMapStringToStringArrayEntry>(
+            ("hello".to_string(), vec![])
+        );
+    }
+
+    #[test]
+    fn round_trip_map_string_to_string_array() {
+        round_trip_test::<_, CMapStringToStringArray>(HashMap::new());
+
+
+        let mut test_map = HashMap::new();
+        test_map.insert("hello".into(), vec!["hello".to_string(), "world".to_string()]);
+        test_map.insert("foo".into(), vec!["bar".to_string(), "baz".to_string()]);
+
+        round_trip_test::<_, CMapStringToStringArray>(test_map);
+    }
+
+
+    #[test]
+    fn round_trip_injection_request_operation() {
+        round_trip_test::<_, CInjectionRequestOperation>(
+            (hermes::InjectionKind::Add, HashMap::new())
+        );
+
+
+        let mut test_map = HashMap::new();
+        test_map.insert("hello".into(), vec!["hello".to_string(), "world".to_string()]);
+        test_map.insert("foo".into(), vec!["bar".to_string(), "baz".to_string()]);
+
+
+        round_trip_test::<_, CInjectionRequestOperation>(
+            (hermes::InjectionKind::Add, test_map)
+        );
+    }
+
+    #[test]
+    fn round_trip_injection_request_operations() {
+        round_trip_test::<_, CInjectionRequestOperations>(
+            vec![]
+        );
+
+        let mut test_map = HashMap::new();
+        test_map.insert("hello".into(), vec!["hello".to_string(), "world".to_string()]);
+        test_map.insert("foo".into(), vec!["bar".to_string(), "baz".to_string()]);
+
+        round_trip_test::<_, CInjectionRequestOperations>(
+            vec![
+                (hermes::InjectionKind::Add, HashMap::new()),
+                (hermes::InjectionKind::Add, test_map)
+            ]
+        );
+    }
+
+
+    #[test]
+    fn round_trip_injection_request() {
+        let mut injections = HashMap::new();
+        injections.insert("hello".into(), vec!["hello".to_string(), "world".to_string()]);
+        injections.insert("foo".into(), vec!["bar".to_string(), "baz".to_string()]);
+
+
+        let mut lexicon = HashMap::new();
+        lexicon.insert("this".into(), vec!["is ".to_string(), "a".to_string(), "lexicon".to_string()]);
+        lexicon.insert("baz".into(), vec!["bar".to_string(), "foo".to_string()]);
+
+        round_trip_test::<_, CInjectionRequest>(
+            hermes::InjectionRequest {
+                operations: vec![
+                    (hermes::InjectionKind::Add, HashMap::new()),
+                    (hermes::InjectionKind::Add, injections)
+                ],
+                lexicon,
+            }
+        );
     }
 }
