@@ -308,7 +308,7 @@ macro_rules! test_suite {
                 asr_backend.subscribe_reload <= asr.publish_reload);
         t!(asr_injection_request:
                     asr_backend.subscribe_injection_request <= InjectionRequest | asr.publish_injection_request
-                    with InjectionRequest { operations: vec![], lexicon: ::std::collections::HashMap::new() };);
+                    with InjectionRequest { operations: vec![], lexicon: ::std::collections::HashMap::new(), cross_language: None };);
 
         t_component!(tts_component: tts_backend | tts);
         t!(tts_say_works:
