@@ -193,6 +193,7 @@ pub enum InjectionKind {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct InjectionRequest {
     /// List of operations to execute in the order of the list on a model
     pub operations: Vec<(InjectionKind, HashMap<Entity, Vec<Value>>)>,
