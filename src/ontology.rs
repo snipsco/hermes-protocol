@@ -35,13 +35,26 @@ impl Default for SiteMessage {
 
 impl<'de> HermesMessage<'de> for SiteMessage {}
 
+
+#[derive(Debug, Clone, PartialEq, PartialOrd, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum HotwordModelType {
+    Universal, Personal
+}
+
+
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct HotwordDetectedMessage {
-    /// The site where the text was captured
+    /// The site where the hotword was triggered
     pub site_id: SiteId,
     /// Which model was triggered
     pub model_id: String,
+    /// The version of the model
+    pub model_version: Option<String>,
+    /// The type of hotword that was triggered
+    // TODO make non optional in next major rework of the protocol
+    pub model_type: Option<HotwordModelType>,
 }
 
 impl<'de> HermesMessage<'de> for HotwordDetectedMessage {}
