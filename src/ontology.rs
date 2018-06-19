@@ -55,6 +55,8 @@ pub struct HotwordDetectedMessage {
     /// The type of hotword that was triggered
     // TODO make non optional in next major rework of the protocol
     pub model_type: Option<HotwordModelType>,
+    /// THe current sensitivity of the detector
+    pub current_sensitivity: Option<f32>,
 }
 
 impl<'de> HermesMessage<'de> for HotwordDetectedMessage {}

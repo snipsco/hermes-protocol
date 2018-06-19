@@ -75,6 +75,7 @@ impl AsRust<hermes::HotwordDetectedMessage> for CHotwordDetectedMessage {
             model_id: create_rust_string_from!(self.model_id),
             model_version: None,
             model_type: None,
+            current_sensitivity: None,
         })
     }
 }
