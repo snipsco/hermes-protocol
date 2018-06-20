@@ -2,17 +2,12 @@ package ai.snips.hermes.test
 
 import ai.snips.hermes.ContinueSessionMessage
 import ai.snips.hermes.EndSessionMessage
-import ai.snips.hermes.IntentMessage
-import ai.snips.hermes.SessionEndedMessage
-import ai.snips.hermes.SessionQueuedMessage
-import ai.snips.hermes.SessionStartedMessage
+import ai.snips.hermes.InjectionRequestMessage
 import ai.snips.hermes.StartSessionMessage
 import ai.snips.hermes.ffi.CContinueSessionMessage
 import ai.snips.hermes.ffi.CEndSessionMessage
-import ai.snips.hermes.ffi.CIntentMessage
-import ai.snips.hermes.ffi.CSessionEndedMessage
-import ai.snips.hermes.ffi.CSessionQueuedMessage
-import ai.snips.hermes.ffi.CSessionStartedMessage
+import ai.snips.hermes.ffi.CInjectionRequestMessage
+import ai.snips.hermes.ffi.CMapStringToStringArray
 import ai.snips.hermes.ffi.CStartSessionMessage
 import ai.snips.hermes.test.HermesTest.HermesTestLib.Companion.INSTANCE
 import com.sun.jna.Library
@@ -65,6 +60,28 @@ class HermesTest {
         }
     }
 
+    fun roundTripInjectionRequest(input: InjectionRequestMessage): InjectionRequestMessage {
+        return PointerByReference().apply {
+            parseError(INSTANCE.hermes_ffi_test_round_trip_injection_request(CInjectionRequestMessage.fromInjectionRequest(input), this))
+        }.value.let {
+            CInjectionRequestMessage(it).toInjectionRequestMessage().apply {
+                parseError(INSTANCE.hermes_drop_injection_request_message(it))
+            }
+        }
+    }
+
+
+    fun roundTripMapStringToStringArray(input: Map<String, List<String>>): Map<String, List<String>> {
+        return PointerByReference().apply {
+            parseError(INSTANCE.hermes_ffi_test_round_trip_map_string_to_string_array(CMapStringToStringArray.fromMap(input), this))
+        }.value.let {
+            CMapStringToStringArray(it).toMap().apply {
+                parseError(INSTANCE.hermes_ffi_test_destroy_map_string_to_string_array(it))
+            }
+        }
+    }
+
+
     interface HermesTestLib : Library {
         companion object {
             val INSTANCE: HermesTestLib = Native.loadLibrary("hermes_ffi_test", HermesTestLib::class.java)
@@ -73,14 +90,18 @@ class HermesTest {
         fun hermes_ffi_test_round_trip_start_session(input: CStartSessionMessage, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_continue_session(input: CContinueSessionMessage, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_end_session(input: CEndSessionMessage, output: PointerByReference): Int
+        fun hermes_ffi_test_round_trip_injection_request(input: CInjectionRequestMessage, output: PointerByReference): Int
+        fun hermes_ffi_test_round_trip_map_string_to_string_array(input: CMapStringToStringArray, output: PointerByReference): Int
 
         fun hermes_ffi_test_get_last_error(error: PointerByReference): Int
 
         fun hermes_ffi_test_destroy_string(ptr: Pointer): Int
+        fun hermes_ffi_test_destroy_map_string_to_string_array(ptr: Pointer): Int
 
         fun hermes_drop_continue_session_message(ptr: Pointer): Int
         fun hermes_drop_start_session_message(ptr: Pointer): Int
         fun hermes_drop_end_session_message(ptr: Pointer): Int
+        fun hermes_drop_injection_request_message(ptr: Pointer): Int
     }
 
 }

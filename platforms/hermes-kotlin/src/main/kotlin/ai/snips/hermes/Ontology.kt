@@ -110,3 +110,21 @@ data class SayFinishedMessage @ParcelConstructor constructor(
     @ParcelProperty("id") val id: String?,
     @ParcelProperty("sessionId") val sessionId: String?
 )
+
+@Parcel
+enum class InjectionKind {
+    Add
+}
+
+@Parcel(BEAN)
+data class InjectionOperation @ParcelConstructor constructor(
+        @ParcelProperty("kind") val kind : InjectionKind,
+        @ParcelProperty("values") val values : Map<String, List<String>>
+)
+
+@Parcel(BEAN)
+data class InjectionRequestMessage @ParcelConstructor constructor(
+        @ParcelProperty("operations") val operations :  List<InjectionOperation>,
+        @ParcelProperty("lexicon") val lexicon : Map<String, List<String>>
+
+)

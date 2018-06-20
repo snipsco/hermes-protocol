@@ -269,5 +269,6 @@ macro_rules! generate_hermes_c_symbols {
     generate_destroy!(hermes_drop_session_ended_message for CSessionEndedMessage);
     generate_destroy!(hermes_drop_version_message for CVersionMessage);
     generate_destroy!(hermes_drop_error_message for CErrorMessage);
+    generate_destroy!(hermes_drop_injection_request_message for CInjectionRequestMessage);
     };
 }

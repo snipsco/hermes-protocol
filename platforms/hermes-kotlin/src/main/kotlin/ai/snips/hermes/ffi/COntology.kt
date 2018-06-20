@@ -2,6 +2,9 @@ package ai.snips.hermes.ffi
 
 import ai.snips.hermes.ContinueSessionMessage
 import ai.snips.hermes.EndSessionMessage
+import ai.snips.hermes.InjectionKind.Add
+import ai.snips.hermes.InjectionOperation
+import ai.snips.hermes.InjectionRequestMessage
 import ai.snips.hermes.IntentMessage
 import ai.snips.hermes.SayFinishedMessage
 import ai.snips.hermes.SayMessage
@@ -32,11 +35,13 @@ class CStringArray(p: Pointer?) : Structure(p), Structure.ByReference {
     companion object {
         fun fromStringList(list: List<String>) = CStringArray(null).apply {
             size = list.size
-            data = Memory(Pointer.SIZE * list.size.toLong()).apply {
-                list.forEachIndexed { i, s ->
-                    this.setPointer(i.toLong() * Pointer.SIZE, s.toPointer())
+            data = if (size > 0)
+                Memory(Pointer.SIZE * list.size.toLong()).apply {
+                    list.forEachIndexed { i, s ->
+                        this.setPointer(i.toLong() * Pointer.SIZE, s.toPointer())
+                    }
                 }
-            }
+            else null
         }
     }
 
@@ -397,5 +402,163 @@ class CSayFinishedMessage(p: Pointer?) : Structure(p), Structure.ByReference {
     fun toSayFinishedMessage() = SayFinishedMessage(
             id = id?.readString(),
             sessionId = session_id?.readString()
+    )
+}
+
+class CMapStringToStringArrayEntry(p: Pointer?) : Structure(p), Structure.ByValue {
+    companion object {
+        fun fromMapEntry(entry: Map.Entry<String, List<String>>) = CMapStringToStringArrayEntry(null).apply {
+            key = entry.key.toPointer()
+            value = CStringArray.fromStringList(entry.value)
+            write()
+        }
+
+    }
+
+
+    @JvmField
+    var key: Pointer? = null
+
+    @JvmField
+    var value: CStringArray? = null
+
+    // be careful this block must be below the field definition if you don't want the native values read by JNA
+    // overridden by the default ones
+    init {
+        read()
+    }
+
+    override fun getFieldOrder() = listOf("key", "value")
+
+    fun toPair() = key.readString() to (value?.toStringList() ?: listOf())
+}
+
+class CMapStringToStringArray(p: Pointer?) : Structure(p), Structure.ByReference {
+    companion object {
+        fun fromMap(map: Map<String, List<String>>) = CMapStringToStringArray(null).apply {
+            count = map.size
+            entries = if (map.isNotEmpty()) Memory(Pointer.SIZE * map.size.toLong()).apply {
+                map.entries.forEachIndexed { i, e ->
+                    this.setPointer(i.toLong() * Pointer.SIZE, CMapStringToStringArrayEntry.fromMapEntry(e).pointer)
+                }
+            } else null
+        }
+    }
+
+    @JvmField
+    var entries: Pointer? = null
+
+    @JvmField
+    var count: Int = -1
+
+
+    // be careful this block must be below the field definition if you don't want the native values read by JNA
+    // overridden by the default ones
+    init {
+        read()
+    }
+
+    override fun getFieldOrder() = listOf("entries", "count")
+
+    fun toMap() = if (count > 0) {
+        entries!!.getPointerArray(0, count).map { CMapStringToStringArrayEntry(it).toPair() }.toMap()
+    } else mapOf()
+
+}
+
+class CInjectionRequestOperation(p: Pointer?) : Structure(p), Structure.ByReference {
+    companion object {
+        const val KIND_ADD = 1
+
+        fun fromInjectionOperation(input: InjectionOperation) = CInjectionRequestOperation(null).apply {
+            values = CMapStringToStringArray.fromMap(input.values)
+            kind = when (input.kind) {
+                Add -> KIND_ADD
+            }
+            write()
+        }
+    }
+
+    @JvmField
+    var values: CMapStringToStringArray? = null
+
+    @JvmField
+    var kind: Int = -1
+
+    // be careful this block must be below the field definition if you don't want the native values read by JNA
+    // overridden by the default ones
+    init {
+        read()
+    }
+
+    override fun getFieldOrder() = listOf("values", "kind")
+
+    fun toInjectionOperation() = InjectionOperation(
+            kind = when (kind) {
+                KIND_ADD -> Add
+                else -> throw RuntimeException("unknown injection kind $kind")
+            },
+            values = values?.toMap() ?: mapOf()
+
+    )
+}
+
+class CInjectionRequestOperations(p: Pointer?) : Structure(p), Structure.ByReference {
+    companion object {
+        fun fromInjectionOperationsList(input: List<InjectionOperation>) = CInjectionRequestOperations(null).apply {
+            count = input.size
+            operations = if(input.isNotEmpty()) Memory(Pointer.SIZE * input.size.toLong()).apply {
+                input.forEachIndexed { i, o ->
+                    this.setPointer(i.toLong() * Pointer.SIZE, CInjectionRequestOperation.fromInjectionOperation(o).pointer.share(0))
+                }
+            } else null
+        }
+    }
+
+    @JvmField
+    var operations: Pointer? = null
+
+    @JvmField
+    var count: Int = -1
+
+    // be careful this block must be below the field definition if you don't want the native values read by JNA
+    // overridden by the default ones
+    init {
+        read()
+    }
+
+    override fun getFieldOrder() = listOf("operations", "count")
+
+    fun toList() = if (count > 0) {
+        operations!!.getPointerArray(0, count).map { CInjectionRequestOperation(it).toInjectionOperation() }
+    } else listOf()
+}
+
+class CInjectionRequestMessage(p: Pointer?) : Structure(p), Structure.ByReference {
+
+    companion object {
+        fun fromInjectionRequest(input: InjectionRequestMessage) = CInjectionRequestMessage(null).apply {
+            operations = CInjectionRequestOperations.fromInjectionOperationsList(input.operations)
+            lexicon = CMapStringToStringArray.fromMap(input.lexicon)
+        }
+    }
+
+    @JvmField
+    var operations: CInjectionRequestOperations? = null
+
+    @JvmField
+    var lexicon: CMapStringToStringArray? = null
+
+    // be careful this block must be below the field definition if you don't want the native values read by JNA
+    // overridden by the default ones
+    init {
+        read()
+    }
+
+    override fun getFieldOrder() = listOf("operations", "lexicon")
+
+    fun toInjectionRequestMessage() = InjectionRequestMessage(
+            operations = operations!!.toList(),
+            lexicon = lexicon!!.toMap()
     )
 }

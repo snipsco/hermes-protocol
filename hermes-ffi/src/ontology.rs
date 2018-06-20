@@ -1284,7 +1284,7 @@ impl Drop for CErrorMessage {
 #[derive(Debug)]
 pub struct CMapStringToStringArrayEntry {
     pub key: *const libc::c_char,
-    pub value: CStringArray,
+    pub value: *const CStringArray,
 }
 
 impl Drop for CMapStringToStringArrayEntry {
@@ -1295,59 +1295,64 @@ impl Drop for CMapStringToStringArrayEntry {
 
 impl CReprOf<(String, Vec<String>)> for CMapStringToStringArrayEntry {
     fn c_repr_of(input: (String, Vec<String>)) -> Result<Self> {
-        Ok(Self {
+        Ok( Self {
             key: convert_to_c_string!(input.0),
-            value: CStringArray::c_repr_of(input.1)?,
+            value: CStringArray::c_repr_of(input.1)?.into_raw_pointer(),
         })
     }
 }
 
 impl AsRust<(String, Vec<String>)> for CMapStringToStringArrayEntry {
     fn as_rust(&self) -> Result<(String, Vec<String>)> {
-        Ok((create_rust_string_from!(self.key), self.value.as_rust()?))
+        Ok((
+            create_rust_string_from!(self.key),
+            unsafe { CStringArray::raw_borrow(self.value) }?.as_rust()?
+        ))
     }
 }
 
 #[repr(C)]
 #[derive(Debug)]
 pub struct CMapStringToStringArray {
-    pub entries: *const CMapStringToStringArrayEntry,
+    pub entries: *const *const CMapStringToStringArrayEntry,
     pub count: libc::c_int,
 }
 
 impl Drop for CMapStringToStringArray {
     fn drop(&mut self) {
         let _ = unsafe {
-            Box::from_raw(::std::slice::from_raw_parts_mut(
-                self.entries as *mut CMapStringToStringArrayEntry,
+            for e in Box::from_raw(::std::slice::from_raw_parts_mut(
+                self.entries as *mut *mut CMapStringToStringArrayEntry,
                 self.count as usize,
-            ))
+            )).iter() {
+                let _ = CMapStringToStringArrayEntry::drop_raw_pointer(*e).unwrap();
+            }
         };
     }
 }
 
 impl CReprOf<HashMap<String, Vec<String>>> for CMapStringToStringArray {
     fn c_repr_of(input: HashMap<String, Vec<String>>) -> Result<Self> {
-        Ok(Self {
+        let array = Self {
             count: input.len() as libc::c_int,
             entries: Box::into_raw(
                 input
                     .into_iter()
-                    .map(|e| CMapStringToStringArrayEntry::c_repr_of(e))
-                    .collect::<Result<Vec<CMapStringToStringArrayEntry>>>()
+                    .map(|e| CMapStringToStringArrayEntry::c_repr_of(e).map(|c| c.into_raw_pointer()))
+                    .collect::<Result<Vec<*const CMapStringToStringArrayEntry>>>()
                     .context("Could not convert map to C Repr")?
                     .into_boxed_slice(),
-            ) as *const CMapStringToStringArrayEntry,
-        })
+            ) as *const *const CMapStringToStringArrayEntry,
+        };
+        Ok(array)
     }
 }
 
 impl AsRust<HashMap<String, Vec<String>>> for CMapStringToStringArray {
     fn as_rust(&self) -> Result<HashMap<String, Vec<String>>> {
         let mut result = HashMap::with_capacity(self.count as usize);
-
         for e in unsafe { slice::from_raw_parts(self.entries, self.count as usize) } {
-            let (key, value) = e.as_rust()?;
+            let (key, value) = unsafe { CMapStringToStringArrayEntry::raw_borrow(*e) }?.as_rust()?;
             result.insert(key, value);
         }
 
@@ -1381,8 +1386,14 @@ impl AsRust<hermes::InjectionKind> for SNIPS_INJECTION_KIND {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CInjectionRequestOperation {
+    pub values: *const CMapStringToStringArray,
     pub kind: SNIPS_INJECTION_KIND,
-    pub values: CMapStringToStringArray,
+}
+
+impl Drop for CInjectionRequestOperation {
+    fn drop(&mut self) {
+        let _ = unsafe { CMapStringToStringArray::drop_raw_pointer(self.values) };
+    }
 }
 
 
@@ -1390,21 +1401,21 @@ impl CReprOf<(hermes::InjectionKind, HashMap<String, Vec<String>>)> for CInjecti
     fn c_repr_of(input: (hermes::InjectionKind, HashMap<String, Vec<String>>)) -> Result<Self> {
         Ok(Self {
             kind: SNIPS_INJECTION_KIND::c_repr_of(input.0)?,
-            values: CMapStringToStringArray::c_repr_of(input.1)?,
+            values: CMapStringToStringArray::c_repr_of(input.1)?.into_raw_pointer(),
         })
     }
 }
 
 impl AsRust<(hermes::InjectionKind, HashMap<String, Vec<String>>)> for CInjectionRequestOperation {
     fn as_rust(&self) -> Result<(hermes::InjectionKind, HashMap<String, Vec<String>>)> {
-        Ok((self.kind.as_rust()?, self.values.as_rust()?))
+        Ok((self.kind.as_rust()?, unsafe { CMapStringToStringArray::raw_borrow(self.values) }?.as_rust()?))
     }
 }
 
 #[repr(C)]
 #[derive(Debug)]
 pub struct CInjectionRequestOperations {
-    pub operations: *const CInjectionRequestOperation,
+    pub operations: *const *const CInjectionRequestOperation,
     pub count: libc::c_int,
 }
 
@@ -1412,10 +1423,12 @@ pub struct CInjectionRequestOperations {
 impl Drop for CInjectionRequestOperations {
     fn drop(&mut self) {
         let _ = unsafe {
-            Box::from_raw(::std::slice::from_raw_parts_mut(
-                self.operations as *mut CInjectionRequestOperation,
+            for e in Box::from_raw(::std::slice::from_raw_parts_mut(
+                self.operations as *mut *mut CInjectionRequestOperation,
                 self.count as usize,
-            ))
+            )).iter() {
+                let _ = CInjectionRequestOperation::drop_raw_pointer(*e).unwrap();
+            }
         };
     }
 }
@@ -1427,11 +1440,11 @@ impl CReprOf<Vec<(hermes::InjectionKind, HashMap<String, Vec<String>>)>> for CIn
             operations: Box::into_raw(
                 input
                     .into_iter()
-                    .map(|e| CInjectionRequestOperation::c_repr_of(e))
-                    .collect::<Result<Vec<CInjectionRequestOperation>>>()
+                    .map(|e| CInjectionRequestOperation::c_repr_of(e).map(|c| c.into_raw_pointer()))
+                    .collect::<Result<Vec<*const CInjectionRequestOperation>>>()
                     .context("Could not convert map to C Repr")?
                     .into_boxed_slice(),
-            ) as *const CInjectionRequestOperation,
+            ) as *const *const CInjectionRequestOperation,
         })
     }
 }
@@ -1441,7 +1454,7 @@ impl AsRust<Vec<(hermes::InjectionKind, HashMap<String, Vec<String>>)>> for CInj
         let mut result = Vec::with_capacity(self.count as usize);
 
         for e in unsafe { slice::from_raw_parts(self.operations, self.count as usize) } {
-            result.push(e.as_rust()?);
+            result.push(unsafe { CInjectionRequestOperation::raw_borrow(*e) }?.as_rust()?);
         }
 
         Ok(result)
@@ -1450,26 +1463,35 @@ impl AsRust<Vec<(hermes::InjectionKind, HashMap<String, Vec<String>>)>> for CInj
 
 #[repr(C)]
 #[derive(Debug)]
-pub struct CInjectionRequest {
-    operations: CInjectionRequestOperations,
-    lexicon: CMapStringToStringArray,
+pub struct CInjectionRequestMessage {
+    operations: *const CInjectionRequestOperations,
+    lexicon: *const CMapStringToStringArray,
 }
 
-impl CReprOf<hermes::InjectionRequest> for CInjectionRequest {
+impl Drop for CInjectionRequestMessage {
+    fn drop(&mut self) {
+        let _ = unsafe { CInjectionRequestOperations::drop_raw_pointer(self.operations) };
+        let _ = unsafe { CMapStringToStringArray::drop_raw_pointer(self.lexicon) };
+    }
+}
+
+impl CReprOf<hermes::InjectionRequest> for CInjectionRequestMessage {
     fn c_repr_of(input: hermes::InjectionRequest) -> Result<Self> {
         Ok(Self {
-            operations: CInjectionRequestOperations::c_repr_of(input.operations)?,
-            lexicon: CMapStringToStringArray::c_repr_of(input.lexicon)?,
+            operations: CInjectionRequestOperations::c_repr_of(input.operations)?.into_raw_pointer(),
+            lexicon: CMapStringToStringArray::c_repr_of(input.lexicon)?.into_raw_pointer(),
         })
     }
 }
 
 
-impl AsRust<hermes::InjectionRequest> for CInjectionRequest {
+impl AsRust<hermes::InjectionRequest> for CInjectionRequestMessage {
     fn as_rust(&self) -> Result<hermes::InjectionRequest> {
+        let operations = unsafe { CInjectionRequestOperations::raw_borrow(self.operations) }?.as_rust()?;
+        let lexicon = unsafe { CMapStringToStringArray::raw_borrow(self.lexicon) }?.as_rust()?;
         Ok(hermes::InjectionRequest {
-            operations: self.operations.as_rust()?,
-            lexicon: self.lexicon.as_rust()?,
+            operations,
+            lexicon,
         })
     }
 }
@@ -1621,7 +1643,6 @@ mod tests {
     fn round_trip_map_string_to_string_array() {
         round_trip_test::<_, CMapStringToStringArray>(HashMap::new());
 
-
         let mut test_map = HashMap::new();
         test_map.insert("hello".into(), vec!["hello".to_string(), "world".to_string()]);
         test_map.insert("foo".into(), vec!["bar".to_string(), "baz".to_string()]);
@@ -1677,7 +1698,7 @@ mod tests {
         lexicon.insert("this".into(), vec!["is ".to_string(), "a".to_string(), "lexicon".to_string()]);
         lexicon.insert("baz".into(), vec!["bar".to_string(), "foo".to_string()]);
 
-        round_trip_test::<_, CInjectionRequest>(
+        round_trip_test::<_, CInjectionRequestMessage>(
             hermes::InjectionRequest {
                 operations: vec![
                     (hermes::InjectionKind::Add, HashMap::new()),
