@@ -4,7 +4,8 @@ version = "0.58.0-SNAPSHOT"
 authors = ["Thibaut Lorrain <thibaut.lorrain@snips.ai>"]
 
 [lib]
-crate-type = ["cdylib"]
+crate-type = ["rlib", "staticlib", "cdylib"]
+
 
 [dependencies]
 failure = "0.1"
