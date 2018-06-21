@@ -188,8 +188,10 @@ type Prononciation = String;
 #[derive(Debug, Clone, PartialEq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum InjectionKind {
-    Add, // Add to current assistant
-    AddFromVanilla, // Add from the values downloaded
+    /// Add to current assistant
+    Add,
+    /// Add from the values downloaded
+    AddFromVanilla,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -200,7 +202,7 @@ pub struct InjectionRequest {
     /// List of pre-computed prononciations to add in a model
     #[serde(default)]
     pub lexicon: HashMap<Value, Vec<Prononciation>>,
-    /// Language for cros-language G2P
+    /// Language for cross-language G2P
     pub cross_language: Option<String>,
 }
 
