@@ -137,6 +137,11 @@ macro_rules! generate_hermes_c_symbols {
         }
     }
 
+    #[no_mangle]
+    pub extern "C" fn hermes_enable_debug_logs() -> ::ffi_utils::SNIPS_RESULT {
+        wrap!($crate::init_debug_logs())
+    }
+
     generate_facade_wrapper!(CHotwordFacade for hermes::HotwordFacade,
                              hermes_drop_hotword_facade,
                              hermes_protocol_handler_hotword_facade = handler.hotword);
