@@ -498,7 +498,7 @@ class CInjectionRequestOperation(p: Pointer?) : Structure(p), Structure.ByRefere
                 KIND_ADD -> Add
                 else -> throw RuntimeException("unknown injection kind $kind")
             },
-            values = values?.toMap() ?: mapOf()
+            values = values?.toMap()?.toMutableMap() ?: mutableMapOf()
 
     )
 }
@@ -559,6 +559,6 @@ class CInjectionRequestMessage(p: Pointer?) : Structure(p), Structure.ByReferenc
 
     fun toInjectionRequestMessage() = InjectionRequestMessage(
             operations = operations!!.toList(),
-            lexicon = lexicon!!.toMap()
+            lexicon = lexicon!!.toMap().toMutableMap()
     )
 }

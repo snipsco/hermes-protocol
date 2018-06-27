@@ -119,12 +119,14 @@ enum class InjectionKind {
 @Parcel(BEAN)
 data class InjectionOperation @ParcelConstructor constructor(
         @ParcelProperty("kind") val kind : InjectionKind,
-        @ParcelProperty("values") val values : Map<String, List<String>>
+        // Using a MutableMap here so that Parceler is happy
+        @ParcelProperty("values") val values : MutableMap<String, List<String>>
 )
 
 @Parcel(BEAN)
 data class InjectionRequestMessage @ParcelConstructor constructor(
         @ParcelProperty("operations") val operations :  List<InjectionOperation>,
-        @ParcelProperty("lexicon") val lexicon : Map<String, List<String>>
+        // Using a MutableMap here so that Parceler is happy
+        @ParcelProperty("lexicon") val lexicon : MutableMap<String, List<String>>
 
 )
