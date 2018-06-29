@@ -1,10 +1,10 @@
+use std;
 use std::collections::HashMap;
 
 use base64;
 use semver;
 use serde;
 use snips_nlu_ontology::{IntentClassifierResult, Slot};
-use std;
 
 pub trait HermesMessage<'de>:
     ::std::fmt::Debug + ::serde::Deserialize<'de> + ::serde::Serialize
@@ -35,13 +35,11 @@ impl Default for SiteMessage {
 
 impl<'de> HermesMessage<'de> for SiteMessage {}
 
-
 #[derive(Debug, Clone, PartialEq, PartialOrd, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum HotwordModelType {
     Universal, Personal
 }
-
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -68,6 +66,9 @@ pub struct TextCapturedMessage {
     pub text: String,
     /// The likelihood of the capture
     pub likelihood: f32,
+    /// The confidence by token
+    #[serde(default)]
+    pub tokens_confidence: Vec<(String, f32)>,
     /// The duration it took to do the processing
     pub seconds: f32,
     /// The site where the text was captured

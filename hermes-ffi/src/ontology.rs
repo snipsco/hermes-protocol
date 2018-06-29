@@ -124,6 +124,7 @@ impl AsRust<hermes::TextCapturedMessage> for CTextCapturedMessage {
         Ok(hermes::TextCapturedMessage {
             text: create_rust_string_from!(self.text),
             likelihood: self.likelihood,
+            tokens_confidence: vec![], // TODO: Fix me
             seconds: self.seconds,
             site_id: create_rust_string_from!(self.site_id),
             session_id: create_optional_rust_string_from!(self.session_id),
