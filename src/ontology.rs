@@ -60,15 +60,27 @@ pub struct HotwordDetectedMessage {
 impl<'de> HermesMessage<'de> for HotwordDetectedMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+pub struct AsrTokenConfidence {
+    /// The value of the token
+    pub value: String,
+    /// The confidence of the token
+    pub confidence: f32,
+    // TODO: change this range_start/stop when Range will be PartialOrd (only in nightly now. see issue #32311)
+    /// The start range in which the token is in the original input
+    pub range_start: usize,
+    /// The end range in which the token is in the original input
+    pub range_end: usize,
+}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TextCapturedMessage {
     /// The text captured
     pub text: String,
     /// The likelihood of the capture
     pub likelihood: f32,
-    /// The confidence by token
-    #[serde(default)]
-    pub tokens_confidence: Vec<(String, f32)>,
+    /// The confidence by tokens
+    pub tokens_confidence: Option<Vec<AsrTokenConfidence>>,
     /// The duration it took to do the processing
     pub seconds: f32,
     /// The site where the text was captured
@@ -84,6 +96,8 @@ impl<'de> HermesMessage<'de> for TextCapturedMessage {}
 pub struct NluQueryMessage {
     /// The text to run the NLU on
     pub input: String,
+    /// The confidence by tokens
+    pub tokens_confidence: Option<Vec<AsrTokenConfidence>>,
     /// An optional list of intents to restrict the NLU resolution on
     pub intent_filter: Option<Vec<String>>,
     /// An optional id for the request, if provided it will be passed back in the
@@ -100,6 +114,8 @@ impl<'de> HermesMessage<'de> for NluQueryMessage {}
 pub struct NluSlotQueryMessage {
     /// The text to run the slot detection on
     pub input: String,
+    /// The confidence by tokens
+    pub tokens_confidence: Option<Vec<AsrTokenConfidence>>,
     /// The intent to use when doing the slot detection
     pub intent_name: String,
     /// The slot to search
@@ -219,7 +235,7 @@ pub struct NluSlotMessage {
     /// The intent used to find the slot
     pub intent_name: String,
     /// The resulting slot, if found
-    pub slot: Option<Slot>,
+    pub slot: Option<NluSlot>,
     /// An optional session id if there is a related session
     pub session_id: Option<SessionId>,
 }
@@ -241,6 +257,15 @@ impl<'de> HermesMessage<'de> for NluIntentNotRecognizedMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct NluSlot {
+    /// The slot confidence
+    pub confidence: Option<f32>,
+    #[serde(flatten)]
+    pub nlu_slot: Slot,
+}
+
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct NluIntentMessage {
     /// The id of the `NluQueryMessage` that was processed
     pub id: Option<RequestId>,
@@ -249,7 +274,7 @@ pub struct NluIntentMessage {
     /// The result of the intent classification
     pub intent: IntentClassifierResult,
     /// The detected slots, if any
-    pub slots: Option<Vec<Slot>>,
+    pub slots: Option<Vec<NluSlot>>,
     /// An optional session id if there is a related session
     pub session_id: Option<SessionId>,
 }
@@ -270,7 +295,7 @@ pub struct IntentMessage {
     /// The result of the intent classification
     pub intent: IntentClassifierResult,
     /// The detected slots, if any
-    pub slots: Option<Vec<Slot>>,
+    pub slots: Option<Vec<NluSlot>>,
 }
 
 impl<'de> HermesMessage<'de> for IntentMessage {}
