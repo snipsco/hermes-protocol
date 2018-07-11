@@ -20,6 +20,15 @@ CARGO_PATH = ""
 
 os.environ['CARGO_TARGET_DIR'] = CARGO_TARGET_DIR
 
+extras_require = {
+    "test": [
+        "mock",
+        "pytest",
+        "coverage",
+        "pytest-cov"
+    ],
+}
+
 setup(
     name='hermes_python',
     version='0.1.18',
@@ -39,6 +48,7 @@ setup(
     install_requires=['six'],
     rust_extensions=[RustExtension(TARGET, CARGO_FILE_PATH, binding=Binding.NoBinding, dinghy=True, rust_x_compile_target="armv7-unknown-linux-gnueabihf", dinghy_platform="raspbian")],
     test_suite="tests",
+    extras_require=extras_require,
     packages=find_packages(),
     zip_safe=False
 )
