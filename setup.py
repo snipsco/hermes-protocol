@@ -25,7 +25,8 @@ extras_require = {
         "mock",
         "pytest",
         "coverage",
-        "pytest-cov"
+        "pytest-cov",
+        "setuptools_rust"
     ],
 }
 

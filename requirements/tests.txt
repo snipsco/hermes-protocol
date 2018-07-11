@@ -1,0 +1,5 @@
+mock
+pytest
+coverage
+pytest-cov
+setuptools_rust
