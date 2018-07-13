@@ -221,6 +221,8 @@ pub struct InjectionRequest {
     pub lexicon: HashMap<Value, Vec<Prononciation>>,
     /// Language for cross-language G2P
     pub cross_language: Option<String>,
+    /// The id of the `InjectionRequest` that was processed
+    pub id: Option<RequestId>,
 }
 
 impl<'de> HermesMessage<'de> for InjectionRequest {}

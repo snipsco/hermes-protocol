@@ -1703,13 +1703,15 @@ pub struct CInjectionRequestMessage {
     operations: *const CInjectionRequestOperations,
     lexicon: *const CMapStringToStringArray,
     cross_language: *const libc::c_char,
+    id: *const libc::c_char,
 }
 
 impl Drop for CInjectionRequestMessage {
     fn drop(&mut self) {
         let _ = unsafe { CInjectionRequestOperations::drop_raw_pointer(self.operations) };
         let _ = unsafe { CMapStringToStringArray::drop_raw_pointer(self.lexicon) };
-        take_back_nullable_c_string!(self.cross_language)
+        take_back_nullable_c_string!(self.cross_language);
+        take_back_nullable_c_string!(self.id);
     }
 }
 
@@ -1719,10 +1721,10 @@ impl CReprOf<hermes::InjectionRequest> for CInjectionRequestMessage {
             operations: CInjectionRequestOperations::c_repr_of(input.operations)?.into_raw_pointer(),
             lexicon: CMapStringToStringArray::c_repr_of(input.lexicon)?.into_raw_pointer(),
             cross_language: convert_to_nullable_c_string!(input.cross_language),
+            id: convert_to_nullable_c_string!(input.id),
         })
     }
 }
-
 
 impl AsRust<hermes::InjectionRequest> for CInjectionRequestMessage {
     fn as_rust(&self) -> Result<hermes::InjectionRequest> {
@@ -1732,6 +1734,7 @@ impl AsRust<hermes::InjectionRequest> for CInjectionRequestMessage {
             operations,
             lexicon,
             cross_language: create_optional_rust_string_from!(self.cross_language),
+            id: create_optional_rust_string_from!(self.id),
         })
     }
 }
@@ -1965,6 +1968,7 @@ mod tests {
                     (hermes::InjectionKind::Add, injections)
                 ],
                 lexicon,
+                id: Some("some id".to_string()),
             }
         );
     }
