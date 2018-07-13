@@ -42,8 +42,6 @@ class Hermes(object):
 
         hermes_drop_dialogue_facade(self._facade)
 
-        return True
-
     def _wraps(self, user_callback, callback_argtype, callback_restype, argtype):
         def params_converter(func):
             def called_with_good_params(*args, **kwargs):
