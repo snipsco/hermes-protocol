@@ -2,6 +2,7 @@ use std;
 use std::collections::HashMap;
 
 use base64;
+use chrono::prelude::*;
 use semver;
 use serde;
 use snips_nlu_ontology::{IntentClassifierResult, Slot};
@@ -226,6 +227,15 @@ pub struct InjectionRequest {
 }
 
 impl<'de> HermesMessage<'de> for InjectionRequest {}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InjectionStatus {
+    /// List of operations to execute in the order of the list on a model
+    pub last_injection_date: Option<DateTime<Utc>>,
+}
+
+impl<'de> HermesMessage<'de> for InjectionStatus {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]

@@ -527,6 +527,14 @@ struct AsrInject {
 }
 
 #[derive(Debug)]
+struct AsrInjectStatus {
+    status: InjectionStatus,
+}
+
+#[derive(Debug)]
+struct AsrInjectStatusRequest {}
+
+#[derive(Debug)]
 struct AsrTextCaptured {
     text_captured: TextCapturedMessage,
 }
@@ -553,6 +561,10 @@ impl AsrFacade for InProcessComponent<Asr> {
         self.publish(AsrInject { request })
     }
 
+    fn publish_injection_status_request(&self) -> Result<()> {
+        self.publish(AsrInjectStatusRequest {})
+    }
+
     fn subscribe_text_captured(&self, handler: Callback<TextCapturedMessage>) -> Result<()> {
         subscribe!(self, AsrTextCaptured { text_captured }, handler)
     }
@@ -562,6 +574,10 @@ impl AsrFacade for InProcessComponent<Asr> {
         handler: Callback<TextCapturedMessage>,
     ) -> Result<()> {
         subscribe!(self, AsrPartialTextCaptured { text_captured }, handler)
+    }
+
+    fn subscribe_injection_status(&self, handler: Callback<InjectionStatus>) -> Result<()> {
+        subscribe!(self, AsrInjectStatus { status }, handler)
     }
 }
 
@@ -582,12 +598,20 @@ impl AsrBackendFacade for InProcessComponent<Asr> {
         subscribe!(self, AsrInject { request }, handler)
     }
 
+    fn subscribe_injection_status_request(&self, handler: Callback0) -> Result<()> {
+        subscribe!(self, AsrInjectStatusRequest, handler)
+    }
+
     fn publish_text_captured(&self, text_captured: TextCapturedMessage) -> Result<()> {
         self.publish(AsrTextCaptured { text_captured })
     }
 
     fn publish_partial_text_captured(&self, text_captured: TextCapturedMessage) -> Result<()> {
         self.publish(AsrPartialTextCaptured { text_captured })
+    }
+
+    fn publish_injection_status(&self, status: InjectionStatus) -> Result<()> {
+        self.publish(AsrInjectStatus { status })
     }
 }
 

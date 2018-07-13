@@ -1,4 +1,5 @@
 extern crate base64;
+extern crate chrono;
 #[macro_use]
 extern crate failure;
 extern crate semver;
@@ -142,9 +143,10 @@ pub trait AsrFacade: ComponentFacade + ToggleableFacade {
     fn publish_stop_listening(&self, site: SiteMessage) -> Result<()>;
     fn publish_reload(&self) -> Result<()>;
     fn publish_injection_request(&self, request: InjectionRequest) -> Result<()>;
+    fn publish_injection_status_request(&self) -> Result<()>;
+    fn subscribe_injection_status(&self, handler: Callback<InjectionStatus>) -> Result<()>;
     fn subscribe_text_captured(&self, handler: Callback<TextCapturedMessage>) -> Result<()>;
-    fn subscribe_partial_text_captured(&self, handler: Callback<TextCapturedMessage>)
-        -> Result<()>;
+    fn subscribe_partial_text_captured(&self, handler: Callback<TextCapturedMessage>) -> Result<()>;
 }
 
 /// The facade the automatic speech recognition must use to receive its orders and publish
@@ -154,8 +156,10 @@ pub trait AsrBackendFacade: ComponentBackendFacade + ToggleableBackendFacade {
     fn subscribe_stop_listening(&self, handler: Callback<SiteMessage>) -> Result<()>;
     fn subscribe_reload(&self, handler: Callback0) -> Result<()>;
     fn subscribe_injection_request(&self, handler: Callback<InjectionRequest>) -> Result<()>;
+    fn subscribe_injection_status_request(&self, handler: Callback0) -> Result<()>;
     fn publish_text_captured(&self, text_captured: TextCapturedMessage) -> Result<()>;
     fn publish_partial_text_captured(&self, text_captured: TextCapturedMessage) -> Result<()>;
+    fn publish_injection_status(&self, status: InjectionStatus) -> Result<()>;
 }
 
 /// The facade to interact with the text to speech component

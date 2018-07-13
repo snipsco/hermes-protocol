@@ -4,6 +4,7 @@ version = "0.59.0-SNAPSHOT"
 authors = ["Thibaut Lorrain <thibaut.lorrain@snips.ai>"]
 
 [dependencies]
+chrono = "0.4"
 failure = "0.1"
 ffi-utils = { git = "https://github.com/snipsco/snips-utils-rs", rev = "b1f4af3" }
 hermes = { path = ".." }

@@ -1739,8 +1739,44 @@ impl AsRust<hermes::InjectionRequest> for CInjectionRequestMessage {
     }
 }
 
+#[repr(C)]
+#[derive(Debug)]
+pub struct CInjectionStatusMessage {
+    pub last_injection_date: *const libc::c_char,
+}
+
+impl Drop for CInjectionStatusMessage {
+    fn drop(&mut self) {
+        take_back_nullable_c_string!(self.last_injection_date);
+    }
+}
+
+impl CReprOf<hermes::InjectionStatus> for CInjectionStatusMessage {
+    fn c_repr_of(status: hermes::InjectionStatus) -> Result<Self> {
+        let last_injection_date_str = status.last_injection_date.map(|d| d.to_rfc3339());
+
+        Ok(Self {
+            last_injection_date: convert_to_nullable_c_string!(last_injection_date_str),
+        })
+    }
+}
+
+impl AsRust<hermes::InjectionStatus> for CInjectionStatusMessage {
+    fn as_rust(&self) -> Result<hermes::InjectionStatus> {
+        let last_injection_date = create_optional_rust_string_from!(self.last_injection_date);
+        let last_injection_date = if let Some(date_str) = last_injection_date {
+            Some(date_str.parse()?)
+        } else {
+            None
+        };
+
+        Ok(hermes::InjectionStatus { last_injection_date })
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use chrono::prelude::*;
     use spectral::prelude::*;
     use super::*;
 
@@ -1827,7 +1863,6 @@ mod tests {
             },
             custom_data: Some("thing".into()),
             site_id: Some("site".into()),
-
         });
 
         round_trip_test::<_, CStartSessionMessage>(hermes::StartSessionMessage {
@@ -1839,7 +1874,6 @@ mod tests {
             },
             custom_data: Some("thing".into()),
             site_id: Some("site".into()),
-
         });
 
         round_trip_test::<_, CStartSessionMessage>(hermes::StartSessionMessage {
@@ -1851,7 +1885,6 @@ mod tests {
             },
             custom_data: None,
             site_id: None,
-
         });
     }
 
@@ -1971,6 +2004,13 @@ mod tests {
                 id: Some("some id".to_string()),
             }
         );
+    }
+
+    #[test]
+    fn round_injection_status() {
+        round_trip_test::<_, CInjectionStatusMessage>(hermes::InjectionStatus {
+            last_injection_date: Some(Utc.ymd(2014, 11, 28).and_hms(12, 0, 9)),
+        });
     }
 
     #[test]

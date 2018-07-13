@@ -508,8 +508,10 @@ impl AsrFacade for MqttToggleableComponentFacade {
     p!(publish_stop_listening<SiteMessage> &HermesTopic::Asr(AsrCommand::StopListening););
     p!(publish_reload &HermesTopic::Asr(AsrCommand::Reload););
     p!(publish_injection_request<InjectionRequest> &HermesTopic::Asr(AsrCommand::Inject););
+    p!(publish_injection_status_request &HermesTopic::Asr(AsrCommand::InjectStatusRequest););
     s!(subscribe_text_captured<TextCapturedMessage> &HermesTopic::Asr(AsrCommand::TextCaptured););
     s!(subscribe_partial_text_captured<TextCapturedMessage> &HermesTopic::Asr(AsrCommand::PartialTextCaptured););
+    s!(subscribe_injection_status<InjectionStatus> &HermesTopic::Asr(AsrCommand::InjectStatus););
 }
 
 impl AsrBackendFacade for MqttToggleableComponentFacade {
@@ -517,8 +519,10 @@ impl AsrBackendFacade for MqttToggleableComponentFacade {
     s!(subscribe_stop_listening<SiteMessage> &HermesTopic::Asr(AsrCommand::StopListening););
     s!(subscribe_reload &HermesTopic::Asr(AsrCommand::Reload););
     s!(subscribe_injection_request<InjectionRequest> &HermesTopic::Asr(AsrCommand::Inject););
+    s!(subscribe_injection_status_request &HermesTopic::Asr(AsrCommand::InjectStatusRequest););
     p!(publish_text_captured<TextCapturedMessage> &HermesTopic::Asr(AsrCommand::TextCaptured););
     p!(publish_partial_text_captured<TextCapturedMessage> &HermesTopic::Asr(AsrCommand::PartialTextCaptured););
+    p!(publish_injection_status<InjectionStatus> &HermesTopic::Asr(AsrCommand::InjectStatus););
 }
 
 impl TtsFacade for MqttComponentFacade {
@@ -784,7 +788,7 @@ mod tests {
 
         // wait 'till mosquitto is accessible.
         let server_is_live = || {
-            for attempt in 0..10 {
+            for _ in 0..10 {
                 if TcpStream::connect(&server_address).is_ok() {
                     return true
                 } else {

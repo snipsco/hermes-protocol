@@ -43,6 +43,8 @@ impl HermesTopic {
             Some("textCaptured") => Some(Asr(TextCaptured)),
             Some("partialTextCaptured") => Some(Asr(PartialTextCaptured)),
             Some("inject") => Some(Asr(Inject)),
+            Some("injectStatus") => Some(Asr(InjectStatus)),
+            Some("injectStatusRequest") => Some(Asr(InjectStatusRequest)),
             Some("reload") => Some(Asr(Reload)),
             Some("versionRequest") => Some(HermesTopic::Component(
                 None,
@@ -377,6 +379,8 @@ pub enum AsrCommand {
     PartialTextCaptured,
     Reload,
     Inject,
+    InjectStatus,
+    InjectStatusRequest,
 }
 
 impl ToPath for AsrCommand {}
@@ -553,6 +557,8 @@ mod tests {
             ),
             (HermesTopic::Asr(AsrCommand::Reload), "hermes/asr/reload"),
             (HermesTopic::Asr(AsrCommand::Inject), "hermes/asr/inject"),
+            (HermesTopic::Asr(AsrCommand::InjectStatus), "hermes/asr/injectStatus"),
+            (HermesTopic::Asr(AsrCommand::InjectStatusRequest), "hermes/asr/injectStatusRequest"),
             (
                 HermesTopic::Component(None, Component::Asr, ComponentCommand::VersionRequest),
                 "hermes/asr/versionRequest",
