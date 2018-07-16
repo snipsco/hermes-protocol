@@ -32,7 +32,7 @@ extras_require = {
 
 setup(
     name='hermes_python',
-    version='0.1.18',
+    version='0.1.19',
     description='Python bindings for Hermes',
     author='Anthony Reinette',
     author_email='anthony.reinette@snips.ai',
