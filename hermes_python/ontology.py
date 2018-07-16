@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 from collections import defaultdict
 from six.moves import range
-
+from dotmap import DotMap
 
 from ctypes import string_at, c_double
 from .ffi.ontology import CAmountOfMoneyValue, CTemperatureValue, CInstantTimeValue, CTimeIntervalValue, CDurationValue
@@ -56,18 +56,7 @@ class IntentClassifierResult(object):
         return cls(intent_name, probability)
 
 
-class SlotMap(object):
-    def __init__(self, mapping):
-        """
-        Data structure that stores Slot objects and lets you access them.
-
-        :param mapping: An dictionnary that is used internally for storage of slot values.
-        """
-        self.__data = mapping
-
-    def __getattr__(self, name):
-        return self.__data[name]
-
+class SlotMap(DotMap):
     @classmethod
     def from_c_repr(cls, c_slots_list_repr):
         mapping = defaultdict(SlotsList)
