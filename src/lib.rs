@@ -230,6 +230,7 @@ pub trait DialogueFacade: ComponentFacade + ToggleableFacade {
     fn subscribe_intent(&self, intent_name: String, handler: Callback<IntentMessage>)
         -> Result<()>;
     fn subscribe_intents(&self, handler: Callback<IntentMessage>) -> Result<()>;
+    fn subscribe_intent_not_recognized(&self, handler: Callback<IntentNotRecognizedMessage>) -> Result<()>;
     fn subscribe_session_ended(&self, handler: Callback<SessionEndedMessage>) -> Result<()>;
     fn publish_start_session(&self, start_session: StartSessionMessage) -> Result<()>;
     fn publish_continue_session(&self, continue_session: ContinueSessionMessage) -> Result<()>;
@@ -241,6 +242,7 @@ pub trait DialogueBackendFacade: ComponentBackendFacade + ToggleableBackendFacad
     fn publish_session_queued(&self, status: SessionQueuedMessage) -> Result<()>;
     fn publish_session_started(&self, status: SessionStartedMessage) -> Result<()>;
     fn publish_intent(&self, intent: IntentMessage) -> Result<()>;
+    fn publish_intent_not_recognized(&self, intent_not_recognized: IntentNotRecognizedMessage) -> Result<()>;
     fn publish_session_ended(&self, status: SessionEndedMessage) -> Result<()>;
     fn subscribe_start_session(&self, handler: Callback<StartSessionMessage>) -> Result<()>;
     fn subscribe_continue_session(&self, handler: Callback<ContinueSessionMessage>) -> Result<()>;

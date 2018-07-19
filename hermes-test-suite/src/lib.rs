@@ -22,6 +22,7 @@ macro_rules! t {
                 }))
                 .unwrap();
             let message = $object;
+            ::std::thread::sleep(WAIT_DURATION);
             source.$p(message.clone()).unwrap();
             let result = rx.recv_timeout(::std::time::Duration::from_secs(1));
             assert!(result.is_ok(), "didn't receive message after one second");
@@ -41,6 +42,7 @@ macro_rules! t {
                     tx.lock().map(|it| it.send(())).unwrap().unwrap()
                 }))
                 .unwrap();
+            ::std::thread::sleep(WAIT_DURATION);
             source.$p().unwrap();
             let result = rx.recv_timeout(::std::time::Duration::from_secs(1));
             assert!(result.is_ok(), "didn't receive message after one second");
@@ -60,6 +62,7 @@ macro_rules! t {
                     ::Callback0::new(move || tx.lock().map(|it| it.send(())).unwrap().unwrap()),
                 )
                 .unwrap();
+            ::std::thread::sleep(WAIT_DURATION);
             source.$p($a).unwrap();
             let result = rx.recv_timeout(::std::time::Duration::from_secs(1));
             assert!(result.is_ok(), "didn't receive message after one second");
@@ -91,6 +94,7 @@ macro_rules! t {
                 )
                 .unwrap();
             let message = $object;
+            ::std::thread::sleep(WAIT_DURATION);
             source.$p($a, message.clone()).unwrap();
             let result = rx.recv_timeout(::std::time::Duration::from_secs(1));
             assert!(result.is_ok(), "didn't receive message after one second");
@@ -111,6 +115,7 @@ macro_rules! t {
                     ::Callback0::new(move || tx.lock().map(|it| it.send(())).unwrap().unwrap()),
                 )
                 .unwrap();
+            ::std::thread::sleep(WAIT_DURATION);
             source.$p($a).unwrap();
             let result = rx.recv_timeout(::std::time::Duration::from_secs(1));
             assert!(result.is_ok(), "didn't receive message after one second");
@@ -142,6 +147,7 @@ macro_rules! t {
                 )
                 .unwrap();
             let message = $object;
+            ::std::thread::sleep(WAIT_DURATION);
             source.$p(message.clone()).unwrap();
             let result = rx.recv_timeout(::std::time::Duration::from_secs(1));
             assert!(result.is_ok(), "didn't receive message after one second");
@@ -161,6 +167,7 @@ macro_rules! t {
                     tx.lock().map(|it| it.send(())).unwrap().unwrap()
                 }))
                 .unwrap();
+            ::std::thread::sleep(WAIT_DURATION);
             source.$p($a).unwrap();
             let result = rx.recv_timeout(::std::time::Duration::from_secs(1));
             assert!(result.is_ok(), "didn't receive message after one second");
@@ -189,6 +196,7 @@ macro_rules! t {
                 }))
                 .unwrap();
             let message = $object;
+            ::std::thread::sleep(WAIT_DURATION);
             source.$p($a, message.clone()).unwrap();
             let result = rx.recv_timeout(::std::time::Duration::from_secs(1));
             assert!(result.is_ok(), "didn't receive message after one second");
@@ -222,7 +230,6 @@ macro_rules! t_identifiable_toggleable {
                         $f_back.subscribe_toggle_off <= SiteMessage | $f.publish_toggle_off
                         with SiteMessage { session_id: Some("abc".into()), site_id: "some site".into() };);
             }
-
         };
     }
 
@@ -263,7 +270,13 @@ macro_rules! t_identifiable_component {
 #[macro_export]
 macro_rules! test_suite {
     () => {
+        test_suite!(wait_duration = 0);
+    };
+
+    (WAIT_DURATION = $wait_duration:expr) => {
         use snips_nlu_ontology::*;
+
+        const WAIT_DURATION: ::std::time::Duration = ::std::time::Duration::from_millis($wait_duration);
 
         t_identifiable_component!(hotword_identifiable_component: hotword_backend | hotword);
         t_identifiable_toggleable!(hotword_identifiable_toggleable: hotword_backend | hotword);
@@ -332,20 +345,20 @@ macro_rules! test_suite {
         t!(audio_server_play_bytes_works:
                     OneToMany
                     audio_server_backend.subscribe_play_bytes { "some site".into() } <= PlayBytesMessage | audio_server.publish_play_bytes
-                    with PlayBytesMessage { wav_bytes: vec![42; 1000], id: "my id".into(), site_id: "some site".into(), session_id: Some("abc".into()) };
+                    with PlayBytesMessage { wav_bytes: vec![42; 1000], id: "my id".into(), site_id: "some site".into() };
             );
         t!(audio_server_play_all_bytes_works:
                     audio_server_backend.subscribe_all_play_bytes <= PlayBytesMessage | audio_server.publish_play_bytes
-                    with PlayBytesMessage { wav_bytes: vec![42; 1000], id: "my id".into(), site_id: "some site".into(), session_id: Some("abc".into()) };
+                    with PlayBytesMessage { wav_bytes: vec![42; 1000], id: "my id".into(), site_id: "some site".into() };
             );
         t!(audio_server_play_finished_works:
                     OneToMany
                     audio_server.subscribe_play_finished { "some site".into() } <= PlayFinishedMessage | audio_server_backend.publish_play_finished
-                    with PlayFinishedMessage { id: "my id".into(), site_id: "some site".into(), session_id: Some("abc".into()) };
+                    with PlayFinishedMessage { id: "my id".into(), site_id: "some site".into() };
             );
         t!(audio_server_all_play_finished_works:
                     audio_server.subscribe_all_play_finished <= PlayFinishedMessage | audio_server_backend.publish_play_finished
-                    with PlayFinishedMessage { id: "my id".into(), site_id: "some site".into(), session_id: Some("abc".into()) };
+                    with PlayFinishedMessage { id: "my id".into(), site_id: "some site".into() };
             );
         t!(audio_server_audio_frame_works:
                     OneToMany
@@ -368,15 +381,18 @@ macro_rules! test_suite {
                     OneToMany
                     dialogue.subscribe_intent { "my intent".into() } <= IntentMessage | dialogue_backend.publish_intent
                     with IntentMessage { site_id: "some site".into(), session_id: "some id".into(), custom_data: None, input: "hello world".into(), intent: IntentClassifierResult { intent_name: "my intent".into(), probability: 0.73 }, slots: None };);
+        t!(dialogue_intent_not_recognized_works:
+                    dialogue.subscribe_intent_not_recognized <= IntentNotRecognizedMessage | dialogue_backend.publish_intent_not_recognized
+                    with IntentNotRecognizedMessage { site_id: "some site".into(), session_id: "some id".into(), custom_data: None, input: "hello world".into() };);
         t!(dialogue_session_ended_works:
                     dialogue.subscribe_session_ended <= SessionEndedMessage | dialogue_backend.publish_session_ended
                     with SessionEndedMessage { site_id: "some site".into(), session_id: "some id".into(), custom_data: None, termination: SessionTerminationType::Nominal };);
         t!(dialogue_start_session_works:
                     dialogue_backend.subscribe_start_session <= StartSessionMessage | dialogue.publish_start_session
-                    with StartSessionMessage { init: SessionInit::Action { text: None, intent_filter: None, can_be_enqueued: false }, custom_data: None, site_id: None };);
+                    with StartSessionMessage { init: SessionInit::Action { text: None, intent_filter: None, can_be_enqueued: false, send_intent_not_recognized: true }, custom_data: None, site_id: None };);
         t!(dialogue_continue_session_works:
                     dialogue_backend.subscribe_continue_session <= ContinueSessionMessage | dialogue.publish_continue_session
-                    with ContinueSessionMessage { session_id: "some id".into(), text: "some text".into(), intent_filter: None  };);
+                    with ContinueSessionMessage { session_id: "some id".into(), text: "some text".into(), intent_filter: None, send_intent_not_recognized: true, custom_data: Some("custom data".into())  };);
         t!(dialogue_end_session_works:
                     dialogue_backend.subscribe_end_session <= EndSessionMessage | dialogue.publish_end_session
                     with EndSessionMessage { session_id: "some id".into(), text: None };);

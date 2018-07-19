@@ -69,6 +69,7 @@ class CActionSessionInit(p: Pointer?) : Structure(p), Structure.ByReference {
             text = actionSessionInit.text?.toPointer()
             intent_filter = if (actionSessionInit.intentFilter.isEmpty()) null else CStringArray.fromStringList(actionSessionInit.intentFilter)
             can_be_enqueued = if (actionSessionInit.canBeEnqueued) 1 else 0
+            send_intent_not_recognized = if (actionSessionInit.sendIntentNotRecognized) 1 else 0
         }
     }
 
@@ -78,6 +79,8 @@ class CActionSessionInit(p: Pointer?) : Structure(p), Structure.ByReference {
     var intent_filter: CStringArray? = null
     @JvmField
     var can_be_enqueued: Byte = -1
+    @JvmField
+    var send_intent_not_recognized: Byte = -1
 
     // be careful this block must be below the field definition if you don't want the native values read by JNA
     // overridden by the default ones
@@ -85,12 +88,13 @@ class CActionSessionInit(p: Pointer?) : Structure(p), Structure.ByReference {
         read()
     }
 
-    override fun getFieldOrder() = listOf("text", "intent_filter", "can_be_enqueued")
+    override fun getFieldOrder() = listOf("text", "intent_filter", "can_be_enqueued", "send_intent_not_recognized")
 
     fun toSessionInit() = SessionInit.Action(
             text = text?.readString(),
             intentFilter = intent_filter?.toStringList() ?: listOf(),
-            canBeEnqueued = can_be_enqueued == 1.toByte()
+            canBeEnqueued = can_be_enqueued == 1.toByte(),
+            sendIntentNotRecognized = send_intent_not_recognized == 1.toByte()
     )
 }
 
@@ -164,6 +168,8 @@ class CContinueSessionMessage(p: Pointer?) : Structure(p), Structure.ByReference
             session_id = continueSessionMessage.sessionId.toPointer()
             text = continueSessionMessage.text.toPointer()
             intent_filter = if (continueSessionMessage.intentFilter.isEmpty()) null else CStringArray.fromStringList(continueSessionMessage.intentFilter)
+            custom_data = continueSessionMessage.customData?.toPointer()
+            send_intent_not_recognized = if (continueSessionMessage.sendIntentNotRecognized) 1 else 0
         }
     }
 
@@ -173,6 +179,10 @@ class CContinueSessionMessage(p: Pointer?) : Structure(p), Structure.ByReference
     var text: Pointer? = null
     @JvmField
     var intent_filter: CStringArray? = null
+    @JvmField
+    var custom_data: Pointer? = null
+    @JvmField
+    var send_intent_not_recognized: Byte = -1
 
     // be careful this block must be below the field definition if you don't want the native values read by JNA
     // overridden by the default ones
@@ -180,12 +190,14 @@ class CContinueSessionMessage(p: Pointer?) : Structure(p), Structure.ByReference
         read()
     }
 
-    override fun getFieldOrder() = listOf("session_id", "text", "intent_filter")
+    override fun getFieldOrder() = listOf("session_id", "text", "intent_filter", "custom_data", "send_intent_not_recognized")
 
     fun toContinueSessionMessage() = ContinueSessionMessage(
             sessionId = session_id.readString(),
             text = text.readString(),
-            intentFilter = intent_filter?.toStringList() ?: listOf()
+            intentFilter = intent_filter?.toStringList() ?: listOf(),
+            customData = custom_data?.readString(),
+            sendIntentNotRecognized = send_intent_not_recognized == 1.toByte()
     )
 }
 

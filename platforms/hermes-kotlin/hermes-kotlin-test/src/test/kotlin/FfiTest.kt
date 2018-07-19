@@ -17,7 +17,8 @@ class FfiTest {
                 init = SessionInit.Action(
                         text = "smdlfk",
                         intentFilter = listOf("an intent filter", "another intent filter"),
-                        canBeEnqueued = true
+                        canBeEnqueued = true,
+                        sendIntentNotRecognized = true
                 ),
                 customData = "yo",
                 siteId = "qlmskdfj"
@@ -44,7 +45,9 @@ class FfiTest {
         val input = ContinueSessionMessage(
                 text = "smdlfk",
                 intentFilter = listOf("an intent filter", "another intent filter"),
-                sessionId = "qsmd3711EAED"
+                sessionId = "qsmd3711EAED",
+                sendIntentNotRecognized = true,
+                customData = "this is a test custom data"
         )
         assertThat(HermesTest().roundTripContinueSession(input)).isEqualTo(input)
     }
@@ -63,18 +66,18 @@ class FfiTest {
     fun roundTripInjectionRequest() {
         val input = InjectionRequestMessage(
                 operations = listOf(),
-                lexicon = mapOf()
+                lexicon = mutableMapOf()
         )
 
         assertThat(HermesTest().roundTripInjectionRequest(input)).isEqualTo(input)
 
         val input2 = InjectionRequestMessage(
-                operations = listOf(InjectionOperation(Add, mapOf("hello" to listOf("hello", "world"),
-                                                                  "yop" to listOf(),
-                                                                  "foo" to listOf("bar", "baz")))),
-                lexicon = mapOf("toto" to listOf("tutu", "tata"),
-                                "" to listOf(),
-                                "pif" to listOf("paf", "pouf"))
+                operations = listOf(InjectionOperation(Add, mutableMapOf("hello" to listOf("hello", "world"),
+                                                                         "yop" to listOf(),
+                                                                         "foo" to listOf("bar", "baz")))),
+                lexicon = mutableMapOf("toto" to listOf("tutu", "tata"),
+                                       "" to listOf(),
+                                       "pif" to listOf("paf", "pouf"))
         )
 
         assertThat(HermesTest().roundTripInjectionRequest(input2)).isEqualTo(input2)
@@ -90,8 +93,6 @@ class FfiTest {
 
         assertThat(HermesTest().roundTripMapStringToStringArray(map)).isEqualTo(map)
     }
-
-
 
 
 }

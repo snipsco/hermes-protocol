@@ -569,7 +569,7 @@ impl AudioServerBackendFacade for MqttToggleableComponentFacade {
     s_bin!(subscribe_all_play_bytes<PlayBytesMessage> { &HermesTopic::AudioServer(Some("+".into()), AudioServerCommand::PlayBytes("#".into())) }
             |topic, bytes| {
                 if let HermesTopic::AudioServer(Some(ref site_id), AudioServerCommand::PlayBytes(ref request_id)) = *topic {
-                    PlayBytesMessage { session_id: None, site_id: site_id.to_owned(), id: request_id.to_owned(), wav_bytes: bytes.into() }
+                    PlayBytesMessage { site_id: site_id.to_owned(), id: request_id.to_owned(), wav_bytes: bytes.into() }
                 } else {
                     unreachable!()
                 }
@@ -577,7 +577,7 @@ impl AudioServerBackendFacade for MqttToggleableComponentFacade {
     s_bin!(subscribe_play_bytes<PlayBytesMessage>(site_id: SiteId) { &HermesTopic::AudioServer(Some(site_id), AudioServerCommand::PlayBytes("#".into())) }
             |topic, bytes| {
                 if let HermesTopic::AudioServer(Some(ref site_id), AudioServerCommand::PlayBytes(ref request_id)) = *topic {
-                    PlayBytesMessage { session_id: None, site_id: site_id.to_owned(), id: request_id.to_owned(), wav_bytes: bytes.into() }
+                    PlayBytesMessage { site_id: site_id.to_owned(), id: request_id.to_owned(), wav_bytes: bytes.into() }
                 } else {
                     unreachable!()
                 }
@@ -590,6 +590,7 @@ impl DialogueFacade for MqttToggleableComponentFacade {
     s!(subscribe_session_started<SessionStartedMessage> &HermesTopic::DialogueManager(DialogueManagerCommand::SessionStarted););
     s!(subscribe_intent<IntentMessage>(intent_name: String) { &HermesTopic::Intent(intent_name) });
     s!(subscribe_intents<IntentMessage> &HermesTopic::Intent("#".into()););
+    s!(subscribe_intent_not_recognized<IntentNotRecognizedMessage> &HermesTopic::DialogueManager(DialogueManagerCommand::IntentNotRecognized););
     s!(subscribe_session_ended<SessionEndedMessage> &HermesTopic::DialogueManager(DialogueManagerCommand::SessionEnded););
     p!(publish_start_session<StartSessionMessage> &HermesTopic::DialogueManager(DialogueManagerCommand::StartSession););
     p!(publish_continue_session<ContinueSessionMessage> &HermesTopic::DialogueManager(DialogueManagerCommand::ContinueSession););
@@ -600,6 +601,7 @@ impl DialogueBackendFacade for MqttToggleableComponentFacade {
     p!(publish_session_queued<SessionQueuedMessage> &HermesTopic::DialogueManager(DialogueManagerCommand::SessionQueued););
     p!(publish_session_started<SessionStartedMessage> &HermesTopic::DialogueManager(DialogueManagerCommand::SessionStarted););
     p!(publish_intent(intent: IntentMessage) {&HermesTopic::Intent(intent.intent.intent_name.clone())});
+    p!(publish_intent_not_recognized<IntentNotRecognizedMessage> &HermesTopic::DialogueManager(DialogueManagerCommand::IntentNotRecognized););
     p!(publish_session_ended<SessionEndedMessage> &HermesTopic::DialogueManager(DialogueManagerCommand::SessionEnded););
     s!(subscribe_start_session<StartSessionMessage> &HermesTopic::DialogueManager(DialogueManagerCommand::StartSession););
     s!(subscribe_continue_session<ContinueSessionMessage> &HermesTopic::DialogueManager(DialogueManagerCommand::ContinueSession););
@@ -686,6 +688,10 @@ impl HermesProtocolHandler for MqttHermesProtocolHandler {
         self.audio_server_component()
     }
 
+    fn dialogue(&self) -> Box<DialogueFacade> {
+        self.dialogue_component()
+    }
+
     fn hotword_backend(&self) -> Box<HotwordBackendFacade> {
         self.hotword_component()
     }
@@ -708,10 +714,6 @@ impl HermesProtocolHandler for MqttHermesProtocolHandler {
 
     fn audio_server_backend(&self) -> Box<AudioServerBackendFacade> {
         self.audio_server_component()
-    }
-
-    fn dialogue(&self) -> Box<DialogueFacade> {
-        self.dialogue_component()
     }
 
     fn dialogue_backend(&self) -> Box<DialogueBackendFacade> {
@@ -757,7 +759,14 @@ mod tests {
     }
 
     fn create_handlers() -> (HandlerHolder, HandlerHolder) {
-        let port = ::rand::random::<u16>() | 1024;
+        // get a random free port form the OS
+        let port = {
+            ::std::net::TcpListener::bind("localhost:0").unwrap().local_addr().unwrap().port()
+        };
+
+        // /usr/sbin is not in path on non login session on raspbian and it is where mosquitto is
+        ::std::env::set_var("PATH", format!("{}:/usr/sbin",::std::env::var("PATH").unwrap()));
+
 
         let server = Rc::new(ServerHolder {
             server: Command::new("mosquitto")
@@ -770,7 +779,7 @@ mod tests {
 
         let server_address = format!("localhost:{}", port);
 
-        ::std::thread::sleep(::std::time::Duration::from_millis(200));
+        ::std::thread::sleep(::std::time::Duration::from_millis(100));
 
         let handler1 = HandlerHolder {
             handler: MqttHermesProtocolHandler::new(&server_address)
@@ -781,11 +790,13 @@ mod tests {
         let handler2 = HandlerHolder {
             handler: MqttHermesProtocolHandler::new(&server_address)
                 .expect("could not create second client"),
-            server: server,
+            server,
         };
 
         (handler1, handler2)
     }
 
-    //test_suite!();
+    // sleep 10ms between registering the callback and sending the message to be "sure" the event
+    // arrive in the right order to the mosquitto server
+    test_suite!(WAIT_DURATION = 10);
 }

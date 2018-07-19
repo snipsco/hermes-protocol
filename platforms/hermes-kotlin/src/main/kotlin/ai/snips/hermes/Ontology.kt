@@ -16,7 +16,8 @@ sealed class SessionInit(val type: SessionInit.Type) {
     data class Action @ParcelConstructor constructor(
             @ParcelProperty("text") val text: String?,
             @ParcelProperty("intentFilter") val intentFilter: List<String>,
-            @ParcelProperty("canBeEnqueued") val canBeEnqueued: Boolean
+            @ParcelProperty("canBeEnqueued") val canBeEnqueued: Boolean,
+            @ParcelProperty("sendIntentNotRecognized") val sendIntentNotRecognized: Boolean
     ) : SessionInit(ACTION)
 
     @Parcel(BEAN)
@@ -36,7 +37,9 @@ data class StartSessionMessage @ParcelConstructor constructor(
 data class ContinueSessionMessage @ParcelConstructor constructor(
         @ParcelProperty("sessionId") val sessionId: String,
         @ParcelProperty("text") val text: String,
-        @ParcelProperty("intentFilter") val intentFilter: List<String>
+        @ParcelProperty("intentFilter") val intentFilter: List<String>,
+        @ParcelProperty("customData") val customData: String?,
+        @ParcelProperty("sendIntentNotRecognized") val sendIntentNotRecognized: Boolean
 )
 
 @Parcel(BEAN)

@@ -709,6 +709,11 @@ struct DialogueIntent {
 }
 
 #[derive(Debug)]
+struct DialogueIntentNotRecognized {
+    intent_not_recognized: IntentNotRecognizedMessage,
+}
+
+#[derive(Debug)]
 struct DialogueSessionEnded {
     status: SessionEndedMessage,
 }
@@ -750,6 +755,10 @@ impl DialogueFacade for InProcessComponent<Dialogue> {
         subscribe!(self, DialogueIntent { intent }, handler)
     }
 
+    fn subscribe_intent_not_recognized(&self, handler: Callback<IntentNotRecognizedMessage>) -> Result<()> {
+        subscribe!(self, DialogueIntentNotRecognized { intent_not_recognized }, handler)
+    }
+
     fn subscribe_session_ended(&self, handler: Callback<SessionEndedMessage>) -> Result<()> {
         subscribe!(self, DialogueSessionEnded { status }, handler)
     }
@@ -778,6 +787,10 @@ impl DialogueBackendFacade for InProcessComponent<Dialogue> {
 
     fn publish_intent(&self, intent: IntentMessage) -> Result<()> {
         self.publish(DialogueIntent { intent })
+    }
+
+    fn publish_intent_not_recognized(&self, intent_not_recognized: IntentNotRecognizedMessage) -> Result<()> {
+        self.publish(DialogueIntentNotRecognized { intent_not_recognized })
     }
 
     fn publish_session_ended(&self, status: SessionEndedMessage) -> Result<()> {

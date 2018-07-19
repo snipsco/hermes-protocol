@@ -252,8 +252,6 @@ pub struct CPlayBytesMessage {
     // Note: we can't use `libc::size_t` because it's not supported by JNA
     pub wav_bytes_len: libc::c_int,
     pub site_id: *const libc::c_char,
-    // Nullable
-    pub session_id: *const libc::c_char,
 }
 
 unsafe impl Sync for CPlayBytesMessage {}
@@ -271,7 +269,6 @@ impl CReprOf<hermes::PlayBytesMessage> for CPlayBytesMessage {
             wav_bytes_len: input.wav_bytes.len() as libc::c_int,
             wav_bytes: Box::into_raw(input.wav_bytes.into_boxed_slice()) as *const u8,
             site_id: convert_to_c_string!(input.site_id),
-            session_id: convert_to_nullable_c_string!(input.session_id),
         })
     }
 }
@@ -284,7 +281,6 @@ impl AsRust<hermes::PlayBytesMessage> for CPlayBytesMessage {
                 slice::from_raw_parts(self.wav_bytes as *const u8, self.wav_bytes_len as usize)
             }.to_vec(),
             site_id: create_rust_string_from!(self.site_id),
-            session_id: create_optional_rust_string_from!(self.session_id),
         })
     }
 }
@@ -299,7 +295,6 @@ impl Drop for CPlayBytesMessage {
             ))
         };
         take_back_c_string!(self.site_id);
-        take_back_nullable_c_string!(self.session_id);
     }
 }
 
@@ -358,8 +353,6 @@ impl Drop for CAudioFrameMessage {
 pub struct CPlayFinishedMessage {
     pub id: *const libc::c_char,
     pub site_id: *const libc::c_char,
-    // Nullable
-    pub session_id: *const libc::c_char,
 }
 
 unsafe impl Sync for CPlayFinishedMessage {}
@@ -375,7 +368,6 @@ impl CReprOf<hermes::PlayFinishedMessage> for CPlayFinishedMessage {
         Ok(Self {
             id: convert_to_c_string!(input.id),
             site_id: convert_to_c_string!(input.site_id),
-            session_id: convert_to_nullable_c_string!(input.session_id),
         })
     }
 }
@@ -385,7 +377,6 @@ impl AsRust<hermes::PlayFinishedMessage> for CPlayFinishedMessage {
         Ok(hermes::PlayFinishedMessage {
             id: create_rust_string_from!(self.id),
             site_id: create_rust_string_from!(self.site_id),
-            session_id: create_optional_rust_string_from!(self.session_id),
         })
     }
 }
@@ -394,7 +385,6 @@ impl Drop for CPlayFinishedMessage {
     fn drop(&mut self) {
         take_back_c_string!(self.id);
         take_back_c_string!(self.site_id);
-        take_back_nullable_c_string!(self.session_id);
     }
 }
 
@@ -763,6 +753,7 @@ pub struct CActionSessionInit {
     // Nullable
     intent_filter: *const CStringArray,
     can_be_enqueued: libc::c_uchar,
+    send_intent_not_recognized: libc::c_uchar,
 }
 
 impl CActionSessionInit {
@@ -770,11 +761,13 @@ impl CActionSessionInit {
         text: Option<String>,
         intent_filter: Option<Vec<String>>,
         can_be_enqueued: bool,
+        send_intent_not_recognized: bool,
     ) -> Result<Self> {
         Ok(Self {
             text: convert_to_nullable_c_string!(text),
             intent_filter: convert_to_nullable_c_string_array!(intent_filter),
             can_be_enqueued: if can_be_enqueued { 1 } else { 0 },
+            send_intent_not_recognized: if send_intent_not_recognized { 1 } else { 0 },
         })
     }
 
@@ -786,6 +779,7 @@ impl CActionSessionInit {
                 None => None,
             },
             can_be_enqueued: self.can_be_enqueued == 1,
+            send_intent_not_recognized: self.send_intent_not_recognized == 1,
         })
     }
 }
@@ -815,10 +809,12 @@ impl CSessionInit {
                 text,
                 intent_filter,
                 can_be_enqueued,
+                send_intent_not_recognized,
             } => Box::into_raw(Box::new(CActionSessionInit::new(
                 text,
                 intent_filter,
                 can_be_enqueued,
+                send_intent_not_recognized
             )?)) as _,
             hermes::SessionInit::Notification { text } => convert_to_c_string!(text) as _,
         };
@@ -1007,6 +1003,9 @@ pub struct CContinueSessionMessage {
     pub text: *const libc::c_char,
     // Nullable
     pub intent_filter: *const CStringArray,
+    // Nullable
+    pub custom_data: *const libc::c_char,
+    pub send_intent_not_recognized: libc::c_uchar,
 }
 
 unsafe impl Sync for CContinueSessionMessage {}
@@ -1027,6 +1026,8 @@ impl CReprOf<hermes::ContinueSessionMessage> for CContinueSessionMessage {
             session_id: convert_to_c_string!(input.session_id),
             text: convert_to_c_string!(input.text),
             intent_filter: convert_to_nullable_c_string_array!(input.intent_filter),
+            custom_data: convert_to_nullable_c_string!(input.custom_data),
+            send_intent_not_recognized: if input.send_intent_not_recognized { 1 } else { 0 },
         })
     }
 }
@@ -1040,6 +1041,8 @@ impl AsRust<hermes::ContinueSessionMessage> for CContinueSessionMessage {
                 Some(it) => Some(it.as_rust()?),
                 None => None,
             },
+            custom_data: create_optional_rust_string_from!(self.custom_data),
+            send_intent_not_recognized: self.send_intent_not_recognized == 1,
         })
     }
 }
@@ -1049,6 +1052,7 @@ impl Drop for CContinueSessionMessage {
         take_back_c_string!(self.session_id);
         take_back_c_string!(self.text);
         take_back_nullable_c_string_array!(self.intent_filter);
+        take_back_nullable_c_string!(self.custom_data);
     }
 }
 

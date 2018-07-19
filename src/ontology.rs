@@ -124,8 +124,6 @@ pub struct PlayBytesMessage {
     pub wav_bytes: Vec<u8>,
     /// The site where the bytes should be played
     pub site_id: SiteId,
-    /// An optional session id if there is a related session
-    pub session_id: Option<SessionId>,
 }
 
 impl<'de> HermesMessage<'de> for PlayBytesMessage {}
@@ -151,8 +149,6 @@ pub struct PlayFinishedMessage {
     pub id: RequestId,
     /// The site where the sound was played
     pub site_id: SiteId,
-    /// An optional session id if there is a related session
-    pub session_id: Option<SessionId>,
 }
 
 impl<'de> HermesMessage<'de> for PlayFinishedMessage {}
@@ -256,8 +252,8 @@ impl<'de> HermesMessage<'de> for NluIntentMessage {}
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct IntentMessage {
-    /// The session in with this intent was detected
-    pub session_id: String,
+    /// The session in which this intent was detected
+    pub session_id: SessionId,
     /// The custom data that was given at the session creation
     pub custom_data: Option<String>,
     /// The site where the intent was detected.
@@ -272,6 +268,22 @@ pub struct IntentMessage {
 
 impl<'de> HermesMessage<'de> for IntentMessage {}
 
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct IntentNotRecognizedMessage {
+    /// The session in which no intent was recognized
+    pub session_id: SessionId,
+    /// The custom data that was given at the session creation
+    pub custom_data: Option<String>,
+    /// The site where the intent was detected.
+    pub site_id: SiteId,
+    /// The text that didn't match any intent
+    pub input: String,
+}
+
+impl<'de> HermesMessage<'de> for IntentNotRecognizedMessage {}
+
+
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(tag = "type", rename_all = "camelCase")]
 pub enum SessionInit {
@@ -285,6 +297,12 @@ pub enum SessionInit {
         intent_filter: Option<Vec<String>>,
         /// If the session cannot be started, it can be enqueued.
         can_be_enqueued: bool,
+        /// An optional boolean to indicate whether the dialogue manager should handle non
+        /// recognized intents by itself or sent them as an `IntentNotRecognizedMessage` for the
+        /// client to handle. This setting applies only to the next conversation turn. The default
+        /// value is false (and the dialogue manager will handle non recognized intents by itself)
+        #[serde(default)]
+        send_intent_not_recognized: bool,
     },
     /// The session doesn't expect a response from the user.
     /// If the session cannot be started, it will enqueued.
@@ -296,9 +314,9 @@ pub enum SessionInit {
 pub struct StartSessionMessage {
     /// The way this session was created
     pub init: SessionInit,
-    /// An optional piece of data that will be given back in `IntentMessage` and
-    /// `SessionQueuedMessage`, `SessionStartedMessage` and `SessionEndedMessage`that are related
-    /// to this session
+    /// An optional piece of data that will be given back in `IntentMessage`,
+    /// `IntentNotRecognizedMessage`, `SessionQueuedMessage`, `SessionStartedMessage` and
+    /// `SessionEndedMessage` that are related to this session
     pub custom_data: Option<String>,
     /// The site where the session should be started, a value of `None` will be interpreted as the
     /// default one
@@ -346,6 +364,17 @@ pub struct ContinueSessionMessage {
     pub text: String,
     /// An optional list of intent name to restrict the parsing of the user response to
     pub intent_filter: Option<Vec<String>>,
+    /// An optional piece of data that will be given back in `IntentMessage` and
+    /// `IntentNotRecognizedMessage` and `SessionEndedMessage` that are related
+    /// to this session. If set it will replace any existing custom data previously set on this
+    /// session
+    pub custom_data: Option<String>,
+    /// An optional boolean to indicate whether the dialogue manager should handle not recognized
+    /// intents by itself or sent them as an `IntentNotRecognizedMessage` for the client to handle.
+    /// This setting applies only to the next conversation turn. The default value is false (and
+    /// the dialogue manager will handle non recognized intents by itself)
+    #[serde(default)]
+    pub send_intent_not_recognized: bool,
 }
 
 impl<'de> HermesMessage<'de> for ContinueSessionMessage {}

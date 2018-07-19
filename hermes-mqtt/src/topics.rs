@@ -112,6 +112,7 @@ impl HermesTopic {
             Some("sessionQueued") => Some(DialogueManager(SessionQueued)),
             Some("sessionStarted") => Some(DialogueManager(SessionStarted)),
             Some("sessionEnded") => Some(DialogueManager(SessionEnded)),
+            Some("intentNotRecognized") => Some(DialogueManager(IntentNotRecognized)),
             Some("versionRequest") => Some(HermesTopic::Component(
                 None,
                 Component::DialogueManager,
@@ -352,6 +353,7 @@ pub enum DialogueManagerCommand {
     SessionQueued,
     SessionStarted,
     SessionEnded,
+    IntentNotRecognized,
 }
 
 impl ToPath for DialogueManagerCommand {}
@@ -468,6 +470,10 @@ mod tests {
             (
                 HermesTopic::DialogueManager(DialogueManagerCommand::SessionEnded),
                 "hermes/dialogueManager/sessionEnded",
+            ),
+            (
+                HermesTopic::DialogueManager(DialogueManagerCommand::IntentNotRecognized),
+                "hermes/dialogueManager/intentNotRecognized",
             ),
             (
                 HermesTopic::Component(
