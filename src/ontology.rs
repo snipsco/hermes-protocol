@@ -202,6 +202,7 @@ impl<'de> HermesMessage<'de> for SayFinishedMessage {}
 type Value = String;
 type Entity = String;
 type Prononciation = String;
+type Weight = u32;
 
 #[derive(Debug, Clone, PartialEq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -212,11 +213,18 @@ pub enum InjectionKind {
     AddFromVanilla,
 }
 
+#[derive(Debug, Clone, PartialEq, Hash, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum EntityValue {
+    StringValue(Value),
+    WeightedValue((Value, Weight)),
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct InjectionRequest {
     /// List of operations to execute in the order of the list on a model
-    pub operations: Vec<(InjectionKind, HashMap<Entity, Vec<Value>>)>,
+    pub operations: Vec<(InjectionKind, HashMap<Entity, Vec<EntityValue>>)>,
     /// List of pre-computed prononciations to add in a model
     #[serde(default)]
     pub lexicon: HashMap<Value, Vec<Prononciation>>,
@@ -507,4 +515,40 @@ where
     use serde::Deserialize;
     String::deserialize(deserializer)
         .and_then(|string| base64::decode(&string).map_err(|err| Error::custom(err.to_string())))
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use serde_json;
+
+    #[test]
+    fn without_weights_works() {
+        let json = r#"{
+            "operations": [["add", {"e_0": ["a", "b"]}]]
+        }"#;
+
+        let my_struct: InjectionRequest = serde_json::from_str(&json).unwrap();
+
+        assert_eq!(&my_struct.operations[0].0, &InjectionKind::Add);
+
+        let d = &my_struct.operations[0].1;
+        assert_eq!(d["e_0"][0], EntityValue::StringValue("a".to_string()));
+        assert_eq!(d["e_0"][1], EntityValue::StringValue("b".to_string()));
+    }
+
+    #[test]
+    fn with_weights_works() {
+        let json = r#"{
+            "operations": [["add", {"e_0": [["a", 22], ["b", 31]]}]]
+        }"#;
+
+        let my_struct: InjectionRequest = serde_json::from_str(&json).unwrap();
+
+        assert_eq!(&my_struct.operations[0].0, &InjectionKind::Add);
+
+        let d = &my_struct.operations[0].1;
+        assert_eq!(d["e_0"][0], EntityValue::WeightedValue(("a".to_string(), 22)));
+        assert_eq!(d["e_0"][1], EntityValue::WeightedValue(("b".to_string(), 31)));
+    }
 }
