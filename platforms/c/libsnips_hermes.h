@@ -129,6 +129,18 @@ typedef enum {
    * Percentage type represented by a CPercentageValue
    */
   SNIPS_SLOT_VALUE_TYPE_PERCENTAGE = 9,
+  /*
+   * Music artist type represented by a char *
+   */
+  SNIPS_SLOT_VALUE_TYPE_MUSICARTIST = 10,
+  /*
+   * Music album type represented by a char *
+   */
+  SNIPS_SLOT_VALUE_TYPE_MUSICALBUM = 11,
+  /*
+   * Music track type represented by a char *
+   */
+  SNIPS_SLOT_VALUE_TYPE_MUSICTRACK = 12,
 } SNIPS_SLOT_VALUE_TYPE;
 
 typedef struct {
