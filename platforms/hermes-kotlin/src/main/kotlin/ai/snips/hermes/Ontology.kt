@@ -58,6 +58,13 @@ data class IntentMessage @ParcelConstructor constructor(
         @ParcelProperty("slots") val slots: List<Slot>)
 
 @Parcel(BEAN)
+data class IntentNotRecognizedMessage @ParcelConstructor constructor(
+        @ParcelProperty("sessionId") val sessionId: String,
+        @ParcelProperty("customData") val customData: String?,
+        @ParcelProperty("siteId") val siteId: String,
+        @ParcelProperty("input") val input: String?)
+
+@Parcel(BEAN)
 data class SessionStartedMessage @ParcelConstructor constructor(
         @ParcelProperty("sessionId") val sessionId: String,
         @ParcelProperty("customData") val customData: String?,

@@ -730,6 +730,50 @@ impl Drop for CIntentMessage {
 }
 
 #[repr(C)]
+#[derive(Debug)]
+pub struct CIntentNotRecognizedMessage {
+    pub site_id: *const libc::c_char,
+    pub session_id: *const libc::c_char,
+    // Nullable
+    pub input: *const libc::c_char,
+    // Nullable
+    pub custom_data: *const libc::c_char,
+}
+
+unsafe impl Sync for CIntentNotRecognizedMessage {}
+
+impl CReprOf<hermes::IntentNotRecognizedMessage> for CIntentNotRecognizedMessage {
+    fn c_repr_of(input: hermes::IntentNotRecognizedMessage) -> Result<Self> {
+        Ok(Self {
+            site_id: convert_to_c_string!(input.site_id),
+            session_id: convert_to_c_string!(input.session_id),
+            input: convert_to_nullable_c_string!(input.input),
+            custom_data: convert_to_nullable_c_string!(input.custom_data),
+        })
+    }
+}
+
+impl AsRust<hermes::IntentNotRecognizedMessage> for CIntentNotRecognizedMessage {
+    fn as_rust(&self) -> Result<hermes::IntentNotRecognizedMessage> {
+        Ok(hermes::IntentNotRecognizedMessage {
+            site_id: create_rust_string_from!(self.site_id),
+            session_id: create_rust_string_from!(self.session_id),
+            input: create_optional_rust_string_from!(self.input),
+            custom_data: create_optional_rust_string_from!(self.custom_data),
+        })
+    }
+}
+
+impl Drop for CIntentNotRecognizedMessage {
+    fn drop(&mut self) {
+        take_back_c_string!(self.site_id);
+        take_back_c_string!(self.session_id);
+        take_back_nullable_c_string!(self.input);
+        take_back_nullable_c_string!(self.custom_data);
+    }
+}
+
+#[repr(C)]
 #[derive(Debug, PartialEq)]
 pub enum SNIPS_SESSION_INIT_TYPE {
     SNIPS_SESSION_INIT_TYPE_ACTION = 1,
@@ -1513,6 +1557,23 @@ mod tests {
         assert_that!(result).is_equal_to(input);
     }
 
+    #[test]
+    fn round_trip_intent_not_recognized() {
+        round_trip_test::<_, CIntentNotRecognizedMessage>(hermes::IntentNotRecognizedMessage {
+            site_id: "siteid".into(),
+            custom_data: Some("custom".into()),
+            session_id: "session id".into(),
+            input: Some("some text".into()),
+        });
+
+        round_trip_test::<_, CIntentNotRecognizedMessage>(hermes::IntentNotRecognizedMessage {
+            site_id: "siteid".into(),
+            custom_data: None,
+            session_id: "session id".into(),
+            input: None,
+        });
+
+    }
 
     #[test]
     fn round_trip_session_started() {
@@ -1580,6 +1641,7 @@ mod tests {
                 intent_filter: Some(vec!["filter1".into(), "filter2".into()]),
                 text: Some("text".into()),
                 can_be_enqueued: true,
+                send_intent_not_recognized: false,
             },
             custom_data: Some("thing".into()),
             site_id: Some("site".into()),
@@ -1591,6 +1653,7 @@ mod tests {
                 intent_filter: None,
                 text: None,
                 can_be_enqueued: false,
+                send_intent_not_recognized: true
             },
             custom_data: None,
             site_id: None,
@@ -1604,18 +1667,24 @@ mod tests {
             session_id: "my session id".into(),
             text: "some text".into(),
             intent_filter: Some(vec!["filter1".into(), "filter2".into()]),
+            custom_data: Some("foo bar".into()),
+            send_intent_not_recognized: true,
         });
 
         round_trip_test::<_, CContinueSessionMessage>(hermes::ContinueSessionMessage {
             session_id: "my session id".into(),
             text: "some text".into(),
             intent_filter: None,
+            custom_data: None,
+            send_intent_not_recognized: false,
         });
 
         round_trip_test::<_, CContinueSessionMessage>(hermes::ContinueSessionMessage {
             session_id: "my session id".into(),
             text: "some text".into(),
             intent_filter: Some(vec![]),
+            custom_data: Some("".into()),
+            send_intent_not_recognized: true,
         });
     }
 

@@ -3,6 +3,7 @@ import ai.snips.hermes.EndSessionMessage
 import ai.snips.hermes.InjectionKind.Add
 import ai.snips.hermes.InjectionOperation
 import ai.snips.hermes.InjectionRequestMessage
+import ai.snips.hermes.IntentNotRecognizedMessage
 import ai.snips.hermes.SessionInit
 import ai.snips.hermes.StartSessionMessage
 import ai.snips.hermes.test.HermesTest
@@ -61,6 +62,25 @@ class FfiTest {
         assertThat(HermesTest().roundTripEndSession(input)).isEqualTo(input)
     }
 
+
+    @Test
+    fun roundIntentNotRecognized() {
+        val input = IntentNotRecognizedMessage(
+                input = "smdlfk",
+                sessionId = "qsmd3711EAED",
+                siteId = "msdklfj",
+                customData = "fslksk"
+        )
+        assertThat(HermesTest().roundTripIntentNotRecognized(input)).isEqualTo(input)
+
+        val input2 = IntentNotRecognizedMessage(
+                input = null,
+                sessionId = "qsmd3711EAED",
+                siteId = "msdklfj",
+                customData = null
+        )
+        assertThat(HermesTest().roundTripIntentNotRecognized(input)).isEqualTo(input)
+    }
 
     @Test
     fun roundTripInjectionRequest() {

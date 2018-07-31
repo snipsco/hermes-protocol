@@ -6,6 +6,7 @@ import ai.snips.hermes.InjectionKind.Add
 import ai.snips.hermes.InjectionOperation
 import ai.snips.hermes.InjectionRequestMessage
 import ai.snips.hermes.IntentMessage
+import ai.snips.hermes.IntentNotRecognizedMessage
 import ai.snips.hermes.SayFinishedMessage
 import ai.snips.hermes.SayMessage
 import ai.snips.hermes.SessionEndedMessage
@@ -228,7 +229,6 @@ class CEndSessionMessage(p: Pointer?) : Structure(p), Structure.ByReference {
     )
 }
 
-
 class CIntentMessage(p: Pointer) : Structure(p), Structure.ByReference {
     @JvmField
     var session_id: Pointer? = null
@@ -259,6 +259,42 @@ class CIntentMessage(p: Pointer) : Structure(p), Structure.ByReference {
             intent = intent!!.toIntentClassifierResult(),
             slots = slots?.toSlotList() ?: listOf())
 }
+
+class CIntentNotRecognizedMessage(p: Pointer?) : Structure(p), Structure.ByReference {
+
+    companion object {
+        fun fromIntentNotRecognizedMessage(message: IntentNotRecognizedMessage) = CIntentNotRecognizedMessage(null).apply {
+            site_id = message.siteId.toPointer()
+            session_id = message.sessionId.toPointer()
+            input = message.input?.toPointer()
+            custom_data = message.customData?.toPointer()
+        }
+    }
+
+    @JvmField
+    var site_id: Pointer? = null
+    @JvmField
+    var session_id: Pointer? = null
+    @JvmField
+    var input: Pointer? = null
+    @JvmField
+    var custom_data: Pointer? = null
+
+    // be careful this block must be below the field definition if you don't want the native values read by JNA
+    // overridden by the default ones
+    init {
+        read()
+    }
+
+    override fun getFieldOrder() = listOf("site_id", "session_id", "input", "custom_data")
+
+    fun toIntentNotRecognizedMessage() = IntentNotRecognizedMessage(
+            siteId = site_id.readString(),
+            sessionId = session_id.readString(),
+            input = input?.readString(),
+            customData = custom_data?.readString())
+}
+
 
 class CSessionStartedMessage(p: Pointer) : Structure(p), Structure.ByReference {
     @JvmField

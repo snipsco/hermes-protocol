@@ -261,6 +261,7 @@ macro_rules! generate_hermes_c_symbols {
     generate_destroy!(hermes_drop_nlu_intent_not_recognized_message for CNluIntentNotRecognizedMessage);
     generate_destroy!(hermes_drop_nlu_intent_message for CNluIntentMessage);
     generate_destroy!(hermes_drop_intent_message for CIntentMessage);
+    generate_destroy!(hermes_drop_intent_not_recognized_message for CIntentNotRecognizedMessage);
     generate_destroy!(hermes_drop_start_session_message for CStartSessionMessage);
     generate_destroy!(hermes_drop_session_started_message for CSessionStartedMessage);
     generate_destroy!(hermes_drop_session_queued_message for CSessionQueuedMessage);

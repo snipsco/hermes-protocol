@@ -63,6 +63,14 @@ pub extern "C" fn hermes_ffi_test_round_trip_intent(
 }
 
 #[no_mangle]
+pub extern "C" fn hermes_ffi_test_round_trip_intent_not_recognized(
+    input: *const hermes_ffi::CIntentNotRecognizedMessage, output:
+    *mut *const hermes_ffi::CIntentNotRecognizedMessage) -> ffi_utils::SNIPS_RESULT {
+    wrap!(round_trip(input, output))
+}
+
+
+#[no_mangle]
 pub extern "C" fn hermes_ffi_test_round_trip_start_session(
     input: *const hermes_ffi::CStartSessionMessage, output:
     *mut *const hermes_ffi::CStartSessionMessage) -> ffi_utils::SNIPS_RESULT {
