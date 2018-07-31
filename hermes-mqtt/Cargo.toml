@@ -3,9 +3,6 @@ name = "hermes-mqtt"
 version = "0.59.0-SNAPSHOT"
 authors = ["Thibaut Lorrain <thibaut.lorrain@snips.ai>"]
 
-[package.metadata.dinghy]
-ignored_rustc_triples = ["arm-linux-androideabi", "armv7-linux-androideabi","aarch64-linux-android", "i686-linux-android", "x86_64-linux-android", "aarch64-apple-ios", "armv7-apple-ios", "armv7s-apple-ios", "i386-apple-ios", "x86_64-apple-ios"]
-
 [dependencies]
 failure = "0.1"
 hermes = { path = ".." }
@@ -22,3 +19,17 @@ uuid = { version = "0.6", features = ["v4"] }
 rand = "*"
 semver = "0.9"
 snips-nlu-ontology = { git = "https://github.com/snipsco/snips-nlu-ontology", tag = "0.57.1" }
+
+[package.metadata.dinghy]
+ignored_rustc_triples = [
+    "arm-linux-androideabi",
+    "armv7-linux-androideabi",
+    "aarch64-linux-android",
+    "i686-linux-android",
+    "x86_64-linux-android",
+    "aarch64-apple-ios",
+    "armv7-apple-ios",
+    "armv7s-apple-ios",
+    "i386-apple-ios",
+    "x86_64-apple-ios",
+]
