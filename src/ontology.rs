@@ -277,8 +277,8 @@ pub struct IntentNotRecognizedMessage {
     pub custom_data: Option<String>,
     /// The site where the intent was detected.
     pub site_id: SiteId,
-    /// The text that didn't match any intent
-    pub input: String,
+    /// The text that didn't match any intent, `None` if no text wa captured
+    pub input: Option<String>,
 }
 
 impl<'de> HermesMessage<'de> for IntentNotRecognizedMessage {}
