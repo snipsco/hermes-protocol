@@ -270,7 +270,7 @@ macro_rules! t_identifiable_component {
 #[macro_export]
 macro_rules! test_suite {
     () => {
-        test_suite!(wait_duration = 0);
+        test_suite!(WAIT_DURATION = 0);
     };
 
     (WAIT_DURATION = $wait_duration:expr) => {
@@ -383,7 +383,7 @@ macro_rules! test_suite {
                     with IntentMessage { site_id: "some site".into(), session_id: "some id".into(), custom_data: None, input: "hello world".into(), intent: IntentClassifierResult { intent_name: "my intent".into(), probability: 0.73 }, slots: None };);
         t!(dialogue_intent_not_recognized_works:
                     dialogue.subscribe_intent_not_recognized <= IntentNotRecognizedMessage | dialogue_backend.publish_intent_not_recognized
-                    with IntentNotRecognizedMessage { site_id: "some site".into(), session_id: "some id".into(), custom_data: None, input: "hello world".into() };);
+                    with IntentNotRecognizedMessage { site_id: "some site".into(), session_id: "some id".into(), custom_data: None, input: Some("hello world".into()) };);
         t!(dialogue_session_ended_works:
                     dialogue.subscribe_session_ended <= SessionEndedMessage | dialogue_backend.publish_session_ended
                     with SessionEndedMessage { site_id: "some site".into(), session_id: "some id".into(), custom_data: None, termination: SessionTerminationType::Nominal };);
