@@ -730,8 +730,11 @@ impl std::fmt::Display for MqttHermesProtocolHandler {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::net::{TcpListener, TcpStream};
     use std::process::Command;
     use std::rc::Rc;
+    use std::thread::sleep;
+    use std::time::Duration;
 
     struct ServerHolder {
         server: ::std::process::Child,
@@ -761,12 +764,11 @@ mod tests {
     fn create_handlers() -> (HandlerHolder, HandlerHolder) {
         // get a random free port form the OS
         let port = {
-            ::std::net::TcpListener::bind("localhost:0").unwrap().local_addr().unwrap().port()
+            TcpListener::bind("localhost:0").unwrap().local_addr().unwrap().port()
         };
 
         // /usr/sbin is not in path on non login session on raspbian and it is where mosquitto is
         ::std::env::set_var("PATH", format!("{}:/usr/sbin",::std::env::var("PATH").unwrap()));
-
 
         let server = Rc::new(ServerHolder {
             server: Command::new("mosquitto")
@@ -779,7 +781,18 @@ mod tests {
 
         let server_address = format!("localhost:{}", port);
 
-        ::std::thread::sleep(::std::time::Duration::from_millis(100));
+        // wait 'till mosquitto is accessible.
+        let server_is_live = || {
+            for attempt in 0..10 {
+                if TcpStream::connect(&server_address).is_ok() {
+                    return true
+                } else {
+                    sleep(Duration::from_millis(50));
+                }
+            };
+            false
+        };
+        assert!(server_is_live(), format!("can't connect to mosquitto server {}", &server_address));
 
         let handler1 = HandlerHolder {
             handler: MqttHermesProtocolHandler::new(&server_address)
