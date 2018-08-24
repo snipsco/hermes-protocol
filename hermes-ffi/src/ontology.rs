@@ -862,6 +862,29 @@ impl CReprOf<hermes::IntentNotRecognizedMessage> for CIntentNotRecognizedMessage
             session_id: convert_to_c_string!(input.session_id),
             input: convert_to_nullable_c_string!(input.input),
             custom_data: convert_to_nullable_c_string!(input.custom_data),
+        })
+    }
+}
+
+impl AsRust<hermes::IntentNotRecognizedMessage> for CIntentNotRecognizedMessage {
+    fn as_rust(&self) -> Result<hermes::IntentNotRecognizedMessage> {
+        Ok(hermes::IntentNotRecognizedMessage {
+            site_id: create_rust_string_from!(self.site_id),
+            session_id: create_rust_string_from!(self.session_id),
+            input: create_optional_rust_string_from!(self.input),
+            custom_data: create_optional_rust_string_from!(self.custom_data),
+        })
+    }
+}
+
+impl Drop for CIntentNotRecognizedMessage {
+    fn drop(&mut self) {
+        take_back_c_string!(self.site_id);
+        take_back_c_string!(self.session_id);
+        take_back_nullable_c_string!(self.input);
+        take_back_nullable_c_string!(self.custom_data);
+    }
+}
 
 pub struct CAsrTokenConfidence {
     pub value: *const libc::c_char,
@@ -881,15 +904,6 @@ impl CReprOf<hermes::AsrTokenConfidence> for CAsrTokenConfidence {
     }
 }
 
-
-impl AsRust<hermes::IntentNotRecognizedMessage> for CIntentNotRecognizedMessage {
-    fn as_rust(&self) -> Result<hermes::IntentNotRecognizedMessage> {
-        Ok(hermes::IntentNotRecognizedMessage {
-            site_id: create_rust_string_from!(self.site_id),
-            session_id: create_rust_string_from!(self.session_id),
-            input: create_optional_rust_string_from!(self.input),
-            custom_data: create_optional_rust_string_from!(self.custom_data),
-
 impl AsRust<hermes::AsrTokenConfidence> for CAsrTokenConfidence {
     fn as_rust(&self) -> Result<hermes::AsrTokenConfidence> {
         Ok(hermes::AsrTokenConfidence {
@@ -900,14 +914,6 @@ impl AsRust<hermes::AsrTokenConfidence> for CAsrTokenConfidence {
         })
     }
 }
-
-
-impl Drop for CIntentNotRecognizedMessage {
-    fn drop(&mut self) {
-        take_back_c_string!(self.site_id);
-        take_back_c_string!(self.session_id);
-        take_back_nullable_c_string!(self.input);
-        take_back_nullable_c_string!(self.custom_data);
 
 impl Drop for CAsrTokenConfidence {
     fn drop(&mut self) {
