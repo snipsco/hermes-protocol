@@ -1,3 +1,4 @@
+#[macro_use]
 extern crate failure;
 extern crate hermes;
 #[cfg(test)]
@@ -205,7 +206,7 @@ impl MqttHermesProtocolHandler {
         options.max_packet_size = 10_000_000;
         let mqtt_client = rumqtt::MqttClient::start(options)
             .map_err(SyncFailure::new)
-            .context("Could not start MQTT client")?;
+            .with_context(|_| format_err!("Could not start MQTT client on {}", name))?;
 
         let mqtt_handler = Arc::new(MqttHandler { mqtt_client });
 
