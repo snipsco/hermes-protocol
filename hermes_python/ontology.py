@@ -134,7 +134,7 @@ class SlotValue(object):
         self.value = value
 
     @classmethod
-    def from_c_repr(cls, c_repr):  # TODO : refactor to make it more generic
+    def from_c_repr(cls, c_repr):
         value_type = c_repr.value_type
 
         if 1 == value_type:  # CUSTOM
@@ -163,6 +163,8 @@ class SlotValue(object):
         elif 9 == value_type: # PERCENTAGE
             c_repr_percentage = c_double.from_address(c_repr.value)
             value = float(c_repr_percentage)
+        else:
+            raise Exception("Bad value type. Got : {}".format(value_type))
 
         return cls(value_type, value)
 
