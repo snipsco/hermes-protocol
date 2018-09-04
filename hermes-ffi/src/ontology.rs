@@ -143,11 +143,11 @@ impl Drop for CTextCapturedMessage {
 #[derive(Debug)]
 pub struct CNluQueryMessage {
     pub input: *const libc::c_char,
-    // Nullable
+    /// Nullable
     pub intent_filter: *const CStringArray,
-    // Nullable
+    /// Nullable
     pub id: *const libc::c_char,
-    // Nullable
+    /// Nullable
     pub session_id: *const libc::c_char,
 }
 
@@ -196,9 +196,9 @@ pub struct CNluSlotQueryMessage {
     pub input: *const libc::c_char,
     pub intent_name: *const libc::c_char,
     pub slot_name: *const libc::c_char,
-    // Nullable
+    /// Nullable
     pub id: *const libc::c_char,
-    // Nullable
+    /// Nullable
     pub session_id: *const libc::c_char,
 }
 
@@ -392,12 +392,12 @@ impl Drop for CPlayFinishedMessage {
 #[derive(Debug)]
 pub struct CSayMessage {
     pub text: *const libc::c_char,
-    // Nullable
+    /// Nullable
     pub lang: *const libc::c_char,
-    // Nullable
+    /// Nullable
     pub id: *const libc::c_char,
     pub site_id: *const libc::c_char,
-    // Nullable
+    /// Nullable
     pub session_id: *const libc::c_char,
 }
 
@@ -450,9 +450,9 @@ impl Drop for CSayMessage {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CSayFinishedMessage {
-    // Nullable
+    /// Nullable
     pub id: *const libc::c_char,
-    // Nullable
+    /// Nullable
     pub session_id: *const libc::c_char,
 }
 
@@ -496,13 +496,13 @@ impl Drop for CSayFinishedMessage {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CNluSlotMessage {
-    // Nullable
+    /// Nullable
     pub id: *const libc::c_char,
     pub input: *const libc::c_char,
     pub intent_name: *const libc::c_char,
-    // Nullable
+    /// Nullable
     pub slot: *const CSlot,
-    // Nullable
+    /// Nullable
     pub session_id: *const libc::c_char,
 }
 
@@ -559,9 +559,9 @@ impl Drop for CNluSlotMessage {
 #[derive(Debug)]
 pub struct CNluIntentNotRecognizedMessage {
     pub input: *const libc::c_char,
-    // Nullable
+    /// Nullable
     pub id: *const libc::c_char,
-    // Nullable
+    /// Nullable
     pub session_id: *const libc::c_char,
 }
 
@@ -604,13 +604,13 @@ impl Drop for CNluIntentNotRecognizedMessage {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CNluIntentMessage {
-    // Nullable
+    /// Nullable
     pub id: *const libc::c_char,
     pub input: *const libc::c_char,
     pub intent: *const CIntentClassifierResult,
-    // Nullable
+    /// Nullable
     pub slots: *const CSlotList,
-    //Nullable
+    /// Nullable
     pub session_id: *const libc::c_char,
 }
 
@@ -667,13 +667,13 @@ impl Drop for CNluIntentMessage {
 #[derive(Debug)]
 pub struct CIntentMessage {
     pub session_id: *const libc::c_char,
-    // Nullable
+    /// Nullable
     pub custom_data: *const libc::c_char,
     pub site_id: *const libc::c_char,
 
     pub input: *const libc::c_char,
     pub intent: *const CIntentClassifierResult,
-    // Nullable
+    /// Nullable
     pub slots: *const CSlotList,
 }
 
@@ -734,9 +734,9 @@ impl Drop for CIntentMessage {
 pub struct CIntentNotRecognizedMessage {
     pub site_id: *const libc::c_char,
     pub session_id: *const libc::c_char,
-    // Nullable
+    /// Nullable
     pub input: *const libc::c_char,
-    // Nullable
+    /// Nullable
     pub custom_data: *const libc::c_char,
 }
 
@@ -792,9 +792,9 @@ impl SNIPS_SESSION_INIT_TYPE {
 #[repr(C)]
 #[derive(Debug, PartialEq)]
 pub struct CActionSessionInit {
-    // Nullable
+    /// Nullable
     text: *const libc::c_char,
-    // Nullable
+    /// Nullable
     intent_filter: *const CStringArray,
     can_be_enqueued: libc::c_uchar,
     send_intent_not_recognized: libc::c_uchar,
@@ -839,9 +839,7 @@ impl Drop for CActionSessionInit {
 #[derive(Debug)]
 pub struct CSessionInit {
     init_type: SNIPS_SESSION_INIT_TYPE,
-    /**
-     * Points to either a *const char, a *const CActionSessionInit
-     */
+    /// Points to either a *const char, a *const CActionSessionInit
     value: *const libc::c_void,
 }
 
@@ -945,10 +943,10 @@ impl Drop for CStartSessionMessage {
 #[derive(Debug)]
 pub struct CSessionStartedMessage {
     pub session_id: *const libc::c_char,
-    // Nullable
+    /// Nullable
     pub custom_data: *const libc::c_char,
     pub site_id: *const libc::c_char,
-    // Nullable
+    /// Nullable
     pub reactivated_from_session_id: *const libc::c_char,
 }
 
@@ -999,7 +997,7 @@ impl Drop for CSessionStartedMessage {
 #[derive(Debug)]
 pub struct CSessionQueuedMessage {
     pub session_id: *const libc::c_char,
-    // Nullable
+    /// Nullable
     pub custom_data: *const libc::c_char,
     pub site_id: *const libc::c_char,
 }
@@ -1045,9 +1043,9 @@ impl Drop for CSessionQueuedMessage {
 pub struct CContinueSessionMessage {
     pub session_id: *const libc::c_char,
     pub text: *const libc::c_char,
-    // Nullable
+    /// Nullable
     pub intent_filter: *const CStringArray,
-    // Nullable
+    /// Nullable
     pub custom_data: *const libc::c_char,
     pub send_intent_not_recognized: libc::c_uchar,
 }
@@ -1104,7 +1102,7 @@ impl Drop for CContinueSessionMessage {
 #[derive(Debug)]
 pub struct CEndSessionMessage {
     pub session_id: *const libc::c_char,
-    // Nullable
+    /// Nullable
     pub text: *const libc::c_char,
 }
 
@@ -1185,7 +1183,7 @@ impl SNIPS_SESSION_TERMINATION_TYPE {
 #[derive(Debug)]
 pub struct CSessionTermination {
     termination_type: SNIPS_SESSION_TERMINATION_TYPE,
-    // Nullable,
+    /// Nullable,
     data: *const libc::c_char,
 }
 
@@ -1238,7 +1236,7 @@ impl Drop for CSessionTermination {
 #[derive(Debug)]
 pub struct CSessionEndedMessage {
     pub session_id: *const libc::c_char,
-    // Nullable
+    /// Nullable
     pub custom_data: *const libc::c_char,
     pub termination: CSessionTermination,
     pub site_id: *const libc::c_char,
@@ -1303,10 +1301,10 @@ impl CVersionMessage {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CErrorMessage {
-    // Nullable
+    /// Nullable
     pub session_id: *const libc::c_char,
     pub error: *const libc::c_char,
-    // Nullable
+    /// Nullable
     pub context: *const libc::c_char,
 }
 
