@@ -1523,6 +1523,87 @@ impl Drop for CErrorMessage {
 }
 
 #[repr(C)]
+pub struct CEntityValue {
+    pub value: *const libc::c_char,
+    pub weight: u32,
+}
+
+impl CReprOf<hermes::EntityValue> for CEntityValue {
+    fn c_repr_of(input: hermes::EntityValue) -> Result<Self> {
+        Ok(Self {
+            value: convert_to_c_string!(input.value),
+            weight: input.weight,
+        })
+    }
+}
+
+impl AsRust<hermes::EntityValue> for CEntityValue {
+    fn as_rust(&self) -> Result<hermes::EntityValue> {
+        Ok(hermes::EntityValue {
+            value: create_rust_string_from!(self.value),
+            weight: self.weight,
+        })
+    }
+}
+
+impl Drop for CEntityValue {
+    fn drop(&mut self) {
+        take_back_c_string!(self.value);
+    }
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct CEntityValueArray {
+    pub values: *const *const CEntityValue,
+    pub count: libc::c_int,
+}
+
+impl Drop for CEntityValueArray {
+    fn drop(&mut self) {
+        let _ = unsafe {
+            for e in Box::from_raw(::std::slice::from_raw_parts_mut(
+                self.values as *mut *mut CEntityValue,
+                self.count as usize,
+            )).iter() {
+                let _ = CEntityValue::drop_raw_pointer(*e).unwrap();
+            }
+        };
+    }
+}
+
+impl CReprOf<Vec<hermes::EntityValue>> for CEntityValueArray {
+    fn c_repr_of(input: Vec<hermes::EntityValue>) -> Result<Self> {
+        let array = Self {
+            count: input.len() as _,
+            values: Box::into_raw(
+                input
+                    .into_iter()
+                    .map(|e| CEntityValue::c_repr_of(e).map(|c| c.into_raw_pointer()))
+                    .collect::<Result<Vec<_>>>()
+                    .context("Could not convert map to C Repr")?
+                    .into_boxed_slice(),
+            ) as *const *const _,
+        };
+        Ok(array)
+    }
+}
+
+impl AsRust<Vec<hermes::EntityValue>> for CEntityValueArray {
+    fn as_rust(&self) -> Result<Vec<hermes::EntityValue>> {
+        let mut result = Vec::with_capacity(self.count as usize);
+
+        for e in unsafe { slice::from_raw_parts(self.values, self.count as usize) } {
+            let entity = unsafe { CEntityValue::raw_borrow(*e) }?.as_rust()?;
+
+            result.push(entity);
+        }
+
+        Ok(result)
+    }
+}
+
+#[repr(C)]
 #[derive(Debug)]
 pub struct CMapStringToStringArrayEntry {
     pub key: *const libc::c_char,
@@ -1640,18 +1721,34 @@ impl Drop for CInjectionRequestOperation {
     }
 }
 
-impl CReprOf<(hermes::InjectionKind, HashMap<String, Vec<String>>)> for CInjectionRequestOperation {
-    fn c_repr_of(input: (hermes::InjectionKind, HashMap<String, Vec<String>>)) -> Result<Self> {
+impl CReprOf<(hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue>>)> for CInjectionRequestOperation {
+    fn c_repr_of(input: (hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue>>)) -> Result<Self> {
+        // FIXME: Ugly shortcut to compile faster. We're losing the weight information.
+        let mut hash = HashMap::with_capacity(input.1.capacity());
+        for (key, entity_values) in input.1 {
+            let entity_values = entity_values.into_iter().map(|v| v.value).collect();
+            hash.insert(key, entity_values);
+        }
+
         Ok(Self {
             kind: SNIPS_INJECTION_KIND::c_repr_of(input.0)?,
-            values: CMapStringToStringArray::c_repr_of(input.1)?.into_raw_pointer(),
+            values: CMapStringToStringArray::c_repr_of(hash)?.into_raw_pointer(),
         })
     }
 }
 
-impl AsRust<(hermes::InjectionKind, HashMap<String, Vec<String>>)> for CInjectionRequestOperation {
-    fn as_rust(&self) -> Result<(hermes::InjectionKind, HashMap<String, Vec<String>>)> {
-        Ok((self.kind.as_rust()?, unsafe { CMapStringToStringArray::raw_borrow(self.values) }?.as_rust()?))
+impl AsRust<(hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue>>)> for CInjectionRequestOperation {
+    fn as_rust(&self) -> Result<(hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue>>)> {
+        let values = unsafe { CMapStringToStringArray::raw_borrow(self.values) }?.as_rust()?;
+
+        // FIXME: Ugly shortcut to compile faster. We're losing the weight information.
+        let mut hash = HashMap::with_capacity(values.capacity());
+        for (key, entity_values) in values {
+            let entity_values = entity_values.into_iter().map(|value| hermes::EntityValue { value, weight: 1}).collect();
+            hash.insert(key, entity_values);
+        }
+
+        Ok((self.kind.as_rust()?, hash))
     }
 }
 
@@ -1675,8 +1772,8 @@ impl Drop for CInjectionRequestOperations {
     }
 }
 
-impl CReprOf<Vec<(hermes::InjectionKind, HashMap<String, Vec<String>>)>> for CInjectionRequestOperations {
-    fn c_repr_of(input: Vec<(hermes::InjectionKind, HashMap<String, Vec<String>>)>) -> Result<Self> {
+impl CReprOf<Vec<(hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue>>)>> for CInjectionRequestOperations {
+    fn c_repr_of(input: Vec<(hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue>>)>) -> Result<Self> {
         Ok(Self {
             count: input.len() as libc::c_int,
             operations: Box::into_raw(
@@ -1691,8 +1788,8 @@ impl CReprOf<Vec<(hermes::InjectionKind, HashMap<String, Vec<String>>)>> for CIn
     }
 }
 
-impl AsRust<Vec<(hermes::InjectionKind, HashMap<String, Vec<String>>)>> for CInjectionRequestOperations {
-    fn as_rust(&self) -> Result<Vec<(hermes::InjectionKind, HashMap<String, Vec<String>>)>> {
+impl AsRust<Vec<(hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue>>)>> for CInjectionRequestOperations {
+    fn as_rust(&self) -> Result<Vec<(hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue>>)>> {
         let mut result = Vec::with_capacity(self.count as usize);
 
         for e in unsafe { slice::from_raw_parts(self.operations, self.count as usize) } {
@@ -1963,8 +2060,14 @@ mod tests {
         );
 
         let mut test_map = HashMap::new();
-        test_map.insert("hello".into(), vec!["hello".to_string(), "world".to_string()]);
-        test_map.insert("foo".into(), vec!["bar".to_string(), "baz".to_string()]);
+        test_map.insert("hello".into(), vec![
+            hermes::EntityValue { value: "hello".to_string(), weight: 1 },
+            hermes::EntityValue { value: "world".to_string(), weight: 1 },
+        ]);
+        test_map.insert("foo".into(), vec![
+            hermes::EntityValue { value: "bar".to_string(), weight: 1 },
+            hermes::EntityValue { value: "baz".to_string(), weight: 1 },
+        ]);
 
         round_trip_test::<_, CInjectionRequestOperation>(
             (hermes::InjectionKind::Add, test_map)
@@ -1978,8 +2081,14 @@ mod tests {
         );
 
         let mut test_map = HashMap::new();
-        test_map.insert("hello".into(), vec!["hello".to_string(), "world".to_string()]);
-        test_map.insert("foo".into(), vec!["bar".to_string(), "baz".to_string()]);
+        test_map.insert("hello".into(), vec![
+            hermes::EntityValue { value: "hello".to_string(), weight: 1 },
+            hermes::EntityValue { value: "world".to_string(), weight: 1 },
+        ]);
+        test_map.insert("foo".into(), vec![
+            hermes::EntityValue { value: "bar".to_string(), weight: 1 },
+            hermes::EntityValue { value: "baz".to_string(), weight: 1 },
+        ]);
 
         round_trip_test::<_, CInjectionRequestOperations>(
             vec![
@@ -1992,8 +2101,14 @@ mod tests {
     #[test]
     fn round_trip_injection_request() {
         let mut injections = HashMap::new();
-        injections.insert("hello".into(), vec!["hello".to_string(), "world".to_string()]);
-        injections.insert("foo".into(), vec!["bar".to_string(), "baz".to_string()]);
+        injections.insert("hello".into(), vec![
+            hermes::EntityValue { value: "hello".to_string(), weight: 1 },
+            hermes::EntityValue { value: "world".to_string(), weight: 1 },
+        ]);
+        injections.insert("foo".into(), vec![
+            hermes::EntityValue { value: "bar".to_string(), weight: 1 },
+            hermes::EntityValue { value: "baz".to_string(), weight: 1 },
+        ]);
 
         let mut lexicon = HashMap::new();
         lexicon.insert("this".into(), vec!["is ".to_string(), "a".to_string(), "lexicon".to_string()]);

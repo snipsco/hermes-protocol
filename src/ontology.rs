@@ -1,4 +1,4 @@
-use std;
+use std::fmt;
 use std::collections::HashMap;
 
 use base64;
@@ -7,10 +7,9 @@ use semver;
 use serde;
 use snips_nlu_ontology::{IntentClassifierResult, Slot};
 
-pub trait HermesMessage<'de>:
-    ::std::fmt::Debug + ::serde::Deserialize<'de> + ::serde::Serialize
-{
-}
+use serde::{Serialize, Serializer, Deserialize, Deserializer};
+
+pub trait HermesMessage<'de>: fmt::Debug + Deserialize<'de> + Serialize {}
 
 pub type SiteId = String;
 pub type SessionId = String;
@@ -202,7 +201,6 @@ impl<'de> HermesMessage<'de> for SayFinishedMessage {}
 type Value = String;
 type Entity = String;
 type Prononciation = String;
-type Weight = u32;
 
 #[derive(Debug, Clone, PartialEq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -213,11 +211,40 @@ pub enum InjectionKind {
     AddFromVanilla,
 }
 
-#[derive(Debug, Clone, PartialEq, Hash, Serialize, Deserialize)]
-#[serde(untagged)]
-pub enum EntityValue {
-    StringValue(Value),
-    WeightedValue((Value, Weight)),
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
+pub struct EntityValue {
+    pub value: String,
+    pub weight: u32,
+}
+
+impl<'de> Deserialize<'de> for EntityValue {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[derive(Deserialize)]
+        #[serde(untagged)]
+        enum DeEntityValue {
+            Value(String),
+            WeightedValue((String, u32)),
+        }
+
+        let (value, weight) = match DeEntityValue::deserialize(deserializer)? {
+            DeEntityValue::Value(value) => (value, 1),
+            DeEntityValue::WeightedValue(weighted_value) => weighted_value,
+        };
+
+        Ok(Self { value, weight })
+    }
+}
+
+impl Serialize for EntityValue {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[derive(Serialize)]
+        #[serde(untagged)]
+        enum SerEntityValue<'a> {
+            WeightedValue((&'a str, u32)),
+        }
+
+        SerEntityValue::WeightedValue((&*self.value, self.weight)).serialize(serializer)
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -500,14 +527,14 @@ pub struct ErrorMessage {
 
 impl<'de> HermesMessage<'de> for ErrorMessage {}
 
-fn as_base64<S>(bytes: &[u8], serializer: S) -> std::result::Result<S::Ok, S::Error>
+fn as_base64<S>(bytes: &[u8], serializer: S) -> Result<S::Ok, S::Error>
 where
     S: serde::Serializer,
 {
     serializer.serialize_str(&base64::encode(bytes))
 }
 
-fn from_base64<'de, D>(deserializer: D) -> std::result::Result<Vec<u8>, D::Error>
+fn from_base64<'de, D>(deserializer: D) -> Result<Vec<u8>, D::Error>
 where
     D: serde::Deserializer<'de>,
 {
@@ -523,18 +550,35 @@ mod test {
     use serde_json;
 
     #[test]
+    fn custom_deserialization_entityvalue_works() {
+        let json = r#" "a" "#;
+        let entity_value: EntityValue = serde_json::from_str(&json).unwrap();
+        assert_eq!(entity_value, EntityValue { value: "a".to_string(), weight: 1 });
+
+        let json = r#"["a", 42]"#;
+        let entity_value: EntityValue = serde_json::from_str(&json).unwrap();
+        assert_eq!(entity_value, EntityValue { value: "a".to_string(), weight: 42 });
+    }
+
+    #[test]
+    fn custom_serialization_entityvalue_works() {
+        let entity_value = EntityValue { value: "hello".to_string(), weight: 42 };
+        let string = serde_json::to_string(&entity_value).unwrap();
+        assert_eq!(string, r#"["hello",42]"#);
+    }
+
+    #[test]
     fn without_weights_works() {
         let json = r#"{
-            "operations": [["add", {"e_0": ["a", "b"]}]]
+            "operations": [["add", {"e_0": ["a", ["b", 42]]}]]
         }"#;
 
         let my_struct: InjectionRequest = serde_json::from_str(&json).unwrap();
+        let (operation, values_per_entity) = &my_struct.operations[0];
 
-        assert_eq!(&my_struct.operations[0].0, &InjectionKind::Add);
-
-        let d = &my_struct.operations[0].1;
-        assert_eq!(d["e_0"][0], EntityValue::StringValue("a".to_string()));
-        assert_eq!(d["e_0"][1], EntityValue::StringValue("b".to_string()));
+        assert_eq!(operation, &InjectionKind::Add);
+        assert_eq!(values_per_entity["e_0"][0], EntityValue { value: "a".to_string(), weight: 1 });
+        assert_eq!(values_per_entity["e_0"][1], EntityValue { value: "b".to_string(), weight: 42 });
     }
 
     #[test]
@@ -544,11 +588,10 @@ mod test {
         }"#;
 
         let my_struct: InjectionRequest = serde_json::from_str(&json).unwrap();
+        let (operation, values_per_entity) = &my_struct.operations[0];
 
-        assert_eq!(&my_struct.operations[0].0, &InjectionKind::Add);
-
-        let d = &my_struct.operations[0].1;
-        assert_eq!(d["e_0"][0], EntityValue::WeightedValue(("a".to_string(), 22)));
-        assert_eq!(d["e_0"][1], EntityValue::WeightedValue(("b".to_string(), 31)));
+        assert_eq!(operation, &InjectionKind::Add);
+        assert_eq!(values_per_entity["e_0"][0], EntityValue { value: "a".to_string(), weight: 22 });
+        assert_eq!(values_per_entity["e_0"][1], EntityValue { value: "b".to_string(), weight: 31 });
     }
 }
