@@ -12,8 +12,9 @@ from time import sleep
 
 
 class Hermes(object):
-    def __init__(self, mqtt_server_address):
+    def __init__(self, mqtt_server_address, rust_logs_enabled=False):
         self.mqtt_server_address = mqtt_server_address
+        self.rust_logs_enabled = rust_logs_enabled
 
         self._protocol_handler = POINTER(CProtocolHandler)()
         self._facade = POINTER(CDialogueFacade)()
@@ -33,6 +34,9 @@ class Hermes(object):
 
         lib.hermes_protocol_handler_dialogue_facade(self._protocol_handler,
                                                     byref(self._facade))
+
+        if self.rust_logs_enabled:
+            lib.hermes_enable_debug_logs()
 
         return self
 
