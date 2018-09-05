@@ -14,7 +14,7 @@ use std::slice;
 #[derive(Debug)]
 pub struct CSiteMessage {
     pub site_id: *const libc::c_char,
-    // Nullable
+    /// Nullable
     pub session_id: *const libc::c_char,
 }
 
@@ -92,12 +92,12 @@ impl Drop for CHotwordDetectedMessage {
 #[derive(Debug)]
 pub struct CTextCapturedMessage {
     pub text: *const libc::c_char,
-    // Nullable
+    /// Nullable
     pub tokens_confidence: *const CAsrTokenConfidenceArray,
     pub likelihood: f32,
     pub seconds: f32,
     pub site_id: *const libc::c_char,
-    // Nullable
+    /// Nullable
     pub session_id: *const libc::c_char,
 }
 
