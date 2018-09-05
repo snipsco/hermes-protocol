@@ -1805,7 +1805,9 @@ impl AsRust<Vec<(hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue>
 pub struct CInjectionRequestMessage {
     operations: *const CInjectionRequestOperations,
     lexicon: *const CMapStringToStringArray,
+    // nullable
     cross_language: *const libc::c_char,
+    // nullable
     id: *const libc::c_char,
 }
 

@@ -3,7 +3,8 @@ package ai.snips.hermes
 import ai.snips.hermes.SessionInit.Type.ACTION
 import ai.snips.hermes.SessionInit.Type.NOTIFICATION
 import ai.snips.nlu.ontology.IntentClassifierResult
-import ai.snips.nlu.ontology.Slot
+import ai.snips.nlu.ontology.Range
+import ai.snips.nlu.ontology.SlotValue
 import org.parceler.Parcel
 import org.parceler.Parcel.Serialization.BEAN
 import org.parceler.ParcelConstructor
@@ -47,6 +48,15 @@ data class EndSessionMessage @ParcelConstructor constructor(
         @ParcelProperty("sessionId") val sessionId: String,
         @ParcelProperty("text") val text: String?
 )
+
+@Parcel(BEAN)
+data class Slot @ParcelConstructor constructor(
+        @ParcelProperty("rawValue") val rawValue: String,
+        @ParcelProperty("value") val value: SlotValue,
+        @ParcelProperty("range") val range: Range?,
+        @ParcelProperty("entity") val entity: String,
+        @ParcelProperty("slotName") val slotName: String,
+        @ParcelProperty("confidence") val confidence: Float?)
 
 @Parcel(BEAN)
 data class IntentMessage @ParcelConstructor constructor(
@@ -123,7 +133,8 @@ data class SayFinishedMessage @ParcelConstructor constructor(
 
 @Parcel
 enum class InjectionKind {
-    Add
+    Add,
+    AddFromVanilla,
 }
 
 @Parcel(BEAN)
@@ -137,6 +148,7 @@ data class InjectionOperation @ParcelConstructor constructor(
 data class InjectionRequestMessage @ParcelConstructor constructor(
         @ParcelProperty("operations") val operations :  List<InjectionOperation>,
         // Using a MutableMap here so that Parceler is happy
-        @ParcelProperty("lexicon") val lexicon : MutableMap<String, List<String>>
-
+        @ParcelProperty("lexicon") val lexicon : MutableMap<String, List<String>>,
+        @ParcelProperty("crossLanguage") val crossLanguage: String?,
+        @ParcelProperty("id") val id : String?
 )

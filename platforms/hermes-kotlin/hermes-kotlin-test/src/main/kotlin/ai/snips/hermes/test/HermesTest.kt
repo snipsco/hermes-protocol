@@ -83,7 +83,6 @@ class HermesTest {
         }
     }
 
-
     fun roundTripMapStringToStringArray(input: Map<String, List<String>>): Map<String, List<String>> {
         return PointerByReference().apply {
             parseError(INSTANCE.hermes_ffi_test_round_trip_map_string_to_string_array(CMapStringToStringArray.fromMap(input), this))
@@ -93,7 +92,6 @@ class HermesTest {
             }
         }
     }
-
 
     interface HermesTestLib : Library {
         companion object {
@@ -118,6 +116,5 @@ class HermesTest {
         fun hermes_drop_intent_not_recognized_message(ptr: Pointer): Int
         fun hermes_drop_injection_request_message(ptr: Pointer): Int
     }
-
 }
 

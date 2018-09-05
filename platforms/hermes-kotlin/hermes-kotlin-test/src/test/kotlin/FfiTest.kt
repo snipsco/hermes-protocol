@@ -1,12 +1,8 @@
-import ai.snips.hermes.ContinueSessionMessage
-import ai.snips.hermes.EndSessionMessage
+import ai.snips.hermes.*
 import ai.snips.hermes.InjectionKind.Add
-import ai.snips.hermes.InjectionOperation
-import ai.snips.hermes.InjectionRequestMessage
-import ai.snips.hermes.IntentNotRecognizedMessage
-import ai.snips.hermes.SessionInit
-import ai.snips.hermes.StartSessionMessage
 import ai.snips.hermes.test.HermesTest
+import ai.snips.nlu.ontology.Range
+import ai.snips.nlu.ontology.SlotValue
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
@@ -62,7 +58,6 @@ class FfiTest {
         assertThat(HermesTest().roundTripEndSession(input)).isEqualTo(input)
     }
 
-
     @Test
     fun roundIntentNotRecognized() {
         val input = IntentNotRecognizedMessage(
@@ -79,14 +74,16 @@ class FfiTest {
                 siteId = "msdklfj",
                 customData = null
         )
-        assertThat(HermesTest().roundTripIntentNotRecognized(input)).isEqualTo(input)
+        assertThat(HermesTest().roundTripIntentNotRecognized(input2)).isEqualTo(input2)
     }
 
     @Test
     fun roundTripInjectionRequest() {
         val input = InjectionRequestMessage(
                 operations = listOf(),
-                lexicon = mutableMapOf()
+                lexicon = mutableMapOf(),
+                crossLanguage = null,
+                id = null
         )
 
         assertThat(HermesTest().roundTripInjectionRequest(input)).isEqualTo(input)
@@ -97,13 +94,13 @@ class FfiTest {
                                                                          "foo" to listOf("bar", "baz")))),
                 lexicon = mutableMapOf("toto" to listOf("tutu", "tata"),
                                        "" to listOf(),
-                                       "pif" to listOf("paf", "pouf"))
+                                       "pif" to listOf("paf", "pouf")),
+                crossLanguage = "en",
+                id = "123foo"
         )
 
         assertThat(HermesTest().roundTripInjectionRequest(input2)).isEqualTo(input2)
-
     }
-
 
     @Test
     fun roundTripMapStringToStringArray() {
@@ -113,6 +110,4 @@ class FfiTest {
 
         assertThat(HermesTest().roundTripMapStringToStringArray(map)).isEqualTo(map)
     }
-
-
 }

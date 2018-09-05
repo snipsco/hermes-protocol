@@ -1,33 +1,17 @@
 package ai.snips.hermes.ffi
 
-import ai.snips.hermes.ContinueSessionMessage
-import ai.snips.hermes.EndSessionMessage
+import ai.snips.hermes.*
 import ai.snips.hermes.InjectionKind.Add
-import ai.snips.hermes.InjectionOperation
-import ai.snips.hermes.InjectionRequestMessage
-import ai.snips.hermes.IntentMessage
-import ai.snips.hermes.IntentNotRecognizedMessage
-import ai.snips.hermes.SayFinishedMessage
-import ai.snips.hermes.SayMessage
-import ai.snips.hermes.SessionEndedMessage
-import ai.snips.hermes.SessionInit
 import ai.snips.hermes.SessionInit.Action
 import ai.snips.hermes.SessionInit.Notification
 import ai.snips.hermes.SessionInit.Type
-import ai.snips.hermes.SessionQueuedMessage
-import ai.snips.hermes.SessionStartedMessage
-import ai.snips.hermes.SessionTermination
 import ai.snips.hermes.SessionTermination.AbortedByUser
 import ai.snips.hermes.SessionTermination.Error
 import ai.snips.hermes.SessionTermination.IntenNotRecognized
 import ai.snips.hermes.SessionTermination.Nominal
 import ai.snips.hermes.SessionTermination.SiteUnAvailable
 import ai.snips.hermes.SessionTermination.Timeout
-import ai.snips.hermes.StartSessionMessage
-import ai.snips.nlu.ontology.ffi.CIntentClassifierResult
-import ai.snips.nlu.ontology.ffi.CSlots
-import ai.snips.nlu.ontology.ffi.readString
-import ai.snips.nlu.ontology.ffi.toPointer
+import ai.snips.nlu.ontology.ffi.*
 import com.sun.jna.Memory
 import com.sun.jna.Pointer
 import com.sun.jna.Structure
@@ -229,6 +213,65 @@ class CEndSessionMessage(p: Pointer?) : Structure(p), Structure.ByReference {
     )
 }
 
+class CNluSlot(p: Pointer?) : Structure(p), Structure.ByReference {
+    companion object {
+        fun fromSlot(slot: Slot) = CNluSlot(null).apply {
+            nlu_slot = null
+            confidence = slot.confidence ?: (-1.0).toFloat()
+        }
+    }
+
+    init {
+        read()
+    }
+
+    @JvmField var confidence: Float = (-1.0).toFloat()
+    @JvmField var nlu_slot: CSlot? = null
+
+    override fun getFieldOrder() = listOf("confidence", "nlu_slot")
+
+    fun toSlot() = Slot(
+            rawValue = nlu_slot!!.raw_value.readString(),
+            value = nlu_slot!!.value.readSlotValue(),
+            range = nlu_slot!!.range_start.readRangeTo(nlu_slot!!.range_end),
+            entity = nlu_slot!!.entity.readString(),
+            slotName = nlu_slot!!.slot_name.readString(),
+            confidence = confidence
+    )
+}
+
+class CNluSlotArray(p: Pointer?) : Structure(p), Structure.ByReference {
+    companion object {
+        fun fromSlotList(list: List<Slot>) = CNluSlotArray(null).apply {
+            count = list.size
+            entries = if (count > 0)
+                Memory(Pointer.SIZE * list.size.toLong()).apply {
+                    list.forEachIndexed { i, e ->
+                        this.setPointer(i.toLong() * Pointer.SIZE, CNluSlot.fromSlot(e).pointer)
+                    }
+                }
+            else null
+        }
+    }
+
+    @JvmField
+    var entries: Pointer? = null
+    @JvmField
+    var count: Int = -1
+
+    // be careful this block must be below the field definition if you don't want the native values read by JNA
+    // overridden by the default ones
+    init {
+        read()
+    }
+
+    override fun getFieldOrder() = listOf("entries", "count")
+
+    fun toSlotList(): List<Slot> = if (count > 0) {
+        entries!!.getPointerArray(0, count).map { (it as CNluSlot).toSlot() }
+    } else listOf<Slot>()
+}
+
 class CIntentMessage(p: Pointer) : Structure(p), Structure.ByReference {
     @JvmField
     var session_id: Pointer? = null
@@ -241,7 +284,7 @@ class CIntentMessage(p: Pointer) : Structure(p), Structure.ByReference {
     @JvmField
     var intent: CIntentClassifierResult? = null
     @JvmField
-    var slots: CSlots? = null
+    var slots: CNluSlotArray? = null
 
     // be careful this block must be below the field definition if you don't want the native values read by JNA
     // overridden by the default ones
@@ -261,7 +304,6 @@ class CIntentMessage(p: Pointer) : Structure(p), Structure.ByReference {
 }
 
 class CIntentNotRecognizedMessage(p: Pointer?) : Structure(p), Structure.ByReference {
-
     companion object {
         fun fromIntentNotRecognizedMessage(message: IntentNotRecognizedMessage) = CIntentNotRecognizedMessage(null).apply {
             site_id = message.siteId.toPointer()
@@ -294,7 +336,6 @@ class CIntentNotRecognizedMessage(p: Pointer?) : Structure(p), Structure.ByRefer
             input = input?.readString(),
             customData = custom_data?.readString())
 }
-
 
 class CSessionStartedMessage(p: Pointer) : Structure(p), Structure.ByReference {
     @JvmField
@@ -463,7 +504,6 @@ class CMapStringToStringArrayEntry(p: Pointer?) : Structure(p), Structure.ByValu
 
     }
 
-
     @JvmField
     var key: Pointer? = null
 
@@ -499,7 +539,6 @@ class CMapStringToStringArray(p: Pointer?) : Structure(p), Structure.ByReference
     @JvmField
     var count: Int = -1
 
-
     // be careful this block must be below the field definition if you don't want the native values read by JNA
     // overridden by the default ones
     init {
@@ -517,11 +556,13 @@ class CMapStringToStringArray(p: Pointer?) : Structure(p), Structure.ByReference
 class CInjectionRequestOperation(p: Pointer?) : Structure(p), Structure.ByReference {
     companion object {
         const val KIND_ADD = 1
+        const val KIND_ADD_FROM_VANILLA = 2
 
         fun fromInjectionOperation(input: InjectionOperation) = CInjectionRequestOperation(null).apply {
             values = CMapStringToStringArray.fromMap(input.values)
             kind = when (input.kind) {
-                Add -> KIND_ADD
+                InjectionKind.Add -> KIND_ADD
+                InjectionKind.AddFromVanilla -> KIND_ADD_FROM_VANILLA
             }
             write()
         }
@@ -547,7 +588,6 @@ class CInjectionRequestOperation(p: Pointer?) : Structure(p), Structure.ByRefere
                 else -> throw RuntimeException("unknown injection kind $kind")
             },
             values = values?.toMap()?.toMutableMap() ?: mutableMapOf()
-
     )
 }
 
@@ -565,7 +605,6 @@ class CInjectionRequestOperations(p: Pointer?) : Structure(p), Structure.ByRefer
 
     @JvmField
     var operations: Pointer? = null
-
     @JvmField
     var count: Int = -1
 
@@ -583,19 +622,23 @@ class CInjectionRequestOperations(p: Pointer?) : Structure(p), Structure.ByRefer
 }
 
 class CInjectionRequestMessage(p: Pointer?) : Structure(p), Structure.ByReference {
-
     companion object {
         fun fromInjectionRequest(input: InjectionRequestMessage) = CInjectionRequestMessage(null).apply {
             operations = CInjectionRequestOperations.fromInjectionOperationsList(input.operations)
             lexicon = CMapStringToStringArray.fromMap(input.lexicon)
+            cross_language = input.crossLanguage?.toPointer()
+            id = input.id?.toPointer()
         }
     }
 
     @JvmField
     var operations: CInjectionRequestOperations? = null
-
     @JvmField
     var lexicon: CMapStringToStringArray? = null
+    @JvmField
+    var cross_language: Pointer? = null
+    @JvmField
+    var id: Pointer? = null
 
     // be careful this block must be below the field definition if you don't want the native values read by JNA
     // overridden by the default ones
@@ -603,10 +646,12 @@ class CInjectionRequestMessage(p: Pointer?) : Structure(p), Structure.ByReferenc
         read()
     }
 
-    override fun getFieldOrder() = listOf("operations", "lexicon")
+    override fun getFieldOrder() = listOf("operations", "lexicon", "cross_language", "id")
 
     fun toInjectionRequestMessage() = InjectionRequestMessage(
             operations = operations!!.toList(),
-            lexicon = lexicon!!.toMap().toMutableMap()
+            lexicon = lexicon!!.toMap().toMutableMap(),
+            crossLanguage = cross_language?.readString(),
+            id = id?.readString()
     )
 }
