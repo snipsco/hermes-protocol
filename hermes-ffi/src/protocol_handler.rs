@@ -2,19 +2,27 @@ use ffi_utils::RawPointerConverter;
 use hermes::HermesProtocolHandler;
 
 #[repr(C)]
+#[derive(Debug)]
 pub struct CProtocolHandler {
-    pub handler: *const HermesProtocolHandler,
+    // hides a Box<HermesProtocolHandler>, note the 2 levels (raw pointer + box) to be sure we have
+    // a thin pointer here
+    pub handler: *const ::libc::c_void,
 }
 
 impl CProtocolHandler {
-    pub fn new<T: HermesProtocolHandler + 'static>(handler: T) -> Self {
+    pub fn new(handler: Box<HermesProtocolHandler>) -> Self {
         Self {
-            handler: T::into_raw_pointer(handler),
+            handler: Box::into_raw(Box::new(handler)) as *const ::libc::c_void,
         }
     }
 
-    pub fn destroy<T: HermesProtocolHandler + 'static>(self) {
-        let _ = unsafe { T::from_raw_pointer(self.handler as *const T) };
+    pub fn extract(&self) -> &HermesProtocolHandler {
+        unsafe { &(**(self.handler as *const Box<HermesProtocolHandler>)) }
+
+    }
+
+    pub fn destroy(self) {
+        let _ = unsafe { Box::from_raw(self.handler as *mut Box<HermesProtocolHandler>) };
     }
 }
 
@@ -41,24 +49,25 @@ macro_rules! generate_facade_wrapper {
     ) => {
         #[repr(C)]
         pub struct $wrapper_name {
-            facade: *const $facade,
+            // hides a Box<$facade>, note the 2 levels (raw pointer + box) to be sure we have a thin pointer here
+            facade: *const ::libc::c_void,
         }
 
         impl $wrapper_name {
             pub fn from(facade: Box<$facade>) -> Self {
                 Self {
-                    facade: Box::into_raw(facade),
+                    facade: Box::into_raw(Box::new(facade)) as *const ::libc::c_void,
                 }
             }
 
             pub fn extract(&self) -> &$facade {
-                unsafe { &(*self.facade) }
+                unsafe { &(**(self.facade as *const Box<$facade>)) }
             }
         }
 
         impl Drop for $wrapper_name {
             fn drop(&mut self) {
-                unsafe { Box::from_raw(self.facade as *mut $facade) };
+                unsafe { Box::from_raw(self.facade as *mut Box<$facade>) };
             }
         }
 
@@ -74,7 +83,8 @@ macro_rules! generate_facade_wrapper {
                 facade: *mut *const $wrapper_name,
             ) -> hermes::Result<()> {
                 let pointer = $wrapper_name::into_raw_pointer($wrapper_name::from(unsafe {
-                    (*(*handler).handler).$getter()
+                    let handler = (*handler).extract();
+                    (*handler).$getter()
                 }));
                 unsafe { *facade = pointer };
                 Ok(())

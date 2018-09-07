@@ -1,0 +1,21 @@
+language = "c"
+
+include_guard = "LIB_HERMES_H_"
+
+[parse]
+parse_deps=true
+include = ["hermes_mqtt_ffi", "hermes_ffi", "ffi_utils", "snips_nlu_ontology_ffi", "snips_nlu_ontology_ffi_macros"]
+
+[parse.expand]
+crates = ["hermes-mqtt-ffi"]
+
+[export]
+# These types are hidden behind a void pointer, let's inlude them
+include = ["CNumberValue",
+           "COrdinalValue",
+           "CPercentageValue",
+           "CInstantTimeValue",
+           "CTimeIntervalValue",
+           "CAmountOfMoneyValue",
+           "CTemperatureValue",
+           "CDurationValue"]

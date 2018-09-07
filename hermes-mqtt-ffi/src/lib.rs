@@ -28,8 +28,10 @@ pub extern "C" fn hermes_protocol_handler_new_mqtt(
         broker_address: *const libc::c_char,
     ) -> Result<(), failure::Error> {
         let address = create_rust_string_from!(broker_address);
-        let cph = CProtocolHandler::new(hermes_mqtt::MqttHermesProtocolHandler::new(&address)
-            .with_context(|e| format_err!("Could not create hermes MQTT handler: {:?}", e))?);
+        let cph = CProtocolHandler::new(Box::new(hermes_mqtt::MqttHermesProtocolHandler::new(&address)
+            .with_context(|e| {
+                format_err!("Could not create hermes MQTT handler: {:?}", e)
+            })?));
         let ptr = CProtocolHandler::into_raw_pointer(cph);
         unsafe {
             *handler = ptr;
@@ -45,7 +47,7 @@ pub extern "C" fn hermes_destroy_mqtt_protocol_handler(
 ) -> SNIPS_RESULT {
     fn destroy_mqtt_handler(handler: *mut CProtocolHandler) -> hermes::Result<()> {
         let handler = unsafe { CProtocolHandler::from_raw_pointer(handler) }?;
-        handler.destroy::<hermes_mqtt::MqttHermesProtocolHandler>();
+        handler.destroy();
         Ok(())
     }
     wrap!(destroy_mqtt_handler(handler))

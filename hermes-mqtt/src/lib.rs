@@ -206,7 +206,8 @@ impl MqttHermesProtocolHandler {
         options.max_packet_size = 10_000_000;
         let mqtt_client = rumqtt::MqttClient::start(options)
             .map_err(SyncFailure::new)
-            .with_context(|_| format_err!("Could not start MQTT client on {}", name))?;
+            .with_context(|_| format_err!("Could not start MQTT client on {}", name))
+            .map_err(|e| { error!("Could not start MQTT client: {:?}", e); e})?;
 
         let mqtt_handler = Arc::new(MqttHandler { mqtt_client });
 
