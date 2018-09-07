@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+
 from ctypes import c_char_p, c_int32, c_int64, c_int, c_float, c_uint8, c_void_p, POINTER, pointer, Structure, byref
 
 
@@ -41,6 +42,10 @@ class CContinueSessionMessage(Structure):
 
     @classmethod
     def build(cls, session_id, text, intent_filter):
+        session_id = session_id.encode('utf-8')
+        text = text.encode('utf-8')
+        intent_filter = [intent_filter_item.encode('utf-8') for intent_filter_item in intent_filter]
+
         c_intent_filter = CStringArray()
         c_intent_filter.size = c_int(len(intent_filter))
         c_intent_filter.data = (c_char_p * len(intent_filter))(*intent_filter)
@@ -63,6 +68,9 @@ class CActionSessionInit(Structure):
 
     @classmethod
     def build(cls, text, intent_filter, can_be_enqueued_boolean):
+        text = text.encode('utf-8')
+        intent_filter = [intent_filter_item.encode('utf-8') for intent_filter_item in intent_filter]
+
         c_intent_filter = CStringArray()
         c_intent_filter.size = c_int(len(intent_filter))
         c_intent_filter.data = (c_char_p * len(intent_filter))(*intent_filter)
@@ -77,6 +85,9 @@ class CSessionInitAction(CSessionInit):
 
     @classmethod
     def build(cls, text, intent_filter, can_be_enqueued_boolean):
+        text = text.encode('utf-8')
+        intent_filter = [intent_filter_item.encode('utf-8') for intent_filter_item in intent_filter]
+
         cActionSessionInit = CActionSessionInit.build(text, intent_filter, can_be_enqueued_boolean)
         return cls(c_int(1), pointer(cActionSessionInit))
 
@@ -86,7 +97,7 @@ class CSessionInitNotification(CSessionInit):
 
     @classmethod
     def build(cls, value):
-        return cls(c_int(0), value)
+        return cls(c_int(0), value.encode('utf-8'))
 
 
 class CStartSessionMessageAction(Structure):
@@ -96,6 +107,8 @@ class CStartSessionMessageAction(Structure):
 
     @classmethod
     def build(cls, init, custom_data, site_id):
+        custom_data = custom_data.encode('utf-8')
+        site_id = site_id.encode('utf-8')
         return cls(init, custom_data, site_id)
 
 class CStartSessionMessageNotification(Structure):
@@ -105,6 +118,8 @@ class CStartSessionMessageNotification(Structure):
 
     @classmethod
     def build(cls, init, custom_data, site_id):
+        custom_data = custom_data.encode('utf-8')
+        site_id = site_id.encode('utf-8')
         return cls(init, custom_data, site_id)
 
 

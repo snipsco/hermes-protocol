@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import absolute_import
+from __future__ import unicode_literals
 from collections import defaultdict
 from six.moves import range
 from dotmap import DotMap
@@ -30,10 +31,10 @@ class IntentMessage(object):
 
     @classmethod
     def from_c_repr(cls, c_repr):
-        session_id = c_repr.session_id
-        custom_data = c_repr.custom_data
-        site_id = c_repr.site_id
-        input = c_repr.input
+        session_id = c_repr.session_id.decode('utf-8')
+        custom_data = c_repr.custom_data.decode('utf-8') if c_repr.custom_data else None
+        site_id = c_repr.site_id.decode('utf-8')
+        input = c_repr.input.decode('utf-8')
         intent = IntentClassifierResult.from_c_repr(c_repr.intent.contents)
         slots = SlotMap.from_c_repr(c_repr.slots.contents)  # TODO : Handle no slot case !
         return cls(session_id, custom_data, site_id, input, intent, slots)
@@ -51,7 +52,7 @@ class IntentClassifierResult(object):
 
     @classmethod
     def from_c_repr(cls, c_repr):
-        intent_name = c_repr.intent_name
+        intent_name = c_repr.intent_name.decode('utf-8')
         probability = c_repr.probability
         return cls(intent_name, probability)
 
@@ -66,7 +67,7 @@ class SlotMap(DotMap):
 
         for i in range(slots_list_length):
             slot = Slot.from_c_repr(c_slots_array_repr[i])
-            mapping[slot.slot_name].append(slot)
+            mapping[slot.slot_name.decode('utf-8')].append(slot)
         return cls(mapping)
 
 
@@ -113,9 +114,9 @@ class Slot(object):
     @classmethod
     def from_c_repr(cls, c_repr):
         slot_value = SlotValue.from_c_repr(c_repr.value)
-        raw_value = c_repr.raw_value
-        entity = c_repr.entity
-        slot_name = c_repr.slot_name
+        raw_value = c_repr.raw_value.decode('utf-8')
+        entity = c_repr.entity.decode('utf-8')
+        slot_name = c_repr.slot_name.decode('utf-8')
         range_start = c_repr.range_start
         range_end = c_repr.range_end
 
@@ -139,7 +140,7 @@ class SlotValue(object):
 
         if 1 == value_type:  # CUSTOM
             c_repr_custom_value = c_repr.value
-            string_value = string_at(c_repr_custom_value)
+            string_value = string_at(c_repr_custom_value).decode('utf-8')
             value = CustomValue(string_value)
         elif 2 == value_type: # NUMBER
             c_repr_number = c_double.from_address(c_repr.value)
