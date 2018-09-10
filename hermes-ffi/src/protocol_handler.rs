@@ -1,4 +1,3 @@
-use ffi_utils::RawPointerConverter;
 use hermes::HermesProtocolHandler;
 
 #[repr(C)]
