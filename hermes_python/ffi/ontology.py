@@ -59,6 +59,10 @@ class CEndSessionMessage(Structure):
     _fields_ = [("session_id", c_char_p),
                 ("text", c_char_p)]
 
+    @classmethod
+    def build(cls, session_id, text):
+        return cls(session_id.encode('utf-8'), text.encode('utf-8'))
+
 class CSessionInit(Structure):
     _fields_ = [("init_type", c_int32)]  # 1 : Action, 2: Notification
 

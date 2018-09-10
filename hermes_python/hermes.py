@@ -167,7 +167,7 @@ class Hermes(object):
         :param text: The text the TTS should say to end the session.
         :return: the current instance of Hermes to allow chaining.
         """
-        cEndSessionMessage = CEndSessionMessage(session_id, text)
+        cEndSessionMessage = CEndSessionMessage.build(session_id, text)
         lib.hermes_dialogue_publish_end_session(self._facade, byref(cEndSessionMessage))
         return self
 
