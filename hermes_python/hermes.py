@@ -74,7 +74,7 @@ class Hermes(object):
                                                         IntentMessage))
 
         number_of_callbacks = len(self._c_callback_subscribe_intent)
-        lib.hermes_dialogue_subscribe_intent(self._facade, c_char_p(intent_name), self._c_callback_subscribe_intent[number_of_callbacks - 1]) # We retrieve the last callback we
+        lib.hermes_dialogue_subscribe_intent(self._facade, c_char_p(intent_name.encode('utf-8')), self._c_callback_subscribe_intent[number_of_callbacks - 1]) # We retrieve the last callback we
         return self
 
     def subscribe_intents(self, user_callback_subscribe_intents):
