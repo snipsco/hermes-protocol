@@ -2,4 +2,6 @@ mock
 pytest
 coverage
 pytest-cov
-setuptools_rust
+dotmap
+future
+git+https://github.com/snipsco-forks/setuptools-rust.git@develop
