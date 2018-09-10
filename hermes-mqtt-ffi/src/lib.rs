@@ -45,7 +45,7 @@ pub extern "C" fn hermes_protocol_handler_new_mqtt(
 pub extern "C" fn hermes_destroy_mqtt_protocol_handler(
     handler: *mut CProtocolHandler,
 ) -> SNIPS_RESULT {
-    fn destroy_mqtt_handler(handler: *mut CProtocolHandler) -> hermes::Result<()> {
+    fn destroy_mqtt_handler(handler: *mut CProtocolHandler) -> Result<(), failure::Error> {
         let handler = unsafe { CProtocolHandler::from_raw_pointer(handler) }?;
         handler.destroy();
         Ok(())
