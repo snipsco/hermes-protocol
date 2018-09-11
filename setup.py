@@ -26,7 +26,8 @@ extras_require = {
         "pytest",
         "coverage",
         "pytest-cov",
-        "setuptools_rust"
+        "setuptools_rust", 
+        "future"
     ],
 }
 
