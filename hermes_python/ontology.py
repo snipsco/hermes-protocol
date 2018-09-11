@@ -165,7 +165,7 @@ class SlotValue(object):
             value = DurationValue.from_c_repr(c_repr_duration_value)
         elif 9 == value_type: # PERCENTAGE
             c_repr_percentage = c_double.from_address(c_repr.value)
-            value = c_repr_percentage.value
+            value = PercentageValue(c_repr_percentage.value)
         else:
             raise Exception("Bad value type. Got : {}".format(value_type))
 
@@ -395,3 +395,13 @@ class DurationValue(object):
         seconds = c_repr.seconds
         precision = c_repr.precision
         return cls(years, quarters, months, weeks, days, hours, minutes, seconds, precision)
+
+
+class PercentageValue(object):
+    def __init__(self, value):
+        """
+        A structured representation of Percentage Value slot type.
+
+        :param value:
+        """
+        self.value = value
