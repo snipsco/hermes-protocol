@@ -268,8 +268,8 @@ class CNluSlotArray(p: Pointer?) : Structure(p), Structure.ByReference {
     override fun getFieldOrder() = listOf("entries", "count")
 
     fun toSlotList(): List<Slot> = if (count > 0) {
-        entries!!.getPointerArray(0, count).map { (it as CNluSlot).toSlot() }
-    } else listOf<Slot>()
+        entries!!.getPointerArray(0, count).map { CNluSlot(it).toSlot() }
+    } else listOf()
 }
 
 class CIntentMessage(p: Pointer) : Structure(p), Structure.ByReference {
