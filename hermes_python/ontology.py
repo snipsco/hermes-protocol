@@ -165,7 +165,7 @@ class SlotValue(object):
             value = DurationValue.from_c_repr(c_repr_duration_value)
         elif 9 == value_type: # PERCENTAGE
             c_repr_percentage = c_double.from_address(c_repr.value)
-            value = float(c_repr_percentage)
+            value = c_repr_percentage.value
         else:
             raise Exception("Bad value type. Got : {}".format(value_type))
 
