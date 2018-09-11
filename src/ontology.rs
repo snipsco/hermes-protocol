@@ -5,7 +5,6 @@ use base64;
 use chrono::prelude::*;
 use semver;
 use serde;
-use snips_nlu_ontology::{IntentClassifierResult, Slot};
 
 use serde::{Serialize, Serializer, Deserialize, Deserializer};
 
@@ -308,7 +307,7 @@ pub struct NluSlot {
     /// The slot confidence
     pub confidence: Option<f32>,
     #[serde(flatten)]
-    pub nlu_slot: Slot,
+    pub nlu_slot: ::snips_nlu_ontology::Slot,
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
@@ -319,7 +318,7 @@ pub struct NluIntentMessage {
     /// The input that was processed
     pub input: String,
     /// The result of the intent classification
-    pub intent: IntentClassifierResult,
+    pub intent: ::snips_nlu_ontology::IntentClassifierResult,
     /// The detected slots, if any
     pub slots: Option<Vec<NluSlot>>,
     /// An optional session id if there is a related session
@@ -340,7 +339,7 @@ pub struct IntentMessage {
     /// The input that generated this intent
     pub input: String,
     /// The result of the intent classification
-    pub intent: IntentClassifierResult,
+    pub intent: ::snips_nlu_ontology::IntentClassifierResult,
     /// The detected slots, if any
     pub slots: Option<Vec<NluSlot>>,
 }
