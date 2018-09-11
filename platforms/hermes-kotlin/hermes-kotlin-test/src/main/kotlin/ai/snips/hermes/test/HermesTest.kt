@@ -9,7 +9,6 @@ import ai.snips.hermes.ffi.CContinueSessionMessage
 import ai.snips.hermes.ffi.CEndSessionMessage
 import ai.snips.hermes.ffi.CInjectionRequestMessage
 import ai.snips.hermes.ffi.CIntentNotRecognizedMessage
-import ai.snips.hermes.ffi.CIntentNotRecognizedMessage.Companion
 import ai.snips.hermes.ffi.CMapStringToStringArray
 import ai.snips.hermes.ffi.CStartSessionMessage
 import ai.snips.hermes.test.HermesTest.HermesTestLib.Companion.INSTANCE

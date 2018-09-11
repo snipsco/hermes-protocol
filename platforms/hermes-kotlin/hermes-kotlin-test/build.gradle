@@ -56,7 +56,6 @@ soForJar.forEach {
         into destDir
     }
     processResources.dependsOn(taskName)
-
 }
 
 sourceSets {
