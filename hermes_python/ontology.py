@@ -102,7 +102,7 @@ class NluSlot(object):
     @classmethod
     def from_c_repr(cls, c_repr):
         confidence = c_repr.confidence
-        slot = Slot.from_c_repr(c_repr.nlu_slot[0])  # TODO : pouloulou
+        slot = Slot.from_c_repr(c_repr.nlu_slot[0])
         return cls(confidence, slot)
 
 class Slot(object):
