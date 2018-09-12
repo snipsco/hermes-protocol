@@ -64,12 +64,13 @@ class SlotMap(DotMap):
     def from_c_repr(cls, c_slots_list_repr):
         mapping = defaultdict(SlotsList)
 
-        slots_list_length = c_slots_list_repr.size
-        c_slots_array_repr = c_slots_list_repr.slots
+        slots_list_length = c_slots_list_repr.count
+        c_slots_array_repr = c_slots_list_repr.entries
 
         for i in range(slots_list_length):
-            slot = Slot.from_c_repr(c_slots_array_repr[i])
-            mapping[slot.slot_name].append(slot)
+            nlu_slot = NluSlot.from_c_repr(c_slots_array_repr[i].contents)
+            slot_name = nlu_slot.slot.slot_name
+            mapping[slot_name].append(nlu_slot)
         return cls(mapping)
 
 
@@ -80,7 +81,7 @@ class SlotsList(list):  # An extension to make things easier to reach slot_value
         :return:
         """
         if len(self) > 0:
-            return self[0].slot_value.value
+            return self[0].slot.slot_value.value
         else:
             return None
     def all(self):
@@ -89,10 +90,20 @@ class SlotsList(list):  # An extension to make things easier to reach slot_value
         :return:
         """
         if len(self) > 0:
-            return [element.slot_value.value for element in self]
+            return [element.slot.slot_value.value for element in self]
         else:
             return None
 
+class NluSlot(object):
+    def __init__(self, confidence, nlu_slot):
+        self.confidence = confidence
+        self.slot = nlu_slot
+
+    @classmethod
+    def from_c_repr(cls, c_repr):
+        confidence = c_repr.confidence
+        slot = Slot.from_c_repr(c_repr.nlu_slot[0])  # TODO : pouloulou
+        return cls(confidence, slot)
 
 class Slot(object):
     def __init__(self, slot_value, raw_value, entity, slot_name, range_start, range_end):

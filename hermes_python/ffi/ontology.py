@@ -152,12 +152,24 @@ class CSlot(Structure):
     ]
 
 
+class CNluSlot(Structure):
+    _fields_ = [
+        ("confidence", c_float),
+        ("nlu_slot", POINTER(CSlot))
+    ]
+
+
 class CSlotList(Structure):
     _fields_ = [
         ("slots", POINTER(CSlot)),
         ("size", c_int32)
     ]
 
+class CNluSlotArray(Structure):
+    _fields_ = [
+        ("entries", POINTER(POINTER(CNluSlot))), # *const *const CNluSlot,
+        ("count", c_int) # TODO : c_int32 ?
+    ]
 
 class CIntentMessage(Structure):
     _fields_ = [("session_id", c_char_p),
@@ -165,7 +177,7 @@ class CIntentMessage(Structure):
                 ("site_id", c_char_p),
                 ("input", c_char_p),
                 ("intent", POINTER(CIntentClassifierResult)),
-                ("slots", POINTER(CSlotList))]
+                ("slots", POINTER(CNluSlotArray))]
 
 class CSessionTermination(Structure):
     _fields_ = [("termination_type", c_int),
