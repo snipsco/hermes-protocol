@@ -38,7 +38,7 @@ class IntentMessage(object):
         site_id = c_repr.site_id.decode('utf-8')
         input = c_repr.input.decode('utf-8')
         intent = IntentClassifierResult.from_c_repr(c_repr.intent.contents)
-        slots = SlotMap.from_c_repr(c_repr.slots.contents)  # TODO : Handle no slot case !
+        slots = SlotMap.from_c_repr(c_repr.slots.contents)
         return cls(session_id, custom_data, site_id, input, intent, slots)
 
 class IntentClassifierResult(object):

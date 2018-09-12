@@ -168,7 +168,7 @@ class CSlotList(Structure):
 class CNluSlotArray(Structure):
     _fields_ = [
         ("entries", POINTER(POINTER(CNluSlot))), # *const *const CNluSlot,
-        ("count", c_int) # TODO : c_int32 ?
+        ("count", c_int)
     ]
 
 class CIntentMessage(Structure):
