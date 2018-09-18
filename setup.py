@@ -45,7 +45,7 @@ setup(
     download_url='',
     license='MIT',
     keywords=['snips'],
-    install_requires=['six', 'dotmap'],
+    install_requires=['six', 'dotmap', 'future'],
     rust_extensions=[RustExtension(TARGET, CARGO_FILE_PATH, binding=Binding.NoBinding, dinghy=True, rust_x_compile_target="armv7-unknown-linux-gnueabihf", dinghy_platform="raspbian")],
     test_suite="tests",
     extras_require=extras_require,
