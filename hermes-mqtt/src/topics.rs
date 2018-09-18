@@ -28,6 +28,7 @@ pub enum HermesTopic {
     Nlu(NluCommand),
     Intent(String),
     AudioServer(Option<SiteId>, AudioServerCommand),
+    Injection(InjectionCommand),
     Component(Option<String>, Component, ComponentCommand),
 }
 
@@ -42,9 +43,6 @@ impl HermesTopic {
             Some("toggleOff") => Some(Asr(ToggleOff)),
             Some("textCaptured") => Some(Asr(TextCaptured)),
             Some("partialTextCaptured") => Some(Asr(PartialTextCaptured)),
-            Some("inject") => Some(Asr(Inject)),
-            Some("injectStatus") => Some(Asr(InjectStatus)),
-            Some("injectStatusRequest") => Some(Asr(InjectStatusRequest)),
             Some("reload") => Some(Asr(Reload)),
             Some("versionRequest") => Some(HermesTopic::Component(
                 None,
@@ -238,6 +236,32 @@ impl HermesTopic {
             _ => None,
         }
     }
+
+    fn parse_injection<'a, It: Iterator<Item = &'a str>>(mut comps: It) -> Option<HermesTopic> {
+        use HermesTopic::Injection;
+        use InjectionCommand::*;
+        match comps.next() {
+            Some("perform") => Some(Injection(Perform)),
+            Some("status") => Some(Injection(Status)),
+            Some("statusRequest") => Some(Injection(StatusRequest)),
+            Some("versionRequest") => Some(HermesTopic::Component(
+                None,
+                Component::Injection,
+                ComponentCommand::VersionRequest,
+            )),
+            Some("version") => Some(HermesTopic::Component(
+                None,
+                Component::Injection,
+                ComponentCommand::Version,
+            )),
+            Some("error") => Some(HermesTopic::Component(
+                None,
+                Component::Injection,
+                ComponentCommand::Error,
+            )),
+            _ => None,
+        }
+    }
 }
 
 impl FromPath<Self> for HermesTopic {
@@ -262,6 +286,7 @@ impl FromPath<Self> for HermesTopic {
             Some("hotword") => HermesTopic::parse_hotword(comps),
             Some("nlu") => HermesTopic::parse_nlu(comps),
             Some("tts") => HermesTopic::parse_tts(comps),
+            Some("injection") => HermesTopic::parse_injection(comps),
             _ => None,
         }
     }
@@ -304,6 +329,7 @@ impl fmt::Display for HermesTopic {
                     format!("{}/{}", Component::AudioServer.as_path(), cmd.as_path())
                 }
             }
+            HermesTopic::Injection(ref cmd) => format!("{}/{}", Component::Injection.as_path(), cmd.as_path()),
         };
         write!(f, "hermes/{}", subpath)
     }
@@ -317,6 +343,7 @@ pub enum Component {
     Nlu,
     DialogueManager,
     AudioServer,
+    Injection,
 }
 
 impl ToPath for Component {}
@@ -378,9 +405,6 @@ pub enum AsrCommand {
     TextCaptured,
     PartialTextCaptured,
     Reload,
-    Inject,
-    InjectStatus,
-    InjectStatusRequest,
 }
 
 impl ToPath for AsrCommand {}
@@ -427,6 +451,15 @@ impl fmt::Display for AudioServerCommand {
 }
 
 impl ToPath for AudioServerCommand {}
+
+#[derive(Debug, Clone, PartialEq, ToString)]
+pub enum InjectionCommand {
+    Perform,
+    Status,
+    StatusRequest,
+}
+
+impl ToPath for InjectionCommand {}
 
 #[derive(Debug, Clone, Copy, PartialEq, ToString)]
 pub enum ComponentCommand {
@@ -556,9 +589,6 @@ mod tests {
                 "hermes/asr/partialTextCaptured",
             ),
             (HermesTopic::Asr(AsrCommand::Reload), "hermes/asr/reload"),
-            (HermesTopic::Asr(AsrCommand::Inject), "hermes/asr/inject"),
-            (HermesTopic::Asr(AsrCommand::InjectStatus), "hermes/asr/injectStatus"),
-            (HermesTopic::Asr(AsrCommand::InjectStatusRequest), "hermes/asr/injectStatusRequest"),
             (
                 HermesTopic::Component(None, Component::Asr, ComponentCommand::VersionRequest),
                 "hermes/asr/versionRequest",
@@ -668,6 +698,9 @@ mod tests {
                 HermesTopic::Component(None, Component::Nlu, ComponentCommand::Error),
                 "hermes/nlu/error",
             ),
+            (HermesTopic::Injection(InjectionCommand::Perform), "hermes/injection/perform"),
+            (HermesTopic::Injection(InjectionCommand::Status), "hermes/injection/status"),
+            (HermesTopic::Injection(InjectionCommand::StatusRequest), "hermes/injection/statusRequest"),
         ]
     }
 

@@ -142,9 +142,6 @@ pub trait AsrFacade: ComponentFacade + ToggleableFacade {
     fn publish_start_listening(&self, site: SiteMessage) -> Result<()>;
     fn publish_stop_listening(&self, site: SiteMessage) -> Result<()>;
     fn publish_reload(&self) -> Result<()>;
-    fn publish_injection_request(&self, request: InjectionRequest) -> Result<()>;
-    fn publish_injection_status_request(&self) -> Result<()>;
-    fn subscribe_injection_status(&self, handler: Callback<InjectionStatus>) -> Result<()>;
     fn subscribe_text_captured(&self, handler: Callback<TextCapturedMessage>) -> Result<()>;
     fn subscribe_partial_text_captured(&self, handler: Callback<TextCapturedMessage>) -> Result<()>;
 }
@@ -155,11 +152,8 @@ pub trait AsrBackendFacade: ComponentBackendFacade + ToggleableBackendFacade {
     fn subscribe_start_listening(&self, handler: Callback<SiteMessage>) -> Result<()>;
     fn subscribe_stop_listening(&self, handler: Callback<SiteMessage>) -> Result<()>;
     fn subscribe_reload(&self, handler: Callback0) -> Result<()>;
-    fn subscribe_injection_request(&self, handler: Callback<InjectionRequest>) -> Result<()>;
-    fn subscribe_injection_status_request(&self, handler: Callback0) -> Result<()>;
     fn publish_text_captured(&self, text_captured: TextCapturedMessage) -> Result<()>;
     fn publish_partial_text_captured(&self, text_captured: TextCapturedMessage) -> Result<()>;
-    fn publish_injection_status(&self, status: InjectionStatus) -> Result<()>;
 }
 
 /// The facade to interact with the text to speech component
@@ -253,6 +247,20 @@ pub trait DialogueBackendFacade: ComponentBackendFacade + ToggleableBackendFacad
     fn subscribe_end_session(&self, handler: Callback<EndSessionMessage>) -> Result<()>;
 }
 
+/// The facade to interact with the injection component
+pub trait InjectionFacade: ComponentFacade {
+    fn publish_injection_request(&self, request: InjectionRequest) -> Result<()>;
+    fn publish_injection_status_request(&self) -> Result<()>;
+    fn subscribe_injection_status(&self, handler: Callback<InjectionStatus>) -> Result<()>;
+}
+
+/// The facade the injecter must use to receive its orders and advertise when it has finished
+pub trait InjectionBackendFacade: ComponentBackendFacade {
+    fn subscribe_injection_request(&self, handler: Callback<InjectionRequest>) -> Result<()>;
+    fn subscribe_injection_status_request(&self, handler: Callback0) -> Result<()>;
+    fn publish_injection_status(&self, status: InjectionStatus) -> Result<()>;
+}
+
 pub trait HermesProtocolHandler: Send + Sync + std::fmt::Display {
     fn hotword(&self) -> Box<HotwordFacade>;
     fn sound_feedback(&self) -> Box<SoundFeedbackFacade>;
@@ -261,6 +269,7 @@ pub trait HermesProtocolHandler: Send + Sync + std::fmt::Display {
     fn nlu(&self) -> Box<NluFacade>;
     fn audio_server(&self) -> Box<AudioServerFacade>;
     fn dialogue(&self) -> Box<DialogueFacade>;
+    fn injection(&self) -> Box<InjectionFacade>;
     fn hotword_backend(&self) -> Box<HotwordBackendFacade>;
     fn sound_feedback_backend(&self) -> Box<SoundFeedbackBackendFacade>;
     fn asr_backend(&self) -> Box<AsrBackendFacade>;
@@ -268,4 +277,5 @@ pub trait HermesProtocolHandler: Send + Sync + std::fmt::Display {
     fn nlu_backend(&self) -> Box<NluBackendFacade>;
     fn audio_server_backend(&self) -> Box<AudioServerBackendFacade>;
     fn dialogue_backend(&self) -> Box<DialogueBackendFacade>;
+    fn injection_backend(&self) -> Box<InjectionBackendFacade>;
 }

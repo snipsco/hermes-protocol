@@ -4,3 +4,4 @@ version = "0.59.0-RC2-SNAPSHOT"
 authors = ["Thibaut Lorrain <thibaut.lorrain@snips.ai>"]
 
 [dependencies]
+chrono = "0.4"

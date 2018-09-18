@@ -81,6 +81,12 @@ impl HermesProtocolHandler for InProcessHermesProtocolHandler {
     fn tts_backend(&self) -> Box<TtsBackendFacade> {
         self.get_handler(Tts)
     }
+    fn injection(&self) -> Box<InjectionFacade> {
+        self.get_handler(Injection)
+    }
+    fn injection_backend(&self) -> Box<InjectionBackendFacade> {
+        self.get_handler(Injection)
+    }
 }
 
 impl std::fmt::Display for InProcessHermesProtocolHandler {
@@ -522,19 +528,6 @@ struct AsrStopListening {
 struct AsrReload {}
 
 #[derive(Debug)]
-struct AsrInject {
-    request: InjectionRequest,
-}
-
-#[derive(Debug)]
-struct AsrInjectStatus {
-    status: InjectionStatus,
-}
-
-#[derive(Debug)]
-struct AsrInjectStatusRequest {}
-
-#[derive(Debug)]
 struct AsrTextCaptured {
     text_captured: TextCapturedMessage,
 }
@@ -557,14 +550,6 @@ impl AsrFacade for InProcessComponent<Asr> {
         self.publish(AsrReload {})
     }
 
-    fn publish_injection_request(&self, request: InjectionRequest) -> Result<()> {
-        self.publish(AsrInject { request })
-    }
-
-    fn publish_injection_status_request(&self) -> Result<()> {
-        self.publish(AsrInjectStatusRequest {})
-    }
-
     fn subscribe_text_captured(&self, handler: Callback<TextCapturedMessage>) -> Result<()> {
         subscribe!(self, AsrTextCaptured { text_captured }, handler)
     }
@@ -574,10 +559,6 @@ impl AsrFacade for InProcessComponent<Asr> {
         handler: Callback<TextCapturedMessage>,
     ) -> Result<()> {
         subscribe!(self, AsrPartialTextCaptured { text_captured }, handler)
-    }
-
-    fn subscribe_injection_status(&self, handler: Callback<InjectionStatus>) -> Result<()> {
-        subscribe!(self, AsrInjectStatus { status }, handler)
     }
 }
 
@@ -594,24 +575,12 @@ impl AsrBackendFacade for InProcessComponent<Asr> {
         subscribe!(self, AsrReload, handler)
     }
 
-    fn subscribe_injection_request(&self, handler: Callback<InjectionRequest>) -> Result<()> {
-        subscribe!(self, AsrInject { request }, handler)
-    }
-
-    fn subscribe_injection_status_request(&self, handler: Callback0) -> Result<()> {
-        subscribe!(self, AsrInjectStatusRequest, handler)
-    }
-
     fn publish_text_captured(&self, text_captured: TextCapturedMessage) -> Result<()> {
         self.publish(AsrTextCaptured { text_captured })
     }
 
     fn publish_partial_text_captured(&self, text_captured: TextCapturedMessage) -> Result<()> {
         self.publish(AsrPartialTextCaptured { text_captured })
-    }
-
-    fn publish_injection_status(&self, status: InjectionStatus) -> Result<()> {
-        self.publish(AsrInjectStatus { status })
     }
 }
 
@@ -831,6 +800,51 @@ impl DialogueBackendFacade for InProcessComponent<Dialogue> {
 
     fn subscribe_end_session(&self, handler: Callback<EndSessionMessage>) -> Result<()> {
         subscribe!(self, DialogueEndSession { end_session }, handler)
+    }
+}
+
+
+#[derive(Debug, Clone, Copy)]
+struct Injection;
+
+#[derive(Debug)]
+struct InjectionPerform {
+    request: InjectionRequest,
+}
+
+#[derive(Debug)]
+struct InjectionSendStatus {
+    status: InjectionStatus,
+}
+
+#[derive(Debug)]
+struct InjectionStatusRequest {}
+
+impl InjectionFacade for InProcessComponent<Injection> {
+    fn publish_injection_request(&self, request: InjectionRequest) -> Result<()> {
+        self.publish(InjectionPerform { request })
+    }
+
+    fn publish_injection_status_request(&self) -> Result<()> {
+        self.publish(InjectionStatusRequest {})
+    }
+
+    fn subscribe_injection_status(&self, handler: Callback<InjectionStatus>) -> Result<()> {
+        subscribe!(self, InjectionSendStatus { status }, handler)
+    }
+}
+
+impl InjectionBackendFacade for InProcessComponent<Injection> {
+    fn subscribe_injection_request(&self, handler: Callback<InjectionRequest>) -> Result<()> {
+        subscribe!(self, InjectionPerform { request }, handler)
+    }
+
+    fn subscribe_injection_status_request(&self, handler: Callback0) -> Result<()> {
+        subscribe!(self, InjectionStatusRequest, handler)
+    }
+
+    fn publish_injection_status(&self, status: InjectionStatus) -> Result<()> {
+        self.publish(InjectionSendStatus { status })
     }
 }
 

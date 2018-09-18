@@ -1,3 +1,11 @@
+extern crate chrono;
+
+use chrono::prelude::*;
+
+pub fn now() -> DateTime<Utc> {
+    Utc::now()
+}
+
 #[macro_export]
 macro_rules! t {
     (
@@ -306,9 +314,6 @@ macro_rules! test_suite {
                     with SiteMessage { session_id: Some("abc".into()), site_id: "some site".into() };);
         t!(asr_reload:
                 asr_backend.subscribe_reload <= asr.publish_reload);
-        t!(asr_injection_request:
-                    asr_backend.subscribe_injection_request <= InjectionRequest | asr.publish_injection_request
-                    with InjectionRequest { operations: vec![], lexicon: ::std::collections::HashMap::new(), cross_language: None, id: Some("abc".into()) };);
 
         t_component!(tts_component: tts_backend | tts);
         t!(tts_say_works:
@@ -396,5 +401,14 @@ macro_rules! test_suite {
         t!(dialogue_end_session_works:
                     dialogue_backend.subscribe_end_session <= EndSessionMessage | dialogue.publish_end_session
                     with EndSessionMessage { session_id: "some id".into(), text: None };);
+
+        t!(injection_request:
+                    injection_backend.subscribe_injection_request <= InjectionRequest | injection.publish_injection_request
+                    with InjectionRequest { operations: vec![], lexicon: ::std::collections::HashMap::new(), cross_language: None, id: Some("abc".into()) };);
+        t!(injection_status_request:
+                    injection_backend.subscribe_injection_status_request <= injection.publish_injection_status_request);
+        t!(injection_status:
+                    injection.subscribe_injection_status <= InjectionStatus | injection_backend.publish_injection_status
+                    with InjectionStatus { last_injection_date: Some($crate::now()) };);
     };
 }

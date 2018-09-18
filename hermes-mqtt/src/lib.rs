@@ -507,22 +507,16 @@ impl AsrFacade for MqttToggleableComponentFacade {
     p!(publish_start_listening<SiteMessage> &HermesTopic::Asr(AsrCommand::StartListening););
     p!(publish_stop_listening<SiteMessage> &HermesTopic::Asr(AsrCommand::StopListening););
     p!(publish_reload &HermesTopic::Asr(AsrCommand::Reload););
-    p!(publish_injection_request<InjectionRequest> &HermesTopic::Asr(AsrCommand::Inject););
-    p!(publish_injection_status_request &HermesTopic::Asr(AsrCommand::InjectStatusRequest););
     s!(subscribe_text_captured<TextCapturedMessage> &HermesTopic::Asr(AsrCommand::TextCaptured););
     s!(subscribe_partial_text_captured<TextCapturedMessage> &HermesTopic::Asr(AsrCommand::PartialTextCaptured););
-    s!(subscribe_injection_status<InjectionStatus> &HermesTopic::Asr(AsrCommand::InjectStatus););
 }
 
 impl AsrBackendFacade for MqttToggleableComponentFacade {
     s!(subscribe_start_listening<SiteMessage> &HermesTopic::Asr(AsrCommand::StartListening););
     s!(subscribe_stop_listening<SiteMessage> &HermesTopic::Asr(AsrCommand::StopListening););
     s!(subscribe_reload &HermesTopic::Asr(AsrCommand::Reload););
-    s!(subscribe_injection_request<InjectionRequest> &HermesTopic::Asr(AsrCommand::Inject););
-    s!(subscribe_injection_status_request &HermesTopic::Asr(AsrCommand::InjectStatusRequest););
     p!(publish_text_captured<TextCapturedMessage> &HermesTopic::Asr(AsrCommand::TextCaptured););
     p!(publish_partial_text_captured<TextCapturedMessage> &HermesTopic::Asr(AsrCommand::PartialTextCaptured););
-    p!(publish_injection_status<InjectionStatus> &HermesTopic::Asr(AsrCommand::InjectStatus););
 }
 
 impl TtsFacade for MqttComponentFacade {
@@ -613,6 +607,18 @@ impl DialogueBackendFacade for MqttToggleableComponentFacade {
     s!(subscribe_end_session<EndSessionMessage> &HermesTopic::DialogueManager(DialogueManagerCommand::EndSession););
 }
 
+impl InjectionFacade for MqttComponentFacade {
+    p!(publish_injection_request<InjectionRequest> &HermesTopic::Injection(InjectionCommand::Perform););
+    p!(publish_injection_status_request &HermesTopic::Injection(InjectionCommand::StatusRequest););
+    s!(subscribe_injection_status<InjectionStatus> &HermesTopic::Injection(InjectionCommand::Status););
+}
+
+impl InjectionBackendFacade for MqttComponentFacade {
+    s!(subscribe_injection_request<InjectionRequest> &HermesTopic::Injection(InjectionCommand::Perform););
+    s!(subscribe_injection_status_request &HermesTopic::Injection(InjectionCommand::StatusRequest););
+    p!(publish_injection_status<InjectionStatus> &HermesTopic::Injection(InjectionCommand::Status););
+}
+
 impl MqttHermesProtocolHandler {
     fn hotword_component(&self) -> Box<MqttToggleableComponentFacade> {
         Box::new(MqttToggleableComponentFacade {
@@ -697,6 +703,10 @@ impl HermesProtocolHandler for MqttHermesProtocolHandler {
         self.dialogue_component()
     }
 
+    fn injection(&self) -> Box<InjectionFacade> {
+        self.component(Component::Injection)
+    }
+
     fn hotword_backend(&self) -> Box<HotwordBackendFacade> {
         self.hotword_component()
     }
@@ -723,6 +733,10 @@ impl HermesProtocolHandler for MqttHermesProtocolHandler {
 
     fn dialogue_backend(&self) -> Box<DialogueBackendFacade> {
         self.dialogue_component()
+    }
+
+    fn injection_backend(&self) -> Box<InjectionBackendFacade> {
+        self.component(Component::Injection)
     }
 }
 
