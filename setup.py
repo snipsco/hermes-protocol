@@ -28,7 +28,6 @@ extras_require = {
         "coverage",
         "pytest-cov",
         "setuptools_rust", 
-        "future"
     ],
 }
 
@@ -39,7 +38,7 @@ def get_rust_extension_command(argvs):
 
 setup(
     name='hermes_python',
-    version='0.1.21',
+    version='0.1.222',
     description='Python bindings for Hermes',
     author='Anthony Reinette',
     author_email='anthony.reinette@snips.ai',
