@@ -1,4 +1,5 @@
 import os
+import sys
 from setuptools import setup, find_packages
 from setuptools_rust import Binding, RustExtension
 
@@ -31,6 +32,11 @@ extras_require = {
     ],
 }
 
+def get_rust_extension_command(argvs):
+    if "--plat-name" in argvs:
+        return RustExtension(TARGET, CARGO_FILE_PATH, binding=Binding.NoBinding, dinghy=True, rust_x_compile_target="armv7-unknown-linux-gnueabihf", dinghy_platform="raspbian")
+    return RustExtension(TARGET, CARGO_FILE_PATH, binding=Binding.NoBinding)
+
 setup(
     name='hermes_python',
     version='0.1.21',
@@ -46,7 +52,7 @@ setup(
     license='MIT',
     keywords=['snips'],
     install_requires=['six', 'dotmap', 'future'],
-    rust_extensions=[RustExtension(TARGET, CARGO_FILE_PATH, binding=Binding.NoBinding, dinghy=True, rust_x_compile_target="armv7-unknown-linux-gnueabihf", dinghy_platform="raspbian")],
+    rust_extensions=[get_rust_extension_command(sys.argv)], 
     test_suite="tests",
     extras_require=extras_require,
     packages=find_packages(),
