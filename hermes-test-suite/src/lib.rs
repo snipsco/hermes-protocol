@@ -402,6 +402,7 @@ macro_rules! test_suite {
                     dialogue_backend.subscribe_end_session <= EndSessionMessage | dialogue.publish_end_session
                     with EndSessionMessage { session_id: "some id".into(), text: None };);
 
+        t_component!(injection_component: injection_backend | injection);
         t!(injection_request:
                     injection_backend.subscribe_injection_request <= InjectionRequestMessage | injection.publish_injection_request
                     with InjectionRequestMessage { operations: vec![], lexicon: ::std::collections::HashMap::new(), cross_language: None, id: Some("abc".into()) };);
