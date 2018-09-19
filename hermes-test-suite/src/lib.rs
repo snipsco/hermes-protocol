@@ -403,12 +403,12 @@ macro_rules! test_suite {
                     with EndSessionMessage { session_id: "some id".into(), text: None };);
 
         t!(injection_request:
-                    injection_backend.subscribe_injection_request <= InjectionRequest | injection.publish_injection_request
-                    with InjectionRequest { operations: vec![], lexicon: ::std::collections::HashMap::new(), cross_language: None, id: Some("abc".into()) };);
+                    injection_backend.subscribe_injection_request <= InjectionRequestMessage | injection.publish_injection_request
+                    with InjectionRequestMessage { operations: vec![], lexicon: ::std::collections::HashMap::new(), cross_language: None, id: Some("abc".into()) };);
         t!(injection_status_request:
                     injection_backend.subscribe_injection_status_request <= injection.publish_injection_status_request);
         t!(injection_status:
-                    injection.subscribe_injection_status <= InjectionStatus | injection_backend.publish_injection_status
-                    with InjectionStatus { last_injection_date: Some($crate::now()) };);
+                    injection.subscribe_injection_status <= InjectionStatusMessage | injection_backend.publish_injection_status
+                    with InjectionStatusMessage { last_injection_date: Some($crate::now()) };);
     };
 }

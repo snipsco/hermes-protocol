@@ -249,16 +249,16 @@ pub trait DialogueBackendFacade: ComponentBackendFacade + ToggleableBackendFacad
 
 /// The facade to interact with the injection component
 pub trait InjectionFacade: ComponentFacade {
-    fn publish_injection_request(&self, request: InjectionRequest) -> Result<()>;
+    fn publish_injection_request(&self, request: InjectionRequestMessage) -> Result<()>;
     fn publish_injection_status_request(&self) -> Result<()>;
-    fn subscribe_injection_status(&self, handler: Callback<InjectionStatus>) -> Result<()>;
+    fn subscribe_injection_status(&self, handler: Callback<InjectionStatusMessage>) -> Result<()>;
 }
 
 /// The facade the injecter must use to receive its orders and advertise when it has finished
 pub trait InjectionBackendFacade: ComponentBackendFacade {
-    fn subscribe_injection_request(&self, handler: Callback<InjectionRequest>) -> Result<()>;
+    fn subscribe_injection_request(&self, handler: Callback<InjectionRequestMessage>) -> Result<()>;
     fn subscribe_injection_status_request(&self, handler: Callback0) -> Result<()>;
-    fn publish_injection_status(&self, status: InjectionStatus) -> Result<()>;
+    fn publish_injection_status(&self, status: InjectionStatusMessage) -> Result<()>;
 }
 
 pub trait HermesProtocolHandler: Send + Sync + std::fmt::Display {

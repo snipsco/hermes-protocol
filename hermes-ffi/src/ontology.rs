@@ -1820,8 +1820,8 @@ impl Drop for CInjectionRequestMessage {
     }
 }
 
-impl CReprOf<hermes::InjectionRequest> for CInjectionRequestMessage {
-    fn c_repr_of(input: hermes::InjectionRequest) -> Result<Self> {
+impl CReprOf<hermes::InjectionRequestMessage> for CInjectionRequestMessage {
+    fn c_repr_of(input: hermes::InjectionRequestMessage) -> Result<Self> {
         Ok(Self {
             operations: CInjectionRequestOperations::c_repr_of(input.operations)?.into_raw_pointer(),
             lexicon: CMapStringToStringArray::c_repr_of(input.lexicon)?.into_raw_pointer(),
@@ -1831,11 +1831,11 @@ impl CReprOf<hermes::InjectionRequest> for CInjectionRequestMessage {
     }
 }
 
-impl AsRust<hermes::InjectionRequest> for CInjectionRequestMessage {
-    fn as_rust(&self) -> Result<hermes::InjectionRequest> {
+impl AsRust<hermes::InjectionRequestMessage> for CInjectionRequestMessage {
+    fn as_rust(&self) -> Result<hermes::InjectionRequestMessage> {
         let operations = unsafe { CInjectionRequestOperations::raw_borrow(self.operations) }?.as_rust()?;
         let lexicon = unsafe { CMapStringToStringArray::raw_borrow(self.lexicon) }?.as_rust()?;
-        Ok(hermes::InjectionRequest {
+        Ok(hermes::InjectionRequestMessage {
             operations,
             lexicon,
             cross_language: create_optional_rust_string_from!(self.cross_language),
@@ -1856,8 +1856,8 @@ impl Drop for CInjectionStatusMessage {
     }
 }
 
-impl CReprOf<hermes::InjectionStatus> for CInjectionStatusMessage {
-    fn c_repr_of(status: hermes::InjectionStatus) -> Result<Self> {
+impl CReprOf<hermes::InjectionStatusMessage> for CInjectionStatusMessage {
+    fn c_repr_of(status: hermes::InjectionStatusMessage) -> Result<Self> {
         let last_injection_date_str = status.last_injection_date.map(|d| d.to_rfc3339());
 
         Ok(Self {
@@ -1866,8 +1866,8 @@ impl CReprOf<hermes::InjectionStatus> for CInjectionStatusMessage {
     }
 }
 
-impl AsRust<hermes::InjectionStatus> for CInjectionStatusMessage {
-    fn as_rust(&self) -> Result<hermes::InjectionStatus> {
+impl AsRust<hermes::InjectionStatusMessage> for CInjectionStatusMessage {
+    fn as_rust(&self) -> Result<hermes::InjectionStatusMessage> {
         let last_injection_date = create_optional_rust_string_from!(self.last_injection_date);
         let last_injection_date = if let Some(date_str) = last_injection_date {
             Some(date_str.parse()?)
@@ -1875,7 +1875,7 @@ impl AsRust<hermes::InjectionStatus> for CInjectionStatusMessage {
             None
         };
 
-        Ok(hermes::InjectionStatus { last_injection_date })
+        Ok(hermes::InjectionStatusMessage { last_injection_date })
     }
 }
 
@@ -2117,7 +2117,7 @@ mod tests {
         lexicon.insert("baz".into(), vec!["bar".to_string(), "foo".to_string()]);
 
         round_trip_test::<_, CInjectionRequestMessage>(
-            hermes::InjectionRequest {
+            hermes::InjectionRequestMessage {
                 cross_language: Some("en".to_string()),
                 operations: vec![
                     (hermes::InjectionKind::Add, HashMap::new()),
@@ -2131,7 +2131,7 @@ mod tests {
 
     #[test]
     fn round_injection_status() {
-        round_trip_test::<_, CInjectionStatusMessage>(hermes::InjectionStatus {
+        round_trip_test::<_, CInjectionStatusMessage>(hermes::InjectionStatusMessage {
             last_injection_date: Some(Utc.ymd(2014, 11, 28).and_hms(12, 0, 9)),
         });
     }

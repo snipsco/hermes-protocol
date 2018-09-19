@@ -248,7 +248,7 @@ impl Serialize for EntityValue {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct InjectionRequest {
+pub struct InjectionRequestMessage {
     /// List of operations to execute in the order of the list on a model
     pub operations: Vec<(InjectionKind, HashMap<Entity, Vec<EntityValue>>)>,
     /// List of pre-computed prononciations to add in a model
@@ -260,16 +260,16 @@ pub struct InjectionRequest {
     pub id: Option<RequestId>,
 }
 
-impl<'de> HermesMessage<'de> for InjectionRequest {}
+impl<'de> HermesMessage<'de> for InjectionRequestMessage {}
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct InjectionStatus {
-    /// List of operations to execute in the order of the list on a model
+pub struct InjectionStatusMessage {
+    /// Date of the latest injection
     pub last_injection_date: Option<DateTime<Utc>>,
 }
 
-impl<'de> HermesMessage<'de> for InjectionStatus {}
+impl<'de> HermesMessage<'de> for InjectionStatusMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -572,7 +572,7 @@ mod test {
             "operations": [["add", {"e_0": ["a", ["b", 42]]}]]
         }"#;
 
-        let my_struct: InjectionRequest = serde_json::from_str(&json).unwrap();
+        let my_struct: InjectionRequestMessage = serde_json::from_str(&json).unwrap();
         let (operation, values_per_entity) = &my_struct.operations[0];
 
         assert_eq!(operation, &InjectionKind::Add);
@@ -586,7 +586,7 @@ mod test {
             "operations": [["add", {"e_0": [["a", 22], ["b", 31]]}]]
         }"#;
 
-        let my_struct: InjectionRequest = serde_json::from_str(&json).unwrap();
+        let my_struct: InjectionRequestMessage = serde_json::from_str(&json).unwrap();
         let (operation, values_per_entity) = &my_struct.operations[0];
 
         assert_eq!(operation, &InjectionKind::Add);
