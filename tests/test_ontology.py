@@ -21,6 +21,10 @@ def test_slot_access():
     assert type(intent_message.slots.test_slot[0].slot_value) is hermes_python.ontology.SlotValue
     assert type(intent_message.slots.test_slot[0].slot_value.value) is hermes_python.ontology.CustomValue
 
+
+def test_unexisting_slot_access():
+    ""
+
 def test_confidence_access():
     custom_slot_value = hermes_python.ontology.CustomValue("custom_slot")
     slot_value = hermes_python.ontology.SlotValue(1, custom_slot_value)
@@ -32,3 +36,5 @@ def test_confidence_access():
     slots = hermes_python.ontology.SlotMap(slot_map)
     intent_message = hermes_python.ontology.IntentMessage("session_id", "", "site_id", "input", "testIntent", slots)
     assert intent_message.slots.test_slot[0].confidence == 0.8
+
+
