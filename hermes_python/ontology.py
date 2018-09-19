@@ -84,6 +84,7 @@ class SlotsList(list):  # An extension to make things easier to reach slot_value
             return self[0].slot_value.value
         else:
             return None
+
     def all(self):
         """
 
