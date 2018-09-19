@@ -1,0 +1,1 @@
+git+https://github.com/snipsco-forks/setuptools-rust.git@develop
