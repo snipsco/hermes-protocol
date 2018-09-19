@@ -193,6 +193,7 @@ impl HermesTopic {
             Some("slotParsed") => Some(Nlu(SlotParsed)),
             Some("intentParsed") => Some(Nlu(IntentParsed)),
             Some("intentNotRecognized") => Some(Nlu(IntentNotRecognized)),
+            Some("reload") => Some(Nlu(Reload)),
             Some("versionRequest") => Some(HermesTopic::Component(
                 None,
                 Component::Nlu,
@@ -424,6 +425,7 @@ pub enum NluCommand {
     SlotParsed,
     IntentParsed,
     IntentNotRecognized,
+    Reload,
 }
 
 impl ToPath for NluCommand {}
@@ -686,6 +688,7 @@ mod tests {
                 HermesTopic::Nlu(NluCommand::IntentNotRecognized),
                 "hermes/nlu/intentNotRecognized",
             ),
+            (HermesTopic::Nlu(NluCommand::Reload), "hermes/nlu/reload"),
             (
                 HermesTopic::Component(None, Component::Nlu, ComponentCommand::VersionRequest),
                 "hermes/nlu/versionRequest",

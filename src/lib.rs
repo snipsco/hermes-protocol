@@ -172,6 +172,7 @@ pub trait TtsBackendFacade: ComponentBackendFacade {
 pub trait NluFacade: ComponentFacade {
     fn publish_query(&self, query: NluQueryMessage) -> Result<()>;
     fn publish_partial_query(&self, query: NluSlotQueryMessage) -> Result<()>;
+    fn publish_reload(&self) -> Result<()>;
     fn subscribe_slot_parsed(&self, handler: Callback<NluSlotMessage>) -> Result<()>;
     fn subscribe_intent_parsed(&self, handler: Callback<NluIntentMessage>) -> Result<()>;
     fn subscribe_intent_not_recognized(
@@ -185,6 +186,7 @@ pub trait NluFacade: ComponentFacade {
 pub trait NluBackendFacade: ComponentBackendFacade {
     fn subscribe_query(&self, handler: Callback<NluQueryMessage>) -> Result<()>;
     fn subscribe_partial_query(&self, handler: Callback<NluSlotQueryMessage>) -> Result<()>;
+    fn subscribe_reload(&self, handler: Callback0) -> Result<()>;
     fn publish_slot_parsed(&self, slot: NluSlotMessage) -> Result<()>;
     fn publish_intent_parsed(&self, intent: NluIntentMessage) -> Result<()>;
     fn publish_intent_not_recognized(&self, status: NluIntentNotRecognizedMessage) -> Result<()>;

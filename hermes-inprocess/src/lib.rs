@@ -392,6 +392,9 @@ struct NluIntentNotRecognized {
     status: NluIntentNotRecognizedMessage,
 }
 
+#[derive(Debug)]
+struct NluReload {}
+
 impl NluFacade for InProcessComponent<Nlu> {
     fn publish_query(&self, query: NluQueryMessage) -> Result<()> {
         self.publish(NluQuery { query })
@@ -399,6 +402,10 @@ impl NluFacade for InProcessComponent<Nlu> {
 
     fn publish_partial_query(&self, query: NluSlotQueryMessage) -> Result<()> {
         self.publish(NluPartialQuery { query })
+    }
+
+    fn publish_reload(&self) -> Result<()> {
+        self.publish(NluReload {})
     }
 
     fn subscribe_slot_parsed(&self, handler: Callback<NluSlotMessage>) -> Result<()> {
@@ -424,6 +431,10 @@ impl NluBackendFacade for InProcessComponent<Nlu> {
 
     fn subscribe_partial_query(&self, handler: Callback<NluSlotQueryMessage>) -> Result<()> {
         subscribe!(self, NluPartialQuery { query }, handler)
+    }
+
+    fn subscribe_reload(&self, handler: Callback0) -> Result<()> {
+        subscribe!(self, NluReload, handler)
     }
 
     fn publish_slot_parsed(&self, slot: NluSlotMessage) -> Result<()> {

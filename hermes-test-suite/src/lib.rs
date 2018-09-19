@@ -344,6 +344,9 @@ macro_rules! test_suite {
         t!(nlu_intent_not_recognized_works:
                     nlu.subscribe_intent_not_recognized <= NluIntentNotRecognizedMessage | nlu_backend.publish_intent_not_recognized
                     with NluIntentNotRecognizedMessage {id: None, input: "hello world".into(), session_id: Some("abc".into()) };);
+        t!(nlu_reload:
+                    nlu_backend.subscribe_reload <= nlu.publish_reload);
+
 
         t_identifiable_component!(audio_server_component: audio_server_backend | audio_server);
         t_identifiable_toggleable!(audio_server_toggeable: audio_server_backend | audio_server);
