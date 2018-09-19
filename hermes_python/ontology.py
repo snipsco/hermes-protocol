@@ -177,6 +177,19 @@ class SlotValue(object):
         elif 9 == value_type: # PERCENTAGE
             c_repr_percentage = c_double.from_address(c_repr.value)
             value = PercentageValue(c_repr_percentage.value)
+        elif 10 == value_type:  # MUSICARTIST
+            c_repr_music_artist_value = c_repr.value
+            string_value = string_at(c_repr_music_artist_value)
+            value = MusicArtistValue(string_value)
+        elif 11 == value_type:  # MUSICALBUM
+            c_repr_music_album_value = c_repr.value
+            string_value = string_at(c_repr_music_album_value)
+            value = MusicAlbumValue(string_value)
+        elif 12 == value_type:  # MUSICTRACK
+            c_repr_music_artist_value = c_repr.value
+            string_value = string_at(c_repr_music_artist_value)
+            value = MusicTrackValue(string_value)
+
         else:
             raise Exception("Bad value type. Got : {}".format(value_type))
 
@@ -416,3 +429,34 @@ class PercentageValue(object):
         :param value:
         """
         self.value = value
+
+
+class MusicArtistValue(object):
+    def __init__(self, string_value):
+        """
+        A structured representation of Percentage Value slot type.
+        A structured representation of Custom Value slot type.
+        :param value:
+       :param string_value: a string value
+        """
+        self.value = string_value
+
+
+class MusicAlbumValue(object):
+    def __init__(self, string_value):
+        """
+        A structured representation of Custom Value slot type.
+
+        :param string_value: a string value
+        """
+        self.value = string_value
+
+
+class MusicTrackValue(object):
+    def __init__(self, string_value):
+        """
+        A structured representation of Custom Value slot type.
+
+        :param string_value: a string value
+        """
+        self.value = string_value
