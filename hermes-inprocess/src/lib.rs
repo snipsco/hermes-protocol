@@ -813,7 +813,7 @@ struct InjectionPerform {
 }
 
 #[derive(Debug)]
-struct InjectionSendStatus {
+struct InjectionStatus {
     status: InjectionStatusMessage,
 }
 
@@ -830,7 +830,7 @@ impl InjectionFacade for InProcessComponent<Injection> {
     }
 
     fn subscribe_injection_status(&self, handler: Callback<InjectionStatusMessage>) -> Result<()> {
-        subscribe!(self, InjectionSendStatus { status }, handler)
+        subscribe!(self, InjectionStatus { status }, handler)
     }
 }
 
@@ -844,7 +844,7 @@ impl InjectionBackendFacade for InProcessComponent<Injection> {
     }
 
     fn publish_injection_status(&self, status: InjectionStatusMessage) -> Result<()> {
-        self.publish(InjectionSendStatus { status })
+        self.publish(InjectionStatus { status })
     }
 }
 
