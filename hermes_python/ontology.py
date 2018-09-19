@@ -69,7 +69,7 @@ class SlotMap(DotMap):
 
         for i in range(slots_list_length):
             nlu_slot = NluSlot.from_c_repr(c_slots_array_repr[i].contents)
-            slot_name = nlu_slot.slot.slot_name
+            slot_name = nlu_slot.slot_name
             mapping[slot_name].append(nlu_slot)
         return cls(mapping)
 
@@ -81,7 +81,7 @@ class SlotsList(list):  # An extension to make things easier to reach slot_value
         :return:
         """
         if len(self) > 0:
-            return self[0].slot.slot_value.value
+            return self[0].slot_value.value
         else:
             return None
     def all(self):
@@ -90,24 +90,39 @@ class SlotsList(list):  # An extension to make things easier to reach slot_value
         :return:
         """
         if len(self) > 0:
-            return [element.slot.slot_value.value for element in self]
+            return [element.slot_value.value for element in self]
         else:
             return None
 
 class NluSlot(object):
-    def __init__(self, confidence, nlu_slot):
+    def __init__(self, confidence, slot_value, raw_value, entity, slot_name, range_start, range_end):
         self.confidence = confidence
-        self.slot = nlu_slot
+        self.slot_value = slot_value
+        self.raw_value = raw_value
+        self.entity = entity
+        self.slot_name = slot_name
+        self.range_start = range_start
+        self.range_end = range_end
 
     @classmethod
     def from_c_repr(cls, c_repr):
         confidence = c_repr.confidence
         slot = Slot.from_c_repr(c_repr.nlu_slot[0])
-        return cls(confidence, slot)
+
+        slot_value = slot.slot_value  # To ensure compatibility, we flatten the data structure ...
+        raw_value = slot.raw_value
+        entity = slot.entity
+        slot_name = slot.slot_name
+        range_start = slot.range_start
+        range_end = slot.range_end
+        return cls(confidence, slot_value, raw_value, entity, slot_name, range_start, range_end)
 
 class Slot(object):
     def __init__(self, slot_value, raw_value, entity, slot_name, range_start, range_end):
         """
+        Deprecated.
+
+        This is kept for compatibility reasons.
         Structured description of a detected slot.
 
         :param slot_value: an slotValue object that represents the value of the parsed slot.
