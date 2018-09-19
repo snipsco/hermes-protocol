@@ -38,7 +38,7 @@ def get_rust_extension_command(argvs):
 
 setup(
     name='hermes_python',
-    version='0.1.222',
+    version='0.1.22',
     description='Python bindings for Hermes',
     author='Anthony Reinette',
     author_email='anthony.reinette@snips.ai',
