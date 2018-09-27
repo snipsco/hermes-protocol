@@ -886,11 +886,35 @@ impl Drop for CIntentNotRecognizedMessage {
     }
 }
 
+pub struct CAsrDecodingDuration {
+    pub start: f32,
+    pub end: f32,
+}
+
+impl CReprOf<hermes::AsrDecodingDuration> for CAsrDecodingDuration {
+    fn c_repr_of(input: hermes::AsrDecodingDuration) -> Result<Self> {
+        Ok(Self {
+            start: input.start,
+            end: input.end,
+        })
+    }
+}
+
+impl AsRust<hermes::AsrDecodingDuration> for CAsrDecodingDuration {
+    fn as_rust(&self) -> Result<hermes::AsrDecodingDuration> {
+        Ok(hermes::AsrDecodingDuration {
+            start: self.start,
+            end: self.end,
+        })
+    }
+}
+
 pub struct CAsrToken {
     pub value: *const libc::c_char,
     pub confidence: f32,
     pub range_start: libc::int32_t,
     pub range_end: libc::int32_t,
+    pub time: CAsrDecodingDuration,
 }
 
 impl CReprOf<hermes::AsrToken> for CAsrToken {
@@ -900,6 +924,7 @@ impl CReprOf<hermes::AsrToken> for CAsrToken {
             confidence: input.confidence,
             range_start: input.range_start as libc::int32_t,
             range_end: input.range_end as libc::int32_t,
+            time: CAsrDecodingDuration::c_repr_of(input.time)?,
         })
     }
 }
@@ -911,6 +936,7 @@ impl AsRust<hermes::AsrToken> for CAsrToken {
             confidence: self.confidence,
             range_start: self.range_start as usize,
             range_end: self.range_end as usize,
+            time: self.time.as_rust()?,
         })
     }
 }
@@ -2143,6 +2169,10 @@ mod tests {
             confidence: 0.98,
             range_start: 4,
             range_end: 9,
+            time: hermes::AsrDecodingDuration {
+                start: 0.0,
+                end: 5.0,
+            },
         });
     }
 
@@ -2155,10 +2185,24 @@ mod tests {
         round_trip_test::<_, CAsrTokenArray>(
             vec![
                 hermes::AsrToken {
-                    value: "hello".to_string(), confidence: 0.98, range_start: 1, range_end: 4
+                    value: "hello".to_string(),
+                    confidence: 0.98,
+                    range_start: 1,
+                    range_end: 4,
+                    time: hermes::AsrDecodingDuration {
+                        start: 0.0,
+                        end: 5.0,
+                    },
                 },
                 hermes::AsrToken {
-                    value: "world".to_string(), confidence: 0.73, range_start: 5, range_end: 9
+                    value: "world".to_string(),
+                    confidence: 0.73,
+                    range_start: 5,
+                    range_end: 9,
+                    time: hermes::AsrDecodingDuration {
+                        start: 0.0,
+                        end: 5.0,
+                    },
                 },
             ]
         );

@@ -58,6 +58,12 @@ pub struct HotwordDetectedMessage {
 
 impl<'de> HermesMessage<'de> for HotwordDetectedMessage {}
 
+#[derive(Debug, Clone, Default, PartialEq, PartialOrd, Deserialize, Serialize)]
+pub struct AsrDecodingDuration {
+    pub start: f32,
+    pub end: f32,
+}
+
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 pub struct AsrToken {
     /// The value of the token
@@ -69,6 +75,8 @@ pub struct AsrToken {
     pub range_start: usize,
     /// The end range in which the token is in the original input
     pub range_end: usize,
+    /// TODO: Put doc
+    pub time: AsrDecodingDuration,
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
