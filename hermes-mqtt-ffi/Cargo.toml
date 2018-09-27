@@ -14,4 +14,4 @@ hermes-ffi = { path = "../hermes-ffi" }
 hermes-mqtt = { path = "../hermes-mqtt" }
 lazy_static = "1.0"
 libc = "0.2"
-snips-nlu-ontology-ffi = { git = "https://github.com/snipsco/snips-nlu-ontology", tag = "0.57.3" }
+snips-nlu-ontology-ffi = { git = "https://github.com/snipsco/snips-nlu-ontology", tag = "0.58.0" }
