@@ -93,7 +93,7 @@ impl Drop for CHotwordDetectedMessage {
 pub struct CTextCapturedMessage {
     pub text: *const libc::c_char,
     /// Nullable
-    pub tokens_confidence: *const CAsrTokenConfidenceArray,
+    pub tokens: *const CAsrTokenArray,
     pub likelihood: f32,
     pub seconds: f32,
     pub site_id: *const libc::c_char,
@@ -113,8 +113,8 @@ impl CReprOf<hermes::TextCapturedMessage> for CTextCapturedMessage {
     fn c_repr_of(input: hermes::TextCapturedMessage) -> Result<Self> {
         Ok(Self {
             text: convert_to_c_string!(input.text),
-            tokens_confidence: if let Some(tokens_confidence) = input.tokens_confidence {
-                CAsrTokenConfidenceArray::c_repr_of(tokens_confidence)?.into_raw_pointer()
+            tokens: if let Some(tokens) = input.tokens {
+                CAsrTokenArray::c_repr_of(tokens)?.into_raw_pointer()
             } else {
                 null()
             },
@@ -131,8 +131,8 @@ impl AsRust<hermes::TextCapturedMessage> for CTextCapturedMessage {
         Ok(hermes::TextCapturedMessage {
             text: create_rust_string_from!(self.text),
             likelihood: self.likelihood,
-            tokens_confidence: match unsafe { self.tokens_confidence.as_ref() } {
-                Some(tokens) => Some(unsafe { CAsrTokenConfidenceArray::raw_borrow(tokens)? }.as_rust()?),
+            tokens: match unsafe { self.tokens.as_ref() } {
+                Some(tokens) => Some(unsafe { CAsrTokenArray::raw_borrow(tokens)? }.as_rust()?),
                 None => None,
             },
             seconds: self.seconds,
@@ -147,7 +147,7 @@ impl Drop for CTextCapturedMessage {
         take_back_c_string!(self.text);
         take_back_c_string!(self.site_id);
         take_back_nullable_c_string!(self.session_id);
-        let _ = unsafe { CAsrTokenConfidenceArray::drop_raw_pointer(self.tokens_confidence) };
+        let _ = unsafe { CAsrTokenArray::drop_raw_pointer(self.tokens) };
     }
 }
 
@@ -156,7 +156,7 @@ impl Drop for CTextCapturedMessage {
 pub struct CNluQueryMessage {
     pub input: *const libc::c_char,
     /// Nullable
-    pub tokens_confidence: *const CAsrTokenConfidenceArray,
+    pub asr_tokens: *const CAsrTokenArray,
     /// Nullable
     pub intent_filter: *const CStringArray,
     /// Nullable
@@ -177,8 +177,8 @@ impl CReprOf<hermes::NluQueryMessage> for CNluQueryMessage {
     fn c_repr_of(input: hermes::NluQueryMessage) -> Result<Self> {
         Ok(Self {
             input: convert_to_c_string!(input.input),
-            tokens_confidence: if let Some(tokens_confidence) = input.tokens_confidence {
-                CAsrTokenConfidenceArray::c_repr_of(tokens_confidence)?.into_raw_pointer()
+            asr_tokens: if let Some(asr_tokens) = input.asr_tokens {
+                CAsrTokenArray::c_repr_of(asr_tokens)?.into_raw_pointer()
             } else {
                 null()
             },
@@ -193,8 +193,8 @@ impl AsRust<hermes::NluQueryMessage> for CNluQueryMessage {
     fn as_rust(&self) -> Result<hermes::NluQueryMessage> {
         Ok(hermes::NluQueryMessage {
             input: create_rust_string_from!(self.input),
-            tokens_confidence: match unsafe { self.tokens_confidence.as_ref() } {
-                Some(tokens) => Some(unsafe { CAsrTokenConfidenceArray::raw_borrow(tokens)? }.as_rust()?),
+            asr_tokens: match unsafe { self.asr_tokens.as_ref() } {
+                Some(tokens) => Some(unsafe { CAsrTokenArray::raw_borrow(tokens)? }.as_rust()?),
                 None => None,
             },
             intent_filter: create_optional_rust_vec_string_from!(self.intent_filter),
@@ -210,7 +210,7 @@ impl Drop for CNluQueryMessage {
         take_back_nullable_c_string_array!(self.intent_filter);
         take_back_nullable_c_string!(self.id);
         take_back_nullable_c_string!(self.session_id);
-        let _ = unsafe { CAsrTokenConfidenceArray::drop_raw_pointer(self.tokens_confidence) };
+        let _ = unsafe { CAsrTokenArray::drop_raw_pointer(self.asr_tokens) };
     }
 }
 
@@ -218,7 +218,7 @@ impl Drop for CNluQueryMessage {
 #[derive(Debug)]
 pub struct CNluSlotQueryMessage {
     pub input: *const libc::c_char,
-    pub tokens_confidence: *const CAsrTokenConfidenceArray,
+    pub asr_tokens: *const CAsrTokenArray,
     pub intent_name: *const libc::c_char,
     pub slot_name: *const libc::c_char,
     /// Nullable
@@ -239,8 +239,8 @@ impl CReprOf<hermes::NluSlotQueryMessage> for CNluSlotQueryMessage {
     fn c_repr_of(input: hermes::NluSlotQueryMessage) -> Result<Self> {
         Ok(Self {
             input: convert_to_c_string!(input.input),
-            tokens_confidence: if let Some(tokens_confidence) = input.tokens_confidence {
-                CAsrTokenConfidenceArray::c_repr_of(tokens_confidence)?.into_raw_pointer()
+            asr_tokens: if let Some(asr_tokens) = input.asr_tokens {
+                CAsrTokenArray::c_repr_of(asr_tokens)?.into_raw_pointer()
             } else {
                 null()
             },
@@ -256,8 +256,8 @@ impl AsRust<hermes::NluSlotQueryMessage> for CNluSlotQueryMessage {
     fn as_rust(&self) -> Result<hermes::NluSlotQueryMessage> {
         Ok(hermes::NluSlotQueryMessage {
             input: create_rust_string_from!(self.input),
-            tokens_confidence: match unsafe { self.tokens_confidence.as_ref() } {
-                Some(tokens) => Some(unsafe { CAsrTokenConfidenceArray::raw_borrow(tokens)? }.as_rust()?),
+            asr_tokens: match unsafe { self.asr_tokens.as_ref() } {
+                Some(tokens) => Some(unsafe { CAsrTokenArray::raw_borrow(tokens)? }.as_rust()?),
                 None => None,
             },
             intent_name: create_rust_string_from!(self.intent_name),
@@ -275,7 +275,7 @@ impl Drop for CNluSlotQueryMessage {
         take_back_c_string!(self.slot_name);
         take_back_nullable_c_string!(self.id);
         take_back_nullable_c_string!(self.session_id);
-        let _ = unsafe { CAsrTokenConfidenceArray::drop_raw_pointer(self.tokens_confidence) };
+        let _ = unsafe { CAsrTokenArray::drop_raw_pointer(self.asr_tokens) };
     }
 }
 
@@ -886,15 +886,15 @@ impl Drop for CIntentNotRecognizedMessage {
     }
 }
 
-pub struct CAsrTokenConfidence {
+pub struct CAsrToken {
     pub value: *const libc::c_char,
     pub confidence: f32,
     pub range_start: libc::int32_t,
     pub range_end: libc::int32_t,
 }
 
-impl CReprOf<hermes::AsrTokenConfidence> for CAsrTokenConfidence {
-    fn c_repr_of(input: hermes::AsrTokenConfidence) -> Result<Self> {
+impl CReprOf<hermes::AsrToken> for CAsrToken {
+    fn c_repr_of(input: hermes::AsrToken) -> Result<Self> {
         Ok(Self {
             value: convert_to_c_string!(input.value),
             confidence: input.confidence,
@@ -904,9 +904,9 @@ impl CReprOf<hermes::AsrTokenConfidence> for CAsrTokenConfidence {
     }
 }
 
-impl AsRust<hermes::AsrTokenConfidence> for CAsrTokenConfidence {
-    fn as_rust(&self) -> Result<hermes::AsrTokenConfidence> {
-        Ok(hermes::AsrTokenConfidence {
+impl AsRust<hermes::AsrToken> for CAsrToken {
+    fn as_rust(&self) -> Result<hermes::AsrToken> {
+        Ok(hermes::AsrToken {
             value: create_rust_string_from!(self.value),
             confidence: self.confidence,
             range_start: self.range_start as usize,
@@ -915,7 +915,7 @@ impl AsRust<hermes::AsrTokenConfidence> for CAsrTokenConfidence {
     }
 }
 
-impl Drop for CAsrTokenConfidence {
+impl Drop for CAsrToken {
     fn drop(&mut self) {
         take_back_c_string!(self.value);
     }
@@ -923,19 +923,19 @@ impl Drop for CAsrTokenConfidence {
 
 #[repr(C)]
 #[derive(Debug)]
-pub struct CAsrTokenConfidenceArray {
-    pub entries: *const *const CAsrTokenConfidence,
+pub struct CAsrTokenArray {
+    pub entries: *const *const CAsrToken,
     pub count: libc::c_int,
 }
 
-impl CReprOf<Vec<hermes::AsrTokenConfidence>> for CAsrTokenConfidenceArray {
-    fn c_repr_of(input: Vec<hermes::AsrTokenConfidence>) -> Result<Self> {
+impl CReprOf<Vec<hermes::AsrToken>> for CAsrTokenArray {
+    fn c_repr_of(input: Vec<hermes::AsrToken>) -> Result<Self> {
         let array = Self {
             count: input.len() as _,
             entries: Box::into_raw(
                 input
                     .into_iter()
-                    .map(|e| CAsrTokenConfidence::c_repr_of(e).map(|c| c.into_raw_pointer()))
+                    .map(|e| CAsrToken::c_repr_of(e).map(|c| c.into_raw_pointer()))
                     .collect::<Result<Vec<_>>>()
                     .context("Could not convert map to C Repr")?
                     .into_boxed_slice(),
@@ -945,25 +945,25 @@ impl CReprOf<Vec<hermes::AsrTokenConfidence>> for CAsrTokenConfidenceArray {
     }
 }
 
-impl AsRust<Vec<hermes::AsrTokenConfidence>> for CAsrTokenConfidenceArray {
-    fn as_rust(&self) -> Result<Vec<hermes::AsrTokenConfidence>> {
+impl AsRust<Vec<hermes::AsrToken>> for CAsrTokenArray {
+    fn as_rust(&self) -> Result<Vec<hermes::AsrToken>> {
         let mut result = Vec::with_capacity(self.count as usize);
 
         for e in unsafe { slice::from_raw_parts(self.entries, self.count as usize) } {
-            result.push(unsafe { CAsrTokenConfidence::raw_borrow(*e) }?.as_rust()?);
+            result.push(unsafe { CAsrToken::raw_borrow(*e) }?.as_rust()?);
         }
         Ok(result)
     }
 }
 
-impl Drop for CAsrTokenConfidenceArray {
+impl Drop for CAsrTokenArray {
     fn drop(&mut self) {
         let _ = unsafe {
             for e in Box::from_raw(::std::slice::from_raw_parts_mut(
-                    self.entries as *mut *mut CAsrTokenConfidence,
+                    self.entries as *mut *mut CAsrToken,
                     self.count as usize,
                     )).iter() {
-                let _ = CAsrTokenConfidence::drop_raw_pointer(*e).unwrap();
+                let _ = CAsrToken::drop_raw_pointer(*e).unwrap();
             }
         };
     }
@@ -2138,7 +2138,7 @@ mod tests {
 
     #[test]
     fn round_trip_token_confidence() {
-        round_trip_test::<_, CAsrTokenConfidence>(hermes::AsrTokenConfidence {
+        round_trip_test::<_, CAsrToken>(hermes::AsrToken {
             value: "hello world".into(),
             confidence: 0.98,
             range_start: 4,
@@ -2148,16 +2148,16 @@ mod tests {
 
     #[test]
     fn round_trip_token_confidence_array() {
-        round_trip_test::<_, CAsrTokenConfidenceArray>(
+        round_trip_test::<_, CAsrTokenArray>(
             vec![]
         );
 
-        round_trip_test::<_, CAsrTokenConfidenceArray>(
+        round_trip_test::<_, CAsrTokenArray>(
             vec![
-                hermes::AsrTokenConfidence {
+                hermes::AsrToken {
                     value: "hello".to_string(), confidence: 0.98, range_start: 1, range_end: 4
                 },
-                hermes::AsrTokenConfidence {
+                hermes::AsrToken {
                     value: "world".to_string(), confidence: 0.73, range_start: 5, range_end: 9
                 },
             ]

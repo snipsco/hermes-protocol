@@ -302,10 +302,10 @@ macro_rules! test_suite {
         t_toggleable!(asr_toggleable: asr_backend | asr);
         t!(asr_text_captured_works:
                     asr.subscribe_text_captured <= TextCapturedMessage | asr_backend.publish_text_captured
-                    with TextCapturedMessage { text: "hello world".into(), tokens_confidence: Some(vec![ AsrTokenConfidence { value: "hello".into(), confidence: 1., range_start: 0, range_end: 4 }, ]), likelihood: 0.5, seconds: 4.2, site_id: "Some site".into(), session_id: Some("123abc".into()) };);
+                    with TextCapturedMessage { text: "hello world".into(), tokens: Some(vec![ AsrToken { value: "hello".into(), confidence: 1., range_start: 0, range_end: 4 }, ]), likelihood: 0.5, seconds: 4.2, site_id: "Some site".into(), session_id: Some("123abc".into()) };);
         t!(asr_partial_text_captured_works:
                     asr.subscribe_partial_text_captured <= TextCapturedMessage | asr_backend.publish_partial_text_captured
-                    with TextCapturedMessage { text: "hello world".into(), tokens_confidence: Some(vec![ AsrTokenConfidence { value: "hello".into(), confidence: 1., range_start: 0, range_end: 4 }, AsrTokenConfidence { value: "world".into(), confidence: 1., range_start: 5, range_end: 9 }, ]), likelihood: 0.5, seconds: 4.2, site_id: "Some site".into(), session_id: Some("123abc".into()) };);
+                    with TextCapturedMessage { text: "hello world".into(), tokens: Some(vec![ AsrToken { value: "hello".into(), confidence: 1., range_start: 0, range_end: 4 }, AsrToken { value: "world".into(), confidence: 1., range_start: 5, range_end: 9 }, ]), likelihood: 0.5, seconds: 4.2, site_id: "Some site".into(), session_id: Some("123abc".into()) };);
         t!(asr_start_listening:
                     asr_backend.subscribe_start_listening <= SiteMessage | asr.publish_start_listening
                     with SiteMessage { session_id: Some("abc".into()), site_id: "some site".into() };);
@@ -328,11 +328,11 @@ macro_rules! test_suite {
         t_component!(nlu_component: nlu_backend | nlu);
         t!(nlu_query_works:
                     nlu_backend.subscribe_query <= NluQueryMessage | nlu.publish_query
-                    with NluQueryMessage { input: "hello world".into(), tokens_confidence: Some(vec![AsrTokenConfidence { value: "hello".into(), confidence: 1., range_start: 0, range_end: 4}]), intent_filter: None, id: None, session_id: Some("abc".into()) };
+                    with NluQueryMessage { input: "hello world".into(), asr_tokens: Some(vec![AsrToken { value: "hello".into(), confidence: 1., range_start: 0, range_end: 4}]), intent_filter: None, id: None, session_id: Some("abc".into()) };
             );
         t!(nlu_partial_query_works:
                     nlu_backend.subscribe_partial_query <= NluSlotQueryMessage | nlu.publish_partial_query
-                    with NluSlotQueryMessage { input: "hello world".into(), tokens_confidence: Some(vec![AsrTokenConfidence { value: "hello".into(), confidence: 1., range_start: 0, range_end: 4}]), intent_name: "my intent".into(), slot_name: "my slot".into(), id: None, session_id: Some("abc".into()) };
+                    with NluSlotQueryMessage { input: "hello world".into(), asr_tokens: Some(vec![AsrToken { value: "hello".into(), confidence: 1., range_start: 0, range_end: 4}]), intent_name: "my intent".into(), slot_name: "my slot".into(), id: None, session_id: Some("abc".into()) };
             );
         t!(nlu_slot_parsed_works:
                     nlu.subscribe_slot_parsed <= NluSlotMessage | nlu_backend.publish_slot_parsed

@@ -59,7 +59,7 @@ pub struct HotwordDetectedMessage {
 impl<'de> HermesMessage<'de> for HotwordDetectedMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
-pub struct AsrTokenConfidence {
+pub struct AsrToken {
     /// The value of the token
     pub value: String,
     /// The confidence of the token
@@ -79,7 +79,7 @@ pub struct TextCapturedMessage {
     /// The likelihood of the capture
     pub likelihood: f32,
     /// The confidence by tokens
-    pub tokens_confidence: Option<Vec<AsrTokenConfidence>>,
+    pub tokens: Option<Vec<AsrToken>>,
     /// The duration it took to do the processing
     pub seconds: f32,
     /// The site where the text was captured
@@ -96,7 +96,7 @@ pub struct NluQueryMessage {
     /// The text to run the NLU on
     pub input: String,
     /// The confidence by tokens
-    pub tokens_confidence: Option<Vec<AsrTokenConfidence>>,
+    pub asr_tokens: Option<Vec<AsrToken>>,
     /// An optional list of intents to restrict the NLU resolution on
     pub intent_filter: Option<Vec<String>>,
     /// An optional id for the request, if provided it will be passed back in the
@@ -114,7 +114,7 @@ pub struct NluSlotQueryMessage {
     /// The text to run the slot detection on
     pub input: String,
     /// The confidence by tokens
-    pub tokens_confidence: Option<Vec<AsrTokenConfidence>>,
+    pub asr_tokens: Option<Vec<AsrToken>>,
     /// The intent to use when doing the slot detection
     pub intent_name: String,
     /// The slot to search
