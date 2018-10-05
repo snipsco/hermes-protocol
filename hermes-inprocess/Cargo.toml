@@ -5,7 +5,7 @@ authors = ["Thibaut Lorrain <thibaut.lorrain@snips.ai>"]
 
 [dependencies]
 failure = "0.1"
-ripb = { git="ssh://git@github.com/snipsco/ripb", rev="4c5e31085" }
+ripb = { git="ssh://git@github.com/snipsco/ripb", rev="584f980" }
 hermes = { path = ".." }
 hermes-test-suite = { path = "../hermes-test-suite" }
 log = "0.4"

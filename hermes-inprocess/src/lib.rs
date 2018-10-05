@@ -29,60 +29,59 @@ impl InProcessHermesProtocolHandler {
 
     fn get_handler<T: Send + Sync + Debug>(&self, component: T) -> Box<InProcessComponent<T>> {
         let bus = self.bus.lock().unwrap().clone();
-        let subscriber = bus.create_subscriber();
         Box::new(InProcessComponent {
             component,
             bus: Mutex::new(bus),
-            subscriber: Mutex::new(subscriber),
+            subscriber: Mutex::new(None),
         })
     }
 }
 
 impl HermesProtocolHandler for InProcessHermesProtocolHandler {
-    fn asr(&self) -> Box<AsrFacade> {
-        self.get_handler(Asr)
-    }
-    fn asr_backend(&self) -> Box<AsrBackendFacade> {
-        self.get_handler(Asr)
-    }
-    fn audio_server(&self) -> Box<AudioServerFacade> {
-        self.get_handler(AudioServer)
-    }
-    fn audio_server_backend(&self) -> Box<AudioServerBackendFacade> {
-        self.get_handler(AudioServer)
-    }
     fn hotword(&self) -> Box<HotwordFacade> {
         self.get_handler(Hotword)
-    }
-    fn hotword_backend(&self) -> Box<HotwordBackendFacade> {
-        self.get_handler(Hotword)
-    }
-    fn dialogue(&self) -> Box<DialogueFacade> {
-        self.get_handler(Dialogue)
-    }
-    fn dialogue_backend(&self) -> Box<DialogueBackendFacade> {
-        self.get_handler(Dialogue)
-    }
-    fn nlu(&self) -> Box<NluFacade> {
-        self.get_handler(Nlu)
-    }
-    fn nlu_backend(&self) -> Box<NluBackendFacade> {
-        self.get_handler(Nlu)
     }
     fn sound_feedback(&self) -> Box<SoundFeedbackFacade> {
         self.get_handler(Sound)
     }
-    fn sound_feedback_backend(&self) -> Box<SoundFeedbackBackendFacade> {
-        self.get_handler(Sound)
+    fn asr(&self) -> Box<AsrFacade> {
+        self.get_handler(Asr)
     }
     fn tts(&self) -> Box<TtsFacade> {
         self.get_handler(Tts)
     }
-    fn tts_backend(&self) -> Box<TtsBackendFacade> {
-        self.get_handler(Tts)
+    fn nlu(&self) -> Box<NluFacade> {
+        self.get_handler(Nlu)
+    }
+    fn audio_server(&self) -> Box<AudioServerFacade> {
+        self.get_handler(AudioServer)
+    }
+    fn dialogue(&self) -> Box<DialogueFacade> {
+        self.get_handler(Dialogue)
     }
     fn injection(&self) -> Box<InjectionFacade> {
         self.get_handler(Injection)
+    }
+    fn hotword_backend(&self) -> Box<HotwordBackendFacade> {
+        self.get_handler(Hotword)
+    }
+    fn sound_feedback_backend(&self) -> Box<SoundFeedbackBackendFacade> {
+        self.get_handler(Sound)
+    }
+    fn asr_backend(&self) -> Box<AsrBackendFacade> {
+        self.get_handler(Asr)
+    }
+    fn tts_backend(&self) -> Box<TtsBackendFacade> {
+        self.get_handler(Tts)
+    }
+    fn nlu_backend(&self) -> Box<NluBackendFacade> {
+        self.get_handler(Nlu)
+    }
+    fn audio_server_backend(&self) -> Box<AudioServerBackendFacade> {
+        self.get_handler(AudioServer)
+    }
+    fn dialogue_backend(&self) -> Box<DialogueBackendFacade> {
+        self.get_handler(Dialogue)
     }
     fn injection_backend(&self) -> Box<InjectionBackendFacade> {
         self.get_handler(Injection)
@@ -98,7 +97,20 @@ impl std::fmt::Display for InProcessHermesProtocolHandler {
 struct InProcessComponent<T: Send + Sync + Debug> {
     component: T,
     bus: Mutex<ripb::Bus>,
-    subscriber: Mutex<ripb::Subscriber>,
+    subscriber: Mutex<Option<ripb::Subscriber>>,
+}
+
+impl <T: Send + Sync + Debug> Drop for InProcessComponent<T> {
+    fn drop(&mut self) {
+        // dropping a ripb subscriber removes its subscriptions it. As we don't have unsubscription
+        // mechanic in hermes (yet) and there are quite a lot of parts in the code where we just
+        // drop the facade after subscribing, let's just forget the subscriber for now.
+        if let Ok(mut subscriber) = self.subscriber.lock() {
+            if let Some(subscriber) = subscriber.take() {
+                std::mem::forget(subscriber)
+            }
+        }
+    }
 }
 
 impl<T: Send + Sync + Debug> InProcessComponent<T> {
@@ -110,7 +122,8 @@ impl<T: Send + Sync + Debug> InProcessComponent<T> {
     }
 
     fn subscribe0<M: ripb::Message + 'static>(&self, callback: Callback0) -> Result<()> {
-        let subscriber = self.subscriber.lock().map_err(PoisonLock::from)?;
+        let mut subscriber = self.subscriber.lock().map_err(PoisonLock::from)?;
+        let subscriber = subscriber.get_or_insert_with(||self.bus.lock().unwrap().create_subscriber());
         subscriber.on_message(move |_: &M| callback.call());
         Ok(())
     }
@@ -121,7 +134,8 @@ impl<T: Send + Sync + Debug> InProcessComponent<T> {
         P: 'static,
         C: Fn(&M) -> &P + Send + 'static,
     {
-        let subscriber = self.subscriber.lock().map_err(PoisonLock::from)?;
+        let mut subscriber = self.subscriber.lock().map_err(PoisonLock::from)?;
+        let subscriber = subscriber.get_or_insert_with(||self.bus.lock().unwrap().create_subscriber());
         subscriber.on_message(move |m: &M| callback.call(converter(m)));
         Ok(())
     }
@@ -131,7 +145,8 @@ impl<T: Send + Sync + Debug> InProcessComponent<T> {
         M: ripb::Message + 'static,
         F: Fn(&M) -> bool + Send + 'static,
     {
-        let subscriber = self.subscriber.lock().map_err(PoisonLock::from)?;
+        let mut subscriber = self.subscriber.lock().map_err(PoisonLock::from)?;
+        let subscriber = subscriber.get_or_insert_with(||self.bus.lock().unwrap().create_subscriber());
         subscriber.on_message(move |m: &M| {
             if filter(m) {
                 callback.call()
@@ -152,7 +167,8 @@ impl<T: Send + Sync + Debug> InProcessComponent<T> {
         C: Fn(&M) -> &P + Send + 'static,
         F: Fn(&M) -> bool + Send + 'static,
     {
-        let subscriber = self.subscriber.lock().map_err(PoisonLock::from)?;
+        let mut subscriber = self.subscriber.lock().map_err(PoisonLock::from)?;
+        let subscriber = subscriber.get_or_insert_with(||self.bus.lock().unwrap().create_subscriber());
         subscriber.on_message(move |m: &M| {
             if filter(m) {
                 callback.call(converter(m))
