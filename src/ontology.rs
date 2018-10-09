@@ -346,6 +346,8 @@ pub struct IntentMessage {
     pub site_id: SiteId,
     /// The input that generated this intent
     pub input: String,
+    /// The tokens detected by the ASR. The first vec represents the different ASR invocations
+    pub asr_tokens: Option<Vec<Vec<AsrToken>>>,
     /// The result of the intent classification
     pub intent: ::snips_nlu_ontology::IntentClassifierResult,
     /// The detected slots, if any

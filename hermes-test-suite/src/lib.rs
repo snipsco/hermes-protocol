@@ -384,11 +384,11 @@ macro_rules! test_suite {
                     with SessionQueuedMessage { session_id: "some id".into(), custom_data: None, site_id: "some site".into() };);
         t!(dialogue_intents_works:
                     dialogue.subscribe_intents <= IntentMessage | dialogue_backend.publish_intent
-                    with IntentMessage { site_id: "some site".into(), session_id: "some id".into(), custom_data: None, input: "hello world".into(), intent: IntentClassifierResult { intent_name: "my intent".into(), probability: 0.73 }, slots: None };);
+                    with IntentMessage { site_id: "some site".into(), session_id: "some id".into(), custom_data: None, input: "hello world".into(), asr_tokens: None,  intent: IntentClassifierResult { intent_name: "my intent".into(), probability: 0.73 }, slots: None };);
         t!(dialogue_intent_works:
                     OneToMany
                     dialogue.subscribe_intent { "my intent".into() } <= IntentMessage | dialogue_backend.publish_intent
-                    with IntentMessage { site_id: "some site".into(), session_id: "some id".into(), custom_data: None, input: "hello world".into(), intent: IntentClassifierResult { intent_name: "my intent".into(), probability: 0.73 }, slots: None };);
+                    with IntentMessage { site_id: "some site".into(), session_id: "some id".into(), custom_data: None, input: "hello world".into(), asr_tokens: Some(vec![vec![AsrToken { value: "hello".into(), confidence: 1., range_start: 0, range_end: 4, time: AsrDecodingDuration { start: 0.0, end: 2.0 } }, AsrToken { value: "world".into(), confidence: 1., range_start: 5, range_end: 9, time: AsrDecodingDuration { start: 2.0, end: 4.0 } },]]), intent: IntentClassifierResult { intent_name: "my intent".into(), probability: 0.73 }, slots: None };);
         t!(dialogue_intent_not_recognized_works:
                     dialogue.subscribe_intent_not_recognized <= IntentNotRecognizedMessage | dialogue_backend.publish_intent_not_recognized
                     with IntentNotRecognizedMessage { site_id: "some site".into(), session_id: "some id".into(), custom_data: None, input: Some("hello world".into()) };);

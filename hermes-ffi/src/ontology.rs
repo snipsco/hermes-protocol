@@ -783,11 +783,12 @@ pub struct CIntentMessage {
     /// Nullable
     pub custom_data: *const libc::c_char,
     pub site_id: *const libc::c_char,
-
     pub input: *const libc::c_char,
     pub intent: *const CIntentClassifierResult,
     /// Nullable
     pub slots: *const CNluSlotArray,
+    /// Nullable, the first array level represents the asr invocation, the second one the tokens
+    pub asr_tokens: *const CAsrTokenDoubleArray,
 }
 
 unsafe impl Sync for CIntentMessage {}
@@ -811,6 +812,11 @@ impl CReprOf<hermes::IntentMessage> for CIntentMessage {
             } else {
                 null()
             },
+            asr_tokens: if let Some(asr_tokens) = input.asr_tokens {
+                CAsrTokenDoubleArray::c_repr_of(asr_tokens)?.into_raw_pointer()
+            } else {
+                null()
+            }
         })
     }
 }
@@ -837,7 +843,10 @@ impl Drop for CIntentMessage {
         take_back_c_string!(self.input);
         let _ = unsafe { Box::from_raw(self.intent as *mut CIntentClassifierResult) };
         if !self.slots.is_null() {
-            let _ = unsafe { Box::from_raw(self.slots as *mut CNluSlotArray) };
+            let _ = unsafe { CNluSlotArray::drop_raw_pointer(self.slots) };
+        }
+        if !self.asr_tokens.is_null() {
+            let _ = unsafe { CAsrTokenDoubleArray::drop_raw_pointer(self.asr_tokens)};
         }
     }
 }
@@ -990,6 +999,54 @@ impl Drop for CAsrTokenArray {
                     self.count as usize,
                     )).iter() {
                 let _ = CAsrToken::drop_raw_pointer(*e).unwrap();
+            }
+        };
+    }
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct CAsrTokenDoubleArray {
+    pub entries: *const *const CAsrTokenArray,
+    pub count: libc::c_int,
+}
+
+impl CReprOf<Vec<Vec<hermes::AsrToken>>> for CAsrTokenDoubleArray {
+    fn c_repr_of(input: Vec<Vec<hermes::AsrToken>>) -> Result<Self> {
+        let array = Self {
+            count: input.len() as _,
+            entries: Box::into_raw(
+                input
+                    .into_iter()
+                    .map(|e| CAsrTokenArray::c_repr_of(e).map(|c| c.into_raw_pointer()))
+                    .collect::<Result<Vec<_>>>()
+                    .context("Could not convert map to C Repr")?
+                    .into_boxed_slice(),
+            ) as *const *const _,
+        };
+        Ok(array)
+    }
+}
+
+impl AsRust<Vec<Vec<hermes::AsrToken>>> for CAsrTokenDoubleArray {
+    fn as_rust(&self) -> Result<Vec<Vec<hermes::AsrToken>>> {
+        let mut result = Vec::with_capacity(self.count as usize);
+
+        for e in unsafe { slice::from_raw_parts(self.entries, self.count as usize) } {
+            result.push(unsafe { CAsrTokenArray::raw_borrow(*e) }?.as_rust()?);
+        }
+        Ok(result)
+    }
+}
+
+impl Drop for CAsrTokenDoubleArray {
+    fn drop(&mut self) {
+        let _ = unsafe {
+            for e in Box::from_raw(::std::slice::from_raw_parts_mut(
+                self.entries as *mut *mut CAsrTokenArray,
+                self.count as usize,
+            )).iter() {
+                let _ = CAsrTokenArray::drop_raw_pointer(*e).unwrap();
             }
         };
     }
@@ -1831,9 +1888,9 @@ impl AsRust<Vec<(hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue>
 pub struct CInjectionRequestMessage {
     operations: *const CInjectionRequestOperations,
     lexicon: *const CMapStringToStringArray,
-    // nullable
+    /// Nullable
     cross_language: *const libc::c_char,
-    // nullable
+    /// Nullable
     id: *const libc::c_char,
 }
 
@@ -2163,7 +2220,7 @@ mod tests {
     }
 
     #[test]
-    fn round_trip_token_confidence() {
+    fn round_trip_asr_token() {
         round_trip_test::<_, CAsrToken>(hermes::AsrToken {
             value: "hello world".into(),
             confidence: 0.98,
@@ -2177,7 +2234,7 @@ mod tests {
     }
 
     #[test]
-    fn round_trip_token_confidence_array() {
+    fn round_trip_asr_token_array() {
         round_trip_test::<_, CAsrTokenArray>(
             vec![]
         );
@@ -2204,6 +2261,53 @@ mod tests {
                         end: 5.0,
                     },
                 },
+            ]
+        );
+    }
+
+    #[test]
+    fn round_trip_asr_token_double_array() {
+        round_trip_test::<_, CAsrTokenDoubleArray>(
+            vec![]
+        );
+
+        round_trip_test::<_, CAsrTokenDoubleArray>(
+            vec![
+                vec![
+                    hermes::AsrToken {
+                        value: "hello".to_string(),
+                        confidence: 0.98,
+                        range_start: 1,
+                        range_end: 4,
+                        time: hermes::AsrDecodingDuration {
+                            start: 0.0,
+                            end: 5.0,
+                        },
+                    },
+                    hermes::AsrToken {
+                        value: "world".to_string(),
+                        confidence: 0.73,
+                        range_start: 5,
+                        range_end: 9,
+                        time: hermes::AsrDecodingDuration {
+                            start: 0.0,
+                            end: 5.0,
+                        },
+                    },
+                ],
+                vec![],
+                vec![
+                    hermes::AsrToken {
+                        value: "yop".to_string(),
+                        confidence: 0.97,
+                        range_start: 5,
+                        range_end: 1,
+                        time: hermes::AsrDecodingDuration {
+                            start: 1.0,
+                            end: 4.5,
+                        },
+                    },
+                ]
             ]
         );
     }
