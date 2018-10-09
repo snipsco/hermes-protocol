@@ -16,7 +16,7 @@ include = [
 crates = ["hermes-mqtt-ffi"]
 
 [export]
-# These types are hidden behind a void pointer, let's inlude them
+# These types are hidden behind a void pointer, let's include them
 include = [
     "CNumberValue",
     "COrdinalValue",
