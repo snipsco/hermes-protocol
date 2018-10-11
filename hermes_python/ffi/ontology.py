@@ -44,7 +44,7 @@ class CContinueSessionMessage(Structure):
     @classmethod
     def build(cls, session_id, text, intent_filter):
         session_id = session_id.encode('utf-8')
-        text = text.encode('utf-8')
+        text = text.encode('utf-8') if text else None
         intent_filter = [intent_filter_item.encode('utf-8') for intent_filter_item in intent_filter]
 
         c_intent_filter = CStringArray()
@@ -61,7 +61,10 @@ class CEndSessionMessage(Structure):
 
     @classmethod
     def build(cls, session_id, text):
-        return cls(session_id.encode('utf-8'), text.encode('utf-8'))
+        b_text = text.encode('utf-8') if text else None
+        return cls(session_id.encode('utf-8'), b_text)
+
+
 
 class CSessionInit(Structure):
     _fields_ = [("init_type", c_int32)]  # 1 : Action, 2: Notification
@@ -90,7 +93,6 @@ class CSessionInitAction(CSessionInit):
 
     @classmethod
     def build(cls, text, intent_filter, can_be_enqueued_boolean):
-        text = text.encode('utf-8')
         intent_filter = [intent_filter_item.encode('utf-8') for intent_filter_item in intent_filter]
 
         cActionSessionInit = CActionSessionInit.build(text, intent_filter, can_be_enqueued_boolean)
@@ -102,7 +104,8 @@ class CSessionInitNotification(CSessionInit):
 
     @classmethod
     def build(cls, value):
-        return cls(c_int(0), value.encode('utf-8'))
+        encoded_value = value.encode('utf-8') if value else None
+        return cls(c_int(0), encoded_value)
 
 
 class CStartSessionMessageAction(Structure):
@@ -112,7 +115,7 @@ class CStartSessionMessageAction(Structure):
 
     @classmethod
     def build(cls, init, custom_data, site_id):
-        custom_data = custom_data.encode('utf-8')
+        custom_data = custom_data.encode('utf-8') if custom_data else None
         site_id = site_id.encode('utf-8')
         return cls(init, custom_data, site_id)
 
@@ -123,7 +126,7 @@ class CStartSessionMessageNotification(Structure):
 
     @classmethod
     def build(cls, init, custom_data, site_id):
-        custom_data = custom_data.encode('utf-8')
+        custom_data = custom_data.encode('utf-8') if custom_data else None
         site_id = site_id.encode('utf-8')
         return cls(init, custom_data, site_id)
 
