@@ -76,7 +76,7 @@ class CActionSessionInit(Structure):
 
     @classmethod
     def build(cls, text, intent_filter, can_be_enqueued_boolean):
-        text = text.encode('utf-8')
+        text = text.encode('utf-8') if text else None
         intent_filter = [intent_filter_item.encode('utf-8') for intent_filter_item in intent_filter]
 
         c_intent_filter = CStringArray()
@@ -93,8 +93,6 @@ class CSessionInitAction(CSessionInit):
 
     @classmethod
     def build(cls, text, intent_filter, can_be_enqueued_boolean):
-        intent_filter = [intent_filter_item.encode('utf-8') for intent_filter_item in intent_filter]
-
         cActionSessionInit = CActionSessionInit.build(text, intent_filter, can_be_enqueued_boolean)
         return cls(c_int(1), pointer(cActionSessionInit))
 
