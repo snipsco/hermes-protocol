@@ -895,6 +895,8 @@ impl Drop for CIntentNotRecognizedMessage {
     }
 }
 
+#[repr(C)]
+#[derive(Debug)]
 pub struct CAsrDecodingDuration {
     pub start: f32,
     pub end: f32,
@@ -918,6 +920,8 @@ impl AsRust<hermes::AsrDecodingDuration> for CAsrDecodingDuration {
     }
 }
 
+#[repr(C)]
+#[derive(Debug)]
 pub struct CAsrToken {
     pub value: *const libc::c_char,
     pub confidence: f32,
