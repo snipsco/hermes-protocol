@@ -804,7 +804,7 @@ mod tests {
 
         // wait 'till mosquitto is accessible.
         let server_is_live = || {
-            for _ in 0..10 {
+            for _ in 0..50 {
                 if TcpStream::connect(&server_address).is_ok() {
                     return true
                 } else {
