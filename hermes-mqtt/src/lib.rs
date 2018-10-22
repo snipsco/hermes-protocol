@@ -830,7 +830,7 @@ mod tests {
         (handler1, handler2)
     }
 
-    // sleep 10ms between registering the callback and sending the message to be "sure" the event
+    // sleep 50ms between registering the callback and sending the message to be "sure" the event
     // arrive in the right order to the mosquitto server
-    test_suite!(WAIT_DURATION = 10);
+    test_suite!(WAIT_DURATION = 50);
 }
