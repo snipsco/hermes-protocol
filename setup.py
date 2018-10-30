@@ -33,7 +33,7 @@ extras_require = {
 
 def get_rust_extension_command(argvs):
     if "--plat-name" in argvs:
-        return RustExtension(TARGET, CARGO_FILE_PATH, binding=Binding.NoBinding, dinghy=True, rust_x_compile_target="armv7-unknown-linux-gnueabihf", dinghy_platform="raspbian")
+        return RustExtension(TARGET, CARGO_FILE_PATH, binding=Binding.NoBinding, dinghy=True, rust_x_compile_target="arm-unknown-linux-gnueabihf", dinghy_platform="raspbian")
     return RustExtension(TARGET, CARGO_FILE_PATH, binding=Binding.NoBinding)
 
 setup(
