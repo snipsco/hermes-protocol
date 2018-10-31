@@ -7,7 +7,7 @@ authors = [
 ]
 
 [dependencies]
-base64 = "0.9"
+base64 = "0.10"
 chrono = { version = "0.4", features = ["serde"] }
 failure = "0.1"
 snips-nlu-ontology = { git = "https://github.com/snipsco/snips-nlu-ontology", tag = "0.61.1" }
