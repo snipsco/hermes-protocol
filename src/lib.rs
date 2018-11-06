@@ -114,6 +114,18 @@ pub trait IdentifiableToggleableBackendFacade: Send + Sync {
 // COMPONENTS
 //
 
+/// Facade used to interact with the voice activity component
+pub trait VoiceActivityFacade: IdentifiableComponentFacade {
+    fn subscribe_vad_up(&self, site_id: String, handler: Callback<VadUpMessage>) -> Result<()>;
+    fn subscribe_vad_down(&self, site_id: String, handler: Callback<VadDownMessage>) -> Result<()>;
+}
+
+/// Facade the voice activity component must use to publish its results
+pub trait VoiceActivityBackendFacade: IdentifiableComponentBackendFacade {
+    fn publish_vad_up(&self, vad_up: VadUpMessage) -> Result<()>;
+    fn publish_vad_down(&self, vad_down: VadDownMessage) -> Result<()>;
+}
+
 /// The facade to interact with the hotword component
 pub trait HotwordFacade: IdentifiableComponentFacade + IdentifiableToggleableFacade {
     fn subscribe_detected(
@@ -264,6 +276,7 @@ pub trait InjectionBackendFacade: ComponentBackendFacade {
 }
 
 pub trait HermesProtocolHandler: Send + Sync + std::fmt::Display {
+    fn voice_activity(&self) -> Box<VoiceActivityFacade>;
     fn hotword(&self) -> Box<HotwordFacade>;
     fn sound_feedback(&self) -> Box<SoundFeedbackFacade>;
     fn asr(&self) -> Box<AsrFacade>;
@@ -272,6 +285,7 @@ pub trait HermesProtocolHandler: Send + Sync + std::fmt::Display {
     fn audio_server(&self) -> Box<AudioServerFacade>;
     fn dialogue(&self) -> Box<DialogueFacade>;
     fn injection(&self) -> Box<InjectionFacade>;
+    fn voice_activity_backend(&self) -> Box<VoiceActivityBackendFacade>;
     fn hotword_backend(&self) -> Box<HotwordBackendFacade>;
     fn sound_feedback_backend(&self) -> Box<SoundFeedbackBackendFacade>;
     fn asr_backend(&self) -> Box<AsrBackendFacade>;

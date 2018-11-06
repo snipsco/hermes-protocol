@@ -34,6 +34,28 @@ impl Default for SiteMessage {
 
 impl<'de> HermesMessage<'de> for SiteMessage {}
 
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct VadUpMessage {
+    /// The site concerned
+    pub site_id: SiteId,
+    /// Timestamp of the audio frame where voice started to be detected
+    pub audio_timestamp_ms: Option<i64>,
+}
+
+impl<'de> HermesMessage<'de> for VadUpMessage {}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct VadDownMessage {
+    /// The site concerned
+    pub site_id: SiteId,
+    /// Timestamp of the audio frame where voice started to be detected
+    pub audio_timestamp_ms: Option<i64>,
+}
+
+impl<'de> HermesMessage<'de> for VadDownMessage {}
+
 #[derive(Debug, Clone, PartialEq, PartialOrd, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum HotwordModelType {

@@ -490,6 +490,16 @@ impl_toggleable_facades_for!(MqttToggleableComponentFacade);
 impl_identifiable_component_facades_for!(MqttToggleableComponentFacade);
 impl_identifiable_toggleable_facades_for!(MqttToggleableComponentFacade);
 
+impl VoiceActivityFacade for MqttComponentFacade {
+    s!(subscribe_vad_up<VadUpMessage>(site_id: String) { &HermesTopic::VoiceActivity(site_id, VoiceActivityCommand::VadUp)});
+    s!(subscribe_vad_down<VadDownMessage>(site_id: String) { &HermesTopic::VoiceActivity(site_id, VoiceActivityCommand::VadDown)});
+}
+
+impl VoiceActivityBackendFacade for MqttComponentFacade {
+    p!(publish_vad_up(vad_up: VadUpMessage) { &HermesTopic::VoiceActivity(vad_up.site_id.clone(), VoiceActivityCommand::VadUp)});
+    p!(publish_vad_down(vad_down: VadDownMessage) { &HermesTopic::VoiceActivity(vad_down.site_id.clone(), VoiceActivityCommand::VadDown)});
+}
+
 impl HotwordFacade for MqttToggleableComponentFacade {
     s!(subscribe_detected<HotwordDetectedMessage>(site_id: String) { &HermesTopic::Hotword(Some(site_id), HotwordCommand::Detected) });
     s!(subscribe_all_detected<HotwordDetectedMessage> &HermesTopic::Hotword(Some("+".into()), HotwordCommand::Detected););
@@ -677,6 +687,10 @@ impl MqttHermesProtocolHandler {
 }
 
 impl HermesProtocolHandler for MqttHermesProtocolHandler {
+    fn voice_activity(&self) -> Box<VoiceActivityFacade> {
+        self.component(Component::VoiceActivity)
+    }
+
     fn hotword(&self) -> Box<HotwordFacade> {
         self.hotword_component()
     }
@@ -707,6 +721,10 @@ impl HermesProtocolHandler for MqttHermesProtocolHandler {
 
     fn injection(&self) -> Box<InjectionFacade> {
         self.component(Component::Injection)
+    }
+
+    fn voice_activity_backend(&self) -> Box<VoiceActivityBackendFacade> {
+        self.component(Component::VoiceActivity)
     }
 
     fn hotword_backend(&self) -> Box<HotwordBackendFacade> {

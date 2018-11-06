@@ -22,6 +22,7 @@ pub trait FromPath<T: Sized> {
 pub enum HermesTopic {
     Feedback(FeedbackCommand),
     DialogueManager(DialogueManagerCommand),
+    VoiceActivity(SiteId, VoiceActivityCommand),
     Hotword(Option<String>, HotwordCommand),
     Asr(AsrCommand),
     Tts(TtsCommand),
@@ -144,6 +145,18 @@ impl HermesTopic {
                 Some(Feedback(FeedbackCommand::Sound(SoundCommand::ToggleOff)))
             }
             _ => None,
+        }
+    }
+
+    fn parse_voice_activity<'a, It: Iterator<Item = &'a str>>(mut comps: It) -> Option<HermesTopic> {
+        use HermesTopic::VoiceActivity;
+        use VoiceActivityCommand::*;
+        let one = comps.next();
+        let two = comps.next();
+        match (one, two) {
+            (Some(site_id), Some("vadUp")) => Some(VoiceActivity(site_id.to_string(), VadUp)),
+            (Some(site_id), Some("vadDown")) => Some(VoiceActivity(site_id.to_string(), VadDown)),
+            _ => None
         }
     }
 
@@ -280,6 +293,7 @@ impl FromPath<Self> for HermesTopic {
             // keep audio server first, despite alphabetical order (high
             // traffic)
             Some("audioServer") => HermesTopic::parse_audio_server(comps),
+            Some("voiceActivity") => HermesTopic::parse_voice_activity(comps),
             Some("asr") => HermesTopic::parse_asr(comps),
             Some("dialogueManager") => HermesTopic::parse_dialogue_manager(comps),
             Some("feedback") => HermesTopic::parse_feedback(comps),
@@ -296,6 +310,7 @@ impl FromPath<Self> for HermesTopic {
 impl fmt::Display for HermesTopic {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let subpath = match *self {
+            HermesTopic::VoiceActivity(ref site_id, ref cmd) => format!("voiceActivity/{}/{}", site_id, cmd.as_path()),
             HermesTopic::Feedback(ref cmd) => format!("feedback/{}", cmd.as_path()),
             HermesTopic::Hotword(ref opt_id, ref cmd) => {
                 if let Some(id) = opt_id.as_ref() {
@@ -338,6 +353,7 @@ impl fmt::Display for HermesTopic {
 
 #[derive(Debug, Clone, Copy, PartialEq, ToString)]
 pub enum Component {
+    VoiceActivity,
     Hotword,
     Asr,
     Tts,
@@ -348,6 +364,13 @@ pub enum Component {
 }
 
 impl ToPath for Component {}
+
+#[derive(Debug, Clone, Copy, PartialEq, ToString)]
+pub enum VoiceActivityCommand {
+    VadUp,
+    VadDown
+}
+impl ToPath for VoiceActivityCommand {}
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum FeedbackCommand {
@@ -537,6 +560,14 @@ mod tests {
             (
                 HermesTopic::Feedback(FeedbackCommand::Sound(SoundCommand::ToggleOff)),
                 "hermes/feedback/sound/toggleOff",
+            ),
+            (
+                HermesTopic::VoiceActivity("mysite".into(), VoiceActivityCommand::VadUp),
+                "hermes/voiceActivity/mysite/vadUp"
+            ),
+            (
+                HermesTopic::VoiceActivity("mysite".into(), VoiceActivityCommand::VadDown),
+                "hermes/voiceActivity/mysite/vadDown"
             ),
             (
                 HermesTopic::Hotword(None, HotwordCommand::ToggleOn),

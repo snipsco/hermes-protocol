@@ -38,6 +38,10 @@ impl InProcessHermesProtocolHandler {
 }
 
 impl HermesProtocolHandler for InProcessHermesProtocolHandler {
+    fn voice_activity(&self) -> Box<VoiceActivityFacade> {
+        self.get_handler(VoiceActivity)
+    }
+
     fn hotword(&self) -> Box<HotwordFacade> {
         self.get_handler(Hotword)
     }
@@ -62,6 +66,11 @@ impl HermesProtocolHandler for InProcessHermesProtocolHandler {
     fn injection(&self) -> Box<InjectionFacade> {
         self.get_handler(Injection)
     }
+
+    fn voice_activity_backend(&self) -> Box<VoiceActivityBackendFacade> {
+        self.get_handler(VoiceActivity)
+    }
+
     fn hotword_backend(&self) -> Box<HotwordBackendFacade> {
         self.get_handler(Hotword)
     }
@@ -497,6 +506,44 @@ impl<T: Send + Sync + Debug + 'static> ToggleableBackendFacade for InProcessComp
     }
     fn subscribe_toggle_off(&self, handler: Callback0) -> Result<()> {
         subscribe!(self, ToggleableToggleOff<T>, handler)
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+struct VoiceActivity;
+
+#[derive(Debug)]
+struct VoiceActivityVadUp {
+    vad_up: VadUpMessage
+}
+
+#[derive(Debug)]
+struct VoiceActivityVadDown {
+    vad_down: VadDownMessage
+}
+
+impl VoiceActivityFacade for InProcessComponent<VoiceActivity> {
+    fn subscribe_vad_up(&self, site_id: String, handler: Callback<VadUpMessage>) -> Result<()> {
+        subscribe_filter!(self, VoiceActivityVadUp { vad_up }, handler, site_id, |it| {
+            &it.vad_up.site_id
+        })
+
+    }
+
+    fn subscribe_vad_down(&self, site_id: String, handler: Callback<VadDownMessage>) -> Result<()> {
+        subscribe_filter!(self, VoiceActivityVadDown { vad_down }, handler, site_id, |it| {
+            &it.vad_down.site_id
+        })
+    }
+}
+
+impl VoiceActivityBackendFacade for InProcessComponent<VoiceActivity> {
+    fn publish_vad_up(&self, vad_up: VadUpMessage) -> Result<()> {
+        self.publish(VoiceActivityVadUp { vad_up })
+    }
+
+    fn publish_vad_down(&self, vad_down: VadDownMessage) -> Result<()> {
+        self.publish(VoiceActivityVadDown { vad_down })
     }
 }
 

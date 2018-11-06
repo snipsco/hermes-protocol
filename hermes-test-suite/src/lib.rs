@@ -286,6 +286,16 @@ macro_rules! test_suite {
 
         const WAIT_DURATION: ::std::time::Duration = ::std::time::Duration::from_millis($wait_duration);
 
+        t_identifiable_component!(voice_activity_identifiable_component: voice_activity_backend | voice_activity);
+        t!(voice_activity_vad_up_works:
+                    OneToMany
+                    voice_activity.subscribe_vad_up { "site_id".into() } <= VadUpMessage | voice_activity_backend.publish_vad_up
+                    with VadUpMessage { site_id: "site_id".into(), audio_timestamp_ms: Some(1664) };);
+        t!(voice_activity_vad_down_works:
+                    OneToMany
+                    voice_activity.subscribe_vad_down { "site_id".into() } <= VadDownMessage | voice_activity_backend.publish_vad_down
+                    with VadDownMessage { site_id: "site_id".into(), audio_timestamp_ms: Some(4242) };);
+
         t_identifiable_component!(hotword_identifiable_component: hotword_backend | hotword);
         t_identifiable_toggleable!(hotword_identifiable_toggleable: hotword_backend | hotword);
         t!(hotword_detected_works:
