@@ -118,6 +118,8 @@ pub trait IdentifiableToggleableBackendFacade: Send + Sync {
 pub trait VoiceActivityFacade: IdentifiableComponentFacade {
     fn subscribe_vad_up(&self, site_id: String, handler: Callback<VadUpMessage>) -> Result<()>;
     fn subscribe_vad_down(&self, site_id: String, handler: Callback<VadDownMessage>) -> Result<()>;
+    fn subscribe_all_vad_up(&self, handler: Callback<VadUpMessage>) -> Result<()>;
+    fn subscribe_all_vad_down(&self, handler: Callback<VadDownMessage>) -> Result<()>;
 }
 
 /// Facade the voice activity component must use to publish its results

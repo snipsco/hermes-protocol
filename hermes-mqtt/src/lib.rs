@@ -493,6 +493,8 @@ impl_identifiable_toggleable_facades_for!(MqttToggleableComponentFacade);
 impl VoiceActivityFacade for MqttComponentFacade {
     s!(subscribe_vad_up<VadUpMessage>(site_id: String) { &HermesTopic::VoiceActivity(site_id, VoiceActivityCommand::VadUp)});
     s!(subscribe_vad_down<VadDownMessage>(site_id: String) { &HermesTopic::VoiceActivity(site_id, VoiceActivityCommand::VadDown)});
+    s!(subscribe_all_vad_up<VadUpMessage> &HermesTopic::VoiceActivity("+".into(), VoiceActivityCommand::VadUp););
+    s!(subscribe_all_vad_down<VadDownMessage> &HermesTopic::VoiceActivity("+".into(), VoiceActivityCommand::VadDown););
 }
 
 impl VoiceActivityBackendFacade for MqttComponentFacade {

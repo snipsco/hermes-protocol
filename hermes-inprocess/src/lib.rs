@@ -535,6 +535,14 @@ impl VoiceActivityFacade for InProcessComponent<VoiceActivity> {
             &it.vad_down.site_id
         })
     }
+
+    fn subscribe_all_vad_up(&self, handler: Callback<VadUpMessage>) -> Result<()> {
+        subscribe!(self, VoiceActivityVadUp { vad_up }, handler)
+    }
+
+    fn subscribe_all_vad_down(&self, handler: Callback<VadDownMessage>) -> Result<()> {
+        subscribe!(self, VoiceActivityVadDown { vad_down }, handler)
+    }
 }
 
 impl VoiceActivityBackendFacade for InProcessComponent<VoiceActivity> {
