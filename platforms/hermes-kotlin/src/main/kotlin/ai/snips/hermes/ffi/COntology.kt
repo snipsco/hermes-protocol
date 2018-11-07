@@ -18,6 +18,7 @@ import com.sun.jna.Structure
 
 class CStringArray(p: Pointer?) : Structure(p), Structure.ByReference {
     companion object {
+        @JvmStatic
         fun fromStringList(list: List<String>) = CStringArray(null).apply {
             size = list.size
             data = if (size > 0)
@@ -50,6 +51,7 @@ class CStringArray(p: Pointer?) : Structure(p), Structure.ByReference {
 
 class CActionSessionInit(p: Pointer?) : Structure(p), Structure.ByReference {
     companion object {
+        @JvmStatic
         fun fromActionSessionInit(actionSessionInit: SessionInit.Action) = CActionSessionInit(null).apply {
             text = actionSessionInit.text?.toPointer()
             intent_filter = if (actionSessionInit.intentFilter.isEmpty()) null else CStringArray.fromStringList(actionSessionInit.intentFilter)
@@ -88,6 +90,7 @@ class CSessionInit : Structure(), Structure.ByValue {
         const val ACTION = 1
         const val NOTIFICATION = 2
 
+        @JvmStatic
         fun fromSessionInit(sessionInit: SessionInit) = CSessionInit().apply {
             when (sessionInit.type) {
                 Type.ACTION -> {
@@ -118,6 +121,7 @@ class CSessionInit : Structure(), Structure.ByValue {
 
 class CStartSessionMessage(p: Pointer?) : Structure(p), Structure.ByReference {
     companion object {
+        @JvmStatic
         fun fromStartSessionMessage(message: StartSessionMessage) = CStartSessionMessage(null).apply {
             init = CSessionInit.fromSessionInit(message.init)
             custom_data = message.customData?.toPointer()
@@ -149,6 +153,7 @@ class CStartSessionMessage(p: Pointer?) : Structure(p), Structure.ByReference {
 
 class CContinueSessionMessage(p: Pointer?) : Structure(p), Structure.ByReference {
     companion object {
+        @JvmStatic
         fun fromContinueSessionMessage(continueSessionMessage: ContinueSessionMessage) = CContinueSessionMessage(null).apply {
             session_id = continueSessionMessage.sessionId.toPointer()
             text = continueSessionMessage.text.toPointer()
@@ -188,6 +193,7 @@ class CContinueSessionMessage(p: Pointer?) : Structure(p), Structure.ByReference
 
 class CEndSessionMessage(p: Pointer?) : Structure(p), Structure.ByReference {
     companion object {
+        @JvmStatic
         fun fromEndSessionMessage(endSessionMessage: EndSessionMessage) = CEndSessionMessage(null).apply {
             session_id = endSessionMessage.sessionId.toPointer()
             text = endSessionMessage.text?.toPointer()
@@ -215,6 +221,7 @@ class CEndSessionMessage(p: Pointer?) : Structure(p), Structure.ByReference {
 
 class CNluSlot(p: Pointer?) : Structure(p), Structure.ByReference {
     companion object {
+        @JvmStatic
         fun fromSlot(slot: Slot) = CNluSlot(null).apply {
             nlu_slot = null
             confidence = slot.confidence ?: (-1.0).toFloat()
@@ -242,6 +249,7 @@ class CNluSlot(p: Pointer?) : Structure(p), Structure.ByReference {
 
 class CNluSlotArray(p: Pointer?) : Structure(p), Structure.ByReference {
     companion object {
+        @JvmStatic
         fun fromSlotList(list: List<Slot>) = CNluSlotArray(null).apply {
             count = list.size
             entries = if (count > 0)
@@ -305,6 +313,7 @@ class CIntentMessage(p: Pointer) : Structure(p), Structure.ByReference {
 
 class CIntentNotRecognizedMessage(p: Pointer?) : Structure(p), Structure.ByReference {
     companion object {
+        @JvmStatic
         fun fromIntentNotRecognizedMessage(message: IntentNotRecognizedMessage) = CIntentNotRecognizedMessage(null).apply {
             site_id = message.siteId.toPointer()
             session_id = message.sessionId.toPointer()
@@ -468,6 +477,7 @@ class CSayMessage(p: Pointer) : Structure(p), Structure.ByReference {
 
 class CSayFinishedMessage(p: Pointer?) : Structure(p), Structure.ByReference {
     companion object {
+        @JvmStatic
         fun fromSayFinishedMessage(sayFinishedMessage: SayFinishedMessage) = CSayFinishedMessage(null).apply {
             id = sayFinishedMessage.id?.toPointer()
             session_id = sayFinishedMessage.sessionId?.toPointer()
@@ -496,6 +506,7 @@ class CSayFinishedMessage(p: Pointer?) : Structure(p), Structure.ByReference {
 
 class CMapStringToStringArrayEntry(p: Pointer?) : Structure(p), Structure.ByValue {
     companion object {
+        @JvmStatic
         fun fromMapEntry(entry: Map.Entry<String, List<String>>) = CMapStringToStringArrayEntry(null).apply {
             key = entry.key.toPointer()
             value = CStringArray.fromStringList(entry.value)
@@ -523,6 +534,7 @@ class CMapStringToStringArrayEntry(p: Pointer?) : Structure(p), Structure.ByValu
 
 class CMapStringToStringArray(p: Pointer?) : Structure(p), Structure.ByReference {
     companion object {
+        @JvmStatic
         fun fromMap(map: Map<String, List<String>>) = CMapStringToStringArray(null).apply {
             count = map.size
             entries = if (map.isNotEmpty()) Memory(Pointer.SIZE * map.size.toLong()).apply {
@@ -558,6 +570,7 @@ class CInjectionRequestOperation(p: Pointer?) : Structure(p), Structure.ByRefere
         const val KIND_ADD = 1
         const val KIND_ADD_FROM_VANILLA = 2
 
+        @JvmStatic
         fun fromInjectionOperation(input: InjectionOperation) = CInjectionRequestOperation(null).apply {
             values = CMapStringToStringArray.fromMap(input.values)
             kind = when (input.kind) {
@@ -593,6 +606,7 @@ class CInjectionRequestOperation(p: Pointer?) : Structure(p), Structure.ByRefere
 
 class CInjectionRequestOperations(p: Pointer?) : Structure(p), Structure.ByReference {
     companion object {
+        @JvmStatic
         fun fromInjectionOperationsList(input: List<InjectionOperation>) = CInjectionRequestOperations(null).apply {
             count = input.size
             operations = if(input.isNotEmpty()) Memory(Pointer.SIZE * input.size.toLong()).apply {
@@ -623,6 +637,7 @@ class CInjectionRequestOperations(p: Pointer?) : Structure(p), Structure.ByRefer
 
 class CInjectionRequestMessage(p: Pointer?) : Structure(p), Structure.ByReference {
     companion object {
+        @JvmStatic
         fun fromInjectionRequest(input: InjectionRequestMessage) = CInjectionRequestMessage(null).apply {
             operations = CInjectionRequestOperations.fromInjectionOperationsList(input.operations)
             lexicon = CMapStringToStringArray.fromMap(input.lexicon)
