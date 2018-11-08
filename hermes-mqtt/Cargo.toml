@@ -1,6 +1,6 @@
 [package]
 name = "hermes-mqtt"
-version = "0.60.4"
+version = "0.61.0-SNAPSHOT"
 authors = ["Thibaut Lorrain <thibaut.lorrain@snips.ai>"]
 
 [dependencies]
