@@ -166,6 +166,9 @@ macro_rules! generate_hermes_c_symbols {
                              hermes_drop_sound_feedback_facade,
                              hermes_protocol_handler_sound_feedback_facade = handler.sound_feedback);
 
+    generate_facade_publish!(hermes_sound_feedback_publish_toggle_on = CSoundFeedbackFacade:publish_toggle_on(CSiteMessage));
+    generate_facade_publish!(hermes_sound_feedback_publish_toggle_off = CSoundFeedbackFacade:publish_toggle_off(CSiteMessage));
+
     generate_facade_wrapper!(CSoundFeedbackBackendFacade for hermes::SoundFeedbackBackendFacade,
                              hermes_drop_sound_feedback_backend_facade,
                              hermes_protocol_handler_sound_feedback_backend_facade = handler.sound_feedback_backend);

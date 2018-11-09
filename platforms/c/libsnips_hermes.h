@@ -10,41 +10,42 @@
  */
 typedef enum {
   /*
-   * The resolved value as a granularity of a year
+   * The resolved value has a granularity of a year
    */
   SNIPS_GRAIN_YEAR = 0,
   /*
-   * The resolved value as a granularity of a quarter
+   * The resolved value has a granularity of a quarter
    */
   SNIPS_GRAIN_QUARTER = 1,
   /*
-   * The resolved value as a granularity of a mount
+   * The resolved value has a granularity of a mount
    */
   SNIPS_GRAIN_MONTH = 2,
   /*
-   * The resolved value as a granularity of a week
+   * The resolved value has a granularity of a week
    */
   SNIPS_GRAIN_WEEK = 3,
   /*
-   * The resolved value as a granularity of a day
+   * The resolved value has a granularity of a day
    */
   SNIPS_GRAIN_DAY = 4,
   /*
-   * The resolved value as a granularity of an hour
+   * The resolved value has a granularity of an hour
    */
   SNIPS_GRAIN_HOUR = 5,
   /*
-   * The resolved value as a granularity of a minute
+   * The resolved value has a granularity of a minute
    */
   SNIPS_GRAIN_MINUTE = 6,
   /*
-   * The resolved value as a granularity of a second
+   * The resolved value has a granularity of a second
    */
   SNIPS_GRAIN_SECOND = 7,
 } SNIPS_GRAIN;
 
 typedef enum {
   SNIPS_INJECTION_KIND_ADD = 1,
+  SNIPS_INJECTION_KIND_ADD_FROM_VANILLA = 2,
 } SNIPS_INJECTION_KIND;
 
 /*
@@ -110,7 +111,7 @@ typedef enum {
    */
   SNIPS_SLOT_VALUE_TYPE_INSTANTTIME = 4,
   /*
-   * Interval type respresented by a CTimeIntervalValue
+   * Interval type represented by a CTimeIntervalValue
    */
   SNIPS_SLOT_VALUE_TYPE_TIMEINTERVAL = 5,
   /*
@@ -122,7 +123,7 @@ typedef enum {
    */
   SNIPS_SLOT_VALUE_TYPE_TEMPERATURE = 7,
   /*
-   * Duration type reperesented by a CDurationValue
+   * Duration type represented by a CDurationValue
    */
   SNIPS_SLOT_VALUE_TYPE_DURATION = 8,
   /*
@@ -130,15 +131,15 @@ typedef enum {
    */
   SNIPS_SLOT_VALUE_TYPE_PERCENTAGE = 9,
   /*
-   * Music artist type represented by a char *
+   * Music Album type represented by a char *
    */
-  SNIPS_SLOT_VALUE_TYPE_MUSICARTIST = 10,
+  SNIPS_SLOT_VALUE_TYPE_MUSICALBUM = 10,
   /*
-   * Music album type represented by a char *
+   * Music Artist type represented by a char *
    */
-  SNIPS_SLOT_VALUE_TYPE_MUSICALBUM = 11,
+  SNIPS_SLOT_VALUE_TYPE_MUSICARTIST = 11,
   /*
-   * Music track type represented by a char *
+   * Music Track type represented by a char *
    */
   SNIPS_SLOT_VALUE_TYPE_MUSICTRACK = 12,
 } SNIPS_SLOT_VALUE_TYPE;
@@ -149,14 +150,42 @@ typedef struct {
 
 typedef struct {
   const char *site_id;
+  /*
+   * Nullable
+   */
   const char *session_id;
 } CSiteMessage;
 
 typedef struct {
+  float start;
+  float end;
+} CAsrDecodingDuration;
+
+typedef struct {
+  const char *value;
+  float confidence;
+  int32_t range_start;
+  int32_t range_end;
+  CAsrDecodingDuration time;
+} CAsrToken;
+
+typedef struct {
+  const CAsrToken *const *entries;
+  int count;
+} CAsrTokenArray;
+
+typedef struct {
   const char *text;
+  /*
+   * Nullable
+   */
+  const CAsrTokenArray *tokens;
   float likelihood;
   float seconds;
   const char *site_id;
+  /*
+   * Nullable
+   */
   const char *session_id;
 } CTextCapturedMessage;
 
@@ -237,7 +266,7 @@ typedef struct {
    */
   CSlotValue value;
   /*
-   * The raw value as is appeared in the input text
+   * The raw value as it appears in the input text
    */
   const char *raw_value;
   /*
@@ -258,19 +287,20 @@ typedef struct {
   int32_t range_end;
 } CSlot;
 
-/*
- * Wrapper around a slot list
- */
 typedef struct {
-  /*
-   * Pointer to the first slot of the list
-   */
-  const CSlot *slots;
-  /*
-   * Number of slots in the list
-   */
-  int32_t size;
-} CSlotList;
+  float confidence;
+  const CSlot *nlu_slot;
+} CNluSlot;
+
+typedef struct {
+  const CNluSlot *const *entries;
+  int count;
+} CNluSlotArray;
+
+typedef struct {
+  const CAsrTokenArray *const *entries;
+  int count;
+} CAsrTokenDoubleArray;
 
 typedef struct {
   const char *session_id;
@@ -284,7 +314,11 @@ typedef struct {
   /*
    * Nullable
    */
-  const CSlotList *slots;
+  const CNluSlotArray *slots;
+  /*
+   * Nullable, the first array level represents the asr invocation, the second one the tokens
+   */
+  const CAsrTokenDoubleArray *asr_tokens;
 } CIntentMessage;
 
 typedef struct {
@@ -429,6 +463,14 @@ typedef struct {
 typedef struct {
   const CInjectionRequestOperations *operations;
   const CMapStringToStringArray *lexicon;
+  /*
+   * Nullable
+   */
+  const char *cross_language;
+  /*
+   * Nullable
+   */
+  const char *id;
 } CInjectionRequestMessage;
 
 typedef struct {
@@ -462,7 +504,7 @@ typedef struct {
   /*
    * Nullable
    */
-  const CSlotList *slots;
+  const CNluSlotArray *slots;
   /*
    * Nullable
    */
@@ -483,6 +525,10 @@ typedef struct {
 
 typedef struct {
   const char *input;
+  /*
+   * Nullable
+   */
+  const CAsrTokenArray *asr_tokens;
   /*
    * Nullable
    */
@@ -507,7 +553,7 @@ typedef struct {
   /*
    * Nullable
    */
-  const CSlot *slot;
+  const CNluSlot *slot;
   /*
    * Nullable
    */
@@ -516,6 +562,7 @@ typedef struct {
 
 typedef struct {
   const char *input;
+  const CAsrTokenArray *asr_tokens;
   const char *intent_name;
   const char *slot_name;
   /*
@@ -670,7 +717,7 @@ typedef struct {
    */
   int64_t quarters;
   /*
-   * Number of mounts in the duration
+   * Number of months in the duration
    */
   int64_t months;
   /*
@@ -966,6 +1013,12 @@ SNIPS_RESULT hermes_protocol_handler_tts_backend_facade(const CProtocolHandler *
 
 SNIPS_RESULT hermes_protocol_handler_tts_facade(const CProtocolHandler *handler,
                                                 const CTtsFacade **facade);
+
+SNIPS_RESULT hermes_sound_feedback_publish_toggle_off(const CSoundFeedbackFacade *facade,
+                                                      const CSiteMessage *message);
+
+SNIPS_RESULT hermes_sound_feedback_publish_toggle_on(const CSoundFeedbackFacade *facade,
+                                                     const CSiteMessage *message);
 
 SNIPS_RESULT hermes_tts_backend_publish_say_finished(const CTtsBackendFacade *facade,
                                                      const CSayFinishedMessage *message);
