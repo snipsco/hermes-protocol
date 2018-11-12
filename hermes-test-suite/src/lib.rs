@@ -295,6 +295,16 @@ macro_rules! test_suite {
                     OneToMany
                     voice_activity.subscribe_vad_down { "site_id".into() } <= VadDownMessage | voice_activity_backend.publish_vad_down
                     with VadDownMessage { site_id: "site_id".into(), audio_timestamp_ms: Some(4242) };);
+        /*
+        t!(voice_activity_all_vad_up_works:
+                    ManyToOne
+                    voice_activity.subscribe_all_vad_up <= VadUpMessage | voice_activity_backend.publish_vad_up { "site_id".into() }
+                    with VadUpMessage { site_id: "site_id".into(), audio_timestamp_ms: Some(1664) };);
+        t!(voice_activity_all_vad_down_works:
+                    ManyToOne
+                    voice_activity.subscribe_all_vad_down <= VadDownMessage | voice_activity_backend.publish_vad_down { "site_id".into() }
+                    with VadDownMessage { site_id: "site_id".into(), audio_timestamp_ms: Some(1664) };);
+        */
 
         t_identifiable_component!(hotword_identifiable_component: hotword_backend | hotword);
         t_identifiable_toggleable!(hotword_identifiable_toggleable: hotword_backend | hotword);
