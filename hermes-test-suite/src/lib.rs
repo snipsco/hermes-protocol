@@ -211,6 +211,36 @@ macro_rules! t {
             assert_eq!(result.unwrap(), message)
         }
     };
+    (
+        $name:ident : ManyToOne
+        $s_facade:ident.
+        $s:ident <=
+        $t:ty |
+        $p_facade:ident.
+        $p:ident
+        with
+        $object:expr;
+    ) => {
+        #[test]
+        fn $name() {
+            let (handler_source, handler_receiver) = create_handlers();
+            let source = handler_source.$p_facade();
+            let receiver = handler_receiver.$s_facade();
+            let (tx, rx) = ::std::sync::mpsc::channel();
+            let tx = ::std::sync::Mutex::new(tx);
+            receiver
+                .$s(::Callback::new(move |o: &$t| {
+                    tx.lock().map(|it| it.send(o.clone())).unwrap().unwrap()
+                }))
+                .unwrap();
+            let message = $object;
+            ::std::thread::sleep(WAIT_DURATION);
+            source.$p(message.clone()).unwrap();
+            let result = rx.recv_timeout(::std::time::Duration::from_secs(1));
+            assert!(result.is_ok(), "didn't receive message after one second");
+            assert_eq!(result.unwrap(), message)
+        }
+    };
 }
 
 #[macro_export]
@@ -295,16 +325,14 @@ macro_rules! test_suite {
                     OneToMany
                     voice_activity.subscribe_vad_down { "site_id".into() } <= VadDownMessage | voice_activity_backend.publish_vad_down
                     with VadDownMessage { site_id: "site_id".into(), audio_timestamp_ms: Some(4242) };);
-        /*
         t!(voice_activity_all_vad_up_works:
                     ManyToOne
-                    voice_activity.subscribe_all_vad_up <= VadUpMessage | voice_activity_backend.publish_vad_up { "site_id".into() }
+                    voice_activity.subscribe_all_vad_up <= VadUpMessage | voice_activity_backend.publish_vad_up
                     with VadUpMessage { site_id: "site_id".into(), audio_timestamp_ms: Some(1664) };);
         t!(voice_activity_all_vad_down_works:
                     ManyToOne
-                    voice_activity.subscribe_all_vad_down <= VadDownMessage | voice_activity_backend.publish_vad_down { "site_id".into() }
+                    voice_activity.subscribe_all_vad_down <= VadDownMessage | voice_activity_backend.publish_vad_down
                     with VadDownMessage { site_id: "site_id".into(), audio_timestamp_ms: Some(1664) };);
-        */
 
         t_identifiable_component!(hotword_identifiable_component: hotword_backend | hotword);
         t_identifiable_toggleable!(hotword_identifiable_toggleable: hotword_backend | hotword);
