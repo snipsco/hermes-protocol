@@ -73,6 +73,12 @@ impl HermesTopic {
             (Some(site_id), Some("audioFrame"), None) => {
                 Some(AudioServer(Some(site_id.into()), AudioFrame))
             }
+            (Some(site_id), Some("replayRequest"), None) => {
+                Some(AudioServer(Some(site_id.into()), ReplayRequest))
+            }
+            (Some(site_id), Some("replayResponse"), None) => {
+                Some(AudioServer(Some(site_id.into()), ReplayResponse))
+            }
             (Some(site_id), Some("playBytes"), Some(file)) => {
                 Some(AudioServer(Some(site_id.into()), PlayBytes(file.into())))
             }
@@ -456,6 +462,8 @@ impl ToPath for NluCommand {}
 #[derive(Debug, Clone, PartialEq)]
 pub enum AudioServerCommand {
     AudioFrame,
+    ReplayRequest,
+    ReplayResponse,
     PlayBytes(String),
     PlayFinished,
     ToggleOn,
@@ -466,6 +474,8 @@ impl fmt::Display for AudioServerCommand {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let subpath = match *self {
             AudioServerCommand::AudioFrame => "audioFrame".to_owned(),
+            AudioServerCommand::ReplayRequest => "replayRequest".to_owned(),
+            AudioServerCommand::ReplayResponse => "replayResponse".to_owned(),
             AudioServerCommand::PlayBytes(ref id) => format!("playBytes/{}", id),
             AudioServerCommand::PlayFinished => "playFinished".to_owned(),
             AudioServerCommand::ToggleOn => "toggleOn".to_owned(),
@@ -645,6 +655,14 @@ mod tests {
             (
                 HermesTopic::AudioServer(Some("default".into()), AudioServerCommand::AudioFrame),
                 "hermes/audioServer/default/audioFrame",
+            ),
+            (
+                HermesTopic::AudioServer(Some("default".into()), AudioServerCommand::ReplayRequest),
+                "hermes/audioServer/default/replayRequest",
+            ),
+            (
+                HermesTopic::AudioServer(Some("default".into()), AudioServerCommand::ReplayResponse),
+                "hermes/audioServer/default/replayResponse",
             ),
             (
                 HermesTopic::AudioServer(

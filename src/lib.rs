@@ -220,6 +220,8 @@ pub trait AudioServerFacade: IdentifiableComponentFacade + IdentifiableToggleabl
         site_id: SiteId,
         handler: Callback<AudioFrameMessage>,
     ) -> Result<()>;
+    fn publish_replay_request(&self, request: ReplayRequestMessage) -> Result<()>;
+    fn subscribe_replay_response(&self, site_id: SiteId, handler:Callback<AudioFrameMessage>) -> Result<()>;
 }
 
 /// The facade the audio server must use to receive its orders and advertise when it has finished
@@ -234,6 +236,8 @@ pub trait AudioServerBackendFacade:
     fn subscribe_all_play_bytes(&self, handler: Callback<PlayBytesMessage>) -> Result<()>;
     fn publish_play_finished(&self, status: PlayFinishedMessage) -> Result<()>;
     fn publish_audio_frame(&self, frame: AudioFrameMessage) -> Result<()>;
+    fn subscribe_replay_request(&self, site_id: SiteId, handler: Callback<ReplayRequestMessage>) -> Result<()>;
+    fn publish_replay_response(&self, frame: AudioFrameMessage) -> Result<()>;
 }
 
 /// The facade to use to interact with the dialogue manager, this is the principal interface that a

@@ -421,6 +421,16 @@ macro_rules! test_suite {
                     audio_server.subscribe_audio_frame { "some site".into() } <= AudioFrameMessage | audio_server_backend.publish_audio_frame
                     with AudioFrameMessage { wav_frame: vec![42; 1000], site_id: "some site".into() };
             );
+        t!(audio_server_replay_request:
+                    OneToMany
+                    audio_server_backend.subscribe_replay_request { "some site".into() } <= ReplayRequestMessage | audio_server.publish_replay_request
+                    with ReplayRequestMessage { request_id: "some request".into(), start_at_ms: 12, site_id: "some site".into() };
+            );
+        t!(audio_server_replay_response:
+                    OneToMany
+                    audio_server.subscribe_replay_response { "some site".into() } <= AudioFrameMessage | audio_server_backend.publish_replay_response
+                    with AudioFrameMessage { wav_frame: vec![42; 1000], site_id: "some site".into() };
+            );
 
         t_component!(dialogue_component: dialogue_backend | dialogue);
         t_toggleable!(dialogue_toggleable: dialogue_backend | dialogue);

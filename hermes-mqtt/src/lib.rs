@@ -568,6 +568,15 @@ impl AudioServerFacade for MqttToggleableComponentFacade {
                     unreachable!()
                 }
             });
+    p!(publish_replay_request(message: ReplayRequestMessage) { &HermesTopic::AudioServer(Some(message.site_id.clone()), AudioServerCommand::ReplayRequest) });
+    s_bin!(subscribe_replay_response<AudioFrameMessage>(site_id: SiteId) { &HermesTopic::AudioServer(Some(site_id), AudioServerCommand::ReplayResponse) }
+            |topic, bytes| {
+                if let HermesTopic::AudioServer(Some(ref site_id), AudioServerCommand::ReplayResponse) = *topic {
+                    AudioFrameMessage { site_id: site_id.to_owned(), wav_frame: bytes.into() }
+                } else {
+                    unreachable!()
+                }
+            });
     p_bin!(publish_play_bytes(bytes: PlayBytesMessage)
         { &HermesTopic::AudioServer(Some(bytes.site_id), AudioServerCommand::PlayBytes(bytes.id)) }
         { bytes.wav_bytes });
@@ -578,6 +587,10 @@ impl AudioServerFacade for MqttToggleableComponentFacade {
 impl AudioServerBackendFacade for MqttToggleableComponentFacade {
     p_bin!(publish_audio_frame(frame: AudioFrameMessage)
         { &HermesTopic::AudioServer(Some(frame.site_id), AudioServerCommand::AudioFrame) }
+        { frame.wav_frame });
+    s!(subscribe_replay_request<ReplayRequestMessage>(site_id: SiteId) { &HermesTopic::AudioServer(Some(site_id), AudioServerCommand::ReplayRequest) } );
+    p_bin!(publish_replay_response(frame: AudioFrameMessage)
+        { &HermesTopic::AudioServer(Some(frame.site_id), AudioServerCommand::ReplayResponse) }
         { frame.wav_frame });
     s_bin!(subscribe_all_play_bytes<PlayBytesMessage> { &HermesTopic::AudioServer(Some("+".into()), AudioServerCommand::PlayBytes("#".into())) }
             |topic, bytes| {
@@ -809,7 +822,8 @@ mod tests {
         };
 
         // /usr/sbin is not in path on non login session on raspbian and it is where mosquitto is
-        ::std::env::set_var("PATH", format!("{}:/usr/sbin",::std::env::var("PATH").unwrap()));
+        // same goes for /usr/local/sbin on macos/homebrew
+        ::std::env::set_var("PATH", format!("{}:/usr/sbin:/usr/local/sbin",::std::env::var("PATH").unwrap()));
 
         let server = Rc::new(ServerHolder {
             server: Command::new("mosquitto")

@@ -192,6 +192,19 @@ impl<'de> HermesMessage<'de> for AudioFrameMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct ReplayRequestMessage {
+    /// An id for the request, it will be passed back in the replayed frames headers.
+    pub request_id: RequestId,
+    /// When to start replay from
+    pub start_at_ms: i64,
+    /// The site this frame originates from
+    pub site_id: SiteId,
+}
+
+impl<'de> HermesMessage<'de> for ReplayRequestMessage {}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct PlayFinishedMessage {
     /// The id of the `PlayBytesMessage` which bytes finished playing
     pub id: RequestId,

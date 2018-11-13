@@ -717,6 +717,16 @@ struct AudioServerAudioFrame {
     frame: AudioFrameMessage,
 }
 
+#[derive(Debug)]
+struct AudioServerReplayRequest {
+    request: ReplayRequestMessage
+}
+
+#[derive(Debug)]
+struct AudioServerReplayResponse {
+    frame: AudioFrameMessage
+}
+
 impl AudioServerFacade for InProcessComponent<AudioServer> {
     fn publish_play_bytes(&self, bytes: PlayBytesMessage) -> Result<()> {
         self.publish(AudioServerPlayBytes { bytes })
@@ -741,6 +751,18 @@ impl AudioServerFacade for InProcessComponent<AudioServer> {
     ) -> Result<()> {
         subscribe_filter!(self, AudioServerAudioFrame { frame }, handler, site_id)
     }
+
+    fn publish_replay_request(&self, request: ReplayRequestMessage) -> Result<()> {
+        self.publish(AudioServerReplayRequest { request })
+    }
+
+    fn subscribe_replay_response(
+        &self,
+        site_id: SiteId,
+        handler: Callback<AudioFrameMessage>,
+    ) -> Result<()> {
+        subscribe_filter!(self, AudioServerReplayResponse { frame }, handler, site_id)
+    }
 }
 
 impl AudioServerBackendFacade for InProcessComponent<AudioServer> {
@@ -762,6 +784,18 @@ impl AudioServerBackendFacade for InProcessComponent<AudioServer> {
 
     fn publish_audio_frame(&self, frame: AudioFrameMessage) -> Result<()> {
         self.publish(AudioServerAudioFrame { frame })
+    }
+
+    fn subscribe_replay_request(
+        &self,
+        site_id: SiteId,
+        handler: Callback<ReplayRequestMessage>
+    ) -> Result<()> {
+        subscribe_filter!(self, AudioServerReplayRequest { request }, handler, site_id)
+    }
+
+    fn publish_replay_response(&self, frame: AudioFrameMessage) -> Result<()> {
+        self.publish(AudioServerReplayResponse { frame })
     }
 }
 
