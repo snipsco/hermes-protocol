@@ -1,9 +1,7 @@
 #[macro_use]
 extern crate failure;
-#[macro_use]
 extern crate ffi_utils;
 extern crate hermes;
-#[macro_use]
 extern crate hermes_ffi;
 #[macro_use]
 extern crate lazy_static;
