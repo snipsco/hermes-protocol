@@ -228,12 +228,14 @@ class CNluSlot(p: Pointer?) : Structure(p), Structure.ByReference {
         }
     }
 
+    @JvmField var confidence: Float = (-1.0).toFloat()
+    @JvmField var nlu_slot: CSlot? = null
+
+    // be careful this block must be below the field definition if you don't want the native values read by JNA
+    // overridden by the default ones
     init {
         read()
     }
-
-    @JvmField var confidence: Float = (-1.0).toFloat()
-    @JvmField var nlu_slot: CSlot? = null
 
     override fun getFieldOrder() = listOf("confidence", "nlu_slot")
 
