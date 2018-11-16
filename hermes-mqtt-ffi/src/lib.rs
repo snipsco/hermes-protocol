@@ -1,13 +1,11 @@
 #[macro_use]
 extern crate failure;
 extern crate hermes;
-#[macro_use]
 extern crate hermes_ffi;
 extern crate hermes_mqtt;
 extern crate libc;
 #[macro_use]
 extern crate lazy_static;
-#[macro_use]
 extern crate ffi_utils;
 
 use failure::ResultExt;
