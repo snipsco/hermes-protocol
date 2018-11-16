@@ -76,11 +76,25 @@ pub struct HotwordDetectedMessage {
     pub model_type: Option<HotwordModelType>,
     /// The current sensitivity of the detector
     pub current_sensitivity: Option<f32>,
-    /// Timestamp of the audio frame that generated the hotword
+    /// Timestamp of the audio frame that triggered the hotword
     pub detection_signal_ms: Option<i64>,
+    /// Timestamp of the audio frame where the hotword is likely to end
+    pub end_signal_ms: Option<i64>,
 }
 
 impl<'de> HermesMessage<'de> for HotwordDetectedMessage {}
+
+#[derive(Debug, Clone, Default, PartialEq, PartialOrd, Deserialize, Serialize)]
+pub struct AsrStartListeningMessage {
+    /// The site that must be listened too
+    pub site_id: SiteId,
+    /// An optional session id if there is a related session
+    pub session_id: Option<SessionId>,
+    /// Signal instant to start listening from
+    pub start_signal_ms: Option<i64>,
+}
+
+impl<'de> HermesMessage<'de> for AsrStartListeningMessage {}
 
 #[derive(Debug, Clone, Default, PartialEq, PartialOrd, Deserialize, Serialize)]
 pub struct AsrDecodingDuration {

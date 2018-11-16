@@ -176,7 +176,7 @@ macro_rules! generate_hermes_c_symbols {
     generate_facade_wrapper!(CAsrFacade for hermes::AsrFacade,
                              hermes_drop_asr_facade,
                              hermes_protocol_handler_asr_facade = handler.asr);
-    generate_facade_publish!(hermes_asr_publish_start_listening = CAsrFacade:publish_start_listening(CSiteMessage));
+    generate_facade_publish!(hermes_asr_publish_start_listening = CAsrFacade:publish_start_listening(CAsrStartListeningMessage));
     generate_facade_publish!(hermes_asr_publish_stop_listening = CAsrFacade:publish_stop_listening(CSiteMessage));
     generate_facade_subscribe!(hermes_asr_subscribe_text_captured = CAsrFacade:subscribe_text_captured(|CTextCapturedMessage|));
     generate_facade_subscribe!(hermes_asr_subscribe_partial_text_captured = CAsrFacade:subscribe_partial_text_captured(|CTextCapturedMessage|));
@@ -184,7 +184,7 @@ macro_rules! generate_hermes_c_symbols {
     generate_facade_wrapper!(CAsrBackendFacade for hermes::AsrBackendFacade,
                              hermes_drop_asr_backend_facade,
                              hermes_protocol_handler_asr_backend_facade = handler.asr_backend);
-    generate_facade_subscribe!(hermes_asr_backend_publish_start_listening = CAsrBackendFacade:subscribe_start_listening(|CSiteMessage|));
+    generate_facade_subscribe!(hermes_asr_backend_publish_start_listening = CAsrBackendFacade:subscribe_start_listening(|CAsrStartListeningMessage|));
     generate_facade_subscribe!(hermes_asr_backend_publish_stop_listening = CAsrBackendFacade:subscribe_stop_listening(|CSiteMessage|));
     generate_facade_publish!(hermes_asr_backend_subscribe_text_captured = CAsrBackendFacade:publish_text_captured(CTextCapturedMessage));
     generate_facade_publish!(hermes_asr_backend_subscribe_partial_text_captured = CAsrBackendFacade:publish_partial_text_captured(CTextCapturedMessage));

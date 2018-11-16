@@ -598,7 +598,7 @@ struct Asr;
 
 #[derive(Debug)]
 struct AsrStartListening {
-    site: SiteMessage,
+    start: AsrStartListeningMessage,
 }
 
 #[derive(Debug)]
@@ -620,8 +620,8 @@ struct AsrPartialTextCaptured {
 }
 
 impl AsrFacade for InProcessComponent<Asr> {
-    fn publish_start_listening(&self, site: SiteMessage) -> Result<()> {
-        self.publish(AsrStartListening { site })
+    fn publish_start_listening(&self, start:AsrStartListeningMessage) -> Result<()> {
+        self.publish(AsrStartListening { start })
     }
 
     fn publish_stop_listening(&self, site: SiteMessage) -> Result<()> {
@@ -645,8 +645,8 @@ impl AsrFacade for InProcessComponent<Asr> {
 }
 
 impl AsrBackendFacade for InProcessComponent<Asr> {
-    fn subscribe_start_listening(&self, handler: Callback<SiteMessage>) -> Result<()> {
-        subscribe!(self, AsrStartListening { site }, handler)
+    fn subscribe_start_listening(&self, handler: Callback<AsrStartListeningMessage>) -> Result<()> {
+        subscribe!(self, AsrStartListening { start }, handler)
     }
 
     fn subscribe_stop_listening(&self, handler: Callback<SiteMessage>) -> Result<()> {

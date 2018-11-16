@@ -338,11 +338,11 @@ macro_rules! test_suite {
         t_identifiable_toggleable!(hotword_identifiable_toggleable: hotword_backend | hotword);
         t!(hotword_detected_works:
                     hotword.subscribe_detected { "hotword_identifier".into() } <= HotwordDetectedMessage | hotword_backend.publish_detected
-                    with HotwordDetectedMessage { model_id: "some model".into(), site_id: "some site".into(), model_type: Some(::hermes::HotwordModelType::Universal), model_version: Some("1.2.3".into()), current_sensitivity: Some(0.5), detection_signal_ms: None };);
+                    with HotwordDetectedMessage { model_id: "some model".into(), site_id: "some site".into(), model_type: Some(::hermes::HotwordModelType::Universal), model_version: Some("1.2.3".into()), current_sensitivity: Some(0.5), detection_signal_ms: None, end_signal_ms: None };);
         t!(hotword_all_detected_works:
                     ManyToOne
                     hotword.subscribe_all_detected <= HotwordDetectedMessage | hotword_backend.publish_detected { "hotword_identifier".into() }
-                    with HotwordDetectedMessage { model_id: "some model".into(), site_id: "some site".into(), model_type: Some(::hermes::HotwordModelType::Universal), model_version: Some("1.2.3".into()), current_sensitivity: Some(0.5), detection_signal_ms: Some(12345) };);
+                    with HotwordDetectedMessage { model_id: "some model".into(), site_id: "some site".into(), model_type: Some(::hermes::HotwordModelType::Universal), model_version: Some("1.2.3".into()), current_sensitivity: Some(0.5), detection_signal_ms: Some(12345), end_signal_ms: None };);
 
         t_identifiable_toggleable!(sound_feedback_identifiable_toggleable: sound_feedback_backend | sound_feedback );
 
@@ -355,8 +355,8 @@ macro_rules! test_suite {
                     asr.subscribe_partial_text_captured <= TextCapturedMessage | asr_backend.publish_partial_text_captured
                     with TextCapturedMessage { text: "hello world".into(), tokens: Some(vec![ AsrToken { value: "hello".into(), confidence: 1., range_start: 0, range_end: 4, time: AsrDecodingDuration { start: 0.0, end: 2.0 } }, AsrToken { value: "world".into(), confidence: 1., range_start: 5, range_end: 9, time: AsrDecodingDuration { start: 2.0, end: 4.0 } }, ]), likelihood: 0.5, seconds: 4.2, site_id: "Some site".into(), session_id: Some("123abc".into()) };);
         t!(asr_start_listening:
-                    asr_backend.subscribe_start_listening <= SiteMessage | asr.publish_start_listening
-                    with SiteMessage { session_id: Some("abc".into()), site_id: "some site".into() };);
+                    asr_backend.subscribe_start_listening <= AsrStartListeningMessage | asr.publish_start_listening
+                    with AsrStartListeningMessage { session_id: Some("abc".into()), site_id: "some site".into(), start_signal_ms: Some(12) };);
         t!(asr_stop_listening:
                     asr_backend.subscribe_stop_listening <= SiteMessage | asr.publish_stop_listening
                     with SiteMessage { session_id: Some("abc".into()), site_id: "some site".into() };);

@@ -153,7 +153,7 @@ pub trait SoundFeedbackBackendFacade: IdentifiableToggleableBackendFacade {}
 
 /// The facade to interact with the automatic speech recognition component
 pub trait AsrFacade: ComponentFacade + ToggleableFacade {
-    fn publish_start_listening(&self, site: SiteMessage) -> Result<()>;
+    fn publish_start_listening(&self, start: AsrStartListeningMessage) -> Result<()>;
     fn publish_stop_listening(&self, site: SiteMessage) -> Result<()>;
     fn publish_reload(&self) -> Result<()>;
     fn subscribe_text_captured(&self, handler: Callback<TextCapturedMessage>) -> Result<()>;
@@ -163,7 +163,7 @@ pub trait AsrFacade: ComponentFacade + ToggleableFacade {
 /// The facade the automatic speech recognition must use to receive its orders and publish
 /// recognized text
 pub trait AsrBackendFacade: ComponentBackendFacade + ToggleableBackendFacade {
-    fn subscribe_start_listening(&self, handler: Callback<SiteMessage>) -> Result<()>;
+    fn subscribe_start_listening(&self, handler: Callback<AsrStartListeningMessage>) -> Result<()>;
     fn subscribe_stop_listening(&self, handler: Callback<SiteMessage>) -> Result<()>;
     fn subscribe_reload(&self, handler: Callback0) -> Result<()>;
     fn publish_text_captured(&self, text_captured: TextCapturedMessage) -> Result<()>;

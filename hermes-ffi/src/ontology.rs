@@ -78,6 +78,7 @@ impl AsRust<hermes::HotwordDetectedMessage> for CHotwordDetectedMessage {
             model_type: None,
             current_sensitivity: None,
             detection_signal_ms: None,
+            end_signal_ms: None,
         })
     }
 }
@@ -88,6 +89,51 @@ impl Drop for CHotwordDetectedMessage {
         take_back_c_string!(self.model_id);
     }
 }
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct CAsrStartListeningMessage {
+    pub site_id: *const libc::c_char,
+    /// Nullable
+    pub session_id: *const libc::c_char,
+    pub start_signal_ms: libc::int64_t, // -1 mean None
+}
+
+unsafe impl Sync for CAsrStartListeningMessage {}
+
+impl CAsrStartListeningMessage {
+    pub fn from(input: hermes::AsrStartListeningMessage) -> Result<Self> {
+        Self::c_repr_of(input)
+    }
+}
+
+impl CReprOf<hermes::AsrStartListeningMessage> for CAsrStartListeningMessage {
+    fn c_repr_of(input: hermes::AsrStartListeningMessage) -> Result<Self> {
+        Ok(Self {
+            site_id: convert_to_c_string!(input.site_id),
+            session_id: convert_to_nullable_c_string!(input.session_id),
+            start_signal_ms: input.start_signal_ms.unwrap_or(-1)
+        })
+    }
+}
+
+impl AsRust<hermes::AsrStartListeningMessage> for CAsrStartListeningMessage {
+    fn as_rust(&self) -> Result<hermes::AsrStartListeningMessage> {
+        Ok(hermes::AsrStartListeningMessage {
+            site_id: create_rust_string_from!(self.site_id),
+            session_id: create_optional_rust_string_from!(self.session_id),
+            start_signal_ms: if self.start_signal_ms == -1 { None } else { Some(self.start_signal_ms) },
+        })
+    }
+}
+
+impl Drop for CAsrStartListeningMessage {
+    fn drop(&mut self) {
+        take_back_c_string!(self.site_id);
+        take_back_nullable_c_string!(self.session_id);
+    }
+}
+
 
 #[repr(C)]
 #[derive(Debug)]
