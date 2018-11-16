@@ -85,6 +85,7 @@ pub struct HotwordDetectedMessage {
 impl<'de> HermesMessage<'de> for HotwordDetectedMessage {}
 
 #[derive(Debug, Clone, Default, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AsrStartListeningMessage {
     /// The site that must be listened too
     pub site_id: SiteId,
