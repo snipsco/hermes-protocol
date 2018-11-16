@@ -10,7 +10,6 @@ extern crate snips_nlu_ontology_ffi_macros;
 extern crate env_logger;
 
 #[cfg(test)]
-#[macro_use]
 extern crate spectral;
 
 type Result<T> = std::result::Result<T, failure::Error>;
