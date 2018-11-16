@@ -40,7 +40,7 @@ pub struct VadUpMessage {
     /// The site concerned
     pub site_id: SiteId,
     /// Timestamp of the audio frame where voice started to be detected
-    pub audio_timestamp_ms: Option<i64>,
+    pub signal_ms: Option<i64>,
 }
 
 impl<'de> HermesMessage<'de> for VadUpMessage {}
@@ -51,7 +51,7 @@ pub struct VadDownMessage {
     /// The site concerned
     pub site_id: SiteId,
     /// Timestamp of the audio frame where voice started to be detected
-    pub audio_timestamp_ms: Option<i64>,
+    pub signal_ms: Option<i64>,
 }
 
 impl<'de> HermesMessage<'de> for VadDownMessage {}
