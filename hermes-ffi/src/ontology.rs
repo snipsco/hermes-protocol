@@ -77,7 +77,7 @@ impl AsRust<hermes::HotwordDetectedMessage> for CHotwordDetectedMessage {
             model_version: None,
             model_type: None,
             current_sensitivity: None,
-            audio_timestamp_ms: None,
+            detection_signal_ms: None,
         })
     }
 }

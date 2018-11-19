@@ -77,7 +77,7 @@ pub struct HotwordDetectedMessage {
     /// The current sensitivity of the detector
     pub current_sensitivity: Option<f32>,
     /// Timestamp of the audio frame that generated the hotword
-    pub audio_timestamp_ms: Option<i64>,
+    pub detection_signal_ms: Option<i64>,
 }
 
 impl<'de> HermesMessage<'de> for HotwordDetectedMessage {}

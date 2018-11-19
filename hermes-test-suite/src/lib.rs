@@ -338,11 +338,11 @@ macro_rules! test_suite {
         t_identifiable_toggleable!(hotword_identifiable_toggleable: hotword_backend | hotword);
         t!(hotword_detected_works:
                     hotword.subscribe_detected { "hotword_identifier".into() } <= HotwordDetectedMessage | hotword_backend.publish_detected
-                    with HotwordDetectedMessage { model_id: "some model".into(), site_id: "some site".into(), model_type: Some(::hermes::HotwordModelType::Universal), model_version: Some("1.2.3".into()), current_sensitivity: Some(0.5), audio_timestamp_ms: None };);
+                    with HotwordDetectedMessage { model_id: "some model".into(), site_id: "some site".into(), model_type: Some(::hermes::HotwordModelType::Universal), model_version: Some("1.2.3".into()), current_sensitivity: Some(0.5), detection_signal_ms: None };);
         t!(hotword_all_detected_works:
                     ManyToOne
                     hotword.subscribe_all_detected <= HotwordDetectedMessage | hotword_backend.publish_detected { "hotword_identifier".into() }
-                    with HotwordDetectedMessage { model_id: "some model".into(), site_id: "some site".into(), model_type: Some(::hermes::HotwordModelType::Universal), model_version: Some("1.2.3".into()), current_sensitivity: Some(0.5), audio_timestamp_ms: Some(12345) };);
+                    with HotwordDetectedMessage { model_id: "some model".into(), site_id: "some site".into(), model_type: Some(::hermes::HotwordModelType::Universal), model_version: Some("1.2.3".into()), current_sensitivity: Some(0.5), detection_signal_ms: Some(12345) };);
 
         t_identifiable_toggleable!(sound_feedback_identifiable_toggleable: sound_feedback_backend | sound_feedback );
 
