@@ -154,6 +154,15 @@ typedef struct {
    * Nullable
    */
   const char *session_id;
+  int64_t start_signal_ms;
+} CAsrStartListeningMessage;
+
+typedef struct {
+  const char *site_id;
+  /*
+   * Nullable
+   */
+  const char *session_id;
 } CSiteMessage;
 
 typedef struct {
@@ -747,7 +756,7 @@ typedef struct {
 } CDurationValue;
 
 SNIPS_RESULT hermes_asr_backend_publish_start_listening(const CAsrBackendFacade *facade,
-                                                        void (*handler)(const CSiteMessage*));
+                                                        void (*handler)(const CAsrStartListeningMessage*));
 
 SNIPS_RESULT hermes_asr_backend_publish_stop_listening(const CAsrBackendFacade *facade,
                                                        void (*handler)(const CSiteMessage*));
@@ -759,7 +768,7 @@ SNIPS_RESULT hermes_asr_backend_subscribe_text_captured(const CAsrBackendFacade 
                                                         const CTextCapturedMessage *message);
 
 SNIPS_RESULT hermes_asr_publish_start_listening(const CAsrFacade *facade,
-                                                const CSiteMessage *message);
+                                                const CAsrStartListeningMessage *message);
 
 SNIPS_RESULT hermes_asr_publish_stop_listening(const CAsrFacade *facade,
                                                const CSiteMessage *message);

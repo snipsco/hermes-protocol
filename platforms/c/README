@@ -1,0 +1,9 @@
+# Regenerate libsnips_hermes.h
+
+```bash
+rustup default nightly
+hermes-protocol/hermes-mqtt-ffi
+cbindgen -c cbindgen.toml -o ../platforms/c/libsnips_hermes.h . -v
+```
+
+Then review the changes. cbindgen sometime does some errors, plus there are a few additionnal comments in the .h
