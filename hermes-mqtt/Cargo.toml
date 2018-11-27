@@ -5,7 +5,7 @@ authors = ["Thibaut Lorrain <thibaut.lorrain@snips.ai>"]
 
 [dependencies]
 failure = "0.1"
-hermes = { path = ".." }
+hermes = { path = "../hermes" }
 hermes-test-suite = { path = "../hermes-test-suite" }
 log = "0.4"
 rumqtt = { git = "https://github.com/snipsco/rumqtt", rev = "67df4558" }
