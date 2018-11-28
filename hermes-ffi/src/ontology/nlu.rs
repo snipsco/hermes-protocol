@@ -1,0 +1,385 @@
+use Result;
+use super::CAsrTokenArray;
+use std::ptr::null;
+use std::slice;
+use failure::ResultExt;
+use ffi_utils::{AsRust, CReprOf, CStringArray, RawBorrow, RawPointerConverter};
+use snips_nlu_ontology_ffi_macros::{CIntentClassifierResult, CSlot};
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct CNluQueryMessage {
+    pub input: *const libc::c_char,
+    /// Nullable
+    pub asr_tokens: *const CAsrTokenArray,
+    /// Nullable
+    pub intent_filter: *const CStringArray,
+    /// Nullable
+    pub id: *const libc::c_char,
+    /// Nullable
+    pub session_id: *const libc::c_char,
+}
+
+unsafe impl Sync for CNluQueryMessage {}
+
+impl CNluQueryMessage {
+    pub fn from(input: hermes::NluQueryMessage) -> Result<Self> {
+        Self::c_repr_of(input)
+    }
+}
+
+impl CReprOf<hermes::NluQueryMessage> for CNluQueryMessage {
+    fn c_repr_of(input: hermes::NluQueryMessage) -> Result<Self> {
+        Ok(Self {
+            input: convert_to_c_string!(input.input),
+            asr_tokens: if let Some(asr_tokens) = input.asr_tokens {
+                CAsrTokenArray::c_repr_of(asr_tokens)?.into_raw_pointer()
+            } else {
+                null()
+            },
+            intent_filter: convert_to_nullable_c_string_array!(input.intent_filter),
+            id: convert_to_nullable_c_string!(input.id),
+            session_id: convert_to_nullable_c_string!(input.session_id),
+        })
+    }
+}
+
+impl AsRust<hermes::NluQueryMessage> for CNluQueryMessage {
+    fn as_rust(&self) -> Result<hermes::NluQueryMessage> {
+        Ok(hermes::NluQueryMessage {
+            input: create_rust_string_from!(self.input),
+            asr_tokens: match unsafe { self.asr_tokens.as_ref() } {
+                Some(tokens) => Some(unsafe { CAsrTokenArray::raw_borrow(tokens)? }.as_rust()?),
+                None => None,
+            },
+            intent_filter: create_optional_rust_vec_string_from!(self.intent_filter),
+            id: create_optional_rust_string_from!(self.id),
+            session_id: create_optional_rust_string_from!(self.session_id),
+        })
+    }
+}
+
+impl Drop for CNluQueryMessage {
+    fn drop(&mut self) {
+        take_back_c_string!(self.input);
+        take_back_nullable_c_string_array!(self.intent_filter);
+        take_back_nullable_c_string!(self.id);
+        take_back_nullable_c_string!(self.session_id);
+        let _ = unsafe { CAsrTokenArray::drop_raw_pointer(self.asr_tokens) };
+    }
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct CNluSlotQueryMessage {
+    pub input: *const libc::c_char,
+    pub asr_tokens: *const CAsrTokenArray,
+    pub intent_name: *const libc::c_char,
+    pub slot_name: *const libc::c_char,
+    /// Nullable
+    pub id: *const libc::c_char,
+    /// Nullable
+    pub session_id: *const libc::c_char,
+}
+
+unsafe impl Sync for CNluSlotQueryMessage {}
+
+impl CNluSlotQueryMessage {
+    pub fn from(input: hermes::NluSlotQueryMessage) -> Result<Self> {
+        Self::c_repr_of(input)
+    }
+}
+
+impl CReprOf<hermes::NluSlotQueryMessage> for CNluSlotQueryMessage {
+    fn c_repr_of(input: hermes::NluSlotQueryMessage) -> Result<Self> {
+        Ok(Self {
+            input: convert_to_c_string!(input.input),
+            asr_tokens: if let Some(asr_tokens) = input.asr_tokens {
+                CAsrTokenArray::c_repr_of(asr_tokens)?.into_raw_pointer()
+            } else {
+                null()
+            },
+            intent_name: convert_to_c_string!(input.intent_name),
+            slot_name: convert_to_c_string!(input.slot_name),
+            id: convert_to_nullable_c_string!(input.id),
+            session_id: convert_to_nullable_c_string!(input.session_id),
+        })
+    }
+}
+
+impl AsRust<hermes::NluSlotQueryMessage> for CNluSlotQueryMessage {
+    fn as_rust(&self) -> Result<hermes::NluSlotQueryMessage> {
+        Ok(hermes::NluSlotQueryMessage {
+            input: create_rust_string_from!(self.input),
+            asr_tokens: match unsafe { self.asr_tokens.as_ref() } {
+                Some(tokens) => Some(unsafe { CAsrTokenArray::raw_borrow(tokens)? }.as_rust()?),
+                None => None,
+            },
+            intent_name: create_rust_string_from!(self.intent_name),
+            slot_name: create_rust_string_from!(self.slot_name),
+            id: create_optional_rust_string_from!(self.id),
+            session_id: create_optional_rust_string_from!(self.session_id),
+        })
+    }
+}
+
+impl Drop for CNluSlotQueryMessage {
+    fn drop(&mut self) {
+        take_back_c_string!(self.input);
+        take_back_c_string!(self.intent_name);
+        take_back_c_string!(self.slot_name);
+        take_back_nullable_c_string!(self.id);
+        take_back_nullable_c_string!(self.session_id);
+        let _ = unsafe { CAsrTokenArray::drop_raw_pointer(self.asr_tokens) };
+    }
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct CNluSlotMessage {
+    /// Nullable
+    pub id: *const libc::c_char,
+    pub input: *const libc::c_char,
+    pub intent_name: *const libc::c_char,
+    /// Nullable
+    pub slot: *const CNluSlot,
+    /// Nullable
+    pub session_id: *const libc::c_char,
+}
+
+unsafe impl Sync for CNluSlotMessage {}
+
+impl CNluSlotMessage {
+    pub fn from(input: hermes::NluSlotMessage) -> Result<Self> {
+        Self::c_repr_of(input)
+    }
+}
+
+impl CReprOf<hermes::NluSlotMessage> for CNluSlotMessage {
+    fn c_repr_of(input: hermes::NluSlotMessage) -> Result<Self> {
+        Ok(Self {
+            id: convert_to_nullable_c_string!(input.id),
+            input: convert_to_c_string!(input.input),
+            intent_name: convert_to_c_string!(input.intent_name),
+            slot: if let Some(s) = input.slot {
+                CNluSlot::c_repr_of(s)?.into_raw_pointer()
+            } else {
+                null()
+            },
+            session_id: convert_to_nullable_c_string!(input.session_id),
+        })
+    }
+}
+
+impl AsRust<hermes::NluSlotMessage> for CNluSlotMessage {
+    fn as_rust(&self) -> Result<hermes::NluSlotMessage> {
+        Ok(hermes::NluSlotMessage {
+            id: create_optional_rust_string_from!(self.id),
+            input: create_rust_string_from!(self.input),
+            intent_name: create_rust_string_from!(self.intent_name),
+            session_id: create_optional_rust_string_from!(self.session_id),
+            slot: match unsafe { self.slot.as_ref() } {
+                Some(slot) => Some(unsafe { CNluSlot::raw_borrow(slot)? }.as_rust()?),
+                None => None,
+            },
+        })
+    }
+}
+
+impl Drop for CNluSlotMessage {
+    fn drop(&mut self) {
+        take_back_nullable_c_string!(self.id);
+        take_back_c_string!(self.input);
+        take_back_c_string!(self.intent_name);
+        take_back_nullable_c_string!(self.session_id);
+        let _ = unsafe { CNluSlot::drop_raw_pointer(self.slot) };
+    }
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct CNluIntentNotRecognizedMessage {
+    pub input: *const libc::c_char,
+    /// Nullable
+    pub id: *const libc::c_char,
+    /// Nullable
+    pub session_id: *const libc::c_char,
+}
+
+unsafe impl Sync for CNluIntentNotRecognizedMessage {}
+
+impl CNluIntentNotRecognizedMessage {
+    pub fn from(input: hermes::NluIntentNotRecognizedMessage) -> Result<Self> {
+        Self::c_repr_of(input)
+    }
+}
+
+impl CReprOf<hermes::NluIntentNotRecognizedMessage> for CNluIntentNotRecognizedMessage {
+    fn c_repr_of(input: hermes::NluIntentNotRecognizedMessage) -> Result<Self> {
+        Ok(Self {
+            input: convert_to_c_string!(input.input),
+            id: convert_to_nullable_c_string!(input.id),
+            session_id: convert_to_nullable_c_string!(input.session_id),
+        })
+    }
+}
+
+impl AsRust<hermes::NluIntentNotRecognizedMessage> for CNluIntentNotRecognizedMessage {
+    fn as_rust(&self) -> Result<hermes::NluIntentNotRecognizedMessage> {
+        Ok(hermes::NluIntentNotRecognizedMessage {
+            input: create_rust_string_from!(self.input),
+            id: create_optional_rust_string_from!(self.id),
+            session_id: create_optional_rust_string_from!(self.session_id),
+        })
+    }
+}
+
+impl Drop for CNluIntentNotRecognizedMessage {
+    fn drop(&mut self) {
+        take_back_c_string!(self.input);
+        take_back_nullable_c_string!(self.id);
+        take_back_nullable_c_string!(self.session_id);
+    }
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct CNluSlot {
+    pub confidence: f32,
+    pub nlu_slot: *const CSlot,
+}
+
+impl CReprOf<hermes::NluSlot> for CNluSlot {
+    fn c_repr_of(input: hermes::NluSlot) -> Result<Self> {
+        Ok(Self {
+            confidence: input.confidence.unwrap_or(-1.),
+            nlu_slot: CSlot::from(input.nlu_slot).into_raw_pointer(),
+        })
+    }
+}
+
+impl AsRust<hermes::NluSlot> for CNluSlot {
+    fn as_rust(&self) -> Result<hermes::NluSlot> {
+        //hermes::NluSlot {
+        //confidence: self.confidence,
+        //nlu_slot: unimplemented!(),
+        //}
+        bail!("Missing converter for CSlot, if you need this feature, please tell us !")
+    }
+}
+
+impl Drop for CNluSlot {
+    fn drop(&mut self) {
+        let _ = unsafe { CSlot::from_raw_pointer(self.nlu_slot) };
+    }
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct CNluSlotArray {
+    pub entries: *const *const CNluSlot,
+    pub count: libc::c_int,
+}
+
+impl CReprOf<Vec<hermes::NluSlot>> for CNluSlotArray {
+    fn c_repr_of(input: Vec<hermes::NluSlot>) -> Result<Self> {
+        let array = Self {
+            count: input.len() as _,
+            entries: Box::into_raw(
+                input
+                    .into_iter()
+                    .map(|e| CNluSlot::c_repr_of(e).map(|c| c.into_raw_pointer()))
+                    .collect::<Result<Vec<_>>>()
+                    .context("Could not convert map to C Repr")?
+                    .into_boxed_slice(),
+            ) as *const *const _,
+        };
+        Ok(array)
+    }
+}
+
+impl AsRust<Vec<hermes::NluSlot>> for CNluSlotArray {
+    fn as_rust(&self) -> Result<Vec<hermes::NluSlot>> {
+        let mut result = Vec::with_capacity(self.count as usize);
+
+        for e in unsafe { slice::from_raw_parts(self.entries, self.count as usize) } {
+            result.push(unsafe { CNluSlot::raw_borrow(*e) }?.as_rust()?);
+        }
+        Ok(result)
+    }
+}
+
+impl Drop for CNluSlotArray {
+    fn drop(&mut self) {
+        let _ = unsafe {
+            for e in Box::from_raw(::std::slice::from_raw_parts_mut(
+                self.entries as *mut *mut CNluSlot,
+                self.count as usize,
+            )).iter() {
+                let _ = CNluSlot::drop_raw_pointer(*e).unwrap();
+            }
+        };
+    }
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct CNluIntentMessage {
+    /// Nullable
+    pub id: *const libc::c_char,
+    pub input: *const libc::c_char,
+    pub intent: *const CIntentClassifierResult,
+    /// Nullable
+    pub slots: *const CNluSlotArray,
+    /// Nullable
+    pub session_id: *const libc::c_char,
+}
+
+unsafe impl Sync for CNluIntentMessage {}
+
+impl CNluIntentMessage {
+    pub fn from(input: hermes::NluIntentMessage) -> Result<Self> {
+        Self::c_repr_of(input)
+    }
+}
+
+impl CReprOf<hermes::NluIntentMessage> for CNluIntentMessage {
+    fn c_repr_of(input: hermes::NluIntentMessage) -> Result<Self> {
+        Ok(Self {
+            id: convert_to_nullable_c_string!(input.id),
+            input: convert_to_c_string!(input.input),
+            intent: CIntentClassifierResult::from(input.intent).into_raw_pointer(),
+            slots: if let Some(slots) = input.slots {
+                CNluSlotArray::c_repr_of(slots)?.into_raw_pointer()
+            } else {
+                null()
+            },
+            session_id: convert_to_nullable_c_string!(input.session_id),
+        })
+    }
+}
+
+impl AsRust<hermes::NluIntentMessage> for CNluIntentMessage {
+    fn as_rust(&self) -> Result<hermes::NluIntentMessage> {
+        /*Ok(hermes::NluIntentMessage {
+            id: create_optional_rust_string_from!(self.id),
+            input: create_rust_string_from!(self.input),
+            intent: unsafe {CIntentClassifierResult::raw_borrow(self.intent) }?.as_rust()?, // TODO impl in snips-nlu-ontology
+            slots: if self.slots.is_null() { None }  else { unsafe {CSlotList::raw_borrow(self.slots)}?.as_rust()? }, // TODO impl in snips-nlu-ontology
+            session_id: create_optional_rust_string_from!(self.session_id),
+        })*/
+        bail!("Missing converter for CIntentClassifierResult and CSlotList, if you need this feature, please tell us !")
+    }
+}
+
+impl Drop for CNluIntentMessage {
+    fn drop(&mut self) {
+        take_back_nullable_c_string!(self.id);
+        take_back_c_string!(self.input);
+        let _ = unsafe { CIntentClassifierResult::from_raw_pointer(self.intent) };
+        let _ = unsafe { CNluSlotArray::drop_raw_pointer(self.slots) };
+        take_back_nullable_c_string!(self.session_id);
+    }
+}
+
+
