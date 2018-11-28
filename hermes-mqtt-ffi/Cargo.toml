@@ -8,7 +8,7 @@ crate-type = ["rlib", "staticlib", "cdylib"]
 
 [dependencies]
 failure = "0.1"
-ffi-utils = { git = "https://github.com/snipsco/snips-utils-rs", rev = "b1f4af3" }
+ffi-utils = { git = "https://github.com/snipsco/snips-utils-rs", rev = "e7a9649df" }
 hermes = { path = "../hermes" }
 hermes-ffi = { path = "../hermes-ffi" }
 hermes-mqtt = { path = "../hermes-mqtt" }
