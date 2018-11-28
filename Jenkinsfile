@@ -1,5 +1,3 @@
-@Library('snips') _
-
 def branchName = "${env.BRANCH_NAME}"
 
 node('jenkins-slave-ec2') {
@@ -22,6 +20,10 @@ node('jenkins-slave-ec2') {
         sh "cd platforms/hermes-kotlin/ && ./gradlew jar"
     }
 
+    stage("Kotlin Roundtrip tests") {
+        sh "cd platforms/hermes-kotlin && ./gradlew test -Pdebug"
+    }
+
     switch (branchName) {
         case "develop":
         case "master":
@@ -32,6 +34,4 @@ node('jenkins-slave-ec2') {
                 """
             }
     }
-
-    performReleaseIfNeeded()
 }
