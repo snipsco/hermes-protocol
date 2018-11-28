@@ -33,7 +33,7 @@ dependencies {
 def buildType = project.hasProperty("debug") ? "debug" : "release"
 println "Using build type $buildType"
 
-def rustTargetPath = project.hasProperty("rustTargetPath") ? project.rustTargetPath : "../../../../target"
+def rustTargetPath = project.hasProperty("rustTargetPath") ? project.rustTargetPath : "../../../target"
 println "Using rust target path ${new File(rustTargetPath).canonicalPath}"
 
 
