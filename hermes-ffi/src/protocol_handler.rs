@@ -243,6 +243,7 @@ macro_rules! generate_hermes_c_symbols {
     generate_facade_subscribe!(hermes_dialogue_subscribe_session_started = CDialogueFacade:subscribe_session_started(|CSessionStartedMessage|));
     generate_facade_subscribe!(hermes_dialogue_subscribe_intent = CDialogueFacade:subscribe_intent(intent_name: ::std::ffi::CStr as libc::c_char, |CIntentMessage|));
     generate_facade_subscribe!(hermes_dialogue_subscribe_intents = CDialogueFacade:subscribe_intents(|CIntentMessage|));
+    generate_facade_subscribe!(hermes_dialogue_subscribe_intent_not_recognized = CDialogueFacade:subscribe_intent_not_recognized(|CIntentNotRecognizedMessage|));
     generate_facade_subscribe!(hermes_dialogue_subscribe_session_ended = CDialogueFacade:subscribe_session_ended(|CSessionEndedMessage|));
     generate_facade_publish!(hermes_dialogue_publish_start_session = CDialogueFacade:publish_start_session(CStartSessionMessage));
     generate_facade_publish!(hermes_dialogue_publish_continue_session = CDialogueFacade:publish_continue_session(CContinueSessionMessage));
@@ -254,6 +255,7 @@ macro_rules! generate_hermes_c_symbols {
     generate_facade_publish!(hermes_dialogue_backend_publish_session_queued = CDialogueBackendFacade:publish_session_queued(CSessionQueuedMessage));
     generate_facade_publish!(hermes_dialogue_backend_publish_session_started = CDialogueBackendFacade:publish_session_started(CSessionStartedMessage));
     generate_facade_publish!(hermes_dialogue_backend_publish_intent = CDialogueBackendFacade:publish_intent(CIntentMessage));
+    generate_facade_publish!(hermes_dialogue_backend_publish_intent_not_recognized = CDialogueBackendFacade:publish_intent_not_recognized(CIntentNotRecognizedMessage));
     generate_facade_publish!(hermes_dialogue_backend_publish_session_ended = CDialogueBackendFacade:publish_session_ended(CSessionEndedMessage));
     generate_facade_subscribe!(hermes_dialogue_backend_subscribe_start_session = CDialogueBackendFacade:subscribe_start_session(|CStartSessionMessage|));
     generate_facade_subscribe!(hermes_dialogue_backend_subscribe_continue_session = CDialogueBackendFacade:subscribe_continue_session(|CContinueSessionMessage|));

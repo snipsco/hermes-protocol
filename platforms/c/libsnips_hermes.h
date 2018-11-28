@@ -331,6 +331,19 @@ typedef struct {
 } CIntentMessage;
 
 typedef struct {
+  const char *site_id;
+  const char *session_id;
+  /*
+   * Nullable
+   */
+  const char *input;
+  /*
+   * Nullable
+   */
+  const char *custom_data;
+} CIntentNotRecognizedMessage;
+
+typedef struct {
   SNIPS_SESSION_TERMINATION_TYPE termination_type;
   /*
    * Nullable,
@@ -481,19 +494,6 @@ typedef struct {
    */
   const char *id;
 } CInjectionRequestMessage;
-
-typedef struct {
-  const char *site_id;
-  const char *session_id;
-  /*
-   * Nullable
-   */
-  const char *input;
-  /*
-   * Nullable
-   */
-  const char *custom_data;
-} CIntentNotRecognizedMessage;
 
 typedef struct {
   const void *facade;
@@ -811,6 +811,9 @@ SNIPS_RESULT hermes_destroy_mqtt_protocol_handler(CProtocolHandler *handler);
 SNIPS_RESULT hermes_dialogue_backend_publish_intent(const CDialogueBackendFacade *facade,
                                                     const CIntentMessage *message);
 
+SNIPS_RESULT hermes_dialogue_backend_publish_intent_not_recognized(const CDialogueBackendFacade *facade,
+                                                                   const CIntentNotRecognizedMessage *message);
+
 SNIPS_RESULT hermes_dialogue_backend_publish_session_ended(const CDialogueBackendFacade *facade,
                                                            const CSessionEndedMessage *message);
 
@@ -841,6 +844,9 @@ SNIPS_RESULT hermes_dialogue_publish_start_session(const CDialogueFacade *facade
 SNIPS_RESULT hermes_dialogue_subscribe_intent(const CDialogueFacade *facade,
                                               const char *intent_name,
                                               void (*handler)(const CIntentMessage*));
+
+SNIPS_RESULT hermes_dialogue_subscribe_intent_not_recognized(const CDialogueFacade *facade,
+                                                             void (*handler)(const CIntentNotRecognizedMessage*));
 
 SNIPS_RESULT hermes_dialogue_subscribe_intents(const CDialogueFacade *facade,
                                                void (*handler)(const CIntentMessage*));
