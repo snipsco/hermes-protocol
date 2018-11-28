@@ -9,7 +9,7 @@ node('jenkins-slave-ec2') {
     }
 
     stage('Build') {
-        ssh_sh "cargo build --all"
+        sh "ssh-agent sh -c 'ssh-add && cargo build --all'"
     }
 
     stage('Test') {
