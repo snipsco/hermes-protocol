@@ -3,8 +3,6 @@ extern crate failure;
 extern crate ffi_utils;
 extern crate hermes;
 extern crate hermes_ffi;
-#[macro_use]
-extern crate lazy_static;
 extern crate libc;
 
 use hermes_ffi::*;
