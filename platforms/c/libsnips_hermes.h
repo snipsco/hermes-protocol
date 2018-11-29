@@ -146,10 +146,12 @@ typedef enum {
 
 typedef struct {
   const void *handler;
+  void *user_data;
 } CProtocolHandler;
 
 typedef struct {
   const void *facade;
+  void *user_data;
 } CDialogueFacade;
 
 /*
@@ -381,6 +383,7 @@ typedef struct {
 
 typedef struct {
   const void *facade;
+  void *user_data;
 } CInjectionFacade;
 
 typedef struct {
@@ -389,6 +392,7 @@ typedef struct {
 
 typedef struct {
   const void *facade;
+  void *user_data;
 } CSoundFeedbackFacade;
 
 typedef struct {
@@ -572,22 +576,22 @@ SNIPS_RESULT hermes_dialogue_publish_start_session(const CDialogueFacade *facade
 
 SNIPS_RESULT hermes_dialogue_subscribe_intent(const CDialogueFacade *facade,
                                               const char *intent_name,
-                                              void (*handler)(const CIntentMessage*));
+                                              void (*handler)(const CIntentMessage*, void*));
 
 SNIPS_RESULT hermes_dialogue_subscribe_intent_not_recognized(const CDialogueFacade *facade,
-                                                             void (*handler)(const CIntentNotRecognizedMessage*));
+                                                             void (*handler)(const CIntentNotRecognizedMessage*, void*));
 
 SNIPS_RESULT hermes_dialogue_subscribe_intents(const CDialogueFacade *facade,
-                                               void (*handler)(const CIntentMessage*));
+                                               void (*handler)(const CIntentMessage*, void*));
 
 SNIPS_RESULT hermes_dialogue_subscribe_session_ended(const CDialogueFacade *facade,
-                                                     void (*handler)(const CSessionEndedMessage*));
+                                                     void (*handler)(const CSessionEndedMessage*, void*));
 
 SNIPS_RESULT hermes_dialogue_subscribe_session_queued(const CDialogueFacade *facade,
-                                                      void (*handler)(const CSessionQueuedMessage*));
+                                                      void (*handler)(const CSessionQueuedMessage*, void*));
 
 SNIPS_RESULT hermes_dialogue_subscribe_session_started(const CDialogueFacade *facade,
-                                                       void (*handler)(const CSessionStartedMessage*));
+                                                       void (*handler)(const CSessionStartedMessage*, void*));
 
 SNIPS_RESULT hermes_drop_dialogue_facade(const CDialogueFacade *cstruct);
 
@@ -625,7 +629,7 @@ SNIPS_RESULT hermes_injection_publish_injection_request(const CInjectionFacade *
 SNIPS_RESULT hermes_injection_publish_injection_status_request(const CInjectionFacade *facade);
 
 SNIPS_RESULT hermes_injection_subscribe_injection_status(const CInjectionFacade *facade,
-                                                         void (*handler)(const CInjectionStatusMessage*));
+                                                         void (*handler)(const CInjectionStatusMessage*, void*));
 
 SNIPS_RESULT hermes_protocol_handler_dialogue_facade(const CProtocolHandler *handler,
                                                      const CDialogueFacade **facade);
@@ -634,7 +638,8 @@ SNIPS_RESULT hermes_protocol_handler_injection_facade(const CProtocolHandler *ha
                                                       const CInjectionFacade **facade);
 
 SNIPS_RESULT hermes_protocol_handler_new_mqtt(const CProtocolHandler **handler,
-                                              const char *broker_address);
+                                              const char *broker_address,
+                                              void *user_data);
 
 SNIPS_RESULT hermes_protocol_handler_sound_feedback_facade(const CProtocolHandler *handler,
                                                            const CSoundFeedbackFacade **facade);

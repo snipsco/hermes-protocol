@@ -146,6 +146,7 @@ typedef enum {
 
 typedef struct {
   const void *facade;
+  void *user_data;
 } CAsrBackendFacade;
 
 typedef struct {
@@ -200,10 +201,12 @@ typedef struct {
 
 typedef struct {
   const void *facade;
+  void *user_data;
 } CAsrFacade;
 
 typedef struct {
   const void *facade;
+  void *user_data;
 } CAudioServerBackendFacade;
 
 typedef struct {
@@ -226,14 +229,17 @@ typedef struct {
 
 typedef struct {
   const void *facade;
+  void *user_data;
 } CAudioServerFacade;
 
 typedef struct {
   const void *handler;
+  void *user_data;
 } CProtocolHandler;
 
 typedef struct {
   const void *facade;
+  void *user_data;
 } CDialogueBackendFacade;
 
 /*
@@ -435,6 +441,7 @@ typedef struct {
 
 typedef struct {
   const void *facade;
+  void *user_data;
 } CDialogueFacade;
 
 typedef struct {
@@ -451,6 +458,7 @@ typedef struct {
 
 typedef struct {
   const void *facade;
+  void *user_data;
 } CHotwordBackendFacade;
 
 typedef struct {
@@ -460,10 +468,12 @@ typedef struct {
 
 typedef struct {
   const void *facade;
+  void *user_data;
 } CHotwordFacade;
 
 typedef struct {
   const void *facade;
+  void *user_data;
 } CInjectionFacade;
 
 typedef struct {
@@ -505,10 +515,12 @@ typedef struct {
 
 typedef struct {
   const void *facade;
+  void *user_data;
 } CNluBackendFacade;
 
 typedef struct {
   const void *facade;
+  void *user_data;
 } CNluFacade;
 
 typedef struct {
@@ -622,18 +634,22 @@ typedef struct {
 
 typedef struct {
   const void *facade;
+  void *user_data;
 } CSoundFeedbackBackendFacade;
 
 typedef struct {
   const void *facade;
+  void *user_data;
 } CSoundFeedbackFacade;
 
 typedef struct {
   const void *facade;
+  void *user_data;
 } CTtsBackendFacade;
 
 typedef struct {
   const void *facade;
+  void *user_data;
 } CTtsFacade;
 
 typedef struct {
@@ -764,10 +780,10 @@ typedef struct {
 } CDurationValue;
 
 SNIPS_RESULT hermes_asr_backend_publish_start_listening(const CAsrBackendFacade *facade,
-                                                        void (*handler)(const CAsrStartListeningMessage*));
+                                                        void (*handler)(const CAsrStartListeningMessage*, void*));
 
 SNIPS_RESULT hermes_asr_backend_publish_stop_listening(const CAsrBackendFacade *facade,
-                                                       void (*handler)(const CSiteMessage*));
+                                                       void (*handler)(const CSiteMessage*, void*));
 
 SNIPS_RESULT hermes_asr_backend_subscribe_partial_text_captured(const CAsrBackendFacade *facade,
                                                                 const CTextCapturedMessage *message);
@@ -782,10 +798,10 @@ SNIPS_RESULT hermes_asr_publish_stop_listening(const CAsrFacade *facade,
                                                const CSiteMessage *message);
 
 SNIPS_RESULT hermes_asr_subscribe_partial_text_captured(const CAsrFacade *facade,
-                                                        void (*handler)(const CTextCapturedMessage*));
+                                                        void (*handler)(const CTextCapturedMessage*, void*));
 
 SNIPS_RESULT hermes_asr_subscribe_text_captured(const CAsrFacade *facade,
-                                                void (*handler)(const CTextCapturedMessage*));
+                                                void (*handler)(const CTextCapturedMessage*, void*));
 
 SNIPS_RESULT hermes_audio_server_backend_publish_audio_frame(const CAudioServerBackendFacade *facade,
                                                              const CAudioFrameMessage *message);
@@ -794,25 +810,25 @@ SNIPS_RESULT hermes_audio_server_backend_publish_play_finished(const CAudioServe
                                                                const CPlayFinishedMessage *message);
 
 SNIPS_RESULT hermes_audio_server_backend_subscribe_all_play_bytes(const CAudioServerBackendFacade *facade,
-                                                                  void (*handler)(const CPlayBytesMessage*));
+                                                                  void (*handler)(const CPlayBytesMessage*, void*));
 
 SNIPS_RESULT hermes_audio_server_backend_subscribe_play_bytes(const CAudioServerBackendFacade *facade,
                                                               const char *site_id,
-                                                              void (*handler)(const CPlayBytesMessage*));
+                                                              void (*handler)(const CPlayBytesMessage*, void*));
 
 SNIPS_RESULT hermes_audio_server_publish_play_bytes(const CAudioServerFacade *facade,
                                                     const CPlayBytesMessage *message);
 
 SNIPS_RESULT hermes_audio_server_subscribe_all_play_finished(const CAudioServerFacade *facade,
-                                                             void (*handler)(const CPlayFinishedMessage*));
+                                                             void (*handler)(const CPlayFinishedMessage*, void*));
 
 SNIPS_RESULT hermes_audio_server_subscribe_audio_frame(const CAudioServerFacade *facade,
                                                        const char *site_id,
-                                                       void (*handler)(const CAudioFrameMessage*));
+                                                       void (*handler)(const CAudioFrameMessage*, void*));
 
 SNIPS_RESULT hermes_audio_server_subscribe_play_finished(const CAudioServerFacade *facade,
                                                          const char *site_id,
-                                                         void (*handler)(const CPlayFinishedMessage*));
+                                                         void (*handler)(const CPlayFinishedMessage*, void*));
 
 SNIPS_RESULT hermes_destroy_mqtt_protocol_handler(CProtocolHandler *handler);
 
@@ -832,13 +848,13 @@ SNIPS_RESULT hermes_dialogue_backend_publish_session_started(const CDialogueBack
                                                              const CSessionStartedMessage *message);
 
 SNIPS_RESULT hermes_dialogue_backend_subscribe_continue_session(const CDialogueBackendFacade *facade,
-                                                                void (*handler)(const CContinueSessionMessage*));
+                                                                void (*handler)(const CContinueSessionMessage*, void*));
 
 SNIPS_RESULT hermes_dialogue_backend_subscribe_end_session(const CDialogueBackendFacade *facade,
-                                                           void (*handler)(const CEndSessionMessage*));
+                                                           void (*handler)(const CEndSessionMessage*, void*));
 
 SNIPS_RESULT hermes_dialogue_backend_subscribe_start_session(const CDialogueBackendFacade *facade,
-                                                             void (*handler)(const CStartSessionMessage*));
+                                                             void (*handler)(const CStartSessionMessage*, void*));
 
 SNIPS_RESULT hermes_dialogue_publish_continue_session(const CDialogueFacade *facade,
                                                       const CContinueSessionMessage *message);
@@ -851,22 +867,22 @@ SNIPS_RESULT hermes_dialogue_publish_start_session(const CDialogueFacade *facade
 
 SNIPS_RESULT hermes_dialogue_subscribe_intent(const CDialogueFacade *facade,
                                               const char *intent_name,
-                                              void (*handler)(const CIntentMessage*));
+                                              void (*handler)(const CIntentMessage*, void*));
 
 SNIPS_RESULT hermes_dialogue_subscribe_intent_not_recognized(const CDialogueFacade *facade,
-                                                             void (*handler)(const CIntentNotRecognizedMessage*));
+                                                             void (*handler)(const CIntentNotRecognizedMessage*, void*));
 
 SNIPS_RESULT hermes_dialogue_subscribe_intents(const CDialogueFacade *facade,
-                                               void (*handler)(const CIntentMessage*));
+                                               void (*handler)(const CIntentMessage*, void*));
 
 SNIPS_RESULT hermes_dialogue_subscribe_session_ended(const CDialogueFacade *facade,
-                                                     void (*handler)(const CSessionEndedMessage*));
+                                                     void (*handler)(const CSessionEndedMessage*, void*));
 
 SNIPS_RESULT hermes_dialogue_subscribe_session_queued(const CDialogueFacade *facade,
-                                                      void (*handler)(const CSessionQueuedMessage*));
+                                                      void (*handler)(const CSessionQueuedMessage*, void*));
 
 SNIPS_RESULT hermes_dialogue_subscribe_session_started(const CDialogueFacade *facade,
-                                                       void (*handler)(const CSessionStartedMessage*));
+                                                       void (*handler)(const CSessionStartedMessage*, void*));
 
 SNIPS_RESULT hermes_drop_asr_backend_facade(const CAsrBackendFacade *cstruct);
 
@@ -961,11 +977,11 @@ SNIPS_RESULT hermes_hotword_backend_publish_detected(const CHotwordBackendFacade
                                                      const CHotwordDetectedMessage *message);
 
 SNIPS_RESULT hermes_hotword_subscribe_all_detected(const CHotwordFacade *facade,
-                                                   void (*handler)(const CHotwordDetectedMessage*));
+                                                   void (*handler)(const CHotwordDetectedMessage*, void*));
 
 SNIPS_RESULT hermes_hotword_subscribe_detected(const CHotwordFacade *facade,
                                                const char *hotword_id,
-                                               void (*handler)(const CHotwordDetectedMessage*));
+                                               void (*handler)(const CHotwordDetectedMessage*, void*));
 
 SNIPS_RESULT hermes_injection_publish_injection_request(const CInjectionFacade *facade,
                                                         const CInjectionRequestMessage *message);
@@ -973,7 +989,7 @@ SNIPS_RESULT hermes_injection_publish_injection_request(const CInjectionFacade *
 SNIPS_RESULT hermes_injection_publish_injection_status_request(const CInjectionFacade *facade);
 
 SNIPS_RESULT hermes_injection_subscribe_injection_status(const CInjectionFacade *facade,
-                                                         void (*handler)(const CInjectionStatusMessage*));
+                                                         void (*handler)(const CInjectionStatusMessage*, void*));
 
 SNIPS_RESULT hermes_nlu_backend_publish_intent_not_recognized(const CNluBackendFacade *facade,
                                                               const CNluIntentNotRecognizedMessage *message);
@@ -985,10 +1001,10 @@ SNIPS_RESULT hermes_nlu_backend_publish_slot_parsed(const CNluBackendFacade *fac
                                                     const CNluSlotMessage *message);
 
 SNIPS_RESULT hermes_nlu_backend_subscribe_partial_query(const CNluBackendFacade *facade,
-                                                        void (*handler)(const CNluSlotQueryMessage*));
+                                                        void (*handler)(const CNluSlotQueryMessage*, void*));
 
 SNIPS_RESULT hermes_nlu_backend_subscribe_query(const CNluBackendFacade *facade,
-                                                void (*handler)(const CNluQueryMessage*));
+                                                void (*handler)(const CNluQueryMessage*, void*));
 
 SNIPS_RESULT hermes_nlu_publish_partial_query(const CNluFacade *facade,
                                               const CNluSlotQueryMessage *message);
@@ -996,13 +1012,13 @@ SNIPS_RESULT hermes_nlu_publish_partial_query(const CNluFacade *facade,
 SNIPS_RESULT hermes_nlu_publish_query(const CNluFacade *facade, const CNluQueryMessage *message);
 
 SNIPS_RESULT hermes_nlu_subscribe_intent_not_recognized(const CNluFacade *facade,
-                                                        void (*handler)(const CNluIntentNotRecognizedMessage*));
+                                                        void (*handler)(const CNluIntentNotRecognizedMessage*, void*));
 
 SNIPS_RESULT hermes_nlu_subscribe_intent_parsed(const CNluFacade *facade,
-                                                void (*handler)(const CNluIntentMessage*));
+                                                void (*handler)(const CNluIntentMessage*, void*));
 
 SNIPS_RESULT hermes_nlu_subscribe_slot_parsed(const CNluFacade *facade,
-                                              void (*handler)(const CNluSlotMessage*));
+                                              void (*handler)(const CNluSlotMessage*, void*));
 
 SNIPS_RESULT hermes_protocol_handler_asr_backend_facade(const CProtocolHandler *handler,
                                                         const CAsrBackendFacade **facade);
@@ -1032,7 +1048,8 @@ SNIPS_RESULT hermes_protocol_handler_injection_facade(const CProtocolHandler *ha
                                                       const CInjectionFacade **facade);
 
 SNIPS_RESULT hermes_protocol_handler_new_mqtt(const CProtocolHandler **handler,
-                                              const char *broker_address);
+                                              const char *broker_address,
+                                              void *user_data);
 
 SNIPS_RESULT hermes_protocol_handler_nlu_backend_facade(const CProtocolHandler *handler,
                                                         const CNluBackendFacade **facade);
@@ -1062,11 +1079,11 @@ SNIPS_RESULT hermes_tts_backend_publish_say_finished(const CTtsBackendFacade *fa
                                                      const CSayFinishedMessage *message);
 
 SNIPS_RESULT hermes_tts_backend_subscribe_say(const CTtsBackendFacade *facade,
-                                              void (*handler)(const CSayMessage*));
+                                              void (*handler)(const CSayMessage*, void*));
 
 SNIPS_RESULT hermes_tts_publish_say(const CTtsFacade *facade, const CSayMessage *message);
 
 SNIPS_RESULT hermes_tts_subscribe_say_finished(const CTtsFacade *facade,
-                                               void (*handler)(const CSayFinishedMessage*));
+                                               void (*handler)(const CSayFinishedMessage*, void*));
 
 #endif /* LIB_HERMES_H_ */

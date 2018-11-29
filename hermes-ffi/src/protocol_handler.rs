@@ -1,4 +1,5 @@
 use hermes::HermesProtocolHandler;
+use ffi_utils::RawPointerConverter;
 
 #[repr(C)]
 #[derive(Debug)]
@@ -6,18 +7,34 @@ pub struct CProtocolHandler {
     // hides a Box<HermesProtocolHandler>, note the 2 levels (raw pointer + box) to be sure we have
     // a thin pointer here
     pub handler: *const ::libc::c_void,
+    pub user_data: *mut ::libc::c_void,
+}
+
+pub struct UserData(pub *mut libc::c_void);
+unsafe impl Send for UserData {}
+unsafe impl Sync for UserData {}
+
+impl UserData {
+    pub fn duplicate(&self) -> UserData {
+        UserData(self.0)
+    }
 }
 
 impl CProtocolHandler {
-    pub fn new(handler: Box<HermesProtocolHandler>) -> Self {
+    pub fn new(handler: Box<HermesProtocolHandler>, user_data: *mut ::libc::c_void) -> Self {
+        let user_data = UserData(user_data).into_raw_pointer() as _;
         Self {
-            handler: Box::into_raw(Box::new(handler)) as *const ::libc::c_void,
+            handler: Box::into_raw(Box::new(handler)) as *const ::libc::c_void, user_data
         }
     }
 
     pub fn extract(&self) -> &HermesProtocolHandler {
         unsafe { &(**(self.handler as *const Box<HermesProtocolHandler>)) }
 
+    }
+
+    pub fn user_data(&self) -> &UserData {
+        unsafe{ &(*(self.user_data as *mut UserData))}
     }
 
     pub fn destroy(self) {
@@ -50,17 +67,23 @@ macro_rules! generate_facade_wrapper {
         pub struct $wrapper_name {
             // hides a Box<$facade>, note the 2 levels (raw pointer + box) to be sure we have a thin pointer here
             facade: *const ::libc::c_void,
+            user_data: *mut ::libc::c_void,
         }
 
         impl $wrapper_name {
-            pub fn from(facade: Box<$facade>) -> Self {
+            pub fn from(facade: Box<$facade>, user_data: UserData) -> Self {
                 Self {
                     facade: Box::into_raw(Box::new(facade)) as *const ::libc::c_void,
+                    user_data: user_data.into_raw_pointer() as _,
                 }
             }
 
             pub fn extract(&self) -> &$facade {
                 unsafe { &(**(self.facade as *const Box<$facade>)) }
+            }
+
+            pub fn user_data(&self) -> &UserData {
+                unsafe{ &(*(self.user_data as *mut UserData))}
             }
         }
 
@@ -84,7 +107,7 @@ macro_rules! generate_facade_wrapper {
                 let pointer = $wrapper_name::into_raw_pointer($wrapper_name::from(unsafe {
                     let handler = (*handler).extract();
                     (*handler).$getter()
-                }));
+                }, unsafe { (*handler).user_data().duplicate() }));
                 unsafe { *facade = pointer };
                 Ok(())
             }
@@ -124,9 +147,10 @@ macro_rules! generate_facade_publish {
 macro_rules! generate_facade_subscribe {
     ($c_symbol:ident = $facade:ty:$method:ident($( $filter_name:ident : $filter:ty as $filter_raw:ty,)* | $arg:ty | )) => {
         #[no_mangle]
-        pub extern "C" fn $c_symbol(facade: *const $facade, $($filter_name : *const $filter_raw,)* handler: Option<unsafe extern "C" fn(*const $arg)>) -> ::ffi_utils::SNIPS_RESULT {
-            fn fun(facade: *const $facade, $($filter_name : *const $filter_raw,)* handler: Option<unsafe extern "C" fn(*const $arg)>) -> hermes::Result<()> {
-                let callback = ptr_to_callback(handler)?;
+        pub extern "C" fn $c_symbol(facade: *const $facade, $($filter_name : *const $filter_raw,)* handler: Option<unsafe extern "C" fn(*const $arg, *mut libc::c_void)>) -> ::ffi_utils::SNIPS_RESULT {
+            fn fun(facade: *const $facade, $($filter_name : *const $filter_raw,)* handler: Option<unsafe extern "C" fn(*const $arg, *mut libc::c_void)>) -> hermes::Result<()> {
+                let user_data = unsafe { (*facade).user_data().duplicate() };
+                let callback = ptr_to_callback(handler, user_data)?;
                 unsafe { (*facade).extract().$method($(<$filter as RawBorrow<$filter_raw>>::raw_borrow($filter_name)?.as_rust()?,)* callback) }
             }
 
@@ -143,14 +167,16 @@ macro_rules! generate_hermes_c_symbols {
         unsafe { (*raw).as_rust() }
     }
 
-    fn ptr_to_callback<T, U>(ptr: Option<unsafe extern "C" fn(*const U)>) -> hermes::Result<hermes::Callback<T>>
+    fn ptr_to_callback<T, U>(
+        ptr: Option<unsafe extern "C" fn(*const U, *mut libc::c_void)>,
+        user_data: UserData) -> hermes::Result<hermes::Callback<T>>
         where
             T: Clone + Sync,
             U: CReprOf<T> + Sync + 'static {
         if let Some(ptr) = ptr {
             Ok(hermes::Callback::new(move |payload: &T| {
                 let param = Box::into_raw(Box::new(U::c_repr_of(payload.clone()).unwrap()));
-                unsafe { ptr(param) }
+                unsafe { ptr(param, user_data.0) }
             }))
         } else {
             Err(format_err!("null pointer"))
