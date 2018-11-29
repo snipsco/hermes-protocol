@@ -145,96 +145,62 @@ typedef enum {
 } SNIPS_SLOT_VALUE_TYPE;
 
 typedef struct {
-  const void *facade;
-} CAsrBackendFacade;
-
-typedef struct {
-  const char *site_id;
-  /*
-   * Nullable
-   */
-  const char *session_id;
-  int64_t start_signal_ms;
-} CAsrStartListeningMessage;
-
-typedef struct {
-  const char *site_id;
-  /*
-   * Nullable
-   */
-  const char *session_id;
-} CSiteMessage;
-
-typedef struct {
-  float start;
-  float end;
-} CAsrDecodingDuration;
-
-typedef struct {
-  const char *value;
-  float confidence;
-  int32_t range_start;
-  int32_t range_end;
-  CAsrDecodingDuration time;
-} CAsrToken;
-
-typedef struct {
-  const CAsrToken *const *entries;
-  int count;
-} CAsrTokenArray;
-
-typedef struct {
-  const char *text;
-  /*
-   * Nullable
-   */
-  const CAsrTokenArray *tokens;
-  float likelihood;
-  float seconds;
-  const char *site_id;
-  /*
-   * Nullable
-   */
-  const char *session_id;
-} CTextCapturedMessage;
-
-typedef struct {
-  const void *facade;
-} CAsrFacade;
-
-typedef struct {
-  const void *facade;
-} CAudioServerBackendFacade;
-
-typedef struct {
-  const uint8_t *wav_frame;
-  int wav_frame_len;
-  const char *site_id;
-} CAudioFrameMessage;
-
-typedef struct {
-  const char *id;
-  const char *site_id;
-} CPlayFinishedMessage;
-
-typedef struct {
-  const char *id;
-  const uint8_t *wav_bytes;
-  int wav_bytes_len;
-  const char *site_id;
-} CPlayBytesMessage;
-
-typedef struct {
-  const void *facade;
-} CAudioServerFacade;
-
-typedef struct {
   const void *handler;
 } CProtocolHandler;
 
 typedef struct {
   const void *facade;
-} CDialogueBackendFacade;
+} CDialogueFacade;
+
+/*
+ * An array of strings
+ */
+typedef struct {
+  /*
+   * Pointer to the first element of the array
+   */
+  const char *const *data;
+  /*
+   * Number of elements in the array
+   */
+  int size;
+} CStringArray;
+
+typedef struct {
+  const char *session_id;
+  const char *text;
+  /*
+   * Nullable
+   */
+  const CStringArray *intent_filter;
+  /*
+   * Nullable
+   */
+  const char *custom_data;
+  unsigned char send_intent_not_recognized;
+} CContinueSessionMessage;
+
+typedef struct {
+  const char *session_id;
+  /*
+   * Nullable
+   */
+  const char *text;
+} CEndSessionMessage;
+
+typedef struct {
+  SNIPS_SESSION_INIT_TYPE init_type;
+  /*
+   * Points to either a *const char, a *const CActionSessionInit
+   */
+  const void *value;
+} CSessionInit;
+
+typedef struct {
+  CSessionInit init;
+  const char *custom_data;
+  const char *site_id;
+} CStartSessionMessage;
 
 /*
  * Results of the intent classifier
@@ -305,6 +271,24 @@ typedef struct {
   const CNluSlot *const *entries;
   int count;
 } CNluSlotArray;
+
+typedef struct {
+  float start;
+  float end;
+} CAsrDecodingDuration;
+
+typedef struct {
+  const char *value;
+  float confidence;
+  int32_t range_start;
+  int32_t range_end;
+  CAsrDecodingDuration time;
+} CAsrToken;
+
+typedef struct {
+  const CAsrToken *const *entries;
+  int count;
+} CAsrTokenArray;
 
 typedef struct {
   const CAsrTokenArray *const *entries;
@@ -383,60 +367,6 @@ typedef struct {
   const char *reactivated_from_session_id;
 } CSessionStartedMessage;
 
-/*
- * An array of strings
- */
-typedef struct {
-  /*
-   * Pointer to the first element of the array
-   */
-  const char *const *data;
-  /*
-   * Number of elements in the array
-   */
-  int size;
-} CStringArray;
-
-typedef struct {
-  const char *session_id;
-  const char *text;
-  /*
-   * Nullable
-   */
-  const CStringArray *intent_filter;
-  /*
-   * Nullable
-   */
-  const char *custom_data;
-  unsigned char send_intent_not_recognized;
-} CContinueSessionMessage;
-
-typedef struct {
-  const char *session_id;
-  /*
-   * Nullable
-   */
-  const char *text;
-} CEndSessionMessage;
-
-typedef struct {
-  SNIPS_SESSION_INIT_TYPE init_type;
-  /*
-   * Points to either a *const char, a *const CActionSessionInit
-   */
-  const void *value;
-} CSessionInit;
-
-typedef struct {
-  CSessionInit init;
-  const char *custom_data;
-  const char *site_id;
-} CStartSessionMessage;
-
-typedef struct {
-  const void *facade;
-} CDialogueFacade;
-
 typedef struct {
   /*
    * Nullable
@@ -451,16 +381,21 @@ typedef struct {
 
 typedef struct {
   const void *facade;
-} CHotwordBackendFacade;
+} CInjectionFacade;
 
 typedef struct {
-  const char *site_id;
-  const char *model_id;
-} CHotwordDetectedMessage;
+  const char *last_injection_date;
+} CInjectionStatusMessage;
 
 typedef struct {
   const void *facade;
-} CHotwordFacade;
+} CSoundFeedbackFacade;
+
+typedef struct {
+  uint64_t major;
+  uint64_t minor;
+  uint64_t patch;
+} CVersionMessage;
 
 typedef struct {
   const char *key;
@@ -496,143 +431,12 @@ typedef struct {
 } CInjectionRequestMessage;
 
 typedef struct {
-  const void *facade;
-} CNluBackendFacade;
-
-typedef struct {
-  const void *facade;
-} CNluFacade;
-
-typedef struct {
-  /*
-   * Nullable
-   */
-  const char *id;
-  const char *input;
-  const CIntentClassifierResult *intent;
-  /*
-   * Nullable
-   */
-  const CNluSlotArray *slots;
-  /*
-   * Nullable
-   */
-  const char *session_id;
-} CNluIntentMessage;
-
-typedef struct {
-  const char *input;
-  /*
-   * Nullable
-   */
-  const char *id;
-  /*
-   * Nullable
-   */
-  const char *session_id;
-} CNluIntentNotRecognizedMessage;
-
-typedef struct {
-  const char *input;
-  /*
-   * Nullable
-   */
-  const CAsrTokenArray *asr_tokens;
-  /*
-   * Nullable
-   */
-  const CStringArray *intent_filter;
-  /*
-   * Nullable
-   */
-  const char *id;
-  /*
-   * Nullable
-   */
-  const char *session_id;
-} CNluQueryMessage;
-
-typedef struct {
-  /*
-   * Nullable
-   */
-  const char *id;
-  const char *input;
-  const char *intent_name;
-  /*
-   * Nullable
-   */
-  const CNluSlot *slot;
-  /*
-   * Nullable
-   */
-  const char *session_id;
-} CNluSlotMessage;
-
-typedef struct {
-  const char *input;
-  const CAsrTokenArray *asr_tokens;
-  const char *intent_name;
-  const char *slot_name;
-  /*
-   * Nullable
-   */
-  const char *id;
-  /*
-   * Nullable
-   */
-  const char *session_id;
-} CNluSlotQueryMessage;
-
-typedef struct {
-  /*
-   * Nullable
-   */
-  const char *id;
-  /*
-   * Nullable
-   */
-  const char *session_id;
-} CSayFinishedMessage;
-
-typedef struct {
-  const char *text;
-  /*
-   * Nullable
-   */
-  const char *lang;
-  /*
-   * Nullable
-   */
-  const char *id;
   const char *site_id;
   /*
    * Nullable
    */
   const char *session_id;
-} CSayMessage;
-
-typedef struct {
-  const void *facade;
-} CSoundFeedbackBackendFacade;
-
-typedef struct {
-  const void *facade;
-} CSoundFeedbackFacade;
-
-typedef struct {
-  const void *facade;
-} CTtsBackendFacade;
-
-typedef struct {
-  const void *facade;
-} CTtsFacade;
-
-typedef struct {
-  uint64_t major;
-  uint64_t minor;
-  uint64_t patch;
-} CVersionMessage;
+} CSiteMessage;
 
 /*
  * Representation of a number value
@@ -755,82 +559,7 @@ typedef struct {
   SNIPS_PRECISION precision;
 } CDurationValue;
 
-SNIPS_RESULT hermes_asr_backend_publish_start_listening(const CAsrBackendFacade *facade,
-                                                        void (*handler)(const CAsrStartListeningMessage*));
-
-SNIPS_RESULT hermes_asr_backend_publish_stop_listening(const CAsrBackendFacade *facade,
-                                                       void (*handler)(const CSiteMessage*));
-
-SNIPS_RESULT hermes_asr_backend_subscribe_partial_text_captured(const CAsrBackendFacade *facade,
-                                                                const CTextCapturedMessage *message);
-
-SNIPS_RESULT hermes_asr_backend_subscribe_text_captured(const CAsrBackendFacade *facade,
-                                                        const CTextCapturedMessage *message);
-
-SNIPS_RESULT hermes_asr_publish_start_listening(const CAsrFacade *facade,
-                                                const CAsrStartListeningMessage *message);
-
-SNIPS_RESULT hermes_asr_publish_stop_listening(const CAsrFacade *facade,
-                                               const CSiteMessage *message);
-
-SNIPS_RESULT hermes_asr_subscribe_partial_text_captured(const CAsrFacade *facade,
-                                                        void (*handler)(const CTextCapturedMessage*));
-
-SNIPS_RESULT hermes_asr_subscribe_text_captured(const CAsrFacade *facade,
-                                                void (*handler)(const CTextCapturedMessage*));
-
-SNIPS_RESULT hermes_audio_server_backend_publish_audio_frame(const CAudioServerBackendFacade *facade,
-                                                             const CAudioFrameMessage *message);
-
-SNIPS_RESULT hermes_audio_server_backend_publish_play_finished(const CAudioServerBackendFacade *facade,
-                                                               const CPlayFinishedMessage *message);
-
-SNIPS_RESULT hermes_audio_server_backend_subscribe_all_play_bytes(const CAudioServerBackendFacade *facade,
-                                                                  void (*handler)(const CPlayBytesMessage*));
-
-SNIPS_RESULT hermes_audio_server_backend_subscribe_play_bytes(const CAudioServerBackendFacade *facade,
-                                                              const char *site_id,
-                                                              void (*handler)(const CPlayBytesMessage*));
-
-SNIPS_RESULT hermes_audio_server_publish_play_bytes(const CAudioServerFacade *facade,
-                                                    const CPlayBytesMessage *message);
-
-SNIPS_RESULT hermes_audio_server_subscribe_all_play_finished(const CAudioServerFacade *facade,
-                                                             void (*handler)(const CPlayFinishedMessage*));
-
-SNIPS_RESULT hermes_audio_server_subscribe_audio_frame(const CAudioServerFacade *facade,
-                                                       const char *site_id,
-                                                       void (*handler)(const CAudioFrameMessage*));
-
-SNIPS_RESULT hermes_audio_server_subscribe_play_finished(const CAudioServerFacade *facade,
-                                                         const char *site_id,
-                                                         void (*handler)(const CPlayFinishedMessage*));
-
 SNIPS_RESULT hermes_destroy_mqtt_protocol_handler(CProtocolHandler *handler);
-
-SNIPS_RESULT hermes_dialogue_backend_publish_intent(const CDialogueBackendFacade *facade,
-                                                    const CIntentMessage *message);
-
-SNIPS_RESULT hermes_dialogue_backend_publish_intent_not_recognized(const CDialogueBackendFacade *facade,
-                                                                   const CIntentNotRecognizedMessage *message);
-
-SNIPS_RESULT hermes_dialogue_backend_publish_session_ended(const CDialogueBackendFacade *facade,
-                                                           const CSessionEndedMessage *message);
-
-SNIPS_RESULT hermes_dialogue_backend_publish_session_queued(const CDialogueBackendFacade *facade,
-                                                            const CSessionQueuedMessage *message);
-
-SNIPS_RESULT hermes_dialogue_backend_publish_session_started(const CDialogueBackendFacade *facade,
-                                                             const CSessionStartedMessage *message);
-
-SNIPS_RESULT hermes_dialogue_backend_subscribe_continue_session(const CDialogueBackendFacade *facade,
-                                                                void (*handler)(const CContinueSessionMessage*));
-
-SNIPS_RESULT hermes_dialogue_backend_subscribe_end_session(const CDialogueBackendFacade *facade,
-                                                           void (*handler)(const CEndSessionMessage*));
-
-SNIPS_RESULT hermes_dialogue_backend_subscribe_start_session(const CDialogueBackendFacade *facade,
-                                                             void (*handler)(const CStartSessionMessage*));
 
 SNIPS_RESULT hermes_dialogue_publish_continue_session(const CDialogueFacade *facade,
                                                       const CContinueSessionMessage *message);
@@ -860,59 +589,17 @@ SNIPS_RESULT hermes_dialogue_subscribe_session_queued(const CDialogueFacade *fac
 SNIPS_RESULT hermes_dialogue_subscribe_session_started(const CDialogueFacade *facade,
                                                        void (*handler)(const CSessionStartedMessage*));
 
-SNIPS_RESULT hermes_drop_asr_backend_facade(const CAsrBackendFacade *cstruct);
-
-SNIPS_RESULT hermes_drop_asr_facade(const CAsrFacade *cstruct);
-
-SNIPS_RESULT hermes_drop_audio_frame_message(const CAudioFrameMessage *cstruct);
-
-SNIPS_RESULT hermes_drop_audio_server_backend_facade(const CAudioServerBackendFacade *cstruct);
-
-SNIPS_RESULT hermes_drop_audio_server_facade(const CAudioServerFacade *cstruct);
-
-SNIPS_RESULT hermes_drop_continue_session_message(const CContinueSessionMessage *cstruct);
-
-SNIPS_RESULT hermes_drop_dialogue_backend_facade(const CDialogueBackendFacade *cstruct);
-
 SNIPS_RESULT hermes_drop_dialogue_facade(const CDialogueFacade *cstruct);
-
-SNIPS_RESULT hermes_drop_end_session_message(const CEndSessionMessage *cstruct);
 
 SNIPS_RESULT hermes_drop_error_message(const CErrorMessage *cstruct);
 
-SNIPS_RESULT hermes_drop_hotword_backend_facade(const CHotwordBackendFacade *cstruct);
+SNIPS_RESULT hermes_drop_injection_facade(const CInjectionFacade *cstruct);
 
-SNIPS_RESULT hermes_drop_hotword_detected_message(const CHotwordDetectedMessage *cstruct);
-
-SNIPS_RESULT hermes_drop_hotword_facade(const CHotwordFacade *cstruct);
-
-SNIPS_RESULT hermes_drop_injection_request_message(const CInjectionRequestMessage *cstruct);
+SNIPS_RESULT hermes_drop_injection_status_message(const CInjectionStatusMessage *cstruct);
 
 SNIPS_RESULT hermes_drop_intent_message(const CIntentMessage *cstruct);
 
 SNIPS_RESULT hermes_drop_intent_not_recognized_message(const CIntentNotRecognizedMessage *cstruct);
-
-SNIPS_RESULT hermes_drop_nlu_backend_facade(const CNluBackendFacade *cstruct);
-
-SNIPS_RESULT hermes_drop_nlu_facade(const CNluFacade *cstruct);
-
-SNIPS_RESULT hermes_drop_nlu_intent_message(const CNluIntentMessage *cstruct);
-
-SNIPS_RESULT hermes_drop_nlu_intent_not_recognized_message(const CNluIntentNotRecognizedMessage *cstruct);
-
-SNIPS_RESULT hermes_drop_nlu_query_message(const CNluQueryMessage *cstruct);
-
-SNIPS_RESULT hermes_drop_nlu_slot_message(const CNluSlotMessage *cstruct);
-
-SNIPS_RESULT hermes_drop_nlu_slot_query_message(const CNluSlotQueryMessage *cstruct);
-
-SNIPS_RESULT hermes_drop_play_bytes_message(const CPlayBytesMessage *cstruct);
-
-SNIPS_RESULT hermes_drop_play_finished_message(const CPlayFinishedMessage *cstruct);
-
-SNIPS_RESULT hermes_drop_say_finished_message(const CSayFinishedMessage *cstruct);
-
-SNIPS_RESULT hermes_drop_say_message(const CSayMessage *cstruct);
 
 SNIPS_RESULT hermes_drop_session_ended_message(const CSessionEndedMessage *cstruct);
 
@@ -920,19 +607,7 @@ SNIPS_RESULT hermes_drop_session_queued_message(const CSessionQueuedMessage *cst
 
 SNIPS_RESULT hermes_drop_session_started_message(const CSessionStartedMessage *cstruct);
 
-SNIPS_RESULT hermes_drop_site_message(const CSiteMessage *cstruct);
-
-SNIPS_RESULT hermes_drop_sound_feedback_backend_facade(const CSoundFeedbackBackendFacade *cstruct);
-
 SNIPS_RESULT hermes_drop_sound_feedback_facade(const CSoundFeedbackFacade *cstruct);
-
-SNIPS_RESULT hermes_drop_start_session_message(const CStartSessionMessage *cstruct);
-
-SNIPS_RESULT hermes_drop_text_captured_message(const CTextCapturedMessage *cstruct);
-
-SNIPS_RESULT hermes_drop_tts_backend_facade(const CTtsBackendFacade *cstruct);
-
-SNIPS_RESULT hermes_drop_tts_facade(const CTtsFacade *cstruct);
 
 SNIPS_RESULT hermes_drop_version_message(const CVersionMessage *cstruct);
 
@@ -944,106 +619,30 @@ SNIPS_RESULT hermes_enable_debug_logs(void);
  */
 SNIPS_RESULT hermes_get_last_error(const char **error);
 
-SNIPS_RESULT hermes_hotword_backend_publish_detected(const CHotwordBackendFacade *facade,
-                                                     const char *hotword_id,
-                                                     const CHotwordDetectedMessage *message);
+SNIPS_RESULT hermes_injection_publish_injection_request(const CInjectionFacade *facade,
+                                                        const CInjectionRequestMessage *message);
 
-SNIPS_RESULT hermes_hotword_subscribe_all_detected(const CHotwordFacade *facade,
-                                                   void (*handler)(const CHotwordDetectedMessage*));
+SNIPS_RESULT hermes_injection_publish_injection_status_request(const CInjectionFacade *facade);
 
-SNIPS_RESULT hermes_hotword_subscribe_detected(const CHotwordFacade *facade,
-                                               const char *hotword_id,
-                                               void (*handler)(const CHotwordDetectedMessage*));
-
-SNIPS_RESULT hermes_nlu_backend_publish_intent_not_recognized(const CNluBackendFacade *facade,
-                                                              const CNluIntentNotRecognizedMessage *message);
-
-SNIPS_RESULT hermes_nlu_backend_publish_intent_parsed(const CNluBackendFacade *facade,
-                                                      const CNluIntentMessage *message);
-
-SNIPS_RESULT hermes_nlu_backend_publish_slot_parsed(const CNluBackendFacade *facade,
-                                                    const CNluSlotMessage *message);
-
-SNIPS_RESULT hermes_nlu_backend_subscribe_partial_query(const CNluBackendFacade *facade,
-                                                        void (*handler)(const CNluSlotQueryMessage*));
-
-SNIPS_RESULT hermes_nlu_backend_subscribe_query(const CNluBackendFacade *facade,
-                                                void (*handler)(const CNluQueryMessage*));
-
-SNIPS_RESULT hermes_nlu_publish_partial_query(const CNluFacade *facade,
-                                              const CNluSlotQueryMessage *message);
-
-SNIPS_RESULT hermes_nlu_publish_query(const CNluFacade *facade, const CNluQueryMessage *message);
-
-SNIPS_RESULT hermes_nlu_subscribe_intent_not_recognized(const CNluFacade *facade,
-                                                        void (*handler)(const CNluIntentNotRecognizedMessage*));
-
-SNIPS_RESULT hermes_nlu_subscribe_intent_parsed(const CNluFacade *facade,
-                                                void (*handler)(const CNluIntentMessage*));
-
-SNIPS_RESULT hermes_nlu_subscribe_slot_parsed(const CNluFacade *facade,
-                                              void (*handler)(const CNluSlotMessage*));
-
-SNIPS_RESULT hermes_protocol_handler_asr_backend_facade(const CProtocolHandler *handler,
-                                                        const CAsrBackendFacade **facade);
-
-SNIPS_RESULT hermes_protocol_handler_asr_facade(const CProtocolHandler *handler,
-                                                const CAsrFacade **facade);
-
-SNIPS_RESULT hermes_protocol_handler_audio_server_backend_facade(const CProtocolHandler *handler,
-                                                                 const CAudioServerBackendFacade **facade);
-
-SNIPS_RESULT hermes_protocol_handler_audio_server_facade(const CProtocolHandler *handler,
-                                                         const CAudioServerFacade **facade);
-
-SNIPS_RESULT hermes_protocol_handler_dialogue_backend_facade(const CProtocolHandler *handler,
-                                                             const CDialogueBackendFacade **facade);
+SNIPS_RESULT hermes_injection_subscribe_injection_status(const CInjectionFacade *facade,
+                                                         void (*handler)(const CInjectionStatusMessage*));
 
 SNIPS_RESULT hermes_protocol_handler_dialogue_facade(const CProtocolHandler *handler,
                                                      const CDialogueFacade **facade);
 
-SNIPS_RESULT hermes_protocol_handler_hotword_backend_facade(const CProtocolHandler *handler,
-                                                            const CHotwordBackendFacade **facade);
-
-SNIPS_RESULT hermes_protocol_handler_hotword_facade(const CProtocolHandler *handler,
-                                                    const CHotwordFacade **facade);
+SNIPS_RESULT hermes_protocol_handler_injection_facade(const CProtocolHandler *handler,
+                                                      const CInjectionFacade **facade);
 
 SNIPS_RESULT hermes_protocol_handler_new_mqtt(const CProtocolHandler **handler,
                                               const char *broker_address);
 
-SNIPS_RESULT hermes_protocol_handler_nlu_backend_facade(const CProtocolHandler *handler,
-                                                        const CNluBackendFacade **facade);
-
-SNIPS_RESULT hermes_protocol_handler_nlu_facade(const CProtocolHandler *handler,
-                                                const CNluFacade **facade);
-
-SNIPS_RESULT hermes_protocol_handler_sound_feedback_backend_facade(const CProtocolHandler *handler,
-                                                                   const CSoundFeedbackBackendFacade **facade);
-
 SNIPS_RESULT hermes_protocol_handler_sound_feedback_facade(const CProtocolHandler *handler,
                                                            const CSoundFeedbackFacade **facade);
-
-SNIPS_RESULT hermes_protocol_handler_tts_backend_facade(const CProtocolHandler *handler,
-                                                        const CTtsBackendFacade **facade);
-
-SNIPS_RESULT hermes_protocol_handler_tts_facade(const CProtocolHandler *handler,
-                                                const CTtsFacade **facade);
 
 SNIPS_RESULT hermes_sound_feedback_publish_toggle_off(const CSoundFeedbackFacade *facade,
                                                       const CSiteMessage *message);
 
 SNIPS_RESULT hermes_sound_feedback_publish_toggle_on(const CSoundFeedbackFacade *facade,
                                                      const CSiteMessage *message);
-
-SNIPS_RESULT hermes_tts_backend_publish_say_finished(const CTtsBackendFacade *facade,
-                                                     const CSayFinishedMessage *message);
-
-SNIPS_RESULT hermes_tts_backend_subscribe_say(const CTtsBackendFacade *facade,
-                                              void (*handler)(const CSayMessage*));
-
-SNIPS_RESULT hermes_tts_publish_say(const CTtsFacade *facade, const CSayMessage *message);
-
-SNIPS_RESULT hermes_tts_subscribe_say_finished(const CTtsFacade *facade,
-                                               void (*handler)(const CSayFinishedMessage*));
 
 #endif /* LIB_HERMES_H_ */

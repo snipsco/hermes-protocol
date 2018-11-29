@@ -257,6 +257,8 @@ pub struct CInjectionStatusMessage {
     pub last_injection_date: *const libc::c_char,
 }
 
+unsafe impl Sync for CInjectionStatusMessage {}
+
 impl Drop for CInjectionStatusMessage {
     fn drop(&mut self) {
         take_back_nullable_c_string!(self.last_injection_date);
