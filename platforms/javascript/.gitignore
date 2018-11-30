@@ -1,0 +1,7 @@
+.vscode
+node_modules
+payloads
+libhermes_mqtt_ffi*
+/*.h
+/crash.log
+/experiments.js

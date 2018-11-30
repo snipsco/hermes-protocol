@@ -1,0 +1,31 @@
+{
+  "name": "hermes-javascript",
+  "version": "0.0.1",
+  "description": "Hermes javascript bindings",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "npm run lint && npm run test",
+    "lint": "eslint src",
+    "postinstall": "node scripts/postinstall.js",
+    "build:sources": "node scripts/make.js",
+    "test": "jest"
+  },
+  "author": "Julien Elbaz",
+  "license": "MIT",
+  "files": [
+    "src",
+    "scripts"
+  ],
+  "dependencies": {
+    "ffi": "git+https://github.com/node-ffi/node-ffi.git",
+    "ref-array": "^1.2.0",
+    "tmp": "0.0.33",
+    "chalk": "^2.4.1"
+  },
+  "devDependencies": {
+    "eslint": "^5.9.0",
+    "eslint-plugin-jest": "^22.1.0",
+    "jest": "^23.6.0",
+    "segfault-handler": "^1.0.1"
+  }
+}
