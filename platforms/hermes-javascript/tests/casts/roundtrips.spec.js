@@ -19,12 +19,24 @@ const {
 const SegfaultHandler = require('segfault-handler')
 SegfaultHandler.registerHandler('crash.log')
 
+// Rust round trip tests
+const rustRoundTrip = require('./rustTestsWrapper').call()
+
 // Serialize <-> Deserialize helper
-function roundTrip({ data, MessageClass = Casteable, forgeType, forgeOptions = {}, roundTripOptions = {} }) {
+function roundTrip({ data, MessageClass = Casteable, forgeType, forgeOptions = {}, roundTripOptions = {}, FFIFunctionName }) {
     try {
         const pojo = new MessageClass(data)
         const cPointer = pojo.forge(forgeType, forgeOptions).ref()
-        const roundTrip = new MessageClass(cPointer, roundTripOptions)
+        const StructType = forgeType || pojo.type
+        let roundTrip
+        if(FFIFunctionName) {
+            const cPointerRoundTrip = pojo.forge(forgeType, forgeOptions).ref().ref()
+            rustRoundTrip(FFIFunctionName, cPointer, cPointerRoundTrip)
+            const struct = StructType.get(cPointerRoundTrip.deref())
+            roundTrip = new MessageClass(struct.ref(), roundTripOptions)
+        } else {
+            roundTrip = new MessageClass(cPointer, roundTripOptions)
+        }
         expect(pojo).toEqual(roundTrip)
     } catch(error) {
         console.log(error)
@@ -36,24 +48,24 @@ describe('It should perform casting round-trips on messages', () => {
     it('StartSessionMessage', () => {
         // Action
         roundTrip({
-            MessageClass: StartSessionMessage,
             data: {
                 session_init: {
                     init_type: 1,
                     value: {
                         text: 'toto',
                         intent_filter: ['intent', 'filter'],
-                        can_be_enqueued: 'Y',
+                        can_be_enqueued: 1,
                         send_intent_not_recognized: 0
                     }
                 },
                 custom_data: 'customThing',
                 site_id: 'siteId'
-            }
-        })
-         // Notification
-         roundTrip({
+            },
             MessageClass: StartSessionMessage,
+            FFIFunctionName: 'hermes_ffi_test_round_trip_start_session'
+        })
+        //  Notification
+         roundTrip({
             data: {
                 session_init: {
                     init_type: 2,
@@ -61,7 +73,9 @@ describe('It should perform casting round-trips on messages', () => {
                 },
                 custom_data: 'customThing',
                 site_id: 'siteId'
-            }
+            },
+            MessageClass: StartSessionMessage,
+            FFIFunctionName: 'hermes_ffi_test_round_trip_start_session'
         })
     })
     it('ContinueSessionMessage', () => {
@@ -70,7 +84,7 @@ describe('It should perform casting round-trips on messages', () => {
                 session_id: 'Session id',
                 text: 'Session resumed',
                 custom_data: 'customThing',
-                send_intent_not_recognized: 0,
+                send_intent_not_recognized: 1,
                 intent_filter: ['intent1', 'intent2']
             },
             forgeType: CContinueSessionMessage,
@@ -79,7 +93,8 @@ describe('It should perform casting round-trips on messages', () => {
             },
             roundTripOptions: {
                 intent_filter: intents => new StringArray(intents)._array
-            }
+            },
+            FFIFunctionName: 'hermes_ffi_test_round_trip_continue_session'
         })
     })
     it('EndSessionMessage', () => {
@@ -88,7 +103,8 @@ describe('It should perform casting round-trips on messages', () => {
                 session_id: 'Session id',
                 text: 'Session ended'
            },
-           forgeType: CEndSessionMessage
+           forgeType: CEndSessionMessage,
+           FFIFunctionName: 'hermes_ffi_test_round_trip_end_session'
        })
     })
     it('IntentMessage(s)', () => {
@@ -198,7 +214,8 @@ describe('It should perform casting round-trips on messages', () => {
                 input: 'additionne un plus un',
                 custom_data: null
             },
-            forgeType: CIntentNotRecognizedMessage
+            forgeType: CIntentNotRecognizedMessage,
+            FFIFunctionName: 'hermes_ffi_test_round_trip_intent_not_recognized'
         })
     })
     it('SessionStartedMessage', () => {
@@ -209,7 +226,8 @@ describe('It should perform casting round-trips on messages', () => {
                 site_id: 'Site id',
                 reactivated_from_session_id: 'Reactivated from session id'
             },
-            forgeType: CSessionStartedMessage
+            forgeType: CSessionStartedMessage,
+            FFIFunctionName: 'hermes_ffi_test_round_trip_session_started'
         })
     })
     it('SessionQueuedMessage', () => {
@@ -219,7 +237,8 @@ describe('It should perform casting round-trips on messages', () => {
                 custom_data: 'Custom data',
                 site_id: 'Site id'
             },
-            forgeType: CSessionQueuedMessage
+            forgeType: CSessionQueuedMessage,
+            FFIFunctionName: 'hermes_ffi_test_round_trip_session_queued'
         })
     })
     it('SessionEndedMessage', () => {
@@ -228,8 +247,8 @@ describe('It should perform casting round-trips on messages', () => {
                 session_id: 'Session id',
                 custom_data: 'Custom data',
                 termination: {
-                    termination_type: 1,
-                    data: 'Data'
+                    termination_type: 6,
+                    data: 'Error message'
                 },
                 site_id: 'Site id'
             },
@@ -237,7 +256,8 @@ describe('It should perform casting round-trips on messages', () => {
             forgeOptions: {
                 termination: termination =>
                     new Casteable(termination).forge(CSessionTermination)
-            }
+            },
+            FFIFunctionName: 'hermes_ffi_test_round_trip_session_ended'
         })
     })
 })

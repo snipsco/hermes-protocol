@@ -14,7 +14,7 @@ const CStringArray = Struct({
 const CActionSessionInit = Struct({
   text: coerce('char *'),
   intent_filter: pointer(CStringArray),
-  can_be_enqueued: coerce('char'),
+  can_be_enqueued: coerce('uchar'),
   send_intent_not_recognized: coerce('uchar')
 })
 
@@ -51,11 +51,6 @@ const CNluSlotArray = Struct({
   entries: pointer(pointer(CNluSlot)),
   count: coerce('int'),
 })
-
-// const CSlotList = Struct({
-//   slots: pointer(CSlot),
-//   size: coerce('int')
-// })
 
 const CSessionTermination = Struct({
   termination_type: coerce('int'),
@@ -210,9 +205,9 @@ const CContinueSessionMessage = Struct({
 })
 
 const CStartSessionMessage = Struct({
+  session_init: CSessionInit,
   custom_data: coerce('char *'),
-  site_id: coerce('char *'),
-  session_init: CSessionInit
+  site_id: coerce('char *')
 })
 
 const CSayMessage = Struct({

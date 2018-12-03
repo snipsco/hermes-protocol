@@ -61,7 +61,7 @@ module.exports = {
                 } else if(valueType === 'StructType*' || valueType === 'StructType') {
                     // console.log('beforeStructTypeCall ', key, ' > ', valueType)
                     obj[key] = module.exports.cast(value)
-                } else if(valueType === 'char*') {
+                } else if(valueType === 'char*' || valueType === 'string') {
                     obj[key] = value.readCString(0)
                 } else {
                     obj[key] = value.deref()

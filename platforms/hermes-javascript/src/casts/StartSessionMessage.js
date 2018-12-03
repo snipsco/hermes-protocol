@@ -22,7 +22,6 @@ class StartSessionMessage extends Casteable {
                 const actionSessionInitPtr = ref.reinterpret(valuePtr, CActionSessionInit.size)
                 if(init_type === 1) {
                     value = cast(ref.get(actionSessionInitPtr, 0, CActionSessionInit), {
-                        can_be_enqueued: _ => String.fromCharCode(_),
                         intent_filter: intents => {
                             return new StringArray(intents)._array
                         }
@@ -45,7 +44,6 @@ class StartSessionMessage extends Casteable {
                     value: function(value) {
                         if(sessionInit.init_type === 1) {
                             return new Casteable(value).forge(CActionSessionInit, {
-                                can_be_enqueued: _ => _,
                                 intent_filter: intents => new StringArray(intents).forge()
                             }).ref()
                         } else if(sessionInit.init_type === 2) {
