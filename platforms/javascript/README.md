@@ -391,6 +391,23 @@ dialog.flow('intentName', async (message, flow) => {
 })
 ```
 
+#### flow->notRecognized(action)
+
+Add a callback that is going to be executed if the intents failed to be recognized.
+
+```js
+dialog.flow('intentName', async (message, flow) => {
+
+    /* Add continuations here ... */
+
+    flow.notRecognized((message, flow) => {
+        /* ... */
+    })
+
+    return 'If the dialog failed to understand the intents, notRecognized callback will be called.'
+})
+```
+
 #### flow->end()
 
 Ends the dialog flow.

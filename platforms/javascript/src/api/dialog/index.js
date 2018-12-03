@@ -10,6 +10,7 @@ const {
     CContinueSessionMessage,
     CEndSessionMessage,
     CIntentMessage,
+    CIntentNotRecognizedMessage,
     CSessionEndedMessage,
     CSessionQueuedMessage,
     CSessionStartedMessage
@@ -77,6 +78,11 @@ Dialog.prototype.subscribeEvents = {
         dropEventName: 'hermes_drop_intent_message',
         messageStruct: CIntentMessage,
         messageClass: IntentMessage
+    },
+    intent_not_recognized: {
+        fullEventName: 'hermes_dialogue_subscribe_intent_not_recognized',
+        dropEventName: 'hermes_drop_intent_not_recognized_message',
+        messageStruct: CIntentNotRecognizedMessage
     },
     session_ended: {
         fullEventName: 'hermes_dialogue_subscribe_session_ended',

@@ -169,6 +169,13 @@ const CIntentMessage = Struct({
   asr_tokens: pointer(CAsrTokenDoubleArray)
 })
 
+const CIntentNotRecognizedMessage = Struct({
+  site_id: coerce('char *'),
+  session_id: coerce('char *'),
+  input: coerce('char *'),
+  custom_data: coerce('char *')
+})
+
 const CSessionEndedMessage = Struct({
   session_id: coerce('char *'),
   custom_data: coerce('char *'),
@@ -224,6 +231,7 @@ const messages = {
   CEndSessionMessage,
   CContinueSessionMessage,
   CIntentMessage,
+  CIntentNotRecognizedMessage,
   CSayMessage
 }
 

@@ -31,6 +31,7 @@ module.exports.library = libraryPath => ffi.Library(libraryPath, {
     hermes_drop_session_ended_message: [ 'int', [ 'void *' ]],
     hermes_drop_session_queued_message: [ 'int', [ 'void *' ]],
     hermes_drop_session_started_message: [ 'int', [ 'void *' ]],
+    hermes_drop_intent_not_recognized_message: [ 'int', [ 'void *' ]],
 
     // Backend API - DO NOT EXPOSE - NO RUST ADAPTER YET
 
@@ -50,8 +51,10 @@ module.exports.library = libraryPath => ffi.Library(libraryPath, {
     hermes_dialogue_publish_end_session: [ 'int', [ 'void *', 'void *' ]],
     // Programmatically start a new session
     hermes_dialogue_publish_start_session: [ 'int', [ 'void *', 'void *' ]],
+    // Callbacj - Subscribe to intents detected
     hermes_dialogue_subscribe_intent: [ 'int', [ 'void *', 'char *', 'void *' ]],
     hermes_dialogue_subscribe_intents: [ 'int', [ 'void *', 'void *' ]],
+    hermes_dialogue_subscribe_intent_not_recognized: [ 'int', [ 'void *', 'void *' ]],
     // Callback - session ended
     hermes_dialogue_subscribe_session_ended: [ 'int', [ 'void *', 'void *' ]],
     // Callback - triggered when the current session in put in the queue

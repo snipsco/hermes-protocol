@@ -9,6 +9,7 @@ const {
     CEndSessionMessage,
     CSessionStartedMessage,
     CIntentMessage,
+    CIntentNotRecognizedMessage,
     CSessionQueuedMessage,
     CSessionEndedMessage,
     CSessionTermination
@@ -187,6 +188,17 @@ describe('It should perform casting round-trips on messages', () => {
             },
             MessageClass: IntentMessage,
             forgeType: CIntentMessage
+        })
+    })
+    it('IntentNotRecognizedMessage(s)', () => {
+        roundTrip({
+            data: {
+                site_id: 'default',
+                session_id: '6ce651f7-0aec-4910-bfec-b246ea6ca550',
+                input: 'additionne un plus un',
+                custom_data: null
+            },
+            forgeType: CIntentNotRecognizedMessage
         })
     })
     it('SessionStartedMessage', () => {
