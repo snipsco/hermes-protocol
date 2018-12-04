@@ -42,22 +42,25 @@ module.exports = {
             const value = obj[key]
 
             try {
+
+                const ref = value && value.ref && value.ref()
+                const valueType = ref && ref.type.name
+
+                if(value instanceof Buffer && value.isNull() || ref && ref.isNull()) {
+                    obj[key] = null
+                    continue
+                }
+
                 if(customKeysCasting[key]) {
                     obj[key] = customKeysCasting[key](value)
                     continue
                 }
 
                 // console.log('value: ', value)
-
-                const ref = value && value.ref && value.ref()
-                const valueType = ref && ref.type.name
-
                 // console.log('valueType:', valueType)
 
                 if(!ref) {
                     continue
-                } else if(value instanceof Buffer && value.isNull() || ref && ref.isNull()) {
-                    obj[key] = null
                 } else if(valueType === 'StructType*' || valueType === 'StructType') {
                     // console.log('beforeStructTypeCall ', key, ' > ', valueType)
                     obj[key] = module.exports.cast(value)

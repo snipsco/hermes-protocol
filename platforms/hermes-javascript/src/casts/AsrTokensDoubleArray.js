@@ -9,7 +9,7 @@ const arrayType = array(ref.refType(types.CAsrToken))
 
 class AsrTokensDoubleArrayType extends Casteable {
     constructor(arg) {
-        super({})
+        super()
         if(arg instanceof Buffer) {
             if(arg.length <= 0) {
                 this._array = null

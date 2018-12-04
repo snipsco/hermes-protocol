@@ -171,6 +171,15 @@ const hermes = new Hermes()
 const dialog = hermes.dialog()
 ```
 
+#### injection()
+
+Use the Injection Api Subset.
+
+```js
+const hermes = new Hermes()
+const injection = hermes.injection()
+```
+
 #### destroy()
 
 Release the resources associated with this Hermes instance.
@@ -180,9 +189,9 @@ const hermes = new Hermes()
 hermes.destroy()
 ```
 
-### ApiSubset common methods
+### ApiSubsets common methods
 
-**Check out [the hermes protocol documentation](https://snips.gitbook.io/documentation/ressources/hermes-protocol) for more details on the event names.**
+**Check out [the hermes protocol documentation](https://docs.snips.ai/ressources/hermes-protocol) for more details on the event names.**
 
 #### on(eventName, listener)
 
@@ -259,8 +268,6 @@ dialog.publish('start_session', {
 
 The dialog manager.
 
-
-
 #### Events available for publishing
 
 - **start_session**
@@ -284,7 +291,6 @@ dialog.publish('start_session', {
             }
     }
 })
-
 ```
 
 - **continue_session**
@@ -330,6 +336,10 @@ A dialog session has been put in the queue.
 - **session_started**
 
 A dialog session has started.
+
+- **intent_not_recognized**
+
+No intents were recognized.
 
 #### flow(intentName, action)
 
@@ -416,6 +426,46 @@ Ends the dialog flow.
 dialog.flow('intentName', async (message, flow) => {
     flow.end()
     return 'Dialog ended.'
+})
+```
+
+### Injection Api Subset
+
+Vocabulary injection for the speech recognition.
+
+#### Events available for publishing
+
+- **injection_request**
+
+Requests custom payload to be injected.
+
+```js
+dialog.publish('injection_request', {
+    id: /* string */,
+    cross_language: /* string */,
+    // An object having string keys mapped with an array of string entries
+    lexicon: {
+        films : [
+            'The Wolf of Wall Street',
+            'The Lord of the Rings'
+        ]
+    },
+    // An array of operations objects
+    operations: [
+        {
+            // Enumeration: 1 or 2
+            // 1 is 'add', 2 is 'add_from_vanilla'
+            // see documentation here: https://docs.snips.ai/guides/advanced-configuration/dynamic-vocabulary#3-inject-entity-values
+            kind: 1,
+            // An object having string keys mapped with an array of string entries
+            values: {
+                films : [
+                    'The Wolf of Wall Street',
+                    'The Lord of the Rings'
+                ]
+            }
+        }
+    ]
 })
 ```
 

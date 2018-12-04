@@ -20,9 +20,14 @@ const getMetadata = function(obj, eventName) {
 
 class ApiSubset {
 
-    constructor(options = {}) {
+    constructor(options = {}, facadeName, protocolHandler) {
         this.call = call(options.libraryPath)
         this.listeners = new Map()
+        if(facadeName && protocolHandler) {
+            const facadeRef = ref.alloc('void **')
+            this.call(facadeName, protocolHandler, facadeRef)
+            this.facade = facadeRef.deref()
+        }
     }
 
     /**

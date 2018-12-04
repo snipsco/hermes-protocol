@@ -19,10 +19,7 @@ const {
 class Dialog extends ApiSubset {
 
     constructor(protocolHandler, options) {
-        super(options)
-        const dialogueFacadeRef = ref.alloc('void **')
-        this.call('hermes_protocol_handler_dialogue_facade', protocolHandler, dialogueFacadeRef)
-        this.facade = dialogueFacadeRef.deref()
+        super(options, 'hermes_protocol_handler_dialogue_facade', protocolHandler)
     }
 
     destroy () {

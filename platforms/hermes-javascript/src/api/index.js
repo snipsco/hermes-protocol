@@ -1,6 +1,15 @@
 const ref = require('ref')
 const Dialog = require('./dialog')
+const Injection = require('./injection')
 const { call } = require('../ffi/bindings')
+
+/**
+ * List of API subsets that will be used to auto-generate getters.
+ */
+const API_SUBSETS = {
+    dialog: Dialog,
+    injection: Injection,
+}
 
 /**
  * Hermes javascript is an high level API that allows you to
@@ -34,16 +43,18 @@ class Hermes {
         if(this.options.logs) {
             this.call('hermes_enable_debug_logs')
         }
-    }
 
-    /**
-     * Exposes the dialogue API subset.
-     */
-    dialog() {
-        if(!this.activeSubsets.has('dialog')) {
-            this.activeSubsets.set('dialog', new Dialog(this.protocolHandler, this.options))
-        }
-        return this.activeSubsets.get('dialog')
+        /**
+         * Exposes public methods to get the subset api instances.
+         */
+        Object.entries(API_SUBSETS).forEach(([key, Class]) => {
+            this[key] = () => {
+                if(!this.activeSubsets.has(key)) {
+                    this.activeSubsets.set(key, new Class(this.protocolHandler, this.options))
+                }
+                return this.activeSubsets.get(key)
+            }
+        })
     }
 
     /**

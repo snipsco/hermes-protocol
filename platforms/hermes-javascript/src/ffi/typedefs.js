@@ -154,6 +154,8 @@ const facades = {
 
 /* Messages */
 
+// Dialogue
+
 const CIntentMessage = Struct({
   session_id: coerce('char *'),
   custom_data: coerce('char *'),
@@ -218,6 +220,35 @@ const CSayMessage = Struct({
   session_id: coerce('char *')
 })
 
+// Injection
+
+const CMapStringToStringArrayEntry = Struct({
+  key: coerce('char *'),
+  value: pointer(CStringArray)
+})
+
+const CMapStringToStringArray = Struct({
+  entries: pointer(pointer(CMapStringToStringArrayEntry)),
+  count: coerce('int')
+})
+
+const CInjectionRequestOperation = Struct({
+  values: pointer(CMapStringToStringArray),
+  kind: coerce('int')
+})
+
+const CInjectionRequestOperations = Struct({
+  operations: pointer(pointer(CInjectionRequestOperation)),
+  count: coerce('int')
+})
+
+const CInjectionRequestMessage = Struct({
+  operations: pointer(CInjectionRequestOperations),
+  lexicon: pointer(CMapStringToStringArray),
+  cross_language: coerce('char *'),
+  id: coerce('char *')
+})
+
 const messages = {
   CSessionStartedMessage,
   CSessionQueuedMessage,
@@ -227,7 +258,12 @@ const messages = {
   CContinueSessionMessage,
   CIntentMessage,
   CIntentNotRecognizedMessage,
-  CSayMessage
+  CSayMessage,
+  CInjectionRequestMessage,
+  CInjectionRequestOperations,
+  CInjectionRequestOperation,
+  CMapStringToStringArray,
+  CMapStringToStringArrayEntry
 }
 
 /* Exports */

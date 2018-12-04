@@ -11,6 +11,7 @@ module.exports.library = libraryPath => ffi.Library(libraryPath, {
     hermes_ffi_test_round_trip_session_started: [ 'int', [ 'void *', 'void *' ]],
     hermes_ffi_test_round_trip_session_queued: [ 'int', [ 'void *', 'void *' ]],
     hermes_ffi_test_round_trip_session_ended: [ 'int', [ 'void *', 'void *' ]],
+    hermes_ffi_test_round_trip_injection_request: [ 'int', [ 'void *', 'void *' ]],
 
     // Error handling
     hermes_ffi_test_get_last_error: [ 'int', [ 'char **' ]],

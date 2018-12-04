@@ -13,7 +13,7 @@ class Casteable {
      * @param {*} arg Object or Buffer
      * @param {*} customKeyCasting Keys that need a custom method when casting from a Buffer.
      */
-    constructor(arg, customKeyCasting) {
+    constructor(arg = {}, customKeyCasting) {
         // 'type' field: C type to cast the Casteable into
         Object.defineProperty(this, 'type', {
             enumerable: false,
@@ -61,7 +61,9 @@ class Casteable {
             } else {
                 // This is an object, and we expected to have a special field entry for casting it.
                 if(!specialFields[key]) {
-                    console.error(`Expected specialField entry for [${key}] property (type: ${type} / specialFields: ${JSON.stringify(specialFields)})`)
+                    const error = new Error(`Expected specialField entry for [${key}] property (type: ${type} / specialFields: ${JSON.stringify(specialFields)})`)
+                    console.error(error)
+                    console.error(error.stack)
                 }
                 messageStruct[key] = ref.NULL
             }

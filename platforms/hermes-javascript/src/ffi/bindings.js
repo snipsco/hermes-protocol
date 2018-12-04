@@ -43,8 +43,6 @@ module.exports.library = libraryPath => ffi.Library(libraryPath, {
     // hermes_dialogue_backend_subscribe_end_session: [ 'int', [ 'void *', 'void *' ]],
     // hermes_dialogue_backend_subscribe_start_session: [ 'int', [ 'void *', 'void *' ]],
 
-    // Frontend API
-
     // Resumes the current session
     hermes_dialogue_publish_continue_session: [ 'int', [ 'void *', 'void *' ]],
     // Ends the current session
@@ -61,6 +59,13 @@ module.exports.library = libraryPath => ffi.Library(libraryPath, {
     hermes_dialogue_subscribe_session_queued: [ 'int', [ 'void *', 'void *' ]],
     // Callback - hotword or custom message
     hermes_dialogue_subscribe_session_started: [ 'int', [ 'void *', 'void *' ]],
+
+    /* Injection */
+
+    // Allocators & destructors
+    hermes_protocol_handler_injection_facade: [ 'int', [ 'void *', 'void **' ]],
+    hermes_drop_injection_facade: [ 'int', [ 'void *' ]],
+    hermes_injection_publish_injection_request: [ 'int', [ 'void *', 'void * ']],
 
     /* Others */
 

@@ -7,7 +7,7 @@ const StringArrayType = array(ref.types.CString)
 
 class StringArray extends Casteable {
     constructor(arg) {
-        super({})
+        super()
         if(arg instanceof Buffer) {
             this._array = []
             const cArray = ref.get(arg)

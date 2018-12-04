@@ -1,8 +1,10 @@
+const ref = require('ref')
 const {
     Casteable,
     StringArray,
     StartSessionMessage,
-    IntentMessage
+    IntentMessage,
+    InjectionRequestMessage
 } = require('../../src/casts')
 const {
     CContinueSessionMessage,
@@ -12,8 +14,10 @@ const {
     CIntentNotRecognizedMessage,
     CSessionQueuedMessage,
     CSessionEndedMessage,
-    CSessionTermination
+    CSessionTermination,
+    CInjectionRequestMessage
 } = require('../../src/ffi/typedefs')
+
 
 // Log segfaults
 const SegfaultHandler = require('segfault-handler')
@@ -26,16 +30,17 @@ const rustRoundTrip = require('./rustTestsWrapper').call()
 function roundTrip({ data, MessageClass = Casteable, forgeType, forgeOptions = {}, roundTripOptions = {}, FFIFunctionName }) {
     try {
         const pojo = new MessageClass(data)
-        const cPointer = pojo.forge(forgeType, forgeOptions).ref()
+        const cStructPointer = pojo.forge(forgeType, forgeOptions).ref()
         const StructType = forgeType || pojo.type
         let roundTrip
         if(FFIFunctionName) {
-            const cPointerRoundTrip = pojo.forge(forgeType, forgeOptions).ref().ref()
-            rustRoundTrip(FFIFunctionName, cPointer, cPointerRoundTrip)
-            const struct = StructType.get(cPointerRoundTrip.deref())
+            const mutableReference = ref.NULL_POINTER.ref()
+            rustRoundTrip(FFIFunctionName, cStructPointer, mutableReference)
+            const rustAllocatedPointer = ref.reinterpret(mutableReference.deref(), StructType.size)
+            const struct = StructType.get(rustAllocatedPointer)
             roundTrip = new MessageClass(struct.ref(), roundTripOptions)
         } else {
-            roundTrip = new MessageClass(cPointer, roundTripOptions)
+            roundTrip = new MessageClass(cStructPointer, roundTripOptions)
         }
         expect(pojo).toEqual(roundTrip)
     } catch(error) {
@@ -258,6 +263,34 @@ describe('It should perform casting round-trips on messages', () => {
                     new Casteable(termination).forge(CSessionTermination)
             },
             FFIFunctionName: 'hermes_ffi_test_round_trip_session_ended'
+        })
+    })
+    it('InjectionRequestMessage', () => {
+        roundTrip({
+            data: {
+                cross_language: '123',
+                id: '456',
+                lexicon: {
+                    films : [
+                        'The Wolf of Wall Street',
+                        'The Lord of the Rings'
+                    ]
+                },
+                operations: [
+                    {
+                        kind: 1,
+                        values: {
+                            films : [
+                                'The Wolf of Wall Street',
+                                'The Lord of the Rings'
+                            ]
+                        }
+                    }
+                ]
+            },
+            MessageClass: InjectionRequestMessage,
+            forgeType: CInjectionRequestMessage,
+            FFIFunctionName: 'hermes_ffi_test_round_trip_injection_request'
         })
     })
 })
