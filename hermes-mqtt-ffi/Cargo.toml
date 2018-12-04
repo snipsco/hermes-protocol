@@ -19,4 +19,4 @@ hermes-ffi = { path = "../hermes-ffi" }
 hermes-mqtt = { path = "../hermes-mqtt" }
 libc = "0.2"
 log = "0.4"
-snips-nlu-ontology-ffi = { git = "https://github.com/snipsco/snips-nlu-ontology", tag = "0.61.1" }
+snips-nlu-ontology-ffi = { git = "https://github.com/snipsco/snips-nlu-ontology", tag = "0.61.2" }
