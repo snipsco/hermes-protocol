@@ -60,5 +60,6 @@ setup(
     extras_require=extras_require,
     packages=packages,
     cmdclass={'bdist_wheel': bdist_wheel},
-    zip_safe=False
+    zip_safe=False, 
+    include_package_data=True,
 )
