@@ -10,7 +10,7 @@ README = os.path.join(ROOT_PATH, "README.rst")
 VERSION = "__version__"
 
 RUST_EXTENSION_NAME = "hermes_python.dylib.libhermes_mqtt_ffi"
-CARGO_ROOT_PATH = os.path.join(ROOT_PATH, '../../../hermes-mqtt-ffi')
+CARGO_ROOT_PATH = os.path.join(ROOT_PATH, '../../hermes-mqtt-ffi') 
 
 CARGO_FILE_PATH = os.path.join(CARGO_ROOT_PATH, 'Cargo.toml')
 CARGO_TARGET_DIR = os.path.join(CARGO_ROOT_PATH, 'target')
