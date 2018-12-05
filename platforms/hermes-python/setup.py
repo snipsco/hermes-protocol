@@ -6,7 +6,6 @@ import os
 import sys
 from setuptools import setup, find_packages
 
-from setuptools_rust import Binding, RustExtension
 from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
 
 class bdist_wheel(_bdist_wheel, object):
@@ -33,7 +32,7 @@ extras_require = {
         "pytest",
         "coverage",
         "pytest-cov",
-        "setuptools_rust", 
+        "setuptools_rust",
     ],
 }
 
@@ -51,7 +50,7 @@ setup(
     url='https://github.com/snipsco/snips-platform/tree/main/hermes-ffi-python-extension/hermes-protocol/hermes-ffi/platforms/hermes-python',
     classifiers=[
         'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',  
+        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.6'],
     download_url='',
     license='MIT',
