@@ -7,6 +7,14 @@ import sys
 from setuptools import setup, find_packages
 
 from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
+from setuptools.command.install import install
+
+
+
+class InstallPlatlib(install):
+    def finalize_options(self):
+        install.finalize_options(self)
+        self.install_lib = self.install_platlib
 
 class bdist_wheel(_bdist_wheel, object):
     def finalize_options(self):
@@ -59,7 +67,7 @@ setup(
     test_suite="tests",
     extras_require=extras_require,
     packages=packages,
-    cmdclass={'bdist_wheel': bdist_wheel},
-    zip_safe=False, 
+    cmdclass={'bdist_wheel': bdist_wheel, 'install': InstallPlatlib},
+    zip_safe=False,
     include_package_data=True,
 )
