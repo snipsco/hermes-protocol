@@ -1,0 +1,25 @@
+language: rust
+
+addons:
+  apt:
+    packages:
+      - mosquitto
+      - openjdk-8-jdk
+rust:
+  - stable
+  - beta
+matrix:
+  allow_failures:
+  - rust: nightly
+
+jobs:
+  include:
+  - stage: "Build"
+    script: cargo build
+  - stage: "Test"
+    script: cargo test
+  - stage: "JVM jar"
+    script: cd platforms/hermes-kotlin && ./gradlew jar
+  - stage: "JVM tests"
+    script: cd platforms/hermes-kotlin && ./gradlew test
+
