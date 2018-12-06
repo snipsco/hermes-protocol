@@ -17,7 +17,10 @@ fi
 mkdir -p platforms/hermes-python/hermes_python/dylib
 mkdir -p platforms/hermes-python/target
 
-CARGO_TARGET_DIR=.$PYTHON_PROJECT_PATH/target cargo rustc --lib --manifest-path hermes-mqtt-ffi/Cargo.toml --release -- --crate-type cdylib || exit 1
+CARGO_TARGET_DIR=$PYTHON_PROJECT_PATH/target cargo rustc --lib --manifest-path hermes-mqtt-ffi/Cargo.toml --release -- --crate-type cdylib || exit 1
+
+# Move .so to correct path : 
+mv $PYTHON_PROJECT_PATH/target/release/libhermes_mqtt_ffi.so $PYTHON_PROJECT_PATH/hermes_python/dylib/ 
 
 # Build wheel
 cd $PYTHON_PROJECT_PATH
