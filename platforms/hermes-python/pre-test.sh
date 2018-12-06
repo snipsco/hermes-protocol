@@ -13,3 +13,8 @@ elif [[ $(uname) == "Darwin" ]]; then
     CARGO_TARGET_DIR=./target cargo rustc --lib --manifest-path ../../hermes-mqtt-ffi/Cargo.toml --release -- --crate-type cdylib -C link-arg=-undefined -C link-arg=dynamic_lookup || exit 1
     mv target/release/libhermes_mqtt_ffi.dylib hermes_python/dylib
 fi
+
+virtualenv
+source env/bin/activate 
+pip install -r requirements/tests.txt
+py.test 
