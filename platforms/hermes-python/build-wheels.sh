@@ -1,26 +1,49 @@
 #!/usr/bin/env bash
 set -e -x
 
-PROJECT_NAME=$1
-PROJECT_PATH=/io/${PROJECT_NAME}
-WHEELHOUSE=/io/wheelhouse
-PYTHON_PROJECT_PATH=${PROJECT_PATH}/platforms/hermes-python
+PYTHON_PROJECT_PATH=/io/platforms/hermes-python
+WHEELHOUSE=/io/platforms/hermes-python/wheelhouse
 
-PYBIN=/opt/python/cp27-cp27m/bin
+# Install Rust
+curl https://sh.rustup.rs -sSf | bash -s -- -y
+export PATH="/usr/local/bin:$HOME/.cargo/bin:$PATH"
 
+# Build the .so file
 cd /io
+if ! [[ -z "$(ls -A platforms/hermes-python/hermes_python/dylib)" ]]; then
+   echo "hermes_python/dylib should be empty. Aborting!" && exit 1
+fi
+
+mkdir -p platforms/hermes-python/hermes_python/dylib
+mkdir -p platforms/hermes-python/target
+
+CARGO_TARGET_DIR=.$PYTHON_PROJECT_PATH/target cargo rustc --lib --manifest-path hermes-mqtt-ffi/Cargo.toml --release -- --crate-type cdylib || exit 1
 
 # Build wheel
-${PYBIN}/python setup.py bdist_wheel -d ${WHEELHOUSE}
+cd $PYTHON_PROJECT_PATH
+for PYBIN in /opt/python/*/bin; do
+	${PYBIN}/python setup.py bdist_wheel -d ${WHEELHOUSE}
+done
 
 cd ${WHEELHOUSE}
-whl=hermes_python-0.1.24-cp27-cp27m-linux_x86_64.whl
 
 # Audit wheel
-auditwheel repair ${whl} -w ${WHEELHOUSE}
+for whl in ${WHEELHOUSE}/*.whl; do
+	if [[ ${whl} != *none-any.whl ]]; then
+		auditwheel repair ${whl} -w ${WHEELHOUSE}
+	fi
+done
 
-PYBIN=/opt/python/cp27-cp27m/bin
-fixed_whl=hermes_python-0.1.24-cp27-cp27m-manylinux1_x86_64.whl
-# Test
-${PYBIN}/pip install ${fixed_whl}
-${PYBIN}/python -c "from hermes_python.hermes import Hermes"
+# Testing of the wheel is disabled for now
+
+#for PYBIN in /opt/python/*/bin; do
+#	# Install package
+#	${PYBIN}/pip install -v hermes-python --no-index -f ${WHEELHOUSE}
+#	# Test
+#	${PYBIN}/python -c "from hermes_python.hermes import Hermes"
+#done
+
+# Delete non repaired wheels
+rm -rf ${WHEELHOUSE}/*-linux_*
+# Delete unrelated wheels
+rm -rf ${WHEELHOUSE}/*-none-any.whl
