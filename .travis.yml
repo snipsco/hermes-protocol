@@ -8,6 +8,11 @@ addons:
       - mosquitto
       - openjdk-8-jdk
 
+rust:
+  - stable
+  - beta
+  - nightly
+
 matrix:
   allow_failures:
   - rust: nightly
@@ -15,27 +20,16 @@ matrix:
 jobs:
   include:
   - stage: "Build"
-    rust:
-    - stable
-    - beta
-    - nightly
-    script: cargo build
+    script: cargo build --all
   - stage: "Test"
-    rust:
-    - stable
-    - beta
-    - nightly
-    script: cargo test
-  - stage: "JVM jar"
-    rust:
-    - stable
-    - beta
-    - nightly
+    script: cargo test --all
+  - stage: "JVM Build"
     script: cd platforms/hermes-kotlin && ./gradlew jar
-  - stage: "JVM tests"
-    rust:
-    - stable
-    - beta
-    - nightly
+  - stage: "JVM Test"
     script: cd platforms/hermes-kotlin && ./gradlew test
 
+stages:
+  - "Build"
+  - "Test"
+  - "JVM Build"
+  - "JVM Test"
