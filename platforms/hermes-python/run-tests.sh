@@ -14,7 +14,14 @@ elif [[ $(uname) == "Darwin" ]]; then
     mv target/release/libhermes_mqtt_ffi.dylib hermes_python/dylib
 fi
 
-virtualenv env
-source env/bin/activate 
+virtualenv --python=python2.7 env27
+source env27/bin/activate 
 pip install -r requirements/tests.txt
 py.test 
+
+virtualenv --python=python3.6 env36
+source env36/bin/activate
+pip install -r -requirements/tests.txt
+py.test
+
+
