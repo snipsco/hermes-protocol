@@ -21,7 +21,7 @@ py.test
 
 virtualenv --python=python3.6 env36
 source env36/bin/activate
-pip install -r -requirements/tests.txt
+pip install -r requirements/tests.txt
 py.test
 
 
