@@ -20,6 +20,7 @@ features = ["full_bindings"]
 [export]
 # These types are hidden behind a void pointer, let's include them
 include = [
+    "CActionSessionInit",
     "CNumberValue",
     "COrdinalValue",
     "CPercentageValue",

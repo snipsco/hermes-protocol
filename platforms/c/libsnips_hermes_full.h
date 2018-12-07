@@ -658,6 +658,19 @@ typedef struct {
   uint64_t patch;
 } CVersionMessage;
 
+typedef struct {
+  /*
+   * Nullable
+   */
+  const char *text;
+  /*
+   * Nullable
+   */
+  const CStringArray *intent_filter;
+  unsigned char can_be_enqueued;
+  unsigned char send_intent_not_recognized;
+} CActionSessionInit;
+
 /*
  * Representation of a number value
  */
