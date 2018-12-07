@@ -1,4 +1,4 @@
-use super::{AsrToken, RequestId, SessionId, HermesMessage};
+use super::{AsrToken, HermesMessage, RequestId, SessionId};
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -37,7 +37,6 @@ pub struct NluSlotQueryMessage {
 }
 
 impl<'de> HermesMessage<'de> for NluSlotQueryMessage {}
-
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -94,4 +93,3 @@ pub struct NluIntentMessage {
 }
 
 impl<'de> HermesMessage<'de> for NluIntentMessage {}
-

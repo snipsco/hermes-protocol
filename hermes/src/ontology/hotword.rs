@@ -1,10 +1,10 @@
-use super::{SiteId, HermesMessage};
-
+use super::{HermesMessage, SiteId};
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum HotwordModelType {
-    Universal, Personal
+    Universal,
+    Personal,
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
@@ -28,4 +28,3 @@ pub struct HotwordDetectedMessage {
 }
 
 impl<'de> HermesMessage<'de> for HotwordDetectedMessage {}
-

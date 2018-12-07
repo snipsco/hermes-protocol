@@ -1,7 +1,7 @@
- use failure::Fallible;
-use std::slice;
-use ffi_utils::{AsRust, CReprOf, RawPointerConverter};
+use failure::Fallible;
 use failure::ResultExt;
+use ffi_utils::{AsRust, CReprOf, RawPointerConverter};
+use std::slice;
 
 #[repr(C)]
 #[derive(Debug)]
@@ -38,7 +38,8 @@ impl AsRust<hermes::PlayBytesMessage> for CPlayBytesMessage {
             id: create_rust_string_from!(self.id),
             wav_bytes: unsafe {
                 slice::from_raw_parts(self.wav_bytes as *const u8, self.wav_bytes_len as usize)
-            }.to_vec(),
+            }
+            .to_vec(),
             site_id: create_rust_string_from!(self.site_id),
         })
     }
@@ -89,7 +90,8 @@ impl AsRust<hermes::AudioFrameMessage> for CAudioFrameMessage {
         Ok(hermes::AudioFrameMessage {
             wav_frame: unsafe {
                 slice::from_raw_parts(self.wav_frame as *const u8, self.wav_frame_len as usize)
-            }.to_vec(),
+            }
+            .to_vec(),
             site_id: create_rust_string_from!(self.site_id),
         })
     }

@@ -119,7 +119,11 @@ pub trait IdentifiableToggleableBackendFacade: Send + Sync {
 /// Facade used to interact with the voice activity component
 pub trait VoiceActivityFacade: IdentifiableComponentFacade {
     fn subscribe_vad_up(&self, site_id: String, handler: Callback<VadUpMessage>) -> Fallible<()>;
-    fn subscribe_vad_down(&self, site_id: String, handler: Callback<VadDownMessage>) -> Fallible<()>;
+    fn subscribe_vad_down(
+        &self,
+        site_id: String,
+        handler: Callback<VadDownMessage>,
+    ) -> Fallible<()>;
     fn subscribe_all_vad_up(&self, handler: Callback<VadUpMessage>) -> Fallible<()>;
     fn subscribe_all_vad_down(&self, handler: Callback<VadDownMessage>) -> Fallible<()>;
 }
@@ -159,13 +163,19 @@ pub trait AsrFacade: ComponentFacade + ToggleableFacade {
     fn publish_stop_listening(&self, site: SiteMessage) -> Fallible<()>;
     fn publish_reload(&self) -> Fallible<()>;
     fn subscribe_text_captured(&self, handler: Callback<TextCapturedMessage>) -> Fallible<()>;
-    fn subscribe_partial_text_captured(&self, handler: Callback<TextCapturedMessage>) -> Fallible<()>;
+    fn subscribe_partial_text_captured(
+        &self,
+        handler: Callback<TextCapturedMessage>,
+    ) -> Fallible<()>;
 }
 
 /// The facade the automatic speech recognition must use to receive its orders and publish
 /// recognized text
 pub trait AsrBackendFacade: ComponentBackendFacade + ToggleableBackendFacade {
-    fn subscribe_start_listening(&self, handler: Callback<AsrStartListeningMessage>) -> Fallible<()>;
+    fn subscribe_start_listening(
+        &self,
+        handler: Callback<AsrStartListeningMessage>,
+    ) -> Fallible<()>;
     fn subscribe_stop_listening(&self, handler: Callback<SiteMessage>) -> Fallible<()>;
     fn subscribe_reload(&self, handler: Callback0) -> Fallible<()>;
     fn publish_text_captured(&self, text_captured: TextCapturedMessage) -> Fallible<()>;
@@ -223,7 +233,11 @@ pub trait AudioServerFacade: IdentifiableComponentFacade + IdentifiableToggleabl
         handler: Callback<AudioFrameMessage>,
     ) -> Fallible<()>;
     fn publish_replay_request(&self, request: ReplayRequestMessage) -> Fallible<()>;
-    fn subscribe_replay_response(&self, site_id: SiteId, handler:Callback<AudioFrameMessage>) -> Fallible<()>;
+    fn subscribe_replay_response(
+        &self,
+        site_id: SiteId,
+        handler: Callback<AudioFrameMessage>,
+    ) -> Fallible<()>;
 }
 
 /// The facade the audio server must use to receive its orders and advertise when it has finished
@@ -238,7 +252,11 @@ pub trait AudioServerBackendFacade:
     fn subscribe_all_play_bytes(&self, handler: Callback<PlayBytesMessage>) -> Fallible<()>;
     fn publish_play_finished(&self, status: PlayFinishedMessage) -> Fallible<()>;
     fn publish_audio_frame(&self, frame: AudioFrameMessage) -> Fallible<()>;
-    fn subscribe_replay_request(&self, site_id: SiteId, handler: Callback<ReplayRequestMessage>) -> Fallible<()>;
+    fn subscribe_replay_request(
+        &self,
+        site_id: SiteId,
+        handler: Callback<ReplayRequestMessage>,
+    ) -> Fallible<()>;
     fn publish_replay_response(&self, frame: AudioFrameMessage) -> Fallible<()>;
 }
 
@@ -247,10 +265,16 @@ pub trait AudioServerBackendFacade:
 pub trait DialogueFacade: ComponentFacade + ToggleableFacade {
     fn subscribe_session_queued(&self, handler: Callback<SessionQueuedMessage>) -> Fallible<()>;
     fn subscribe_session_started(&self, handler: Callback<SessionStartedMessage>) -> Fallible<()>;
-    fn subscribe_intent(&self, intent_name: String, handler: Callback<IntentMessage>)
-        -> Fallible<()>;
+    fn subscribe_intent(
+        &self,
+        intent_name: String,
+        handler: Callback<IntentMessage>,
+    ) -> Fallible<()>;
     fn subscribe_intents(&self, handler: Callback<IntentMessage>) -> Fallible<()>;
-    fn subscribe_intent_not_recognized(&self, handler: Callback<IntentNotRecognizedMessage>) -> Fallible<()>;
+    fn subscribe_intent_not_recognized(
+        &self,
+        handler: Callback<IntentNotRecognizedMessage>,
+    ) -> Fallible<()>;
     fn subscribe_session_ended(&self, handler: Callback<SessionEndedMessage>) -> Fallible<()>;
     fn publish_start_session(&self, start_session: StartSessionMessage) -> Fallible<()>;
     fn publish_continue_session(&self, continue_session: ContinueSessionMessage) -> Fallible<()>;
@@ -262,10 +286,14 @@ pub trait DialogueBackendFacade: ComponentBackendFacade + ToggleableBackendFacad
     fn publish_session_queued(&self, status: SessionQueuedMessage) -> Fallible<()>;
     fn publish_session_started(&self, status: SessionStartedMessage) -> Fallible<()>;
     fn publish_intent(&self, intent: IntentMessage) -> Fallible<()>;
-    fn publish_intent_not_recognized(&self, intent_not_recognized: IntentNotRecognizedMessage) -> Fallible<()>;
+    fn publish_intent_not_recognized(
+        &self,
+        intent_not_recognized: IntentNotRecognizedMessage,
+    ) -> Fallible<()>;
     fn publish_session_ended(&self, status: SessionEndedMessage) -> Fallible<()>;
     fn subscribe_start_session(&self, handler: Callback<StartSessionMessage>) -> Fallible<()>;
-    fn subscribe_continue_session(&self, handler: Callback<ContinueSessionMessage>) -> Fallible<()>;
+    fn subscribe_continue_session(&self, handler: Callback<ContinueSessionMessage>)
+        -> Fallible<()>;
     fn subscribe_end_session(&self, handler: Callback<EndSessionMessage>) -> Fallible<()>;
 }
 
@@ -273,12 +301,16 @@ pub trait DialogueBackendFacade: ComponentBackendFacade + ToggleableBackendFacad
 pub trait InjectionFacade: ComponentFacade {
     fn publish_injection_request(&self, request: InjectionRequestMessage) -> Fallible<()>;
     fn publish_injection_status_request(&self) -> Fallible<()>;
-    fn subscribe_injection_status(&self, handler: Callback<InjectionStatusMessage>) -> Fallible<()>;
+    fn subscribe_injection_status(&self, handler: Callback<InjectionStatusMessage>)
+        -> Fallible<()>;
 }
 
 /// The facade the injecter must use to receive its orders and advertise when it has finished
 pub trait InjectionBackendFacade: ComponentBackendFacade {
-    fn subscribe_injection_request(&self, handler: Callback<InjectionRequestMessage>) -> Fallible<()>;
+    fn subscribe_injection_request(
+        &self,
+        handler: Callback<InjectionRequestMessage>,
+    ) -> Fallible<()>;
     fn subscribe_injection_status_request(&self, handler: Callback0) -> Fallible<()>;
     fn publish_injection_status(&self, status: InjectionStatusMessage) -> Fallible<()>;
 }

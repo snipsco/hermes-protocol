@@ -1,5 +1,4 @@
-use super::{SiteId, HermesMessage};
-
+use super::{HermesMessage, SiteId};
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]

@@ -1,5 +1,4 @@
-use super::{SiteId, SessionId, HermesMessage};
-
+use super::{HermesMessage, SessionId, SiteId};
 
 #[derive(Debug, Clone, Default, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -53,4 +52,3 @@ pub struct TextCapturedMessage {
 }
 
 impl<'de> HermesMessage<'de> for TextCapturedMessage {}
-

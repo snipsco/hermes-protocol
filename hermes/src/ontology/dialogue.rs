@@ -1,5 +1,4 @@
-use super::{SessionId, SiteId, AsrToken, NluSlot, HermesMessage};
-
+use super::{AsrToken, HermesMessage, NluSlot, SessionId, SiteId};
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -37,7 +36,6 @@ pub struct IntentNotRecognizedMessage {
 
 impl<'de> HermesMessage<'de> for IntentNotRecognizedMessage {}
 
-
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(tag = "type", rename_all = "camelCase")]
 pub enum SessionInit {
@@ -51,7 +49,7 @@ pub enum SessionInit {
         intent_filter: Option<Vec<String>>,
         /// An optional boolean to indicate if the session can be enqueued if it can't be started
         /// immediately (ie there is another running session on the site). The default value is true
-        #[serde(default="boolean_default_true")]
+        #[serde(default = "boolean_default_true")]
         can_be_enqueued: bool,
         /// An optional boolean to indicate whether the dialogue manager should handle non
         /// recognized intents by itself or sent them as an `IntentNotRecognizedMessage` for the
@@ -65,7 +63,9 @@ pub enum SessionInit {
     Notification { text: String },
 }
 
-fn boolean_default_true() -> bool { true }
+fn boolean_default_true() -> bool {
+    true
+}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -179,4 +179,3 @@ pub struct SessionEndedMessage {
 }
 
 impl<'de> HermesMessage<'de> for SessionEndedMessage {}
-

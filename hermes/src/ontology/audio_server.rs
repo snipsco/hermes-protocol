@@ -1,4 +1,4 @@
-use super::{RequestId, SiteId, HermesMessage};
+use super::{HermesMessage, RequestId, SiteId};
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -54,16 +54,16 @@ pub struct PlayFinishedMessage {
 
 impl<'de> HermesMessage<'de> for PlayFinishedMessage {}
 
-fn as_base64<S>(bytes: &[u8], serializer: S) ->  Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
+fn as_base64<S>(bytes: &[u8], serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
 {
     serializer.serialize_str(&base64::encode(bytes))
 }
 
-fn from_base64<'de, D>(deserializer: D) ->  Result<Vec<u8>, D::Error>
-    where
-        D: serde::Deserializer<'de>,
+fn from_base64<'de, D>(deserializer: D) -> Result<Vec<u8>, D::Error>
+where
+    D: serde::Deserializer<'de>,
 {
     use serde::de::Error;
     use serde::Deserialize;

@@ -1,12 +1,12 @@
+use failure::Fallible;
 use failure::ResultExt;
 use ffi_utils::{AsRust, CReprOf, CStringArray, RawPointerConverter};
 use hermes;
 use libc;
- use failure::Fallible;
-use snips_nlu_ontology_ffi_macros::{CIntentClassifierResult};
+use snips_nlu_ontology_ffi_macros::CIntentClassifierResult;
 use std::ptr::null;
 
-use super::{CNluSlotArray,CAsrTokenDoubleArray, };
+use super::{CAsrTokenDoubleArray, CNluSlotArray};
 
 #[repr(C)]
 #[derive(Debug)]
@@ -48,7 +48,7 @@ impl CReprOf<hermes::IntentMessage> for CIntentMessage {
                 CAsrTokenDoubleArray::c_repr_of(asr_tokens)?.into_raw_pointer()
             } else {
                 null()
-            }
+            },
         })
     }
 }
@@ -56,13 +56,13 @@ impl CReprOf<hermes::IntentMessage> for CIntentMessage {
 impl AsRust<hermes::IntentMessage> for CIntentMessage {
     fn as_rust(&self) -> Fallible<hermes::IntentMessage> {
         /*Ok(hermes::IntentMessage {
-        session_id: create_rust_string_from!(self.session_id),
-        custom_data: create_optional_rust_string_from!(self.custom_data),
-        site_id: create_rust_string_from!(self.site_id),
-        input: create_rust_string_from!(self.input),
-        intent: unsafe {CIntentClassifierResult::raw_borrow(self.intent) }?.as_rust()?, // TODO impl in snips-nlu-ontology
-        slots: if self.slots.is_null() { None }  else { unsafe {CSlotList::raw_borrow(self.slots)}?.as_rust()? }, // TODO impl in snips-nlu-ontology
-    })*/
+            session_id: create_rust_string_from!(self.session_id),
+            custom_data: create_optional_rust_string_from!(self.custom_data),
+            site_id: create_rust_string_from!(self.site_id),
+            input: create_rust_string_from!(self.input),
+            intent: unsafe {CIntentClassifierResult::raw_borrow(self.intent) }?.as_rust()?, // TODO impl in snips-nlu-ontology
+            slots: if self.slots.is_null() { None }  else { unsafe {CSlotList::raw_borrow(self.slots)}?.as_rust()? }, // TODO impl in snips-nlu-ontology
+        })*/
         bail!("Missing converter for CIntentClassifierResult and CSlotList, if you need this feature, please tell us !")
     }
 }
@@ -127,7 +127,6 @@ impl Drop for CIntentNotRecognizedMessage {
     }
 }
 
-
 #[repr(C)]
 #[derive(Debug, PartialEq)]
 pub enum SNIPS_SESSION_INIT_TYPE {
@@ -138,8 +137,12 @@ pub enum SNIPS_SESSION_INIT_TYPE {
 impl SNIPS_SESSION_INIT_TYPE {
     pub fn from(slot_value: &hermes::SessionInit) -> Self {
         match *slot_value {
-            hermes::SessionInit::Notification { .. } => SNIPS_SESSION_INIT_TYPE::SNIPS_SESSION_INIT_TYPE_NOTIFICATION,
-            hermes::SessionInit::Action { .. } => SNIPS_SESSION_INIT_TYPE::SNIPS_SESSION_INIT_TYPE_ACTION,
+            hermes::SessionInit::Notification { .. } => {
+                SNIPS_SESSION_INIT_TYPE::SNIPS_SESSION_INIT_TYPE_NOTIFICATION
+            }
+            hermes::SessionInit::Action { .. } => {
+                SNIPS_SESSION_INIT_TYPE::SNIPS_SESSION_INIT_TYPE_ACTION
+            }
         }
     }
 }
@@ -211,7 +214,7 @@ impl CSessionInit {
                 text,
                 intent_filter,
                 can_be_enqueued,
-                send_intent_not_recognized
+                send_intent_not_recognized,
             )?)) as _,
             hermes::SessionInit::Notification { text } => convert_to_c_string!(text) as _,
         };
@@ -225,11 +228,15 @@ impl CSessionInit {
                     .ok_or_else(|| format_err!("unexpected null pointer in SessionInit value"))?
                     .to_action_session_init()
             }
-            SNIPS_SESSION_INIT_TYPE::SNIPS_SESSION_INIT_TYPE_NOTIFICATION => Ok(hermes::SessionInit::Notification {
-                text: create_rust_string_from!((self.value as *const libc::c_char)
-                .as_ref()
-                .ok_or_else(|| format_err!("unexpected null pointer in SessionInit value"))?),
-            }),
+            SNIPS_SESSION_INIT_TYPE::SNIPS_SESSION_INIT_TYPE_NOTIFICATION => {
+                Ok(hermes::SessionInit::Notification {
+                    text: create_rust_string_from!((self.value as *const libc::c_char)
+                        .as_ref()
+                        .ok_or_else(|| format_err!(
+                            "unexpected null pointer in SessionInit value"
+                        ))?),
+                })
+            }
         }
     }
 }
@@ -320,8 +327,8 @@ impl CReprOf<hermes::SessionStartedMessage> for CSessionStartedMessage {
             custom_data: convert_to_nullable_c_string!(input.custom_data),
             site_id: convert_to_c_string!(input.site_id),
             reactivated_from_session_id: convert_to_nullable_c_string!(
-            input.reactivated_from_session_id
-        ),
+                input.reactivated_from_session_id
+            ),
         })
     }
 }
@@ -333,8 +340,8 @@ impl AsRust<hermes::SessionStartedMessage> for CSessionStartedMessage {
             custom_data: create_optional_rust_string_from!(self.custom_data),
             site_id: create_rust_string_from!(self.site_id),
             reactivated_from_session_id: create_optional_rust_string_from!(
-            self.reactivated_from_session_id
-        ),
+                self.reactivated_from_session_id
+            ),
         })
     }
 }
@@ -424,7 +431,11 @@ impl CReprOf<hermes::ContinueSessionMessage> for CContinueSessionMessage {
             text: convert_to_c_string!(input.text),
             intent_filter: convert_to_nullable_c_string_array!(input.intent_filter),
             custom_data: convert_to_nullable_c_string!(input.custom_data),
-            send_intent_not_recognized: if input.send_intent_not_recognized { 1 } else { 0 },
+            send_intent_not_recognized: if input.send_intent_not_recognized {
+                1
+            } else {
+                0
+            },
         })
     }
 }
@@ -637,8 +648,8 @@ impl Drop for CSessionEndedMessage {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::super::tests::round_trip_test;
+    use super::*;
 
     #[test]
     fn round_trip_intent_not_recognized() {
@@ -655,7 +666,6 @@ mod tests {
             session_id: "session id".into(),
             input: None,
         });
-
     }
 
     #[test]
@@ -688,7 +698,9 @@ mod tests {
             site_id: "siteid".into(),
             custom_data: None,
             session_id: "session_id".into(),
-            termination: hermes::SessionTerminationType::Error { error: "this is my error".into() },
+            termination: hermes::SessionTerminationType::Error {
+                error: "this is my error".into(),
+            },
         })
     }
 
@@ -711,7 +723,7 @@ mod tests {
     fn round_trip_start_session() {
         round_trip_test::<_, CStartSessionMessage>(hermes::StartSessionMessage {
             init: hermes::SessionInit::Notification {
-                text: "text".into()
+                text: "text".into(),
             },
             custom_data: Some("thing".into()),
             site_id: Some("site".into()),
@@ -733,7 +745,7 @@ mod tests {
                 intent_filter: None,
                 text: None,
                 can_be_enqueued: false,
-                send_intent_not_recognized: true
+                send_intent_not_recognized: true,
             },
             custom_data: None,
             site_id: None,

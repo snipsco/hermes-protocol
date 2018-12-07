@@ -154,7 +154,9 @@ impl HermesTopic {
         }
     }
 
-    fn parse_voice_activity<'a, It: Iterator<Item = &'a str>>(mut comps: It) -> Option<HermesTopic> {
+    fn parse_voice_activity<'a, It: Iterator<Item = &'a str>>(
+        mut comps: It,
+    ) -> Option<HermesTopic> {
         use HermesTopic::VoiceActivity;
         use VoiceActivityCommand::*;
         let one = comps.next();
@@ -162,7 +164,7 @@ impl HermesTopic {
         match (one, two) {
             (Some(site_id), Some("vadUp")) => Some(VoiceActivity(site_id.to_string(), VadUp)),
             (Some(site_id), Some("vadDown")) => Some(VoiceActivity(site_id.to_string(), VadDown)),
-            _ => None
+            _ => None,
         }
     }
 
@@ -286,7 +288,8 @@ impl HermesTopic {
 
 impl FromPath<Self> for HermesTopic {
     fn from_path<P: AsRef<path::Path>>(path: P) -> Option<Self> {
-        let comps: Vec<Option<&str>> = path.as_ref()
+        let comps: Vec<Option<&str>> = path
+            .as_ref()
             .components()
             .map(|s| s.as_os_str().to_str())
             .collect();
@@ -316,7 +319,9 @@ impl FromPath<Self> for HermesTopic {
 impl fmt::Display for HermesTopic {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let subpath = match *self {
-            HermesTopic::VoiceActivity(ref site_id, ref cmd) => format!("voiceActivity/{}/{}", site_id, cmd.as_path()),
+            HermesTopic::VoiceActivity(ref site_id, ref cmd) => {
+                format!("voiceActivity/{}/{}", site_id, cmd.as_path())
+            }
             HermesTopic::Feedback(ref cmd) => format!("feedback/{}", cmd.as_path()),
             HermesTopic::Hotword(ref opt_id, ref cmd) => {
                 if let Some(id) = opt_id.as_ref() {
@@ -351,7 +356,9 @@ impl fmt::Display for HermesTopic {
                     format!("{}/{}", Component::AudioServer.as_path(), cmd.as_path())
                 }
             }
-            HermesTopic::Injection(ref cmd) => format!("{}/{}", Component::Injection.as_path(), cmd.as_path()),
+            HermesTopic::Injection(ref cmd) => {
+                format!("{}/{}", Component::Injection.as_path(), cmd.as_path())
+            }
         };
         write!(f, "hermes/{}", subpath)
     }
@@ -374,7 +381,7 @@ impl ToPath for Component {}
 #[derive(Debug, Clone, Copy, PartialEq, ToString)]
 pub enum VoiceActivityCommand {
     VadUp,
-    VadDown
+    VadDown,
 }
 impl ToPath for VoiceActivityCommand {}
 
@@ -573,11 +580,11 @@ mod tests {
             ),
             (
                 HermesTopic::VoiceActivity("mysite".into(), VoiceActivityCommand::VadUp),
-                "hermes/voiceActivity/mysite/vadUp"
+                "hermes/voiceActivity/mysite/vadUp",
             ),
             (
                 HermesTopic::VoiceActivity("mysite".into(), VoiceActivityCommand::VadDown),
-                "hermes/voiceActivity/mysite/vadDown"
+                "hermes/voiceActivity/mysite/vadDown",
             ),
             (
                 HermesTopic::Hotword(None, HotwordCommand::ToggleOn),
@@ -661,7 +668,10 @@ mod tests {
                 "hermes/audioServer/default/replayRequest",
             ),
             (
-                HermesTopic::AudioServer(Some("default".into()), AudioServerCommand::ReplayResponse),
+                HermesTopic::AudioServer(
+                    Some("default".into()),
+                    AudioServerCommand::ReplayResponse,
+                ),
                 "hermes/audioServer/default/replayResponse",
             ),
             (
@@ -750,9 +760,18 @@ mod tests {
                 HermesTopic::Component(None, Component::Nlu, ComponentCommand::Error),
                 "hermes/nlu/error",
             ),
-            (HermesTopic::Injection(InjectionCommand::Perform), "hermes/injection/perform"),
-            (HermesTopic::Injection(InjectionCommand::Status), "hermes/injection/status"),
-            (HermesTopic::Injection(InjectionCommand::StatusRequest), "hermes/injection/statusRequest"),
+            (
+                HermesTopic::Injection(InjectionCommand::Perform),
+                "hermes/injection/perform",
+            ),
+            (
+                HermesTopic::Injection(InjectionCommand::Status),
+                "hermes/injection/status",
+            ),
+            (
+                HermesTopic::Injection(InjectionCommand::StatusRequest),
+                "hermes/injection/statusRequest",
+            ),
         ]
     }
 

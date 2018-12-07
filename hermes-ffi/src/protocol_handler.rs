@@ -1,5 +1,5 @@
-use hermes::HermesProtocolHandler;
 use ffi_utils::RawPointerConverter;
+use hermes::HermesProtocolHandler;
 
 #[repr(C)]
 #[derive(Debug)]
@@ -24,17 +24,17 @@ impl CProtocolHandler {
     pub fn new(handler: Box<HermesProtocolHandler>, user_data: *mut libc::c_void) -> Self {
         let user_data = UserData(user_data).into_raw_pointer() as _;
         Self {
-            handler: Box::into_raw(Box::new(handler)) as *const libc::c_void, user_data
+            handler: Box::into_raw(Box::new(handler)) as *const libc::c_void,
+            user_data,
         }
     }
 
     pub fn extract(&self) -> &HermesProtocolHandler {
         unsafe { &(**(self.handler as *const Box<HermesProtocolHandler>)) }
-
     }
 
     pub fn user_data(&self) -> &UserData {
-        unsafe{ &(*(self.user_data as *mut UserData))}
+        unsafe { &(*(self.user_data as *mut UserData)) }
     }
 
     pub fn destroy(self) {
@@ -359,7 +359,6 @@ macro_rules! generate_hermes_c_symbols {
     generate_facade_publish!(hermes_injection_publish_injection_request = CInjectionFacade:publish_injection_request(CInjectionRequestMessage));
     generate_facade_publish!(hermes_injection_publish_injection_status_request = CInjectionFacade:publish_injection_status_request());
     generate_facade_subscribe!(hermes_injection_subscribe_injection_status = CInjectionFacade:subscribe_injection_status(|CInjectionStatusMessage|));
-
 
     #[cfg(feature="full_bindings")]
     generate_destroy!(hermes_drop_site_message for CSiteMessage);

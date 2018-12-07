@@ -1,6 +1,6 @@
- use failure::Fallible;
-use ffi_utils::{AsRust, CReprOf, RawPointerConverter};
+use failure::Fallible;
 use failure::ResultExt;
+use ffi_utils::{AsRust, CReprOf, RawPointerConverter};
 use std::ptr::null;
 
 #[repr(C)]

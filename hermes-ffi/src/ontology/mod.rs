@@ -1,10 +1,10 @@
 #![allow(non_camel_case_types)]
 
+use failure::Fallible;
 use failure::ResultExt;
 use ffi_utils::{AsRust, CReprOf, CStringArray, RawBorrow, RawPointerConverter};
 use hermes;
 use libc;
-use failure::Fallible;
 use std::collections::HashMap;
 use std::ptr::null;
 use std::slice;
@@ -124,7 +124,6 @@ pub mod injection;
 
 pub use injection::*;
 
-
 #[repr(C)]
 #[derive(Debug)]
 pub struct CMapStringToStringArrayEntry {
@@ -140,7 +139,7 @@ impl Drop for CMapStringToStringArrayEntry {
 
 impl CReprOf<(String, Vec<String>)> for CMapStringToStringArrayEntry {
     fn c_repr_of(input: (String, Vec<String>)) -> Fallible<Self> {
-        Ok( Self {
+        Ok(Self {
             key: convert_to_c_string!(input.0),
             value: CStringArray::c_repr_of(input.1)?.into_raw_pointer(),
         })
@@ -151,7 +150,7 @@ impl AsRust<(String, Vec<String>)> for CMapStringToStringArrayEntry {
     fn as_rust(&self) -> Fallible<(String, Vec<String>)> {
         Ok((
             create_rust_string_from!(self.key),
-            unsafe { CStringArray::raw_borrow(self.value) }?.as_rust()?
+            unsafe { CStringArray::raw_borrow(self.value) }?.as_rust()?,
         ))
     }
 }
@@ -169,7 +168,9 @@ impl Drop for CMapStringToStringArray {
             for e in Box::from_raw(::std::slice::from_raw_parts_mut(
                 self.entries as *mut *mut CMapStringToStringArrayEntry,
                 self.count as usize,
-            )).iter() {
+            ))
+            .iter()
+            {
                 let _ = CMapStringToStringArrayEntry::drop_raw_pointer(*e).unwrap();
             }
         };
@@ -183,8 +184,10 @@ impl CReprOf<HashMap<String, Vec<String>>> for CMapStringToStringArray {
             entries: Box::into_raw(
                 input
                     .into_iter()
-                    .map(|e| CMapStringToStringArrayEntry::c_repr_of(e).map(|c| c.into_raw_pointer()))
-                    .collect::< Fallible<Vec<*const CMapStringToStringArrayEntry>>>()
+                    .map(|e| {
+                        CMapStringToStringArrayEntry::c_repr_of(e).map(|c| c.into_raw_pointer())
+                    })
+                    .collect::<Fallible<Vec<*const CMapStringToStringArrayEntry>>>()
                     .context("Could not convert map to C Repr")?
                     .into_boxed_slice(),
             ) as *const *const CMapStringToStringArrayEntry,
@@ -197,7 +200,8 @@ impl AsRust<HashMap<String, Vec<String>>> for CMapStringToStringArray {
     fn as_rust(&self) -> Fallible<HashMap<String, Vec<String>>> {
         let mut result = HashMap::with_capacity(self.count as usize);
         for e in unsafe { slice::from_raw_parts(self.entries, self.count as usize) } {
-            let (key, value) = unsafe { CMapStringToStringArrayEntry::raw_borrow(*e) }?.as_rust()?;
+            let (key, value) =
+                unsafe { CMapStringToStringArrayEntry::raw_borrow(*e) }?.as_rust()?;
             result.insert(key, value);
         }
 
@@ -205,13 +209,16 @@ impl AsRust<HashMap<String, Vec<String>>> for CMapStringToStringArray {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
-    use spectral::prelude::*;
     use super::*;
+    use spectral::prelude::*;
 
-    pub fn round_trip_test<T, U>(input: T) where T: Clone + PartialEq + std::fmt::Debug, U: CReprOf<T> + AsRust<T> {
+    pub fn round_trip_test<T, U>(input: T)
+    where
+        T: Clone + PartialEq + std::fmt::Debug,
+        U: CReprOf<T> + AsRust<T>,
+    {
         let c = U::c_repr_of(input.clone()).expect("could not convert to c_repr");
 
         let result = c.as_rust().expect("could not convert back to rust");
@@ -219,17 +226,14 @@ mod tests {
         assert_that!(result).is_equal_to(input);
     }
 
-
-
     #[test]
     fn round_trip_map_string_to_string_array_entry() {
-        round_trip_test::<_, CMapStringToStringArrayEntry>(
-            ("hello".to_string(), vec!["hello".to_string(), "world".to_string()])
-        );
+        round_trip_test::<_, CMapStringToStringArrayEntry>((
+            "hello".to_string(),
+            vec!["hello".to_string(), "world".to_string()],
+        ));
 
-        round_trip_test::<_, CMapStringToStringArrayEntry>(
-            ("hello".to_string(), vec![])
-        );
+        round_trip_test::<_, CMapStringToStringArrayEntry>(("hello".to_string(), vec![]));
     }
 
     #[test]
@@ -237,11 +241,13 @@ mod tests {
         round_trip_test::<_, CMapStringToStringArray>(HashMap::new());
 
         let mut test_map = HashMap::new();
-        test_map.insert("hello".into(), vec!["hello".to_string(), "world".to_string()]);
+        test_map.insert(
+            "hello".into(),
+            vec!["hello".to_string(), "world".to_string()],
+        );
         test_map.insert("foo".into(), vec!["bar".to_string(), "baz".to_string()]);
 
         round_trip_test::<_, CMapStringToStringArray>(test_map);
     }
-
 
 }

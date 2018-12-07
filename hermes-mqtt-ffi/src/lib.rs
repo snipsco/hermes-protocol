@@ -84,10 +84,14 @@ pub extern "C" fn hermes_protocol_handler_new_mqtt(
         user_data: *mut libc::c_void,
     ) -> Fallible<()> {
         let address = create_rust_string_from!(broker_address);
-        let cph = CProtocolHandler::new(Box::new(hermes_mqtt::MqttHermesProtocolHandler::new(&address)
-            .with_context(|e| {
-                format_err!("Could not create hermes MQTT handler: {:?}", e)
-            })?), user_data);
+        let cph = CProtocolHandler::new(
+            Box::new(
+                hermes_mqtt::MqttHermesProtocolHandler::new(&address).with_context(|e| {
+                    format_err!("Could not create hermes MQTT handler: {:?}", e)
+                })?,
+            ),
+            user_data,
+        );
         let ptr = CProtocolHandler::into_raw_pointer(cph);
         unsafe {
             *handler = ptr;

@@ -11,9 +11,9 @@ extern crate semver;
 #[cfg(test)]
 extern crate snips_nlu_ontology;
 
+use failure::Fallible;
 use std::fmt::Debug;
 use std::sync::Mutex;
-use failure::Fallible;
 
 use hermes::*;
 
@@ -46,24 +46,30 @@ impl HermesProtocolHandler for InProcessHermesProtocolHandler {
     fn hotword(&self) -> Box<HotwordFacade> {
         self.get_handler(Hotword)
     }
+
     fn sound_feedback(&self) -> Box<SoundFeedbackFacade> {
         self.get_handler(Sound)
     }
+
     fn asr(&self) -> Box<AsrFacade> {
         self.get_handler(Asr)
     }
     fn tts(&self) -> Box<TtsFacade> {
         self.get_handler(Tts)
     }
+
     fn nlu(&self) -> Box<NluFacade> {
         self.get_handler(Nlu)
     }
+
     fn audio_server(&self) -> Box<AudioServerFacade> {
         self.get_handler(AudioServer)
     }
+
     fn dialogue(&self) -> Box<DialogueFacade> {
         self.get_handler(Dialogue)
     }
+
     fn injection(&self) -> Box<InjectionFacade> {
         self.get_handler(Injection)
     }
@@ -75,24 +81,31 @@ impl HermesProtocolHandler for InProcessHermesProtocolHandler {
     fn hotword_backend(&self) -> Box<HotwordBackendFacade> {
         self.get_handler(Hotword)
     }
+
     fn sound_feedback_backend(&self) -> Box<SoundFeedbackBackendFacade> {
         self.get_handler(Sound)
     }
+
     fn asr_backend(&self) -> Box<AsrBackendFacade> {
         self.get_handler(Asr)
     }
+
     fn tts_backend(&self) -> Box<TtsBackendFacade> {
         self.get_handler(Tts)
     }
+
     fn nlu_backend(&self) -> Box<NluBackendFacade> {
         self.get_handler(Nlu)
     }
+
     fn audio_server_backend(&self) -> Box<AudioServerBackendFacade> {
         self.get_handler(AudioServer)
     }
+
     fn dialogue_backend(&self) -> Box<DialogueBackendFacade> {
         self.get_handler(Dialogue)
     }
+
     fn injection_backend(&self) -> Box<InjectionBackendFacade> {
         self.get_handler(Injection)
     }
@@ -110,7 +123,7 @@ struct InProcessComponent<T: Send + Sync + Debug> {
     subscriber: Mutex<Option<ripb::Subscriber>>,
 }
 
-impl <T: Send + Sync + Debug> Drop for InProcessComponent<T> {
+impl<T: Send + Sync + Debug> Drop for InProcessComponent<T> {
     fn drop(&mut self) {
         // dropping a ripb subscriber removes its subscriptions it. As we don't have unsubscription
         // mechanic in hermes (yet) and there are quite a lot of parts in the code where we just
@@ -133,7 +146,8 @@ impl<T: Send + Sync + Debug> InProcessComponent<T> {
 
     fn subscribe0<M: ripb::Message + 'static>(&self, callback: Callback0) -> Fallible<()> {
         let mut subscriber = self.subscriber.lock().map_err(PoisonLock::from)?;
-        let subscriber = subscriber.get_or_insert_with(||self.bus.lock().unwrap().create_subscriber());
+        let subscriber =
+            subscriber.get_or_insert_with(|| self.bus.lock().unwrap().create_subscriber());
         subscriber.on_message(move |_: &M| callback.call());
         Ok(())
     }
@@ -145,7 +159,8 @@ impl<T: Send + Sync + Debug> InProcessComponent<T> {
         C: Fn(&M) -> &P + Send + 'static,
     {
         let mut subscriber = self.subscriber.lock().map_err(PoisonLock::from)?;
-        let subscriber = subscriber.get_or_insert_with(||self.bus.lock().unwrap().create_subscriber());
+        let subscriber =
+            subscriber.get_or_insert_with(|| self.bus.lock().unwrap().create_subscriber());
         subscriber.on_message(move |m: &M| callback.call(converter(m)));
         Ok(())
     }
@@ -156,7 +171,8 @@ impl<T: Send + Sync + Debug> InProcessComponent<T> {
         F: Fn(&M) -> bool + Send + 'static,
     {
         let mut subscriber = self.subscriber.lock().map_err(PoisonLock::from)?;
-        let subscriber = subscriber.get_or_insert_with(||self.bus.lock().unwrap().create_subscriber());
+        let subscriber =
+            subscriber.get_or_insert_with(|| self.bus.lock().unwrap().create_subscriber());
         subscriber.on_message(move |m: &M| {
             if filter(m) {
                 callback.call()
@@ -178,7 +194,8 @@ impl<T: Send + Sync + Debug> InProcessComponent<T> {
         F: Fn(&M) -> bool + Send + 'static,
     {
         let mut subscriber = self.subscriber.lock().map_err(PoisonLock::from)?;
-        let subscriber = subscriber.get_or_insert_with(||self.bus.lock().unwrap().create_subscriber());
+        let subscriber =
+            subscriber.get_or_insert_with(|| self.bus.lock().unwrap().create_subscriber());
         subscriber.on_message(move |m: &M| {
             if filter(m) {
                 callback.call(converter(m))
@@ -311,7 +328,11 @@ impl<T: Send + Sync + Debug + Copy + 'static> IdentifiableComponentFacade
             };
         self.publish(version_request)
     }
-    fn subscribe_version(&self, site_id: SiteId, handler: Callback<VersionMessage>) -> Fallible<()> {
+    fn subscribe_version(
+        &self,
+        site_id: SiteId,
+        handler: Callback<VersionMessage>,
+    ) -> Fallible<()> {
         subscribe_filter!(self, IdentifiableComponentVersion<T> { version }, handler, site_id, |it| {&it.site_id})
     }
     fn subscribe_error(&self, site_id: SiteId, handler: Callback<ErrorMessage>) -> Fallible<()> {
@@ -515,26 +536,37 @@ struct VoiceActivity;
 
 #[derive(Debug)]
 struct VoiceActivityVadUp {
-    vad_up: VadUpMessage
+    vad_up: VadUpMessage,
 }
 
 #[derive(Debug)]
 struct VoiceActivityVadDown {
-    vad_down: VadDownMessage
+    vad_down: VadDownMessage,
 }
 
 impl VoiceActivityFacade for InProcessComponent<VoiceActivity> {
     fn subscribe_vad_up(&self, site_id: String, handler: Callback<VadUpMessage>) -> Fallible<()> {
-        subscribe_filter!(self, VoiceActivityVadUp { vad_up }, handler, site_id, |it| {
-            &it.vad_up.site_id
-        })
-
+        subscribe_filter!(
+            self,
+            VoiceActivityVadUp { vad_up },
+            handler,
+            site_id,
+            |it| { &it.vad_up.site_id }
+        )
     }
 
-    fn subscribe_vad_down(&self, site_id: String, handler: Callback<VadDownMessage>) -> Fallible<()> {
-        subscribe_filter!(self, VoiceActivityVadDown { vad_down }, handler, site_id, |it| {
-            &it.vad_down.site_id
-        })
+    fn subscribe_vad_down(
+        &self,
+        site_id: String,
+        handler: Callback<VadDownMessage>,
+    ) -> Fallible<()> {
+        subscribe_filter!(
+            self,
+            VoiceActivityVadDown { vad_down },
+            handler,
+            site_id,
+            |it| { &it.vad_down.site_id }
+        )
     }
 
     fn subscribe_all_vad_up(&self, handler: Callback<VadUpMessage>) -> Fallible<()> {
@@ -571,9 +603,7 @@ impl HotwordFacade for InProcessComponent<Hotword> {
         id: String,
         handler: Callback<HotwordDetectedMessage>,
     ) -> Fallible<()> {
-        subscribe_filter!(self, HotwordDetected { message }, handler, id, |it| {
-            &it.id
-        })
+        subscribe_filter!(self, HotwordDetected { message }, handler, id, |it| { &it.id })
     }
 
     fn subscribe_all_detected(&self, handler: Callback<HotwordDetectedMessage>) -> Fallible<()> {
@@ -621,7 +651,7 @@ struct AsrPartialTextCaptured {
 }
 
 impl AsrFacade for InProcessComponent<Asr> {
-    fn publish_start_listening(&self, start:AsrStartListeningMessage) -> Fallible<()> {
+    fn publish_start_listening(&self, start: AsrStartListeningMessage) -> Fallible<()> {
         self.publish(AsrStartListening { start })
     }
 
@@ -646,7 +676,10 @@ impl AsrFacade for InProcessComponent<Asr> {
 }
 
 impl AsrBackendFacade for InProcessComponent<Asr> {
-    fn subscribe_start_listening(&self, handler: Callback<AsrStartListeningMessage>) -> Fallible<()> {
+    fn subscribe_start_listening(
+        &self,
+        handler: Callback<AsrStartListeningMessage>,
+    ) -> Fallible<()> {
         subscribe!(self, AsrStartListening { start }, handler)
     }
 
@@ -720,12 +753,12 @@ struct AudioServerAudioFrame {
 
 #[derive(Debug)]
 struct AudioServerReplayRequest {
-    request: ReplayRequestMessage
+    request: ReplayRequestMessage,
 }
 
 #[derive(Debug)]
 struct AudioServerReplayResponse {
-    frame: AudioFrameMessage
+    frame: AudioFrameMessage,
 }
 
 impl AudioServerFacade for InProcessComponent<AudioServer> {
@@ -790,7 +823,7 @@ impl AudioServerBackendFacade for InProcessComponent<AudioServer> {
     fn subscribe_replay_request(
         &self,
         site_id: SiteId,
-        handler: Callback<ReplayRequestMessage>
+        handler: Callback<ReplayRequestMessage>,
     ) -> Fallible<()> {
         subscribe_filter!(self, AudioServerReplayRequest { request }, handler, site_id)
     }
@@ -865,8 +898,17 @@ impl DialogueFacade for InProcessComponent<Dialogue> {
         subscribe!(self, DialogueIntent { intent }, handler)
     }
 
-    fn subscribe_intent_not_recognized(&self, handler: Callback<IntentNotRecognizedMessage>) -> Fallible<()> {
-        subscribe!(self, DialogueIntentNotRecognized { intent_not_recognized }, handler)
+    fn subscribe_intent_not_recognized(
+        &self,
+        handler: Callback<IntentNotRecognizedMessage>,
+    ) -> Fallible<()> {
+        subscribe!(
+            self,
+            DialogueIntentNotRecognized {
+                intent_not_recognized
+            },
+            handler
+        )
     }
 
     fn subscribe_session_ended(&self, handler: Callback<SessionEndedMessage>) -> Fallible<()> {
@@ -899,8 +941,13 @@ impl DialogueBackendFacade for InProcessComponent<Dialogue> {
         self.publish(DialogueIntent { intent })
     }
 
-    fn publish_intent_not_recognized(&self, intent_not_recognized: IntentNotRecognizedMessage) -> Fallible<()> {
-        self.publish(DialogueIntentNotRecognized { intent_not_recognized })
+    fn publish_intent_not_recognized(
+        &self,
+        intent_not_recognized: IntentNotRecognizedMessage,
+    ) -> Fallible<()> {
+        self.publish(DialogueIntentNotRecognized {
+            intent_not_recognized,
+        })
     }
 
     fn publish_session_ended(&self, status: SessionEndedMessage) -> Fallible<()> {
@@ -911,7 +958,10 @@ impl DialogueBackendFacade for InProcessComponent<Dialogue> {
         subscribe!(self, DialogueStartSession { start_session }, handler)
     }
 
-    fn subscribe_continue_session(&self, handler: Callback<ContinueSessionMessage>) -> Fallible<()> {
+    fn subscribe_continue_session(
+        &self,
+        handler: Callback<ContinueSessionMessage>,
+    ) -> Fallible<()> {
         subscribe!(self, DialogueContinueSession { continue_session }, handler)
     }
 
@@ -919,7 +969,6 @@ impl DialogueBackendFacade for InProcessComponent<Dialogue> {
         subscribe!(self, DialogueEndSession { end_session }, handler)
     }
 }
-
 
 #[derive(Debug, Clone, Copy)]
 struct Injection;
@@ -946,13 +995,19 @@ impl InjectionFacade for InProcessComponent<Injection> {
         self.publish(InjectionStatusRequest {})
     }
 
-    fn subscribe_injection_status(&self, handler: Callback<InjectionStatusMessage>) -> Fallible<()> {
+    fn subscribe_injection_status(
+        &self,
+        handler: Callback<InjectionStatusMessage>,
+    ) -> Fallible<()> {
         subscribe!(self, InjectionStatus { status }, handler)
     }
 }
 
 impl InjectionBackendFacade for InProcessComponent<Injection> {
-    fn subscribe_injection_request(&self, handler: Callback<InjectionRequestMessage>) -> Fallible<()> {
+    fn subscribe_injection_request(
+        &self,
+        handler: Callback<InjectionRequestMessage>,
+    ) -> Fallible<()> {
         subscribe!(self, InjectionPerform { request }, handler)
     }
 

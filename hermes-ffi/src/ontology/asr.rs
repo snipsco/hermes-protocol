@@ -1,9 +1,8 @@
- use failure::Fallible;
+use failure::Fallible;
+use failure::ResultExt;
+use ffi_utils::{AsRust, CReprOf, RawBorrow, RawPointerConverter};
 use std::ptr::null;
 use std::slice;
-use ffi_utils::{AsRust, CReprOf, RawBorrow, RawPointerConverter};
-use failure::ResultExt;
-
 
 #[repr(C)]
 #[derive(Debug)]
@@ -27,7 +26,7 @@ impl CReprOf<hermes::AsrStartListeningMessage> for CAsrStartListeningMessage {
         Ok(Self {
             site_id: convert_to_c_string!(input.site_id),
             session_id: convert_to_nullable_c_string!(input.session_id),
-            start_signal_ms: input.start_signal_ms.unwrap_or(-1)
+            start_signal_ms: input.start_signal_ms.unwrap_or(-1),
         })
     }
 }
@@ -37,7 +36,11 @@ impl AsRust<hermes::AsrStartListeningMessage> for CAsrStartListeningMessage {
         Ok(hermes::AsrStartListeningMessage {
             site_id: create_rust_string_from!(self.site_id),
             session_id: create_optional_rust_string_from!(self.session_id),
-            start_signal_ms: if self.start_signal_ms == -1 { None } else { Some(self.start_signal_ms) },
+            start_signal_ms: if self.start_signal_ms == -1 {
+                None
+            } else {
+                Some(self.start_signal_ms)
+            },
         })
     }
 }
@@ -48,7 +51,6 @@ impl Drop for CAsrStartListeningMessage {
         take_back_nullable_c_string!(self.session_id);
     }
 }
-
 
 #[repr(C)]
 #[derive(Debug)]
@@ -193,7 +195,7 @@ impl CReprOf<Vec<hermes::AsrToken>> for CAsrTokenArray {
                 input
                     .into_iter()
                     .map(|e| CAsrToken::c_repr_of(e).map(|c| c.into_raw_pointer()))
-                    .collect::< Fallible<Vec<_>>>()
+                    .collect::<Fallible<Vec<_>>>()
                     .context("Could not convert map to C Repr")?
                     .into_boxed_slice(),
             ) as *const *const _,
@@ -219,7 +221,9 @@ impl Drop for CAsrTokenArray {
             for e in Box::from_raw(::std::slice::from_raw_parts_mut(
                 self.entries as *mut *mut CAsrToken,
                 self.count as usize,
-            )).iter() {
+            ))
+            .iter()
+            {
                 let _ = CAsrToken::drop_raw_pointer(*e).unwrap();
             }
         };
@@ -241,7 +245,7 @@ impl CReprOf<Vec<Vec<hermes::AsrToken>>> for CAsrTokenDoubleArray {
                 input
                     .into_iter()
                     .map(|e| CAsrTokenArray::c_repr_of(e).map(|c| c.into_raw_pointer()))
-                    .collect::< Fallible<Vec<_>>>()
+                    .collect::<Fallible<Vec<_>>>()
                     .context("Could not convert map to C Repr")?
                     .into_boxed_slice(),
             ) as *const *const _,
@@ -267,18 +271,19 @@ impl Drop for CAsrTokenDoubleArray {
             for e in Box::from_raw(::std::slice::from_raw_parts_mut(
                 self.entries as *mut *mut CAsrTokenArray,
                 self.count as usize,
-            )).iter() {
+            ))
+            .iter()
+            {
                 let _ = CAsrTokenArray::drop_raw_pointer(*e).unwrap();
             }
         };
     }
 }
 
-
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::super::tests::round_trip_test;
+    use super::*;
 
     #[test]
     fn round_trip_asr_token() {
@@ -296,11 +301,37 @@ mod tests {
 
     #[test]
     fn round_trip_asr_token_array() {
-        round_trip_test::<_, CAsrTokenArray>(
-            vec![]
-        );
+        round_trip_test::<_, CAsrTokenArray>(vec![]);
 
-        round_trip_test::<_, CAsrTokenArray>(
+        round_trip_test::<_, CAsrTokenArray>(vec![
+            hermes::AsrToken {
+                value: "hello".to_string(),
+                confidence: 0.98,
+                range_start: 1,
+                range_end: 4,
+                time: hermes::AsrDecodingDuration {
+                    start: 0.0,
+                    end: 5.0,
+                },
+            },
+            hermes::AsrToken {
+                value: "world".to_string(),
+                confidence: 0.73,
+                range_start: 5,
+                range_end: 9,
+                time: hermes::AsrDecodingDuration {
+                    start: 0.0,
+                    end: 5.0,
+                },
+            },
+        ]);
+    }
+
+    #[test]
+    fn round_trip_asr_token_double_array() {
+        round_trip_test::<_, CAsrTokenDoubleArray>(vec![]);
+
+        round_trip_test::<_, CAsrTokenDoubleArray>(vec![
             vec![
                 hermes::AsrToken {
                     value: "hello".to_string(),
@@ -322,54 +353,18 @@ mod tests {
                         end: 5.0,
                     },
                 },
-            ]
-        );
-    }
-
-    #[test]
-    fn round_trip_asr_token_double_array() {
-        round_trip_test::<_, CAsrTokenDoubleArray>(
-            vec![]
-        );
-
-        round_trip_test::<_, CAsrTokenDoubleArray>(
-            vec![
-                vec![
-                    hermes::AsrToken {
-                        value: "hello".to_string(),
-                        confidence: 0.98,
-                        range_start: 1,
-                        range_end: 4,
-                        time: hermes::AsrDecodingDuration {
-                            start: 0.0,
-                            end: 5.0,
-                        },
-                    },
-                    hermes::AsrToken {
-                        value: "world".to_string(),
-                        confidence: 0.73,
-                        range_start: 5,
-                        range_end: 9,
-                        time: hermes::AsrDecodingDuration {
-                            start: 0.0,
-                            end: 5.0,
-                        },
-                    },
-                ],
-                vec![],
-                vec![
-                    hermes::AsrToken {
-                        value: "yop".to_string(),
-                        confidence: 0.97,
-                        range_start: 5,
-                        range_end: 1,
-                        time: hermes::AsrDecodingDuration {
-                            start: 1.0,
-                            end: 4.5,
-                        },
-                    },
-                ]
-            ]
-        );
+            ],
+            vec![],
+            vec![hermes::AsrToken {
+                value: "yop".to_string(),
+                confidence: 0.97,
+                range_start: 5,
+                range_end: 1,
+                time: hermes::AsrDecodingDuration {
+                    start: 1.0,
+                    end: 4.5,
+                },
+            }],
+        ]);
     }
 }

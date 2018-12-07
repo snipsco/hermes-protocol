@@ -1,10 +1,10 @@
- use failure::Fallible;
 use super::CAsrTokenArray;
-use std::ptr::null;
-use std::slice;
+use failure::Fallible;
 use failure::ResultExt;
 use ffi_utils::{AsRust, CReprOf, CStringArray, RawBorrow, RawPointerConverter};
 use snips_nlu_ontology_ffi_macros::{CIntentClassifierResult, CSlot};
+use std::ptr::null;
+use std::slice;
 
 #[repr(C)]
 #[derive(Debug)]
@@ -289,7 +289,7 @@ impl CReprOf<Vec<hermes::NluSlot>> for CNluSlotArray {
                 input
                     .into_iter()
                     .map(|e| CNluSlot::c_repr_of(e).map(|c| c.into_raw_pointer()))
-                    .collect::< Fallible<Vec<_>>>()
+                    .collect::<Fallible<Vec<_>>>()
                     .context("Could not convert map to C Repr")?
                     .into_boxed_slice(),
             ) as *const *const _,
@@ -315,7 +315,9 @@ impl Drop for CNluSlotArray {
             for e in Box::from_raw(::std::slice::from_raw_parts_mut(
                 self.entries as *mut *mut CNluSlot,
                 self.count as usize,
-            )).iter() {
+            ))
+            .iter()
+            {
                 let _ = CNluSlot::drop_raw_pointer(*e).unwrap();
             }
         };
@@ -381,5 +383,3 @@ impl Drop for CNluIntentMessage {
         take_back_nullable_c_string!(self.session_id);
     }
 }
-
-

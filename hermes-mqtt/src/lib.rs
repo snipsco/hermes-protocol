@@ -225,7 +225,9 @@ impl MqttHermesProtocolHandler {
         Self::new_with_options(client_options)
     }
 
-    pub fn new_with_options(mut options: rumqtt::MqttOptions) -> Fallible<MqttHermesProtocolHandler> {
+    pub fn new_with_options(
+        mut options: rumqtt::MqttOptions,
+    ) -> Fallible<MqttHermesProtocolHandler> {
         let name = options.broker_addr.clone();
         options.max_packet_size = 10_000_000;
         let mqtt_client = rumqtt::MqttClient::start(options)
@@ -454,7 +456,11 @@ macro_rules! impl_identifiable_component_facades_for {
         }
 
         impl IdentifiableComponentBackendFacade for $t {
-            fn subscribe_version_request(&self, site_id: SiteId, handler: Callback0) -> Fallible<()> {
+            fn subscribe_version_request(
+                &self,
+                site_id: SiteId,
+                handler: Callback0,
+            ) -> Fallible<()> {
                 self.mqtt_handler.subscribe(
                     &HermesTopic::Component(
                         Some(site_id),
@@ -842,12 +848,22 @@ mod tests {
     fn create_handlers() -> (HandlerHolder, HandlerHolder) {
         // get a random free port form the OS
         let port = {
-            TcpListener::bind("localhost:0").unwrap().local_addr().unwrap().port()
+            TcpListener::bind("localhost:0")
+                .unwrap()
+                .local_addr()
+                .unwrap()
+                .port()
         };
 
         // /usr/sbin is not in path on non login session on raspbian and it is where mosquitto is
         // same goes for /usr/local/sbin on macos/homebrew
-        std::env::set_var("PATH", format!("{}:/usr/sbin:/usr/local/sbin",::std::env::var("PATH").unwrap()));
+        std::env::set_var(
+            "PATH",
+            format!(
+                "{}:/usr/sbin:/usr/local/sbin",
+                ::std::env::var("PATH").unwrap()
+            ),
+        );
 
         let server = Rc::new(ServerHolder {
             server: Command::new("mosquitto")
@@ -864,14 +880,17 @@ mod tests {
         let server_is_live = || {
             for _ in 0..50 {
                 if TcpStream::connect(&server_address).is_ok() {
-                    return true
+                    return true;
                 } else {
                     sleep(Duration::from_millis(50));
                 }
-            };
+            }
             false
         };
-        assert!(server_is_live(), format!("can't connect to mosquitto server {}", &server_address));
+        assert!(
+            server_is_live(),
+            format!("can't connect to mosquitto server {}", &server_address)
+        );
 
         let handler1 = HandlerHolder {
             handler: MqttHermesProtocolHandler::new(&server_address)

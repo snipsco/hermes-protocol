@@ -2,14 +2,13 @@ use std::fmt;
 
 use semver;
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 pub trait HermesMessage<'de>: fmt::Debug + Deserialize<'de> + Serialize {}
 
 pub type SiteId = String;
 pub type SessionId = String;
 pub type RequestId = String;
-
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -76,5 +75,3 @@ pub struct ErrorMessage {
 }
 
 impl<'de> HermesMessage<'de> for ErrorMessage {}
-
-
