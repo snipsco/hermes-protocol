@@ -8,6 +8,9 @@ addons:
       - mosquitto
       - openjdk-8-jdk
 
+before_install:
+- sudo update-java-alternatives --set java-1.8.0-openjdk-amd64
+
 rust:
   - stable
   - beta
