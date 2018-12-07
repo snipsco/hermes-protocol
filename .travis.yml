@@ -13,23 +13,12 @@ rust:
   - beta
   - nightly
 
+script:
+  - cargo build --all
+  - cargo test --all
+  - cd platforms/hermes-kotlin && ./gradlew jar
+  - cd platforms/hermes-kotlin && ./gradlew test
+
 matrix:
   allow_failures:
   - rust: nightly
-
-jobs:
-  include:
-  - stage: "Build"
-    script: cargo build --all
-  - stage: "Test"
-    script: cargo test --all
-  - stage: "JVM Build"
-    script: cd platforms/hermes-kotlin && ./gradlew jar
-  - stage: "JVM Test"
-    script: cd platforms/hermes-kotlin && ./gradlew test
-
-stages:
-  - "Build"
-  - "Test"
-  - "JVM Build"
-  - "JVM Test"
