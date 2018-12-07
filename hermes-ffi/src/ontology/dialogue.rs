@@ -2,7 +2,7 @@ use failure::ResultExt;
 use ffi_utils::{AsRust, CReprOf, CStringArray, RawPointerConverter};
 use hermes;
 use libc;
-use Result;
+ use failure::Fallible;
 use snips_nlu_ontology_ffi_macros::{CIntentClassifierResult};
 use std::ptr::null;
 
@@ -26,13 +26,13 @@ pub struct CIntentMessage {
 unsafe impl Sync for CIntentMessage {}
 
 impl CIntentMessage {
-    pub fn from(input: hermes::IntentMessage) -> Result<Self> {
+    pub fn from(input: hermes::IntentMessage) -> Fallible<Self> {
         Self::c_repr_of(input)
     }
 }
 
 impl CReprOf<hermes::IntentMessage> for CIntentMessage {
-    fn c_repr_of(input: hermes::IntentMessage) -> Result<Self> {
+    fn c_repr_of(input: hermes::IntentMessage) -> Fallible<Self> {
         Ok(Self {
             session_id: convert_to_c_string!(input.session_id),
             custom_data: convert_to_nullable_c_string!(input.custom_data),
@@ -54,7 +54,7 @@ impl CReprOf<hermes::IntentMessage> for CIntentMessage {
 }
 
 impl AsRust<hermes::IntentMessage> for CIntentMessage {
-    fn as_rust(&self) -> Result<hermes::IntentMessage> {
+    fn as_rust(&self) -> Fallible<hermes::IntentMessage> {
         /*Ok(hermes::IntentMessage {
         session_id: create_rust_string_from!(self.session_id),
         custom_data: create_optional_rust_string_from!(self.custom_data),
@@ -97,7 +97,7 @@ pub struct CIntentNotRecognizedMessage {
 unsafe impl Sync for CIntentNotRecognizedMessage {}
 
 impl CReprOf<hermes::IntentNotRecognizedMessage> for CIntentNotRecognizedMessage {
-    fn c_repr_of(input: hermes::IntentNotRecognizedMessage) -> Result<Self> {
+    fn c_repr_of(input: hermes::IntentNotRecognizedMessage) -> Fallible<Self> {
         Ok(Self {
             site_id: convert_to_c_string!(input.site_id),
             session_id: convert_to_c_string!(input.session_id),
@@ -108,7 +108,7 @@ impl CReprOf<hermes::IntentNotRecognizedMessage> for CIntentNotRecognizedMessage
 }
 
 impl AsRust<hermes::IntentNotRecognizedMessage> for CIntentNotRecognizedMessage {
-    fn as_rust(&self) -> Result<hermes::IntentNotRecognizedMessage> {
+    fn as_rust(&self) -> Fallible<hermes::IntentNotRecognizedMessage> {
         Ok(hermes::IntentNotRecognizedMessage {
             site_id: create_rust_string_from!(self.site_id),
             session_id: create_rust_string_from!(self.session_id),
@@ -161,7 +161,7 @@ impl CActionSessionInit {
         intent_filter: Option<Vec<String>>,
         can_be_enqueued: bool,
         send_intent_not_recognized: bool,
-    ) -> Result<Self> {
+    ) -> Fallible<Self> {
         Ok(Self {
             text: convert_to_nullable_c_string!(text),
             intent_filter: convert_to_nullable_c_string_array!(intent_filter),
@@ -170,7 +170,7 @@ impl CActionSessionInit {
         })
     }
 
-    pub fn to_action_session_init(&self) -> Result<hermes::SessionInit> {
+    pub fn to_action_session_init(&self) -> Fallible<hermes::SessionInit> {
         Ok(hermes::SessionInit::Action {
             text: create_optional_rust_string_from!(self.text),
             intent_filter: match unsafe { self.intent_filter.as_ref() } {
@@ -199,7 +199,7 @@ pub struct CSessionInit {
 }
 
 impl CSessionInit {
-    fn from(init: hermes::SessionInit) -> Result<Self> {
+    fn from(init: hermes::SessionInit) -> Fallible<Self> {
         let init_type = SNIPS_SESSION_INIT_TYPE::from(&init);
         let value: *const libc::c_void = match init {
             hermes::SessionInit::Action {
@@ -218,7 +218,7 @@ impl CSessionInit {
         Ok(Self { init_type, value })
     }
 
-    fn to_session_init(&self) -> Result<hermes::SessionInit> {
+    fn to_session_init(&self) -> Fallible<hermes::SessionInit> {
         match self.init_type {
             SNIPS_SESSION_INIT_TYPE::SNIPS_SESSION_INIT_TYPE_ACTION => {
                 unsafe { (self.value as *const CActionSessionInit).as_ref() }
@@ -258,17 +258,17 @@ pub struct CStartSessionMessage {
 unsafe impl Sync for CStartSessionMessage {}
 
 impl CStartSessionMessage {
-    pub fn from(input: hermes::StartSessionMessage) -> Result<Self> {
+    pub fn from(input: hermes::StartSessionMessage) -> Fallible<Self> {
         Self::c_repr_of(input)
     }
 
-    pub fn to_start_session_message(&self) -> Result<hermes::StartSessionMessage> {
+    pub fn to_start_session_message(&self) -> Fallible<hermes::StartSessionMessage> {
         self.as_rust()
     }
 }
 
 impl CReprOf<hermes::StartSessionMessage> for CStartSessionMessage {
-    fn c_repr_of(input: hermes::StartSessionMessage) -> Result<Self> {
+    fn c_repr_of(input: hermes::StartSessionMessage) -> Fallible<Self> {
         Ok(Self {
             init: CSessionInit::from(input.init)?,
             custom_data: convert_to_nullable_c_string!(input.custom_data),
@@ -278,7 +278,7 @@ impl CReprOf<hermes::StartSessionMessage> for CStartSessionMessage {
 }
 
 impl AsRust<hermes::StartSessionMessage> for CStartSessionMessage {
-    fn as_rust(&self) -> Result<hermes::StartSessionMessage> {
+    fn as_rust(&self) -> Fallible<hermes::StartSessionMessage> {
         Ok(hermes::StartSessionMessage {
             init: self.init.to_session_init()?,
             custom_data: create_optional_rust_string_from!(self.custom_data),
@@ -308,13 +308,13 @@ pub struct CSessionStartedMessage {
 unsafe impl Sync for CSessionStartedMessage {}
 
 impl CSessionStartedMessage {
-    pub fn from(input: hermes::SessionStartedMessage) -> Result<Self> {
+    pub fn from(input: hermes::SessionStartedMessage) -> Fallible<Self> {
         Self::c_repr_of(input)
     }
 }
 
 impl CReprOf<hermes::SessionStartedMessage> for CSessionStartedMessage {
-    fn c_repr_of(input: hermes::SessionStartedMessage) -> Result<Self> {
+    fn c_repr_of(input: hermes::SessionStartedMessage) -> Fallible<Self> {
         Ok(Self {
             session_id: convert_to_c_string!(input.session_id),
             custom_data: convert_to_nullable_c_string!(input.custom_data),
@@ -327,7 +327,7 @@ impl CReprOf<hermes::SessionStartedMessage> for CSessionStartedMessage {
 }
 
 impl AsRust<hermes::SessionStartedMessage> for CSessionStartedMessage {
-    fn as_rust(&self) -> Result<hermes::SessionStartedMessage> {
+    fn as_rust(&self) -> Fallible<hermes::SessionStartedMessage> {
         Ok(hermes::SessionStartedMessage {
             session_id: create_rust_string_from!(self.session_id),
             custom_data: create_optional_rust_string_from!(self.custom_data),
@@ -360,13 +360,13 @@ pub struct CSessionQueuedMessage {
 unsafe impl Sync for CSessionQueuedMessage {}
 
 impl CSessionQueuedMessage {
-    pub fn from(input: hermes::SessionQueuedMessage) -> Result<Self> {
+    pub fn from(input: hermes::SessionQueuedMessage) -> Fallible<Self> {
         Self::c_repr_of(input)
     }
 }
 
 impl CReprOf<hermes::SessionQueuedMessage> for CSessionQueuedMessage {
-    fn c_repr_of(input: hermes::SessionQueuedMessage) -> Result<Self> {
+    fn c_repr_of(input: hermes::SessionQueuedMessage) -> Fallible<Self> {
         Ok(Self {
             session_id: convert_to_c_string!(input.session_id),
             custom_data: convert_to_nullable_c_string!(input.custom_data),
@@ -376,7 +376,7 @@ impl CReprOf<hermes::SessionQueuedMessage> for CSessionQueuedMessage {
 }
 
 impl AsRust<hermes::SessionQueuedMessage> for CSessionQueuedMessage {
-    fn as_rust(&self) -> Result<hermes::SessionQueuedMessage> {
+    fn as_rust(&self) -> Fallible<hermes::SessionQueuedMessage> {
         Ok(hermes::SessionQueuedMessage {
             session_id: create_rust_string_from!(self.session_id),
             custom_data: create_optional_rust_string_from!(self.custom_data),
@@ -408,17 +408,17 @@ pub struct CContinueSessionMessage {
 unsafe impl Sync for CContinueSessionMessage {}
 
 impl CContinueSessionMessage {
-    pub fn from(input: hermes::ContinueSessionMessage) -> Result<Self> {
+    pub fn from(input: hermes::ContinueSessionMessage) -> Fallible<Self> {
         Self::c_repr_of(input)
     }
 
-    pub fn to_continue_session_message(&self) -> Result<hermes::ContinueSessionMessage> {
+    pub fn to_continue_session_message(&self) -> Fallible<hermes::ContinueSessionMessage> {
         self.as_rust()
     }
 }
 
 impl CReprOf<hermes::ContinueSessionMessage> for CContinueSessionMessage {
-    fn c_repr_of(input: hermes::ContinueSessionMessage) -> Result<Self> {
+    fn c_repr_of(input: hermes::ContinueSessionMessage) -> Fallible<Self> {
         Ok(Self {
             session_id: convert_to_c_string!(input.session_id),
             text: convert_to_c_string!(input.text),
@@ -430,7 +430,7 @@ impl CReprOf<hermes::ContinueSessionMessage> for CContinueSessionMessage {
 }
 
 impl AsRust<hermes::ContinueSessionMessage> for CContinueSessionMessage {
-    fn as_rust(&self) -> Result<hermes::ContinueSessionMessage> {
+    fn as_rust(&self) -> Fallible<hermes::ContinueSessionMessage> {
         Ok(hermes::ContinueSessionMessage {
             session_id: create_rust_string_from!(self.session_id),
             text: create_rust_string_from!(self.text),
@@ -464,17 +464,17 @@ pub struct CEndSessionMessage {
 unsafe impl Sync for CEndSessionMessage {}
 
 impl CEndSessionMessage {
-    pub fn from(input: hermes::EndSessionMessage) -> Result<Self> {
+    pub fn from(input: hermes::EndSessionMessage) -> Fallible<Self> {
         Self::c_repr_of(input)
     }
 
-    pub fn to_end_session_message(&self) -> Result<hermes::EndSessionMessage> {
+    pub fn to_end_session_message(&self) -> Fallible<hermes::EndSessionMessage> {
         self.as_rust()
     }
 }
 
 impl CReprOf<hermes::EndSessionMessage> for CEndSessionMessage {
-    fn c_repr_of(input: hermes::EndSessionMessage) -> Result<Self> {
+    fn c_repr_of(input: hermes::EndSessionMessage) -> Fallible<Self> {
         Ok(Self {
             session_id: convert_to_c_string!(input.session_id),
             text: convert_to_nullable_c_string!(input.text),
@@ -483,7 +483,7 @@ impl CReprOf<hermes::EndSessionMessage> for CEndSessionMessage {
 }
 
 impl AsRust<hermes::EndSessionMessage> for CEndSessionMessage {
-    fn as_rust(&self) -> Result<hermes::EndSessionMessage> {
+    fn as_rust(&self) -> Fallible<hermes::EndSessionMessage> {
         Ok(hermes::EndSessionMessage {
             session_id: create_rust_string_from!(self.session_id),
             text: create_optional_rust_string_from!(self.text),
@@ -543,10 +543,10 @@ pub struct CSessionTermination {
 }
 
 impl CSessionTermination {
-    fn from(termination: ::hermes::SessionTerminationType) -> Result<Self> {
+    fn from(termination: hermes::SessionTerminationType) -> Fallible<Self> {
         let termination_type = SNIPS_SESSION_TERMINATION_TYPE::from(&termination);
         let data: *const libc::c_char = match termination {
-            ::hermes::SessionTerminationType::Error { error } => convert_to_c_string!(error),
+            hermes::SessionTerminationType::Error { error } => convert_to_c_string!(error),
             _ => null(),
         };
         Ok(Self {
@@ -557,7 +557,7 @@ impl CSessionTermination {
 }
 
 impl AsRust<hermes::SessionTerminationType> for CSessionTermination {
-    fn as_rust(&self) -> Result<hermes::SessionTerminationType> {
+    fn as_rust(&self) -> Fallible<hermes::SessionTerminationType> {
         Ok(match self.termination_type {
             SNIPS_SESSION_TERMINATION_TYPE::SNIPS_SESSION_TERMINATION_TYPE_NOMINAL => {
                 hermes::SessionTerminationType::Nominal
@@ -600,13 +600,13 @@ pub struct CSessionEndedMessage {
 unsafe impl Sync for CSessionEndedMessage {}
 
 impl CSessionEndedMessage {
-    pub fn from(input: hermes::SessionEndedMessage) -> Result<Self> {
+    pub fn from(input: hermes::SessionEndedMessage) -> Fallible<Self> {
         Self::c_repr_of(input)
     }
 }
 
 impl CReprOf<hermes::SessionEndedMessage> for CSessionEndedMessage {
-    fn c_repr_of(input: hermes::SessionEndedMessage) -> Result<Self> {
+    fn c_repr_of(input: hermes::SessionEndedMessage) -> Fallible<Self> {
         Ok(Self {
             session_id: convert_to_c_string!(input.session_id),
             custom_data: convert_to_nullable_c_string!(input.custom_data),
@@ -617,7 +617,7 @@ impl CReprOf<hermes::SessionEndedMessage> for CSessionEndedMessage {
 }
 
 impl AsRust<hermes::SessionEndedMessage> for CSessionEndedMessage {
-    fn as_rust(&self) -> Result<hermes::SessionEndedMessage> {
+    fn as_rust(&self) -> Fallible<hermes::SessionEndedMessage> {
         Ok(hermes::SessionEndedMessage {
             session_id: create_rust_string_from!(self.session_id),
             custom_data: create_optional_rust_string_from!(self.custom_data),

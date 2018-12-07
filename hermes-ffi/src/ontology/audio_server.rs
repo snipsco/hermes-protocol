@@ -1,4 +1,4 @@
-use Result;
+ use failure::Fallible;
 use std::slice;
 use ffi_utils::{AsRust, CReprOf, RawPointerConverter};
 use failure::ResultExt;
@@ -16,13 +16,13 @@ pub struct CPlayBytesMessage {
 unsafe impl Sync for CPlayBytesMessage {}
 
 impl CPlayBytesMessage {
-    pub fn from(input: hermes::PlayBytesMessage) -> Result<Self> {
+    pub fn from(input: hermes::PlayBytesMessage) -> Fallible<Self> {
         Self::c_repr_of(input)
     }
 }
 
 impl CReprOf<hermes::PlayBytesMessage> for CPlayBytesMessage {
-    fn c_repr_of(input: hermes::PlayBytesMessage) -> Result<Self> {
+    fn c_repr_of(input: hermes::PlayBytesMessage) -> Fallible<Self> {
         Ok(Self {
             id: convert_to_c_string!(input.id),
             wav_bytes_len: input.wav_bytes.len() as libc::c_int,
@@ -33,7 +33,7 @@ impl CReprOf<hermes::PlayBytesMessage> for CPlayBytesMessage {
 }
 
 impl AsRust<hermes::PlayBytesMessage> for CPlayBytesMessage {
-    fn as_rust(&self) -> Result<hermes::PlayBytesMessage> {
+    fn as_rust(&self) -> Fallible<hermes::PlayBytesMessage> {
         Ok(hermes::PlayBytesMessage {
             id: create_rust_string_from!(self.id),
             wav_bytes: unsafe {
@@ -69,13 +69,13 @@ pub struct CAudioFrameMessage {
 unsafe impl Sync for CAudioFrameMessage {}
 
 impl CAudioFrameMessage {
-    pub fn from(input: hermes::AudioFrameMessage) -> Result<Self> {
+    pub fn from(input: hermes::AudioFrameMessage) -> Fallible<Self> {
         Self::c_repr_of(input)
     }
 }
 
 impl CReprOf<hermes::AudioFrameMessage> for CAudioFrameMessage {
-    fn c_repr_of(input: hermes::AudioFrameMessage) -> Result<Self> {
+    fn c_repr_of(input: hermes::AudioFrameMessage) -> Fallible<Self> {
         Ok(Self {
             wav_frame_len: input.wav_frame.len() as libc::c_int,
             wav_frame: Box::into_raw(input.wav_frame.into_boxed_slice()) as *const u8,
@@ -85,7 +85,7 @@ impl CReprOf<hermes::AudioFrameMessage> for CAudioFrameMessage {
 }
 
 impl AsRust<hermes::AudioFrameMessage> for CAudioFrameMessage {
-    fn as_rust(&self) -> Result<hermes::AudioFrameMessage> {
+    fn as_rust(&self) -> Fallible<hermes::AudioFrameMessage> {
         Ok(hermes::AudioFrameMessage {
             wav_frame: unsafe {
                 slice::from_raw_parts(self.wav_frame as *const u8, self.wav_frame_len as usize)
@@ -117,13 +117,13 @@ pub struct CPlayFinishedMessage {
 unsafe impl Sync for CPlayFinishedMessage {}
 
 impl CPlayFinishedMessage {
-    pub fn from(input: hermes::PlayFinishedMessage) -> Result<Self> {
+    pub fn from(input: hermes::PlayFinishedMessage) -> Fallible<Self> {
         Self::c_repr_of(input)
     }
 }
 
 impl CReprOf<hermes::PlayFinishedMessage> for CPlayFinishedMessage {
-    fn c_repr_of(input: hermes::PlayFinishedMessage) -> Result<Self> {
+    fn c_repr_of(input: hermes::PlayFinishedMessage) -> Fallible<Self> {
         Ok(Self {
             id: convert_to_c_string!(input.id),
             site_id: convert_to_c_string!(input.site_id),
@@ -132,7 +132,7 @@ impl CReprOf<hermes::PlayFinishedMessage> for CPlayFinishedMessage {
 }
 
 impl AsRust<hermes::PlayFinishedMessage> for CPlayFinishedMessage {
-    fn as_rust(&self) -> Result<hermes::PlayFinishedMessage> {
+    fn as_rust(&self) -> Fallible<hermes::PlayFinishedMessage> {
         Ok(hermes::PlayFinishedMessage {
             id: create_rust_string_from!(self.id),
             site_id: create_rust_string_from!(self.site_id),

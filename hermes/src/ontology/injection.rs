@@ -3,7 +3,6 @@ use serde::{Serialize, Serializer, Deserialize, Deserializer};
 use chrono::prelude::*;
 use std::collections::HashMap;
 
-
 type Value = String;
 type Entity = String;
 type Prononciation = String;
@@ -24,7 +23,7 @@ pub struct EntityValue {
 }
 
 impl<'de> Deserialize<'de> for EntityValue {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) ->  Result<Self, D::Error> {
         #[derive(Deserialize)]
         #[serde(untagged)]
         enum DeEntityValue {
@@ -42,7 +41,7 @@ impl<'de> Deserialize<'de> for EntityValue {
 }
 
 impl Serialize for EntityValue {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+    fn serialize<S: Serializer>(&self, serializer: S) ->  Result<S::Ok, S::Error> {
         #[derive(Serialize)]
         #[serde(untagged)]
         enum SerEntityValue<'a> {

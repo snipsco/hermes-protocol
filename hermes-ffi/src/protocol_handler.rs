@@ -6,8 +6,8 @@ use ffi_utils::RawPointerConverter;
 pub struct CProtocolHandler {
     // hides a Box<HermesProtocolHandler>, note the 2 levels (raw pointer + box) to be sure we have
     // a thin pointer here
-    pub handler: *const ::libc::c_void,
-    pub user_data: *mut ::libc::c_void,
+    pub handler: *const libc::c_void,
+    pub user_data: *mut libc::c_void,
 }
 
 pub struct UserData(pub *mut libc::c_void);
@@ -21,10 +21,10 @@ impl UserData {
 }
 
 impl CProtocolHandler {
-    pub fn new(handler: Box<HermesProtocolHandler>, user_data: *mut ::libc::c_void) -> Self {
+    pub fn new(handler: Box<HermesProtocolHandler>, user_data: *mut libc::c_void) -> Self {
         let user_data = UserData(user_data).into_raw_pointer() as _;
         Self {
-            handler: Box::into_raw(Box::new(handler)) as *const ::libc::c_void, user_data
+            handler: Box::into_raw(Box::new(handler)) as *const libc::c_void, user_data
         }
     }
 
@@ -46,10 +46,10 @@ impl CProtocolHandler {
 macro_rules! generate_destroy {
     ($c_symbol:ident for $cstruct:ty) => {
         #[no_mangle]
-        pub extern "C" fn $c_symbol(cstruct: *const $cstruct) -> ::ffi_utils::SNIPS_RESULT {
+        pub extern "C" fn $c_symbol(cstruct: *const $cstruct) -> ffi_utils::SNIPS_RESULT {
             let _ =
                 unsafe { <$cstruct as RawPointerConverter<$cstruct>>::from_raw_pointer(cstruct) };
-            ::ffi_utils::SNIPS_RESULT::SNIPS_RESULT_OK
+            ffi_utils::SNIPS_RESULT::SNIPS_RESULT_OK
         }
     };
 }
@@ -66,14 +66,14 @@ macro_rules! generate_facade_wrapper {
         #[repr(C)]
         pub struct $wrapper_name {
             // hides a Box<$facade>, note the 2 levels (raw pointer + box) to be sure we have a thin pointer here
-            facade: *const ::libc::c_void,
-            user_data: *mut ::libc::c_void,
+            facade: *const libc::c_void,
+            user_data: *mut libc::c_void,
         }
 
         impl $wrapper_name {
             pub fn from(facade: Box<$facade>, user_data: UserData) -> Self {
                 Self {
-                    facade: Box::into_raw(Box::new(facade)) as *const ::libc::c_void,
+                    facade: Box::into_raw(Box::new(facade)) as *const libc::c_void,
                     user_data: user_data.into_raw_pointer() as _,
                 }
             }
@@ -99,11 +99,11 @@ macro_rules! generate_facade_wrapper {
         pub extern "C" fn $getter_name(
             handler: *const CProtocolHandler,
             facade: *mut *const $wrapper_name,
-        ) -> ::ffi_utils::SNIPS_RESULT {
+        ) -> ffi_utils::SNIPS_RESULT {
             fn fun(
                 handler: *const CProtocolHandler,
                 facade: *mut *const $wrapper_name,
-            ) -> hermes::Result<()> {
+            ) -> failure::Fallible<()> {
                 let pointer = $wrapper_name::into_raw_pointer($wrapper_name::from(unsafe {
                     let handler = (*handler).extract();
                     (*handler).$getter()
@@ -121,8 +121,8 @@ macro_rules! generate_facade_wrapper {
 macro_rules! generate_facade_publish {
     ($c_symbol:ident = $facade:ty:$method:ident($( + $qualifier_name:ident : $qualifier:ty as $qualifier_raw:ty,)* $arg:ty)) => {
         #[no_mangle]
-        pub extern "C" fn $c_symbol(facade : *const $facade, $($qualifier_name : *const $qualifier_raw,)* message : *const $arg) -> ::ffi_utils::SNIPS_RESULT {
-            fn fun(facade : *const $facade, $($qualifier_name : *const $qualifier_raw,)* message : *const $arg) -> hermes::Result<()> {
+        pub extern "C" fn $c_symbol(facade : *const $facade, $($qualifier_name : *const $qualifier_raw,)* message : *const $arg) -> ffi_utils::SNIPS_RESULT {
+            fn fun(facade : *const $facade, $($qualifier_name : *const $qualifier_raw,)* message : *const $arg) -> failure::Fallible<()> {
                 let message = convert(message)?;
                 unsafe {(*facade).extract().$method($(<$qualifier as RawBorrow<$qualifier_raw>>::raw_borrow($qualifier_name)?.as_rust()?,)* message)}
             }
@@ -132,8 +132,8 @@ macro_rules! generate_facade_publish {
     };
     ($c_symbol:ident = $facade:ty:$method:ident($( + $qualifier_name:ident : $qualifier:ty as $qualifier_raw:ty,)*)) => {
         #[no_mangle]
-        pub extern "C" fn $c_symbol(facade : *const $facade, $($qualifier_name : *const $qualifier_raw,)*) -> ::ffi_utils::SNIPS_RESULT {
-            fn fun(facade : *const $facade, $($qualifier_name : *const $qualifier_raw,)*) -> hermes::Result<()> {
+        pub extern "C" fn $c_symbol(facade : *const $facade, $($qualifier_name : *const $qualifier_raw,)*) -> ffi_utils::SNIPS_RESULT {
+            fn fun(facade : *const $facade, $($qualifier_name : *const $qualifier_raw,)*) -> failure::Fallible<()> {
                 unsafe {(*facade).extract().$method($(<$qualifier as RawBorrow<$qualifier_raw>>::raw_borrow($qualifier_name)?.as_rust()?,)*)}
             }
 
@@ -147,8 +147,8 @@ macro_rules! generate_facade_publish {
 macro_rules! generate_facade_subscribe {
     ($c_symbol:ident = $facade:ty:$method:ident($( $filter_name:ident : $filter:ty as $filter_raw:ty,)* | $arg:ty | )) => {
         #[no_mangle]
-        pub extern "C" fn $c_symbol(facade: *const $facade, $($filter_name : *const $filter_raw,)* handler: Option<unsafe extern "C" fn(*const $arg, *mut libc::c_void)>) -> ::ffi_utils::SNIPS_RESULT {
-            fn fun(facade: *const $facade, $($filter_name : *const $filter_raw,)* handler: Option<unsafe extern "C" fn(*const $arg, *mut libc::c_void)>) -> hermes::Result<()> {
+        pub extern "C" fn $c_symbol(facade: *const $facade, $($filter_name : *const $filter_raw,)* handler: Option<unsafe extern "C" fn(*const $arg, *mut libc::c_void)>) -> ffi_utils::SNIPS_RESULT {
+            fn fun(facade: *const $facade, $($filter_name : *const $filter_raw,)* handler: Option<unsafe extern "C" fn(*const $arg, *mut libc::c_void)>) -> failure::Fallible<()> {
                 let user_data = unsafe { (*facade).user_data().duplicate() };
                 let callback = ptr_to_callback(handler, user_data)?;
                 unsafe { (*facade).extract().$method($(<$filter as RawBorrow<$filter_raw>>::raw_borrow($filter_name)?.as_rust()?,)* callback) }
@@ -163,13 +163,13 @@ macro_rules! generate_facade_subscribe {
 macro_rules! generate_hermes_c_symbols {
     () => {
 
-    fn convert<T, U: AsRust<T>>(raw: *const U) -> hermes::Result<T> {
+    fn convert<T, U: AsRust<T>>(raw: *const U) -> failure::Fallible<T> {
         unsafe { (*raw).as_rust() }
     }
 
     fn ptr_to_callback<T, U>(
         ptr: Option<unsafe extern "C" fn(*const U, *mut libc::c_void)>,
-        user_data: UserData) -> hermes::Result<hermes::Callback<T>>
+        user_data: UserData) -> Fallible<hermes::Callback<T>>
         where
             T: Clone + Sync,
             U: CReprOf<T> + Sync + 'static {
@@ -184,7 +184,7 @@ macro_rules! generate_hermes_c_symbols {
     }
 
     #[no_mangle]
-    pub extern "C" fn hermes_enable_debug_logs() -> ::ffi_utils::SNIPS_RESULT {
+    pub extern "C" fn hermes_enable_debug_logs() -> ffi_utils::SNIPS_RESULT {
         wrap!($crate::init_debug_logs())
     }
 
@@ -193,7 +193,7 @@ macro_rules! generate_hermes_c_symbols {
                              hermes_drop_hotword_facade,
                              hermes_protocol_handler_hotword_facade = handler.hotword);
     #[cfg(feature="full_bindings")]
-    generate_facade_subscribe!(hermes_hotword_subscribe_detected = CHotwordFacade:subscribe_detected(hotword_id: ::std::ffi::CStr as libc::c_char, |CHotwordDetectedMessage|));
+    generate_facade_subscribe!(hermes_hotword_subscribe_detected = CHotwordFacade:subscribe_detected(hotword_id: std::ffi::CStr as libc::c_char, |CHotwordDetectedMessage|));
     #[cfg(feature="full_bindings")]
     generate_facade_subscribe!(hermes_hotword_subscribe_all_detected = CHotwordFacade:subscribe_all_detected(|CHotwordDetectedMessage|));
 
@@ -202,7 +202,7 @@ macro_rules! generate_hermes_c_symbols {
                              hermes_drop_hotword_backend_facade,
                              hermes_protocol_handler_hotword_backend_facade = handler.hotword_backend);
     #[cfg(feature="full_bindings")]
-    generate_facade_publish!(hermes_hotword_backend_publish_detected = CHotwordBackendFacade:publish_detected(+hotword_id: ::std::ffi::CStr as libc::c_char, CHotwordDetectedMessage));
+    generate_facade_publish!(hermes_hotword_backend_publish_detected = CHotwordBackendFacade:publish_detected(+hotword_id: std::ffi::CStr as libc::c_char, CHotwordDetectedMessage));
 
     generate_facade_wrapper!(CSoundFeedbackFacade for hermes::SoundFeedbackFacade,
                              hermes_drop_sound_feedback_facade,
@@ -299,18 +299,18 @@ macro_rules! generate_hermes_c_symbols {
     #[cfg(feature="full_bindings")]
     generate_facade_publish!(hermes_audio_server_publish_play_bytes = CAudioServerFacade:publish_play_bytes(CPlayBytesMessage));
     #[cfg(feature="full_bindings")]
-    generate_facade_subscribe!(hermes_audio_server_subscribe_play_finished = CAudioServerFacade:subscribe_play_finished(site_id: ::std::ffi::CStr as libc::c_char, |CPlayFinishedMessage|));
+    generate_facade_subscribe!(hermes_audio_server_subscribe_play_finished = CAudioServerFacade:subscribe_play_finished(site_id: std::ffi::CStr as libc::c_char, |CPlayFinishedMessage|));
     #[cfg(feature="full_bindings")]
     generate_facade_subscribe!(hermes_audio_server_subscribe_all_play_finished = CAudioServerFacade:subscribe_all_play_finished(|CPlayFinishedMessage|));
     #[cfg(feature="full_bindings")]
-    generate_facade_subscribe!(hermes_audio_server_subscribe_audio_frame = CAudioServerFacade:subscribe_audio_frame(site_id: ::std::ffi::CStr as libc::c_char, |CAudioFrameMessage|));
+    generate_facade_subscribe!(hermes_audio_server_subscribe_audio_frame = CAudioServerFacade:subscribe_audio_frame(site_id: std::ffi::CStr as libc::c_char, |CAudioFrameMessage|));
 
     #[cfg(feature="full_bindings")]
     generate_facade_wrapper!(CAudioServerBackendFacade for hermes::AudioServerBackendFacade,
                              hermes_drop_audio_server_backend_facade,
                              hermes_protocol_handler_audio_server_backend_facade = handler.audio_server_backend);
     #[cfg(feature="full_bindings")]
-    generate_facade_subscribe!(hermes_audio_server_backend_subscribe_play_bytes = CAudioServerBackendFacade:subscribe_play_bytes(site_id: ::std::ffi::CStr as libc::c_char,|CPlayBytesMessage|));
+    generate_facade_subscribe!(hermes_audio_server_backend_subscribe_play_bytes = CAudioServerBackendFacade:subscribe_play_bytes(site_id: std::ffi::CStr as libc::c_char,|CPlayBytesMessage|));
     #[cfg(feature="full_bindings")]
     generate_facade_subscribe!(hermes_audio_server_backend_subscribe_all_play_bytes = CAudioServerBackendFacade:subscribe_all_play_bytes(|CPlayBytesMessage|));
     #[cfg(feature="full_bindings")]
@@ -323,7 +323,7 @@ macro_rules! generate_hermes_c_symbols {
                              hermes_protocol_handler_dialogue_facade = handler.dialogue);
     generate_facade_subscribe!(hermes_dialogue_subscribe_session_queued = CDialogueFacade:subscribe_session_queued(|CSessionQueuedMessage|));
     generate_facade_subscribe!(hermes_dialogue_subscribe_session_started = CDialogueFacade:subscribe_session_started(|CSessionStartedMessage|));
-    generate_facade_subscribe!(hermes_dialogue_subscribe_intent = CDialogueFacade:subscribe_intent(intent_name: ::std::ffi::CStr as libc::c_char, |CIntentMessage|));
+    generate_facade_subscribe!(hermes_dialogue_subscribe_intent = CDialogueFacade:subscribe_intent(intent_name: std::ffi::CStr as libc::c_char, |CIntentMessage|));
     generate_facade_subscribe!(hermes_dialogue_subscribe_intents = CDialogueFacade:subscribe_intents(|CIntentMessage|));
     generate_facade_subscribe!(hermes_dialogue_subscribe_intent_not_recognized = CDialogueFacade:subscribe_intent_not_recognized(|CIntentNotRecognizedMessage|));
     generate_facade_subscribe!(hermes_dialogue_subscribe_session_ended = CDialogueFacade:subscribe_session_ended(|CSessionEndedMessage|));

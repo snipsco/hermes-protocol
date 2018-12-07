@@ -4,7 +4,7 @@ use failure::ResultExt;
 use ffi_utils::{AsRust, CReprOf, CStringArray, RawBorrow, RawPointerConverter};
 use hermes;
 use libc;
-use Result;
+use failure::Fallible;
 use std::collections::HashMap;
 use std::ptr::null;
 use std::slice;
@@ -20,13 +20,13 @@ pub struct CSiteMessage {
 unsafe impl Sync for CSiteMessage {}
 
 impl CSiteMessage {
-    pub fn from(input: hermes::SiteMessage) -> Result<Self> {
+    pub fn from(input: hermes::SiteMessage) -> Fallible<Self> {
         Self::c_repr_of(input)
     }
 }
 
 impl CReprOf<hermes::SiteMessage> for CSiteMessage {
-    fn c_repr_of(input: hermes::SiteMessage) -> Result<Self> {
+    fn c_repr_of(input: hermes::SiteMessage) -> Fallible<Self> {
         Ok(Self {
             site_id: convert_to_c_string!(input.site_id),
             session_id: convert_to_nullable_c_string!(input.session_id),
@@ -35,7 +35,7 @@ impl CReprOf<hermes::SiteMessage> for CSiteMessage {
 }
 
 impl AsRust<hermes::SiteMessage> for CSiteMessage {
-    fn as_rust(&self) -> Result<hermes::SiteMessage> {
+    fn as_rust(&self) -> Fallible<hermes::SiteMessage> {
         Ok(hermes::SiteMessage {
             site_id: create_rust_string_from!(self.site_id),
             session_id: create_optional_rust_string_from!(self.session_id),
@@ -83,7 +83,7 @@ pub struct CVersionMessage {
 }
 
 impl CVersionMessage {
-    pub fn from(input: &hermes::VersionMessage) -> Result<Self> {
+    pub fn from(input: &hermes::VersionMessage) -> Fallible<Self> {
         Ok(Self {
             major: input.version.major,
             minor: input.version.minor,
@@ -103,7 +103,7 @@ pub struct CErrorMessage {
 }
 
 impl CErrorMessage {
-    pub fn from(input: hermes::ErrorMessage) -> Result<Self> {
+    pub fn from(input: hermes::ErrorMessage) -> Fallible<Self> {
         Ok(Self {
             session_id: convert_to_nullable_c_string!(input.session_id),
             error: convert_to_c_string!(input.error),
@@ -139,7 +139,7 @@ impl Drop for CMapStringToStringArrayEntry {
 }
 
 impl CReprOf<(String, Vec<String>)> for CMapStringToStringArrayEntry {
-    fn c_repr_of(input: (String, Vec<String>)) -> Result<Self> {
+    fn c_repr_of(input: (String, Vec<String>)) -> Fallible<Self> {
         Ok( Self {
             key: convert_to_c_string!(input.0),
             value: CStringArray::c_repr_of(input.1)?.into_raw_pointer(),
@@ -148,7 +148,7 @@ impl CReprOf<(String, Vec<String>)> for CMapStringToStringArrayEntry {
 }
 
 impl AsRust<(String, Vec<String>)> for CMapStringToStringArrayEntry {
-    fn as_rust(&self) -> Result<(String, Vec<String>)> {
+    fn as_rust(&self) -> Fallible<(String, Vec<String>)> {
         Ok((
             create_rust_string_from!(self.key),
             unsafe { CStringArray::raw_borrow(self.value) }?.as_rust()?
@@ -177,14 +177,14 @@ impl Drop for CMapStringToStringArray {
 }
 
 impl CReprOf<HashMap<String, Vec<String>>> for CMapStringToStringArray {
-    fn c_repr_of(input: HashMap<String, Vec<String>>) -> Result<Self> {
+    fn c_repr_of(input: HashMap<String, Vec<String>>) -> Fallible<Self> {
         let array = Self {
             count: input.len() as libc::c_int,
             entries: Box::into_raw(
                 input
                     .into_iter()
                     .map(|e| CMapStringToStringArrayEntry::c_repr_of(e).map(|c| c.into_raw_pointer()))
-                    .collect::<Result<Vec<*const CMapStringToStringArrayEntry>>>()
+                    .collect::< Fallible<Vec<*const CMapStringToStringArrayEntry>>>()
                     .context("Could not convert map to C Repr")?
                     .into_boxed_slice(),
             ) as *const *const CMapStringToStringArrayEntry,
@@ -194,7 +194,7 @@ impl CReprOf<HashMap<String, Vec<String>>> for CMapStringToStringArray {
 }
 
 impl AsRust<HashMap<String, Vec<String>>> for CMapStringToStringArray {
-    fn as_rust(&self) -> Result<HashMap<String, Vec<String>>> {
+    fn as_rust(&self) -> Fallible<HashMap<String, Vec<String>>> {
         let mut result = HashMap::with_capacity(self.count as usize);
         for e in unsafe { slice::from_raw_parts(self.entries, self.count as usize) } {
             let (key, value) = unsafe { CMapStringToStringArrayEntry::raw_borrow(*e) }?.as_rust()?;
@@ -211,7 +211,7 @@ mod tests {
     use spectral::prelude::*;
     use super::*;
 
-    pub fn round_trip_test<T, U>(input: T) where T: Clone + PartialEq + ::std::fmt::Debug, U: CReprOf<T> + AsRust<T> {
+    pub fn round_trip_test<T, U>(input: T) where T: Clone + PartialEq + std::fmt::Debug, U: CReprOf<T> + AsRust<T> {
         let c = U::c_repr_of(input.clone()).expect("could not convert to c_repr");
 
         let result = c.as_rust().expect("could not convert back to rust");

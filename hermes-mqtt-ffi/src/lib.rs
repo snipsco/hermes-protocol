@@ -8,6 +8,7 @@ extern crate libc;
 #[macro_use]
 extern crate log;
 
+use failure::Fallible;
 use failure::ResultExt;
 use ffi_utils::*;
 use hermes_ffi::*;
@@ -81,7 +82,7 @@ pub extern "C" fn hermes_protocol_handler_new_mqtt(
         handler: *mut *const CProtocolHandler,
         broker_address: *const libc::c_char,
         user_data: *mut libc::c_void,
-    ) -> Result<(), failure::Error> {
+    ) -> Fallible<()> {
         let address = create_rust_string_from!(broker_address);
         let cph = CProtocolHandler::new(Box::new(hermes_mqtt::MqttHermesProtocolHandler::new(&address)
             .with_context(|e| {
@@ -126,7 +127,7 @@ pub extern "C" fn hermes_protocol_handler_new_mqtt_with_options(
 pub extern "C" fn hermes_destroy_mqtt_protocol_handler(
     handler: *mut CProtocolHandler,
 ) -> SNIPS_RESULT {
-    fn destroy_mqtt_handler(handler: *mut CProtocolHandler) -> Result<(), failure::Error> {
+    fn destroy_mqtt_handler(handler: *mut CProtocolHandler) -> Fallible<()> {
         let handler = unsafe { CProtocolHandler::from_raw_pointer(handler) }?;
         handler.destroy();
         Ok(())

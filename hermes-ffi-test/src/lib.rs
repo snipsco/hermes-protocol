@@ -6,13 +6,12 @@ extern crate hermes_ffi;
 extern crate libc;
 
 use hermes_ffi::*;
-
+use failure::Fallible;
 use ffi_utils::*;
-
 
 generate_error_handling!(hermes_ffi_test_get_last_error);
 
-fn round_trip<T, U>(input : *const T, output : *mut *const T) -> hermes::Result<()>
+fn round_trip<T, U>(input : *const T, output : *mut *const T) -> Fallible<()>
     where T: AsRust<U> + CReprOf<U> {
     let input = unsafe { input.as_ref() }
         .ok_or_else(|| format_err!("unexpected null pointer given as the message"))?;
@@ -105,7 +104,7 @@ pub extern "C" fn hermes_ffi_test_round_trip_map_string_to_string_array(
 
 #[no_mangle]
 pub extern "C" fn hermes_ffi_test_destroy_string(string: *mut libc::c_char) -> SNIPS_RESULT {
-    wrap!(unsafe { ::std::ffi::CString::from_raw_pointer(string) })
+    wrap!(unsafe { std::ffi::CString::from_raw_pointer(string) })
 }
 
 #[no_mangle]
