@@ -106,7 +106,7 @@ const CAsrToken = Struct({
 
 const CAsrTokenArray = Struct({
     entries: pointer(pointer(CAsrToken)),
-    count: coerce('int'),
+    count: coerce('int')
 })
 
 const CAsrTokenDoubleArray = Struct({

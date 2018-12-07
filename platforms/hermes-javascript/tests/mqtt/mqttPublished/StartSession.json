@@ -1,0 +1,11 @@
+{
+    "init": {
+        "type": "action",
+        "text": "toto",
+        "intentFilter": ["intent", "filter"],
+        "canBeEnqueued": true,
+        "sendIntentNotRecognized": false
+    },
+    "customData": "customThing",
+    "siteId": "siteId"
+}

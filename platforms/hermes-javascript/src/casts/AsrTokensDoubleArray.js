@@ -17,12 +17,14 @@ class AsrTokensDoubleArrayType extends Casteable {
             }
             this._array = []
             const doubleArrayStruct = arg.deref()
-            const doubleArray = new doubleArrayType(doubleArrayStruct.entries)
+            const doubleArrayRef = ref.reinterpret(doubleArrayStruct.entries, ref.sizeof.pointer * doubleArrayStruct.count)
+            const doubleArray = new doubleArrayType(doubleArrayRef)
 
             for(let i = 0; i < doubleArrayStruct.count; i++) {
                 const asrTokensArray = []
                 const arrayStruct = doubleArray[i].deref()
-                const array = new arrayType(arrayStruct.entries)
+                const arrayRef = ref.reinterpret(arrayStruct.entries, ref.sizeof.pointer * arrayStruct.count)
+                const array = new arrayType(arrayRef)
                 for(let j = 0; j < arrayStruct.count; j++) {
                     const asrTokenStruct = array[j].deref()
                     const asrToken = cast(asrTokenStruct, {

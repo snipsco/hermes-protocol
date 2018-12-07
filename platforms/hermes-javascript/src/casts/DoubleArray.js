@@ -1,3 +1,4 @@
+const ref = require('ref')
 const Casteable = require('./Casteable')
 
 class DoubleArray extends Casteable {
@@ -20,7 +21,8 @@ class DoubleArray extends Casteable {
             this._array = []
             const doubleArrayStruct = arg.deref()
             const count = doubleArrayStruct[countField]
-            const doubleArray = new refArrayType(doubleArrayStruct[entriesField])
+            const doubleArrayRef = ref.reinterpret(doubleArrayStruct[entriesField], ref.sizeof.pointer * count)
+            const doubleArray = new refArrayType(doubleArrayRef)
 
             for(let i = 0; i < count; i++) {
                 const item = doubleArray[i]

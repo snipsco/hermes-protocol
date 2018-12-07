@@ -1,0 +1,9 @@
+{
+    "sessionId": "session id",
+    "customData": null,
+    "termination": {
+        "reason": "error",
+        "error": "Error message"
+    },
+    "siteId": "site id"
+}

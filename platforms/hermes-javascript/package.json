@@ -23,9 +23,11 @@
     "chalk": "^2.4.1"
   },
   "devDependencies": {
+    "camelcase": "^5.0.0",
     "eslint": "^5.9.0",
     "eslint-plugin-jest": "^22.1.0",
     "jest": "^23.6.0",
+    "mqtt": "^2.18.8",
     "segfault-handler": "^1.0.1"
   }
 }

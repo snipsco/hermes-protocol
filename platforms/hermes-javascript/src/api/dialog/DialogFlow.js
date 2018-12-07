@@ -68,7 +68,7 @@ class DialogFlow {
             const listener = this.createListener(this.notRecognizedAction)
             const wrappedListener = this.dialog.once('intent_not_recognized', listener)
             this.notRecognizedListener = wrappedListener
-            options.send_intent_not_recognized = 'Y'
+            options.send_intent_not_recognized = 1
         }
         // Publish a continue session message
         this.dialog.publish('continue_session', {

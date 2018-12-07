@@ -55,7 +55,9 @@ class ApiSubset {
                     const actions = this.listeners.get(eventName)
                     actions.forEach(action => action(message))
                     this.call(dropEventName, data)
-                } catch(err) {
+                } catch (err) {
+                    // console.error('Error while executing callback for event: ' + fullEventName)
+                    // console.error('message:', err.message)
                     console.error(err)
                     throw err
                 }
