@@ -8,9 +8,6 @@ addons:
       - mosquitto
       - openjdk-8-jdk
 
-before_install:
-- sudo update-java-alternatives --set java-1.8.0-openjdk-amd64
-
 rust:
   - stable
   - beta
@@ -19,8 +16,8 @@ rust:
 script:
   - cargo build --all
   - cargo test --all
-  - cd platforms/hermes-kotlin && ./gradlew jar
-  - cd platforms/hermes-kotlin && ./gradlew test
+  - cd platforms/hermes-kotlin && ./gradlew --console plain jar
+  - cd platforms/hermes-kotlin && ./gradlew --console plain test
 
 matrix:
   allow_failures:
