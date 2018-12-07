@@ -35,6 +35,7 @@ script:
   - pwd
   - (cd platforms/hermes-kotlin && ./gradlew --console plain jar -Pdebug)
   - (cd platforms/hermes-kotlin && ./gradlew --console plain test -Pdebug)
+  - cd platforms/hermes-python && ./run-tests.sh
 
 matrix:
   allow_failures:
