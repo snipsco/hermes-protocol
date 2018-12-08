@@ -1,0 +1,15 @@
+{
+    "crossLanguage": "123",
+    "id": "456",
+    "lexicon": {
+        "films": ["The Wolf of Wall Street", "The Lord of the Rings"]
+    },
+    "operations": [
+        ["add", {
+            "films": [
+                ["The Wolf of Wall Street", 1],
+                ["The Lord of the Rings", 1]
+            ]
+        }]
+    ]
+}

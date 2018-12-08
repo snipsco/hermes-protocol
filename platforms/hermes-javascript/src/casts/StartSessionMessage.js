@@ -19,8 +19,8 @@ class StartSessionMessage extends Casteable {
             session_init: function(sessionInit) {
                 const { init_type, value: valuePtr } = sessionInit
                 let value = null
-                const actionSessionInitPtr = ref.reinterpret(valuePtr, CActionSessionInit.size)
                 if(init_type === 1) {
+                    const actionSessionInitPtr = ref.reinterpret(valuePtr, CActionSessionInit.size)
                     value = cast(ref.get(actionSessionInitPtr, 0, CActionSessionInit), {
                         intent_filter: intents => {
                             return new StringArray(intents)._array

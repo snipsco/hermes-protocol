@@ -1,6 +1,6 @@
 const { spawn } = require('child_process')
 const mqtt = require('mqtt')
-const { Hermes, tools } = require('../../src')
+const { Hermes } = require('../../src')
 const {
   getFreePort,
   camelize,
@@ -14,7 +14,7 @@ let mosquittoPort
 let mosquitto
 let hermes
 let dialog
-// let injection
+let injection
 let client
 
 // Log segfaults
@@ -25,9 +25,8 @@ beforeAll(async () => {
   mosquittoPort = await getFreePort()
   mosquitto = spawn('mosquitto', ['-p', mosquittoPort, '-v'])
   hermes = new Hermes({ logs: true, address: `localhost:${mosquittoPort}` })
-  tools.keepAlive(20)
   dialog = hermes.dialog()
-  // injection = hermes.injection()
+  injection = hermes.injection()
 })
 
 beforeEach(done => {
@@ -47,7 +46,6 @@ afterEach(() => {
 
 afterAll(() => {
   hermes.destroy()
-  tools.killKeepAlive()
   mosquitto.kill()
 })
 
@@ -77,96 +75,109 @@ it('[tools] should camelize stuff properly', () => {
 
 /* Publish */
 
-it('should publish a start session event', () => {
+it('[dialog] should publish a start session event', () => {
   return setupPublisherTest({
     client,
-    dialog,
+    facade: dialog,
     publishedJson: require('./hermesPublished/StartSession.json'),
     expectedJson: require('./mqttPublished/StartSession.json'),
     hermesTopic: 'hermes/dialogueManager/startSession',
-    dialogPublication: 'start_session'
+    facadePublication: 'start_session'
   })
 })
-it('should publish a continue session event', () => {
+it('[dialog] should publish a continue session event', () => {
   return setupPublisherTest({
     client,
-    dialog,
+    facade: dialog,
     publishedJson: require('./hermesPublished/ContinueSession.json'),
     hermesTopic: 'hermes/dialogueManager/continueSession',
-    dialogPublication: 'continue_session'
+    facadePublication: 'continue_session'
   })
 })
-it('should publish an end session event', () => {
+it('[dialog] should publish an end session event', () => {
   return setupPublisherTest({
     client,
-    dialog,
+    facade: dialog,
     publishedJson: require('./hermesPublished/EndSession.json'),
     hermesTopic: 'hermes/dialogueManager/endSession',
-    dialogPublication: 'end_session'
+    facadePublication: 'end_session'
+  })
+})
+
+// Injection
+
+it('[injection] should publish an injection request event', () => {
+  return setupPublisherTest({
+    client,
+    facade: injection,
+    publishedJson: require('./hermesPublished/InjectionRequest.json'),
+    expectedJson: require('./mqttPublished/InjectionRequest.json'),
+    hermesTopic: 'hermes/injection/perform',
+    facadePublication: 'injection_request'
   })
 })
 
 /* Subscribe */
 
-it('should receive and parse a session started event', () => {
+it('[dialog] should receive and parse a session started event', () => {
   return setupSubscriberTest({
     client,
-    dialog,
+    facade: dialog,
     mqttJson: require('./mqttPublished/SessionStarted.json'),
     hermesTopic: 'hermes/dialogueManager/sessionStarted',
-    dialogSubscription: 'session_started'
+    facadeSubscription: 'session_started'
   })
 })
 
-it('should receive and parse a session queued event', () => {
+it('[dialog] should receive and parse a session queued event', () => {
   return setupSubscriberTest({
     client,
-    dialog,
+    facade: dialog,
     mqttJson: require('./mqttPublished/SessionQueued.json'),
     hermesTopic: 'hermes/dialogueManager/sessionQueued',
-    dialogSubscription: 'session_queued'
+    facadeSubscription: 'session_queued'
   })
 })
 
-it('should receive and parse a session ended event', () => {
+it('[dialog] should receive and parse a session ended event', () => {
   return setupSubscriberTest({
     client,
-    dialog,
+    facade: dialog,
     mqttJson: require('./mqttPublished/SessionEnded.json'),
     expectedJson: require('./hermesPublished/SessionEnded.json'),
     hermesTopic: 'hermes/dialogueManager/sessionEnded',
-    dialogSubscription: 'session_ended'
+    facadeSubscription: 'session_ended'
   })
 })
 
-it('should receive and parse an intent not recognized event', () => {
+it('[dialog] should receive and parse an intent not recognized event', () => {
   return setupSubscriberTest({
     client,
-    dialog,
+    facade: dialog,
     mqttJson: require('./mqttPublished/IntentNotRecognized.json'),
     hermesTopic: 'hermes/dialogueManager/intentNotRecognized',
-    dialogSubscription: 'intent_not_recognized'
+    facadeSubscription: 'intent_not_recognized'
   })
 })
 
-it('should receive events related to any intent', () => {
+it('[dialog] should receive events related to any intent', () => {
   return setupSubscriberTest({
     client,
-    dialog,
+    facade: dialog,
     mqttJson: require('./mqttPublished/Intent.json'),
     expectedJson: require('./hermesPublished/Intent.json'),
     hermesTopic: 'hermes/intent/intentA',
-    dialogSubscription: 'intents'
+    facadeSubscription: 'intents'
   })
 })
 
-it('should receive events related to a specific intent', () => {
+it('[dialog] should receive events related to a specific intent', () => {
   return setupSubscriberTest({
     client,
-    dialog,
+    facade: dialog,
     mqttJson: require('./mqttPublished/Intent.json'),
     expectedJson: require('./hermesPublished/Intent.json'),
     hermesTopic: 'hermes/intent/anIntent',
-    dialogSubscription: 'intent/anIntent'
+    facadeSubscription: 'intent/anIntent'
   })
 })

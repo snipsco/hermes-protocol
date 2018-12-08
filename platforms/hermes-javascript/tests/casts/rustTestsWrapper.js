@@ -18,12 +18,13 @@ module.exports.library = libraryPath => ffi.Library(libraryPath, {
 })
 
 module.exports.call = function(libraryPath = path.resolve(__dirname, '../../../../target/release/libhermes_ffi_test')) {
+    const library = module.exports.library(libraryPath)
     return function(funName, ...args) {
-        const result = module.exports.library(libraryPath)[funName](...args)
+        const result = library[funName](...args)
         if(result === 0)
             return
         const errorRef = ref.alloc('char **')
-        module.exports.library(libraryPath)['hermes_ffi_test_get_last_error'](errorRef)
+        library['hermes_ffi_test_get_last_error'](errorRef)
         let errorMessage = 'Error while calling function ' + funName + '\n'
         errorMessage += errorRef.deref().readCString(0)
         throw new Error(errorMessage)

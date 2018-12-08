@@ -287,7 +287,8 @@ dialog.publish('start_session', {
             {
                 text: /* string */,
                 intent_filter: /* string[] */,
-                can_be_enqueued: /* char */
+                can_be_enqueued: /* boolean */,
+                send_intent_not_recognized: /* boolean */
             }
     }
 })

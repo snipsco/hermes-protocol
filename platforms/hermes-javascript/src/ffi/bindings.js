@@ -24,6 +24,7 @@ module.exports.library = libraryPath => ffi.Library(libraryPath, {
 
     hermes_protocol_handler_dialogue_facade: [ 'int', [ 'void *', 'void **' ]],
     hermes_drop_dialogue_facade: [ 'int', [ 'void *' ]],
+
     hermes_drop_continue_session_message: [ 'int', [ 'void *' ]],
     hermes_drop_end_session_message: [ 'int', [ 'void *' ]],
     hermes_drop_start_session_message: [ 'int', [ 'void *' ]],
@@ -49,7 +50,7 @@ module.exports.library = libraryPath => ffi.Library(libraryPath, {
     hermes_dialogue_publish_end_session: [ 'int', [ 'void *', 'void *' ]],
     // Programmatically start a new session
     hermes_dialogue_publish_start_session: [ 'int', [ 'void *', 'void *' ]],
-    // Callbacj - Subscribe to intents detected
+    // Callback - Subscribe to intents detected
     hermes_dialogue_subscribe_intent: [ 'int', [ 'void *', 'char *', 'void *' ]],
     hermes_dialogue_subscribe_intents: [ 'int', [ 'void *', 'void *' ]],
     hermes_dialogue_subscribe_intent_not_recognized: [ 'int', [ 'void *', 'void *' ]],
@@ -65,6 +66,7 @@ module.exports.library = libraryPath => ffi.Library(libraryPath, {
     // Allocators & destructors
     hermes_protocol_handler_injection_facade: [ 'int', [ 'void *', 'void **' ]],
     hermes_drop_injection_facade: [ 'int', [ 'void *' ]],
+
     hermes_injection_publish_injection_request: [ 'int', [ 'void *', 'void * ']],
 
     /* Others */
@@ -80,12 +82,13 @@ module.exports.library = libraryPath => ffi.Library(libraryPath, {
  * @param {*} libraryPath
  */
 module.exports.call = function(libraryPath = path.resolve(__dirname, '../../libhermes_mqtt_ffi')) {
+    const library = module.exports.library(libraryPath)
     return function(funName, ...args) {
-        const result = module.exports.library(libraryPath)[funName](...args)
+        const result = library[funName](...args)
         if(result === 0)
             return
         const errorRef = ref.alloc('char **')
-        module.exports.library(libraryPath)['hermes_get_last_error'](errorRef)
+        library['hermes_get_last_error'](errorRef)
         let errorMessage = 'Error while calling function ' + funName + '\n'
         errorMessage += errorRef.deref().readCString(0)
         throw new Error(errorMessage)

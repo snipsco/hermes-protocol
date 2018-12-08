@@ -34,15 +34,15 @@ const exportedObject = {
     },
     setupPublisherTest: ({
         client,
-        dialog,
+        facade,
         publishedJson,
         expectedJson,
         hermesTopic,
-        dialogPublication
+        facadePublication
     }) => {
         return new Promise(resolve => {
             client.subscribe(hermesTopic, function() {
-                dialog.publish(dialogPublication, publishedJson)
+                facade.publish(facadePublication, publishedJson)
             })
             client.on('message', (topic, messageBuffer) => {
                 const message = JSON.parse(messageBuffer.toString())
@@ -55,14 +55,14 @@ const exportedObject = {
     },
     setupSubscriberTest: ({
         client,
-        dialog,
+        facade,
         mqttJson,
         expectedJson,
         hermesTopic,
-        dialogSubscription
+        facadeSubscription
     }) => {
         return new Promise(resolve => {
-            dialog.once(dialogSubscription, message => {
+            facade.once(facadeSubscription, message => {
                 const expected = expectedJson || exportedObject.camelize(mqttJson)
                 const received = expectedJson ? message : exportedObject.camelize(message)
                 expect(received).toMatchObject(expected)

@@ -61,8 +61,8 @@ class Hermes {
      * Disposes the hermes object and its underlying resources.
      */
     destroy() {
-        this.activeSubsets.forEach(value => {
-            value.destroy()
+        this.activeSubsets.forEach(subset => {
+            subset.destroy()
         })
         this.call('hermes_destroy_mqtt_protocol_handler', this.protocolHandler)
     }
