@@ -27,7 +27,7 @@ class StartSessionMessage extends Casteable {
                         }
                     })
                 } else if(init_type === 2) {
-                    value = valuePtr.readCString(0)
+                    value = valuePtr.readCString()
                 }
                 return {
                     init_type,

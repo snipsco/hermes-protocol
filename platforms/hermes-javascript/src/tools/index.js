@@ -65,7 +65,7 @@ module.exports = {
                     // console.log('beforeStructTypeCall ', key, ' > ', valueType)
                     obj[key] = module.exports.cast(value)
                 } else if(valueType === 'char*' || valueType === 'string') {
-                    obj[key] = value.readCString(0)
+                    obj[key] = value.readCString()
                 } else {
                     obj[key] = value.deref()
                 }

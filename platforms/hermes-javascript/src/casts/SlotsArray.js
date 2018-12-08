@@ -25,7 +25,7 @@ function castSlot (slot) {
             let value
             switch(value_type) {
                 case 1:
-                    value = valuePtr.readCString(0)
+                    value = valuePtr.readCString()
                     break
                 case 2:
                     valuePtr = ref.reinterpret(valuePtr, ref.types.double.size)

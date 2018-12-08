@@ -26,7 +26,7 @@ module.exports.call = function(libraryPath = path.resolve(__dirname, '../../../.
         const errorRef = ref.alloc('char **')
         library['hermes_ffi_test_get_last_error'](errorRef)
         let errorMessage = 'Error while calling function ' + funName + '\n'
-        errorMessage += errorRef.deref().readCString(0)
+        errorMessage += errorRef.deref().readCString()
         throw new Error(errorMessage)
     }
 }
