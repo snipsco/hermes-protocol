@@ -1,4 +1,4 @@
-use super::{HermesMessage, RequestId};
+use super::HermesMessage;
 use chrono::prelude::*;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::collections::HashMap;
@@ -63,7 +63,7 @@ pub struct InjectionRequestMessage {
     /// Language for cross-language G2P
     pub cross_language: Option<String>,
     /// The id of the `InjectionRequest` that was processed
-    pub id: Option<RequestId>,
+    pub id: Option<String>,
 }
 
 impl<'de> HermesMessage<'de> for InjectionRequestMessage {}

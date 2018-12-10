@@ -1,14 +1,14 @@
-use super::{AsrToken, HermesMessage, NluSlot, SessionId, SiteId};
+use super::{AsrToken, HermesMessage, NluSlot};
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct IntentMessage {
     /// The session in which this intent was detected
-    pub session_id: SessionId,
+    pub session_id: String,
     /// The custom data that was given at the session creation
     pub custom_data: Option<String>,
     /// The site where the intent was detected.
-    pub site_id: SiteId,
+    pub site_id: String,
     /// The input that generated this intent
     pub input: String,
     /// The tokens detected by the ASR. The first vec represents the different ASR invocations
@@ -25,11 +25,11 @@ impl<'de> HermesMessage<'de> for IntentMessage {}
 #[serde(rename_all = "camelCase")]
 pub struct IntentNotRecognizedMessage {
     /// The session in which no intent was recognized
-    pub session_id: SessionId,
+    pub session_id: String,
     /// The custom data that was given at the session creation
     pub custom_data: Option<String>,
     /// The site where the intent was detected.
-    pub site_id: SiteId,
+    pub site_id: String,
     /// The text that didn't match any intent, `None` if no text wa captured
     pub input: Option<String>,
 }
@@ -78,7 +78,7 @@ pub struct StartSessionMessage {
     pub custom_data: Option<String>,
     /// The site where the session should be started, a value of `None` will be interpreted as the
     /// default one
-    pub site_id: Option<SiteId>,
+    pub site_id: Option<String>,
 }
 
 impl<'de> HermesMessage<'de> for StartSessionMessage {}
@@ -91,7 +91,7 @@ pub struct SessionStartedMessage {
     /// The custom data that was given at the session creation
     pub custom_data: Option<String>,
     /// The site on which this session was started
-    pub site_id: SiteId,
+    pub site_id: String,
     /// This optional field indicates this session is a reactivation of a previously ended session.
     /// This is for example provided when the user continues talking to the platform without saying
     /// the hotword again after a session was ended.
@@ -108,7 +108,7 @@ pub struct SessionQueuedMessage {
     /// The custom data that was given at the session creation
     pub custom_data: Option<String>,
     /// The site on which this session was started
-    pub site_id: SiteId,
+    pub site_id: String,
 }
 
 impl<'de> HermesMessage<'de> for SessionQueuedMessage {}
@@ -175,7 +175,7 @@ pub struct SessionEndedMessage {
     /// How the session was ended
     pub termination: SessionTerminationType,
     /// The site on which this session was ended.
-    pub site_id: SiteId,
+    pub site_id: String,
 }
 
 impl<'de> HermesMessage<'de> for SessionEndedMessage {}

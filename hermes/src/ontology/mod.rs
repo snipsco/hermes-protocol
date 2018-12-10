@@ -6,17 +6,13 @@ use serde::{Deserialize, Serialize};
 
 pub trait HermesMessage<'de>: fmt::Debug + Deserialize<'de> + Serialize {}
 
-pub type SiteId = String;
-pub type SessionId = String;
-pub type RequestId = String;
-
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SiteMessage {
     /// The site concerned
-    pub site_id: SiteId,
+    pub site_id: String,
     /// An optional session id if there is a related session
-    pub session_id: Option<SessionId>,
+    pub session_id: Option<String>,
 }
 
 impl Default for SiteMessage {
@@ -67,7 +63,7 @@ impl<'de> HermesMessage<'de> for VersionMessage {}
 #[serde(rename_all = "camelCase")]
 pub struct ErrorMessage {
     /// An optional session id if there is a related session
-    pub session_id: Option<SessionId>,
+    pub session_id: Option<String>,
     /// The error that occurred
     pub error: String,
     /// Optional additional information on the context in which the error occurred

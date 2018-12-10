@@ -420,7 +420,7 @@ macro_rules! impl_identifiable_toggleable_facades_for {
 macro_rules! impl_identifiable_component_facades_for {
     ($t:ty) => {
         impl IdentifiableComponentFacade for $t {
-            fn publish_version_request(&self, site_id: SiteId) -> Fallible<()> {
+            fn publish_version_request(&self, site_id: String) -> Fallible<()> {
                 self.mqtt_handler.publish(&HermesTopic::Component(
                     Some(site_id),
                     self.component,
@@ -430,7 +430,7 @@ macro_rules! impl_identifiable_component_facades_for {
 
             fn subscribe_version(
                 &self,
-                site_id: SiteId,
+                site_id: String,
                 handler: Callback<VersionMessage>,
             ) -> Fallible<()> {
                 self.mqtt_handler.subscribe_payload(
@@ -445,7 +445,7 @@ macro_rules! impl_identifiable_component_facades_for {
 
             fn subscribe_error(
                 &self,
-                site_id: SiteId,
+                site_id: String,
                 handler: Callback<ErrorMessage>,
             ) -> Fallible<()> {
                 self.mqtt_handler.subscribe_payload(
@@ -458,7 +458,7 @@ macro_rules! impl_identifiable_component_facades_for {
         impl IdentifiableComponentBackendFacade for $t {
             fn subscribe_version_request(
                 &self,
-                site_id: SiteId,
+                site_id: String,
                 handler: Callback0,
             ) -> Fallible<()> {
                 self.mqtt_handler.subscribe(
@@ -471,7 +471,7 @@ macro_rules! impl_identifiable_component_facades_for {
                 )
             }
 
-            fn publish_version(&self, site_id: SiteId, version: VersionMessage) -> Fallible<()> {
+            fn publish_version(&self, site_id: String, version: VersionMessage) -> Fallible<()> {
                 self.mqtt_handler.publish_payload(
                     &HermesTopic::Component(
                         Some(site_id),
@@ -482,7 +482,7 @@ macro_rules! impl_identifiable_component_facades_for {
                 )
             }
 
-            fn publish_error(&self, site_id: SiteId, error: ErrorMessage) -> Fallible<()> {
+            fn publish_error(&self, site_id: String, error: ErrorMessage) -> Fallible<()> {
                 self.mqtt_handler.publish_payload(
                     &HermesTopic::Component(Some(site_id), self.component, ComponentCommand::Error),
                     error,
@@ -590,7 +590,7 @@ impl NluBackendFacade for MqttComponentFacade {
 }
 
 impl AudioServerFacade for MqttToggleableComponentFacade {
-    s_bin!(subscribe_audio_frame<AudioFrameMessage>(site_id: SiteId) { &HermesTopic::AudioServer(Some(site_id), AudioServerCommand::AudioFrame) }
+    s_bin!(subscribe_audio_frame<AudioFrameMessage>(site_id: String) { &HermesTopic::AudioServer(Some(site_id), AudioServerCommand::AudioFrame) }
             |topic, bytes| {
                 if let HermesTopic::AudioServer(Some(ref site_id), AudioServerCommand::AudioFrame) = *topic {
                     AudioFrameMessage { site_id: site_id.to_owned(), wav_frame: bytes.into() }
@@ -599,7 +599,7 @@ impl AudioServerFacade for MqttToggleableComponentFacade {
                 }
             });
     p!(publish_replay_request(message: ReplayRequestMessage) { &HermesTopic::AudioServer(Some(message.site_id.clone()), AudioServerCommand::ReplayRequest) });
-    s_bin!(subscribe_replay_response<AudioFrameMessage>(site_id: SiteId) { &HermesTopic::AudioServer(Some(site_id), AudioServerCommand::ReplayResponse) }
+    s_bin!(subscribe_replay_response<AudioFrameMessage>(site_id: String) { &HermesTopic::AudioServer(Some(site_id), AudioServerCommand::ReplayResponse) }
             |topic, bytes| {
                 if let HermesTopic::AudioServer(Some(ref site_id), AudioServerCommand::ReplayResponse) = *topic {
                     AudioFrameMessage { site_id: site_id.to_owned(), wav_frame: bytes.into() }
@@ -610,7 +610,7 @@ impl AudioServerFacade for MqttToggleableComponentFacade {
     p_bin!(publish_play_bytes(bytes: PlayBytesMessage)
         { &HermesTopic::AudioServer(Some(bytes.site_id), AudioServerCommand::PlayBytes(bytes.id)) }
         { bytes.wav_bytes });
-    s!(subscribe_play_finished<PlayFinishedMessage>(site_id: SiteId) { &HermesTopic::AudioServer(Some(site_id), AudioServerCommand::PlayFinished) });
+    s!(subscribe_play_finished<PlayFinishedMessage>(site_id: String) { &HermesTopic::AudioServer(Some(site_id), AudioServerCommand::PlayFinished) });
     s!(subscribe_all_play_finished<PlayFinishedMessage> &HermesTopic::AudioServer(Some("+".into()), AudioServerCommand::PlayFinished););
 }
 
@@ -618,7 +618,7 @@ impl AudioServerBackendFacade for MqttToggleableComponentFacade {
     p_bin!(publish_audio_frame(frame: AudioFrameMessage)
         { &HermesTopic::AudioServer(Some(frame.site_id), AudioServerCommand::AudioFrame) }
         { frame.wav_frame });
-    s!(subscribe_replay_request<ReplayRequestMessage>(site_id: SiteId) { &HermesTopic::AudioServer(Some(site_id), AudioServerCommand::ReplayRequest) } );
+    s!(subscribe_replay_request<ReplayRequestMessage>(site_id: String) { &HermesTopic::AudioServer(Some(site_id), AudioServerCommand::ReplayRequest) } );
     p_bin!(publish_replay_response(frame: AudioFrameMessage)
         { &HermesTopic::AudioServer(Some(frame.site_id), AudioServerCommand::ReplayResponse) }
         { frame.wav_frame });
@@ -630,7 +630,7 @@ impl AudioServerBackendFacade for MqttToggleableComponentFacade {
                     unreachable!()
                 }
             });
-    s_bin!(subscribe_play_bytes<PlayBytesMessage>(site_id: SiteId) { &HermesTopic::AudioServer(Some(site_id), AudioServerCommand::PlayBytes("#".into())) }
+    s_bin!(subscribe_play_bytes<PlayBytesMessage>(site_id: String) { &HermesTopic::AudioServer(Some(site_id), AudioServerCommand::PlayBytes("#".into())) }
             |topic, bytes| {
                 if let HermesTopic::AudioServer(Some(ref site_id), AudioServerCommand::PlayBytes(ref request_id)) = *topic {
                     PlayBytesMessage { site_id: site_id.to_owned(), id: request_id.to_owned(), wav_bytes: bytes.into() }

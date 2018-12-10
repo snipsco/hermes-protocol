@@ -299,20 +299,20 @@ impl<T: Send + Sync + Debug + Copy + 'static> ComponentBackendFacade for InProce
 
 #[derive(Debug)]
 struct IdentifiableComponentVersionRequest<T: Debug> {
-    site_id: SiteId,
+    site_id: String,
     component: T,
 }
 
 #[derive(Debug)]
 struct IdentifiableComponentVersion<T: Debug> {
-    site_id: SiteId,
+    site_id: String,
     version: VersionMessage,
     component: T,
 }
 
 #[derive(Debug)]
 struct IdentifiableComponentError<T: Debug> {
-    site_id: SiteId,
+    site_id: String,
     error: ErrorMessage,
     component: T,
 }
@@ -320,22 +320,22 @@ struct IdentifiableComponentError<T: Debug> {
 impl<T: Send + Sync + Debug + Copy + 'static> IdentifiableComponentFacade
     for InProcessComponent<T>
 {
-    fn publish_version_request(&self, site_id: SiteId) -> Fallible<()> {
-        let version_request: IdentifiableComponentVersionRequest<T> =
-            IdentifiableComponentVersionRequest {
-                site_id,
-                component: self.component,
-            };
+    fn publish_version_request(&self, site_id: String) -> Fallible<()> {
+        let version_request = IdentifiableComponentVersionRequest {
+            site_id,
+            component: self.component,
+        };
         self.publish(version_request)
     }
     fn subscribe_version(
         &self,
-        site_id: SiteId,
+        site_id: String,
         handler: Callback<VersionMessage>,
     ) -> Fallible<()> {
         subscribe_filter!(self, IdentifiableComponentVersion<T> { version }, handler, site_id, |it| {&it.site_id})
     }
-    fn subscribe_error(&self, site_id: SiteId, handler: Callback<ErrorMessage>) -> Fallible<()> {
+
+    fn subscribe_error(&self, site_id: String, handler: Callback<ErrorMessage>) -> Fallible<()> {
         subscribe_filter!(self, IdentifiableComponentError<T> { error }, handler, site_id, |it| {&it.site_id})
     }
 }
@@ -343,7 +343,7 @@ impl<T: Send + Sync + Debug + Copy + 'static> IdentifiableComponentFacade
 impl<T: Send + Sync + Debug + Copy + 'static> IdentifiableComponentBackendFacade
     for InProcessComponent<T>
 {
-    fn subscribe_version_request(&self, site_id: SiteId, handler: Callback0) -> Fallible<()> {
+    fn subscribe_version_request(&self, site_id: String, handler: Callback0) -> Fallible<()> {
         subscribe_filter!(
             self,
             IdentifiableComponentVersionRequest<T>,
@@ -351,7 +351,7 @@ impl<T: Send + Sync + Debug + Copy + 'static> IdentifiableComponentBackendFacade
             site_id
         )
     }
-    fn publish_version(&self, site_id: SiteId, version: VersionMessage) -> Fallible<()> {
+    fn publish_version(&self, site_id: String, version: VersionMessage) -> Fallible<()> {
         let component_version: IdentifiableComponentVersion<T> = IdentifiableComponentVersion {
             site_id,
             version,
@@ -359,7 +359,7 @@ impl<T: Send + Sync + Debug + Copy + 'static> IdentifiableComponentBackendFacade
         };
         self.publish(component_version)
     }
-    fn publish_error(&self, site_id: SiteId, error: ErrorMessage) -> Fallible<()> {
+    fn publish_error(&self, site_id: String, error: ErrorMessage) -> Fallible<()> {
         let component_error: IdentifiableComponentError<T> = IdentifiableComponentError {
             site_id,
             error,
@@ -768,7 +768,7 @@ impl AudioServerFacade for InProcessComponent<AudioServer> {
 
     fn subscribe_play_finished(
         &self,
-        site_id: SiteId,
+        site_id: String,
         handler: Callback<PlayFinishedMessage>,
     ) -> Fallible<()> {
         subscribe_filter!(self, AudioServerPlayFinished { status }, handler, site_id)
@@ -780,7 +780,7 @@ impl AudioServerFacade for InProcessComponent<AudioServer> {
 
     fn subscribe_audio_frame(
         &self,
-        site_id: SiteId,
+        site_id: String,
         handler: Callback<AudioFrameMessage>,
     ) -> Fallible<()> {
         subscribe_filter!(self, AudioServerAudioFrame { frame }, handler, site_id)
@@ -792,7 +792,7 @@ impl AudioServerFacade for InProcessComponent<AudioServer> {
 
     fn subscribe_replay_response(
         &self,
-        site_id: SiteId,
+        site_id: String,
         handler: Callback<AudioFrameMessage>,
     ) -> Fallible<()> {
         subscribe_filter!(self, AudioServerReplayResponse { frame }, handler, site_id)
@@ -802,7 +802,7 @@ impl AudioServerFacade for InProcessComponent<AudioServer> {
 impl AudioServerBackendFacade for InProcessComponent<AudioServer> {
     fn subscribe_play_bytes(
         &self,
-        site_id: SiteId,
+        site_id: String,
         handler: Callback<PlayBytesMessage>,
     ) -> Fallible<()> {
         subscribe_filter!(self, AudioServerPlayBytes { bytes }, handler, site_id)
@@ -822,7 +822,7 @@ impl AudioServerBackendFacade for InProcessComponent<AudioServer> {
 
     fn subscribe_replay_request(
         &self,
-        site_id: SiteId,
+        site_id: String,
         handler: Callback<ReplayRequestMessage>,
     ) -> Fallible<()> {
         subscribe_filter!(self, AudioServerReplayRequest { request }, handler, site_id)

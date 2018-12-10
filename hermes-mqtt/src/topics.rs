@@ -1,5 +1,3 @@
-use hermes::SiteId;
-
 use std::{fmt, path};
 
 pub trait ToPath: ToString {
@@ -22,13 +20,13 @@ pub trait FromPath<T: Sized> {
 pub enum HermesTopic {
     Feedback(FeedbackCommand),
     DialogueManager(DialogueManagerCommand),
-    VoiceActivity(SiteId, VoiceActivityCommand),
+    VoiceActivity(String, VoiceActivityCommand),
     Hotword(Option<String>, HotwordCommand),
     Asr(AsrCommand),
     Tts(TtsCommand),
     Nlu(NluCommand),
     Intent(String),
-    AudioServer(Option<SiteId>, AudioServerCommand),
+    AudioServer(Option<String>, AudioServerCommand),
     Injection(InjectionCommand),
     Component(Option<String>, Component, ComponentCommand),
 }
