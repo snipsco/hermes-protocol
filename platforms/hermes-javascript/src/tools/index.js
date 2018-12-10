@@ -1,27 +1,16 @@
 const Int64 = require('node-int64')
 
-let _keepAlive = true
-const keepAliveFunction = function (timer) {
-    if(_keepAlive) {
-        module.exports.keepAlive(timer)
-    }
-}
-
 module.exports = {
     /**
      * Prevents the process from terminating.
      */
-    keepAlive: function (timer) {
-        if(timer) {
-            setTimeout(() => keepAliveFunction(timer), timer)
-        } else {
-            setImmediate(() => keepAliveFunction(timer))
-        }
+    keepAlive: function (timer = 20) {
+        return setInterval(() => {}, timer)
     },
     /**
      * Stops the keepAlive loop.
      */
-    killKeepAlive: () => { _keepAlive = false },
+    killKeepAlive: keepAliveRef => { clearInterval(keepAliveRef) },
     /**
      * Generic C struct to JS object casting method.
      */

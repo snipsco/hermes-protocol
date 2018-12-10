@@ -9,12 +9,12 @@ const tools = require('./tools')
  */
 const withHermes = function(context, opts) {
     const hermes = new Hermes(opts)
+    const keepAliveRef = tools.keepAlive(20)
     const done = () => {
         hermes.destroy()
-        tools.killKeepAlive()
+        tools.killKeepAlive(keepAliveRef)
     }
     context(hermes, done)
-    tools.keepAlive(20)
 }
 
 module.exports = {
