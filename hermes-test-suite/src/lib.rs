@@ -96,9 +96,7 @@ macro_rules! t {
             receiver
                 .$s(
                     $a,
-                    Callback::new(move |o: &$t| {
-                        tx.lock().map(|it| it.send(o.clone())).unwrap().unwrap()
-                    }),
+                    Callback::new(move |o: &$t| tx.lock().map(|it| it.send(o.clone())).unwrap().unwrap()),
                 )
                 .unwrap();
             let message = $object;
@@ -149,9 +147,7 @@ macro_rules! t {
             receiver
                 .$s(
                     $a,
-                    Callback::new(move |o: &$t| {
-                        tx.lock().map(|it| it.send(o.clone())).unwrap().unwrap()
-                    }),
+                    Callback::new(move |o: &$t| tx.lock().map(|it| it.send(o.clone())).unwrap().unwrap()),
                 )
                 .unwrap();
             let message = $object;

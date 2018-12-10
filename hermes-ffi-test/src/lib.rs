@@ -15,8 +15,7 @@ fn round_trip<T, U>(input: *const T, output: *mut *const T) -> Fallible<()>
 where
     T: AsRust<U> + CReprOf<U>,
 {
-    let input = unsafe { input.as_ref() }
-        .ok_or_else(|| format_err!("unexpected null pointer given as the message"))?;
+    let input = unsafe { input.as_ref() }.ok_or_else(|| format_err!("unexpected null pointer given as the message"))?;
 
     let rust_object = input.as_rust()?;
 

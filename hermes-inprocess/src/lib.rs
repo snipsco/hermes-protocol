@@ -54,6 +54,7 @@ impl HermesProtocolHandler for InProcessHermesProtocolHandler {
     fn asr(&self) -> Box<AsrFacade> {
         self.get_handler(Asr)
     }
+
     fn tts(&self) -> Box<TtsFacade> {
         self.get_handler(Tts)
     }
@@ -146,8 +147,7 @@ impl<T: Send + Sync + Debug> InProcessComponent<T> {
 
     fn subscribe0<M: ripb::Message + 'static>(&self, callback: Callback0) -> Fallible<()> {
         let mut subscriber = self.subscriber.lock().map_err(PoisonLock::from)?;
-        let subscriber =
-            subscriber.get_or_insert_with(|| self.bus.lock().unwrap().create_subscriber());
+        let subscriber = subscriber.get_or_insert_with(|| self.bus.lock().unwrap().create_subscriber());
         subscriber.on_message(move |_: &M| callback.call());
         Ok(())
     }
@@ -159,8 +159,7 @@ impl<T: Send + Sync + Debug> InProcessComponent<T> {
         C: Fn(&M) -> &P + Send + 'static,
     {
         let mut subscriber = self.subscriber.lock().map_err(PoisonLock::from)?;
-        let subscriber =
-            subscriber.get_or_insert_with(|| self.bus.lock().unwrap().create_subscriber());
+        let subscriber = subscriber.get_or_insert_with(|| self.bus.lock().unwrap().create_subscriber());
         subscriber.on_message(move |m: &M| callback.call(converter(m)));
         Ok(())
     }
@@ -171,8 +170,7 @@ impl<T: Send + Sync + Debug> InProcessComponent<T> {
         F: Fn(&M) -> bool + Send + 'static,
     {
         let mut subscriber = self.subscriber.lock().map_err(PoisonLock::from)?;
-        let subscriber =
-            subscriber.get_or_insert_with(|| self.bus.lock().unwrap().create_subscriber());
+        let subscriber = subscriber.get_or_insert_with(|| self.bus.lock().unwrap().create_subscriber());
         subscriber.on_message(move |m: &M| {
             if filter(m) {
                 callback.call()
@@ -181,12 +179,7 @@ impl<T: Send + Sync + Debug> InProcessComponent<T> {
         Ok(())
     }
 
-    fn subscribe_filter<M, P, C, F>(
-        &self,
-        callback: Callback<P>,
-        converter: C,
-        filter: F,
-    ) -> Fallible<()>
+    fn subscribe_filter<M, P, C, F>(&self, callback: Callback<P>, converter: C, filter: F) -> Fallible<()>
     where
         M: ripb::Message + Debug + 'static,
         P: 'static,
@@ -194,8 +187,7 @@ impl<T: Send + Sync + Debug> InProcessComponent<T> {
         F: Fn(&M) -> bool + Send + 'static,
     {
         let mut subscriber = self.subscriber.lock().map_err(PoisonLock::from)?;
-        let subscriber =
-            subscriber.get_or_insert_with(|| self.bus.lock().unwrap().create_subscriber());
+        let subscriber = subscriber.get_or_insert_with(|| self.bus.lock().unwrap().create_subscriber());
         subscriber.on_message(move |m: &M| {
             if filter(m) {
                 callback.call(converter(m))
@@ -234,11 +226,7 @@ macro_rules! subscribe_filter {
         $filter_path:block
     ) => {{
         debug!("Subscribing on {:?}/{}", $sel.component, stringify!($t));
-        $sel.subscribe_filter(
-            $handler,
-            |it: &$t| &it.$field,
-            move |$it: &$t| $filter_path == &$filter,
-        )
+        $sel.subscribe_filter($handler, |it: &$t| &it.$field, move |$it: &$t| $filter_path == &$filter)
     }};
     ($sel:ident, $t:ty, $handler:ident, $filter:ident) => {{
         debug!("Subscribing on {:?}/{}", $sel.component, stringify!($t));
@@ -281,6 +269,7 @@ impl<T: Send + Sync + Debug + Copy + 'static> ComponentBackendFacade for InProce
     fn subscribe_version_request(&self, handler: Callback0) -> Fallible<()> {
         subscribe!(self, ComponentVersionRequest<T>, handler)
     }
+
     fn publish_version(&self, version: VersionMessage) -> Fallible<()> {
         let component_version: ComponentVersion<T> = ComponentVersion {
             version,
@@ -288,6 +277,7 @@ impl<T: Send + Sync + Debug + Copy + 'static> ComponentBackendFacade for InProce
         };
         self.publish(component_version)
     }
+
     fn publish_error(&self, error: ErrorMessage) -> Fallible<()> {
         let component_error: ComponentError<T> = ComponentError {
             error,
@@ -317,9 +307,7 @@ struct IdentifiableComponentError<T: Debug> {
     component: T,
 }
 
-impl<T: Send + Sync + Debug + Copy + 'static> IdentifiableComponentFacade
-    for InProcessComponent<T>
-{
+impl<T: Send + Sync + Debug + Copy + 'static> IdentifiableComponentFacade for InProcessComponent<T> {
     fn publish_version_request(&self, site_id: String) -> Fallible<()> {
         let version_request = IdentifiableComponentVersionRequest {
             site_id,
@@ -327,11 +315,8 @@ impl<T: Send + Sync + Debug + Copy + 'static> IdentifiableComponentFacade
         };
         self.publish(version_request)
     }
-    fn subscribe_version(
-        &self,
-        site_id: String,
-        handler: Callback<VersionMessage>,
-    ) -> Fallible<()> {
+
+    fn subscribe_version(&self, site_id: String, handler: Callback<VersionMessage>) -> Fallible<()> {
         subscribe_filter!(self, IdentifiableComponentVersion<T> { version }, handler, site_id, |it| {&it.site_id})
     }
 
@@ -340,17 +325,11 @@ impl<T: Send + Sync + Debug + Copy + 'static> IdentifiableComponentFacade
     }
 }
 
-impl<T: Send + Sync + Debug + Copy + 'static> IdentifiableComponentBackendFacade
-    for InProcessComponent<T>
-{
+impl<T: Send + Sync + Debug + Copy + 'static> IdentifiableComponentBackendFacade for InProcessComponent<T> {
     fn subscribe_version_request(&self, site_id: String, handler: Callback0) -> Fallible<()> {
-        subscribe_filter!(
-            self,
-            IdentifiableComponentVersionRequest<T>,
-            handler,
-            site_id
-        )
+        subscribe_filter!(self, IdentifiableComponentVersionRequest<T>, handler, site_id)
     }
+
     fn publish_version(&self, site_id: String, version: VersionMessage) -> Fallible<()> {
         let component_version: IdentifiableComponentVersion<T> = IdentifiableComponentVersion {
             site_id,
@@ -359,6 +338,7 @@ impl<T: Send + Sync + Debug + Copy + 'static> IdentifiableComponentBackendFacade
         };
         self.publish(component_version)
     }
+
     fn publish_error(&self, site_id: String, error: ErrorMessage) -> Fallible<()> {
         let component_error: IdentifiableComponentError<T> = IdentifiableComponentError {
             site_id,
@@ -381,9 +361,7 @@ struct IdentifiableToggleableToggleOff<T> {
     component: T,
 }
 
-impl<T: Send + Sync + Debug + Copy + 'static> IdentifiableToggleableFacade
-    for InProcessComponent<T>
-{
+impl<T: Send + Sync + Debug + Copy + 'static> IdentifiableToggleableFacade for InProcessComponent<T> {
     fn publish_toggle_on(&self, site: SiteMessage) -> Fallible<()> {
         let toggle_on: IdentifiableToggleableToggleOn<T> = IdentifiableToggleableToggleOn {
             site,
@@ -391,6 +369,7 @@ impl<T: Send + Sync + Debug + Copy + 'static> IdentifiableToggleableFacade
         };
         self.publish(toggle_on)
     }
+
     fn publish_toggle_off(&self, site: SiteMessage) -> Fallible<()> {
         let toggle_off: IdentifiableToggleableToggleOff<T> = IdentifiableToggleableToggleOff {
             site,
@@ -400,12 +379,11 @@ impl<T: Send + Sync + Debug + Copy + 'static> IdentifiableToggleableFacade
     }
 }
 
-impl<T: Send + Sync + Debug + 'static> IdentifiableToggleableBackendFacade
-    for InProcessComponent<T>
-{
+impl<T: Send + Sync + Debug + 'static> IdentifiableToggleableBackendFacade for InProcessComponent<T> {
     fn subscribe_toggle_on(&self, handler: Callback<SiteMessage>) -> Fallible<()> {
         subscribe!(self, IdentifiableToggleableToggleOn<T> { site }, handler)
     }
+
     fn subscribe_toggle_off(&self, handler: Callback<SiteMessage>) -> Fallible<()> {
         subscribe!(self, IdentifiableToggleableToggleOff<T> { site }, handler)
     }
@@ -463,10 +441,7 @@ impl NluFacade for InProcessComponent<Nlu> {
         subscribe!(self, NluIntentParsed { intent }, handler)
     }
 
-    fn subscribe_intent_not_recognized(
-        &self,
-        handler: Callback<NluIntentNotRecognizedMessage>,
-    ) -> Fallible<()> {
+    fn subscribe_intent_not_recognized(&self, handler: Callback<NluIntentNotRecognizedMessage>) -> Fallible<()> {
         subscribe!(self, NluIntentNotRecognized { status }, handler)
     }
 }
@@ -514,6 +489,7 @@ impl<T: Send + Sync + Debug + Copy + 'static> ToggleableFacade for InProcessComp
         };
         self.publish(toggle_on)
     }
+
     fn publish_toggle_off(&self) -> Fallible<()> {
         let toggle_off: ToggleableToggleOff<T> = ToggleableToggleOff {
             component: self.component,
@@ -526,6 +502,7 @@ impl<T: Send + Sync + Debug + 'static> ToggleableBackendFacade for InProcessComp
     fn subscribe_toggle_on(&self, handler: Callback0) -> Fallible<()> {
         subscribe!(self, ToggleableToggleOn<T>, handler)
     }
+
     fn subscribe_toggle_off(&self, handler: Callback0) -> Fallible<()> {
         subscribe!(self, ToggleableToggleOff<T>, handler)
     }
@@ -546,27 +523,13 @@ struct VoiceActivityVadDown {
 
 impl VoiceActivityFacade for InProcessComponent<VoiceActivity> {
     fn subscribe_vad_up(&self, site_id: String, handler: Callback<VadUpMessage>) -> Fallible<()> {
-        subscribe_filter!(
-            self,
-            VoiceActivityVadUp { vad_up },
-            handler,
-            site_id,
-            |it| { &it.vad_up.site_id }
-        )
+        #[rustfmt::skip]
+        subscribe_filter!(self, VoiceActivityVadUp { vad_up }, handler, site_id, |it| { &it.vad_up.site_id })
     }
 
-    fn subscribe_vad_down(
-        &self,
-        site_id: String,
-        handler: Callback<VadDownMessage>,
-    ) -> Fallible<()> {
-        subscribe_filter!(
-            self,
-            VoiceActivityVadDown { vad_down },
-            handler,
-            site_id,
-            |it| { &it.vad_down.site_id }
-        )
+    fn subscribe_vad_down(&self, site_id: String, handler: Callback<VadDownMessage>) -> Fallible<()> {
+        #[rustfmt::skip]
+        subscribe_filter!(self, VoiceActivityVadDown { vad_down }, handler, site_id, |it| &it.vad_down.site_id)
     }
 
     fn subscribe_all_vad_up(&self, handler: Callback<VadUpMessage>) -> Fallible<()> {
@@ -598,11 +561,8 @@ struct HotwordDetected {
 }
 
 impl HotwordFacade for InProcessComponent<Hotword> {
-    fn subscribe_detected(
-        &self,
-        id: String,
-        handler: Callback<HotwordDetectedMessage>,
-    ) -> Fallible<()> {
+    fn subscribe_detected(&self, id: String, handler: Callback<HotwordDetectedMessage>) -> Fallible<()> {
+        #[rustfmt::skip]
         subscribe_filter!(self, HotwordDetected { message }, handler, id, |it| { &it.id })
     }
 
@@ -667,19 +627,13 @@ impl AsrFacade for InProcessComponent<Asr> {
         subscribe!(self, AsrTextCaptured { text_captured }, handler)
     }
 
-    fn subscribe_partial_text_captured(
-        &self,
-        handler: Callback<TextCapturedMessage>,
-    ) -> Fallible<()> {
+    fn subscribe_partial_text_captured(&self, handler: Callback<TextCapturedMessage>) -> Fallible<()> {
         subscribe!(self, AsrPartialTextCaptured { text_captured }, handler)
     }
 }
 
 impl AsrBackendFacade for InProcessComponent<Asr> {
-    fn subscribe_start_listening(
-        &self,
-        handler: Callback<AsrStartListeningMessage>,
-    ) -> Fallible<()> {
+    fn subscribe_start_listening(&self, handler: Callback<AsrStartListeningMessage>) -> Fallible<()> {
         subscribe!(self, AsrStartListening { start }, handler)
     }
 
@@ -766,11 +720,7 @@ impl AudioServerFacade for InProcessComponent<AudioServer> {
         self.publish(AudioServerPlayBytes { bytes })
     }
 
-    fn subscribe_play_finished(
-        &self,
-        site_id: String,
-        handler: Callback<PlayFinishedMessage>,
-    ) -> Fallible<()> {
+    fn subscribe_play_finished(&self, site_id: String, handler: Callback<PlayFinishedMessage>) -> Fallible<()> {
         subscribe_filter!(self, AudioServerPlayFinished { status }, handler, site_id)
     }
 
@@ -778,11 +728,7 @@ impl AudioServerFacade for InProcessComponent<AudioServer> {
         subscribe!(self, AudioServerPlayFinished { status }, handler)
     }
 
-    fn subscribe_audio_frame(
-        &self,
-        site_id: String,
-        handler: Callback<AudioFrameMessage>,
-    ) -> Fallible<()> {
+    fn subscribe_audio_frame(&self, site_id: String, handler: Callback<AudioFrameMessage>) -> Fallible<()> {
         subscribe_filter!(self, AudioServerAudioFrame { frame }, handler, site_id)
     }
 
@@ -790,21 +736,13 @@ impl AudioServerFacade for InProcessComponent<AudioServer> {
         self.publish(AudioServerReplayRequest { request })
     }
 
-    fn subscribe_replay_response(
-        &self,
-        site_id: String,
-        handler: Callback<AudioFrameMessage>,
-    ) -> Fallible<()> {
+    fn subscribe_replay_response(&self, site_id: String, handler: Callback<AudioFrameMessage>) -> Fallible<()> {
         subscribe_filter!(self, AudioServerReplayResponse { frame }, handler, site_id)
     }
 }
 
 impl AudioServerBackendFacade for InProcessComponent<AudioServer> {
-    fn subscribe_play_bytes(
-        &self,
-        site_id: String,
-        handler: Callback<PlayBytesMessage>,
-    ) -> Fallible<()> {
+    fn subscribe_play_bytes(&self, site_id: String, handler: Callback<PlayBytesMessage>) -> Fallible<()> {
         subscribe_filter!(self, AudioServerPlayBytes { bytes }, handler, site_id)
     }
 
@@ -820,11 +758,7 @@ impl AudioServerBackendFacade for InProcessComponent<AudioServer> {
         self.publish(AudioServerAudioFrame { frame })
     }
 
-    fn subscribe_replay_request(
-        &self,
-        site_id: String,
-        handler: Callback<ReplayRequestMessage>,
-    ) -> Fallible<()> {
+    fn subscribe_replay_request(&self, site_id: String, handler: Callback<ReplayRequestMessage>) -> Fallible<()> {
         subscribe_filter!(self, AudioServerReplayRequest { request }, handler, site_id)
     }
 
@@ -885,11 +819,7 @@ impl DialogueFacade for InProcessComponent<Dialogue> {
         subscribe!(self, DialogueSessionStarted { status }, handler)
     }
 
-    fn subscribe_intent(
-        &self,
-        intent_name: String,
-        handler: Callback<IntentMessage>,
-    ) -> Fallible<()> {
+    fn subscribe_intent(&self, intent_name: String, handler: Callback<IntentMessage>) -> Fallible<()> {
         #[cfg_attr(rustfmt, rustfmt_skip)]
         subscribe_filter!(self, DialogueIntent { intent }, handler, intent_name, |it| { &it.intent.intent.intent_name })
     }
@@ -898,17 +828,8 @@ impl DialogueFacade for InProcessComponent<Dialogue> {
         subscribe!(self, DialogueIntent { intent }, handler)
     }
 
-    fn subscribe_intent_not_recognized(
-        &self,
-        handler: Callback<IntentNotRecognizedMessage>,
-    ) -> Fallible<()> {
-        subscribe!(
-            self,
-            DialogueIntentNotRecognized {
-                intent_not_recognized
-            },
-            handler
-        )
+    fn subscribe_intent_not_recognized(&self, handler: Callback<IntentNotRecognizedMessage>) -> Fallible<()> {
+        subscribe!(self, DialogueIntentNotRecognized { intent_not_recognized }, handler)
     }
 
     fn subscribe_session_ended(&self, handler: Callback<SessionEndedMessage>) -> Fallible<()> {
@@ -941,13 +862,8 @@ impl DialogueBackendFacade for InProcessComponent<Dialogue> {
         self.publish(DialogueIntent { intent })
     }
 
-    fn publish_intent_not_recognized(
-        &self,
-        intent_not_recognized: IntentNotRecognizedMessage,
-    ) -> Fallible<()> {
-        self.publish(DialogueIntentNotRecognized {
-            intent_not_recognized,
-        })
+    fn publish_intent_not_recognized(&self, intent_not_recognized: IntentNotRecognizedMessage) -> Fallible<()> {
+        self.publish(DialogueIntentNotRecognized { intent_not_recognized })
     }
 
     fn publish_session_ended(&self, status: SessionEndedMessage) -> Fallible<()> {
@@ -958,10 +874,7 @@ impl DialogueBackendFacade for InProcessComponent<Dialogue> {
         subscribe!(self, DialogueStartSession { start_session }, handler)
     }
 
-    fn subscribe_continue_session(
-        &self,
-        handler: Callback<ContinueSessionMessage>,
-    ) -> Fallible<()> {
+    fn subscribe_continue_session(&self, handler: Callback<ContinueSessionMessage>) -> Fallible<()> {
         subscribe!(self, DialogueContinueSession { continue_session }, handler)
     }
 
@@ -995,19 +908,13 @@ impl InjectionFacade for InProcessComponent<Injection> {
         self.publish(InjectionStatusRequest {})
     }
 
-    fn subscribe_injection_status(
-        &self,
-        handler: Callback<InjectionStatusMessage>,
-    ) -> Fallible<()> {
+    fn subscribe_injection_status(&self, handler: Callback<InjectionStatusMessage>) -> Fallible<()> {
         subscribe!(self, InjectionStatus { status }, handler)
     }
 }
 
 impl InjectionBackendFacade for InProcessComponent<Injection> {
-    fn subscribe_injection_request(
-        &self,
-        handler: Callback<InjectionRequestMessage>,
-    ) -> Fallible<()> {
+    fn subscribe_injection_request(&self, handler: Callback<InjectionRequestMessage>) -> Fallible<()> {
         subscribe!(self, InjectionPerform { request }, handler)
     }
 
@@ -1026,10 +933,7 @@ mod tests {
 
     use std::rc::Rc;
 
-    fn create_handlers() -> (
-        Rc<InProcessHermesProtocolHandler>,
-        Rc<InProcessHermesProtocolHandler>,
-    ) {
+    fn create_handlers() -> (Rc<InProcessHermesProtocolHandler>, Rc<InProcessHermesProtocolHandler>) {
         let handler = Rc::new(InProcessHermesProtocolHandler::new().unwrap());
         (Rc::clone(&handler), handler)
     }

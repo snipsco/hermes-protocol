@@ -39,7 +39,6 @@ pub struct CMqttOptions {
     tls_disable_root_store: libc::c_uchar,
 }
 
-
 impl AsRust<hermes_mqtt::MqttOptions> for CMqttOptions {
     fn as_rust(&self) -> std::result::Result<hermes_mqtt::MqttOptions, failure::Error> {
         let id = hermes_mqtt::get_mqtt_id();
@@ -86,9 +85,8 @@ pub extern "C" fn hermes_protocol_handler_new_mqtt(
         let address = create_rust_string_from!(broker_address);
         let cph = CProtocolHandler::new(
             Box::new(
-                hermes_mqtt::MqttHermesProtocolHandler::new(&address).with_context(|e| {
-                    format_err!("Could not create hermes MQTT handler: {:?}", e)
-                })?,
+                hermes_mqtt::MqttHermesProtocolHandler::new(&address)
+                    .with_context(|e| format_err!("Could not create hermes MQTT handler: {:?}", e))?,
             ),
             user_data,
         );
@@ -112,12 +110,14 @@ pub extern "C" fn hermes_protocol_handler_new_mqtt_with_options(
         mqtt_options: *const CMqttOptions,
         user_data: *mut libc::c_void,
     ) -> Result<(), failure::Error> {
-        let options = unsafe { (&*mqtt_options).as_rust() } ?;
-        let cph = CProtocolHandler::new(Box::new(
-            hermes_mqtt::MqttHermesProtocolHandler::new_with_options(options)
-                .with_context(|e| {
-                    format_err!("Could not create hermes MQTT handler: {:?}", e)
-                })?), user_data);
+        let options = unsafe { (&*mqtt_options).as_rust() }?;
+        let cph = CProtocolHandler::new(
+            Box::new(
+                hermes_mqtt::MqttHermesProtocolHandler::new_with_options(options)
+                    .with_context(|e| format_err!("Could not create hermes MQTT handler: {:?}", e))?,
+            ),
+            user_data,
+        );
         let ptr = CProtocolHandler::into_raw_pointer(cph);
         unsafe {
             *handler = ptr;
@@ -128,9 +128,7 @@ pub extern "C" fn hermes_protocol_handler_new_mqtt_with_options(
 }
 
 #[no_mangle]
-pub extern "C" fn hermes_destroy_mqtt_protocol_handler(
-    handler: *mut CProtocolHandler,
-) -> SNIPS_RESULT {
+pub extern "C" fn hermes_destroy_mqtt_protocol_handler(handler: *mut CProtocolHandler) -> SNIPS_RESULT {
     fn destroy_mqtt_handler(handler: *mut CProtocolHandler) -> Fallible<()> {
         let handler = unsafe { CProtocolHandler::from_raw_pointer(handler) }?;
         handler.destroy();

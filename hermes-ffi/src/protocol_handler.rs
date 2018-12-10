@@ -47,8 +47,7 @@ macro_rules! generate_destroy {
     ($c_symbol:ident for $cstruct:ty) => {
         #[no_mangle]
         pub extern "C" fn $c_symbol(cstruct: *const $cstruct) -> ffi_utils::SNIPS_RESULT {
-            let _ =
-                unsafe { <$cstruct as RawPointerConverter<$cstruct>>::from_raw_pointer(cstruct) };
+            let _ = unsafe { <$cstruct as RawPointerConverter<$cstruct>>::from_raw_pointer(cstruct) };
             ffi_utils::SNIPS_RESULT::SNIPS_RESULT_OK
         }
     };

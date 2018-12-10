@@ -36,10 +36,8 @@ impl AsRust<hermes::PlayBytesMessage> for CPlayBytesMessage {
     fn as_rust(&self) -> Fallible<hermes::PlayBytesMessage> {
         Ok(hermes::PlayBytesMessage {
             id: create_rust_string_from!(self.id),
-            wav_bytes: unsafe {
-                slice::from_raw_parts(self.wav_bytes as *const u8, self.wav_bytes_len as usize)
-            }
-            .to_vec(),
+            wav_bytes: unsafe { slice::from_raw_parts(self.wav_bytes as *const u8, self.wav_bytes_len as usize) }
+                .to_vec(),
             site_id: create_rust_string_from!(self.site_id),
         })
     }
@@ -88,10 +86,8 @@ impl CReprOf<hermes::AudioFrameMessage> for CAudioFrameMessage {
 impl AsRust<hermes::AudioFrameMessage> for CAudioFrameMessage {
     fn as_rust(&self) -> Fallible<hermes::AudioFrameMessage> {
         Ok(hermes::AudioFrameMessage {
-            wav_frame: unsafe {
-                slice::from_raw_parts(self.wav_frame as *const u8, self.wav_frame_len as usize)
-            }
-            .to_vec(),
+            wav_frame: unsafe { slice::from_raw_parts(self.wav_frame as *const u8, self.wav_frame_len as usize) }
+                .to_vec(),
             site_id: create_rust_string_from!(self.site_id),
         })
     }

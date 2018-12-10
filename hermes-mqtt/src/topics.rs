@@ -48,16 +48,8 @@ impl HermesTopic {
                 Component::Asr,
                 ComponentCommand::VersionRequest,
             )),
-            Some("version") => Some(HermesTopic::Component(
-                None,
-                Component::Asr,
-                ComponentCommand::Version,
-            )),
-            Some("error") => Some(HermesTopic::Component(
-                None,
-                Component::Asr,
-                ComponentCommand::Error,
-            )),
+            Some("version") => Some(HermesTopic::Component(None, Component::Asr, ComponentCommand::Version)),
+            Some("error") => Some(HermesTopic::Component(None, Component::Asr, ComponentCommand::Error)),
             _ => None,
         }
     }
@@ -68,21 +60,13 @@ impl HermesTopic {
         match (comps.next(), comps.next(), comps.next()) {
             (Some("toggleOn"), None, None) => Some(AudioServer(None, ToggleOn)),
             (Some("toggleOff"), None, None) => Some(AudioServer(None, ToggleOff)),
-            (Some(site_id), Some("audioFrame"), None) => {
-                Some(AudioServer(Some(site_id.into()), AudioFrame))
-            }
-            (Some(site_id), Some("replayRequest"), None) => {
-                Some(AudioServer(Some(site_id.into()), ReplayRequest))
-            }
-            (Some(site_id), Some("replayResponse"), None) => {
-                Some(AudioServer(Some(site_id.into()), ReplayResponse))
-            }
+            (Some(site_id), Some("audioFrame"), None) => Some(AudioServer(Some(site_id.into()), AudioFrame)),
+            (Some(site_id), Some("replayRequest"), None) => Some(AudioServer(Some(site_id.into()), ReplayRequest)),
+            (Some(site_id), Some("replayResponse"), None) => Some(AudioServer(Some(site_id.into()), ReplayResponse)),
             (Some(site_id), Some("playBytes"), Some(file)) => {
                 Some(AudioServer(Some(site_id.into()), PlayBytes(file.into())))
             }
-            (Some(site_id), Some("playFinished"), None) => {
-                Some(AudioServer(Some(site_id.into()), PlayFinished))
-            }
+            (Some(site_id), Some("playFinished"), None) => Some(AudioServer(Some(site_id.into()), PlayFinished)),
             (Some(site_id), Some("versionRequest"), None) => Some(HermesTopic::Component(
                 Some(site_id.to_string()),
                 Component::AudioServer,
@@ -102,9 +86,7 @@ impl HermesTopic {
         }
     }
 
-    fn parse_dialogue_manager<'a, It: Iterator<Item = &'a str>>(
-        mut comps: It,
-    ) -> Option<HermesTopic> {
+    fn parse_dialogue_manager<'a, It: Iterator<Item = &'a str>>(mut comps: It) -> Option<HermesTopic> {
         use DialogueManagerCommand::*;
         use HermesTopic::DialogueManager;
         let command = comps.next();
@@ -142,19 +124,13 @@ impl HermesTopic {
         let medium = comps.next();
         let command = comps.next();
         match (medium, command) {
-            (Some("sound"), Some("toggleOn")) => {
-                Some(Feedback(FeedbackCommand::Sound(SoundCommand::ToggleOn)))
-            }
-            (Some("sound"), Some("toggleOff")) => {
-                Some(Feedback(FeedbackCommand::Sound(SoundCommand::ToggleOff)))
-            }
+            (Some("sound"), Some("toggleOn")) => Some(Feedback(FeedbackCommand::Sound(SoundCommand::ToggleOn))),
+            (Some("sound"), Some("toggleOff")) => Some(Feedback(FeedbackCommand::Sound(SoundCommand::ToggleOff))),
             _ => None,
         }
     }
 
-    fn parse_voice_activity<'a, It: Iterator<Item = &'a str>>(
-        mut comps: It,
-    ) -> Option<HermesTopic> {
+    fn parse_voice_activity<'a, It: Iterator<Item = &'a str>>(mut comps: It) -> Option<HermesTopic> {
         use HermesTopic::VoiceActivity;
         use VoiceActivityCommand::*;
         let one = comps.next();
@@ -218,16 +194,8 @@ impl HermesTopic {
                 Component::Nlu,
                 ComponentCommand::VersionRequest,
             )),
-            Some("version") => Some(HermesTopic::Component(
-                None,
-                Component::Nlu,
-                ComponentCommand::Version,
-            )),
-            Some("error") => Some(HermesTopic::Component(
-                None,
-                Component::Nlu,
-                ComponentCommand::Error,
-            )),
+            Some("version") => Some(HermesTopic::Component(None, Component::Nlu, ComponentCommand::Version)),
+            Some("error") => Some(HermesTopic::Component(None, Component::Nlu, ComponentCommand::Error)),
             _ => None,
         }
     }
@@ -243,16 +211,8 @@ impl HermesTopic {
                 Component::Tts,
                 ComponentCommand::VersionRequest,
             )),
-            Some("version") => Some(HermesTopic::Component(
-                None,
-                Component::Tts,
-                ComponentCommand::Version,
-            )),
-            Some("error") => Some(HermesTopic::Component(
-                None,
-                Component::Tts,
-                ComponentCommand::Error,
-            )),
+            Some("version") => Some(HermesTopic::Component(None, Component::Tts, ComponentCommand::Version)),
+            Some("error") => Some(HermesTopic::Component(None, Component::Tts, ComponentCommand::Error)),
             _ => None,
         }
     }
@@ -286,11 +246,7 @@ impl HermesTopic {
 
 impl FromPath<Self> for HermesTopic {
     fn from_path<P: AsRef<path::Path>>(path: P) -> Option<Self> {
-        let comps: Vec<Option<&str>> = path
-            .as_ref()
-            .components()
-            .map(|s| s.as_os_str().to_str())
-            .collect();
+        let comps: Vec<Option<&str>> = path.as_ref().components().map(|s| s.as_os_str().to_str()).collect();
         // sanity checks
         if comps.iter().any(Option::is_none) || comps.len() < 2 || comps[0] != Some("hermes") {
             return None;
@@ -317,9 +273,7 @@ impl FromPath<Self> for HermesTopic {
 impl fmt::Display for HermesTopic {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let subpath = match *self {
-            HermesTopic::VoiceActivity(ref site_id, ref cmd) => {
-                format!("voiceActivity/{}/{}", site_id, cmd.as_path())
-            }
+            HermesTopic::VoiceActivity(ref site_id, ref cmd) => format!("voiceActivity/{}/{}", site_id, cmd.as_path()),
             HermesTopic::Feedback(ref cmd) => format!("feedback/{}", cmd.as_path()),
             HermesTopic::Hotword(ref opt_id, ref cmd) => {
                 if let Some(id) = opt_id.as_ref() {
@@ -344,19 +298,12 @@ impl fmt::Display for HermesTopic {
             }
             HermesTopic::AudioServer(ref opt_site_id, ref cmd) => {
                 if let Some(site_id) = opt_site_id.as_ref() {
-                    format!(
-                        "{}/{}/{}",
-                        Component::AudioServer.as_path(),
-                        site_id,
-                        cmd.as_path()
-                    )
+                    format!("{}/{}/{}", Component::AudioServer.as_path(), site_id, cmd.as_path())
                 } else {
                     format!("{}/{}", Component::AudioServer.as_path(), cmd.as_path())
                 }
             }
-            HermesTopic::Injection(ref cmd) => {
-                format!("{}/{}", Component::Injection.as_path(), cmd.as_path())
-            }
+            HermesTopic::Injection(ref cmd) => format!("{}/{}", Component::Injection.as_path(), cmd.as_path()),
         };
         write!(f, "hermes/{}", subpath)
     }
@@ -553,11 +500,7 @@ mod tests {
                 "hermes/dialogueManager/intentNotRecognized",
             ),
             (
-                HermesTopic::Component(
-                    None,
-                    Component::DialogueManager,
-                    ComponentCommand::VersionRequest,
-                ),
+                HermesTopic::Component(None, Component::DialogueManager, ComponentCommand::VersionRequest),
                 "hermes/dialogueManager/versionRequest",
             ),
             (
@@ -605,33 +548,16 @@ mod tests {
                 "hermes/hotword/default/versionRequest",
             ),
             (
-                HermesTopic::Component(
-                    Some("default".into()),
-                    Component::Hotword,
-                    ComponentCommand::Version,
-                ),
+                HermesTopic::Component(Some("default".into()), Component::Hotword, ComponentCommand::Version),
                 "hermes/hotword/default/version",
             ),
             (
-                HermesTopic::Component(
-                    Some("default".into()),
-                    Component::Hotword,
-                    ComponentCommand::Error,
-                ),
+                HermesTopic::Component(Some("default".into()), Component::Hotword, ComponentCommand::Error),
                 "hermes/hotword/default/error",
             ),
-            (
-                HermesTopic::Asr(AsrCommand::ToggleOn),
-                "hermes/asr/toggleOn",
-            ),
-            (
-                HermesTopic::Asr(AsrCommand::ToggleOff),
-                "hermes/asr/toggleOff",
-            ),
-            (
-                HermesTopic::Asr(AsrCommand::TextCaptured),
-                "hermes/asr/textCaptured",
-            ),
+            (HermesTopic::Asr(AsrCommand::ToggleOn), "hermes/asr/toggleOn"),
+            (HermesTopic::Asr(AsrCommand::ToggleOff), "hermes/asr/toggleOff"),
+            (HermesTopic::Asr(AsrCommand::TextCaptured), "hermes/asr/textCaptured"),
             (
                 HermesTopic::Asr(AsrCommand::PartialTextCaptured),
                 "hermes/asr/partialTextCaptured",
@@ -666,17 +592,11 @@ mod tests {
                 "hermes/audioServer/default/replayRequest",
             ),
             (
-                HermesTopic::AudioServer(
-                    Some("default".into()),
-                    AudioServerCommand::ReplayResponse,
-                ),
+                HermesTopic::AudioServer(Some("default".into()), AudioServerCommand::ReplayResponse),
                 "hermes/audioServer/default/replayResponse",
             ),
             (
-                HermesTopic::AudioServer(
-                    Some("default".into()),
-                    AudioServerCommand::PlayBytes("kikoo".into()),
-                ),
+                HermesTopic::AudioServer(Some("default".into()), AudioServerCommand::PlayBytes("kikoo".into())),
                 "hermes/audioServer/default/playBytes/kikoo",
             ),
             (
@@ -700,18 +620,11 @@ mod tests {
                 "hermes/audioServer/default/version",
             ),
             (
-                HermesTopic::Component(
-                    Some("default".into()),
-                    Component::AudioServer,
-                    ComponentCommand::Error,
-                ),
+                HermesTopic::Component(Some("default".into()), Component::AudioServer, ComponentCommand::Error),
                 "hermes/audioServer/default/error",
             ),
             (HermesTopic::Tts(TtsCommand::Say), "hermes/tts/say"),
-            (
-                HermesTopic::Tts(TtsCommand::SayFinished),
-                "hermes/tts/sayFinished",
-            ),
+            (HermesTopic::Tts(TtsCommand::SayFinished), "hermes/tts/sayFinished"),
             (
                 HermesTopic::Component(None, Component::Tts, ComponentCommand::VersionRequest),
                 "hermes/tts/versionRequest",
@@ -729,18 +642,9 @@ mod tests {
                 "hermes/intent/harakiri_intent",
             ),
             (HermesTopic::Nlu(NluCommand::Query), "hermes/nlu/query"),
-            (
-                HermesTopic::Nlu(NluCommand::PartialQuery),
-                "hermes/nlu/partialQuery",
-            ),
-            (
-                HermesTopic::Nlu(NluCommand::SlotParsed),
-                "hermes/nlu/slotParsed",
-            ),
-            (
-                HermesTopic::Nlu(NluCommand::IntentParsed),
-                "hermes/nlu/intentParsed",
-            ),
+            (HermesTopic::Nlu(NluCommand::PartialQuery), "hermes/nlu/partialQuery"),
+            (HermesTopic::Nlu(NluCommand::SlotParsed), "hermes/nlu/slotParsed"),
+            (HermesTopic::Nlu(NluCommand::IntentParsed), "hermes/nlu/intentParsed"),
             (
                 HermesTopic::Nlu(NluCommand::IntentNotRecognized),
                 "hermes/nlu/intentNotRecognized",

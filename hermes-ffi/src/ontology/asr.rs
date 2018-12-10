@@ -292,10 +292,7 @@ mod tests {
             confidence: 0.98,
             range_start: 4,
             range_end: 9,
-            time: hermes::AsrDecodingDuration {
-                start: 0.0,
-                end: 5.0,
-            },
+            time: hermes::AsrDecodingDuration { start: 0.0, end: 5.0 },
         });
     }
 
@@ -309,20 +306,14 @@ mod tests {
                 confidence: 0.98,
                 range_start: 1,
                 range_end: 4,
-                time: hermes::AsrDecodingDuration {
-                    start: 0.0,
-                    end: 5.0,
-                },
+                time: hermes::AsrDecodingDuration { start: 0.0, end: 5.0 },
             },
             hermes::AsrToken {
                 value: "world".to_string(),
                 confidence: 0.73,
                 range_start: 5,
                 range_end: 9,
-                time: hermes::AsrDecodingDuration {
-                    start: 0.0,
-                    end: 5.0,
-                },
+                time: hermes::AsrDecodingDuration { start: 0.0, end: 5.0 },
             },
         ]);
     }
@@ -338,20 +329,14 @@ mod tests {
                     confidence: 0.98,
                     range_start: 1,
                     range_end: 4,
-                    time: hermes::AsrDecodingDuration {
-                        start: 0.0,
-                        end: 5.0,
-                    },
+                    time: hermes::AsrDecodingDuration { start: 0.0, end: 5.0 },
                 },
                 hermes::AsrToken {
                     value: "world".to_string(),
                     confidence: 0.73,
                     range_start: 5,
                     range_end: 9,
-                    time: hermes::AsrDecodingDuration {
-                        start: 0.0,
-                        end: 5.0,
-                    },
+                    time: hermes::AsrDecodingDuration { start: 0.0, end: 5.0 },
                 },
             ],
             vec![],
@@ -360,10 +345,7 @@ mod tests {
                 confidence: 0.97,
                 range_start: 5,
                 range_end: 1,
-                time: hermes::AsrDecodingDuration {
-                    start: 1.0,
-                    end: 4.5,
-                },
+                time: hermes::AsrDecodingDuration { start: 1.0, end: 4.5 },
             }],
         ]);
     }

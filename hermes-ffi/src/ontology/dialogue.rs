@@ -137,12 +137,8 @@ pub enum SNIPS_SESSION_INIT_TYPE {
 impl SNIPS_SESSION_INIT_TYPE {
     pub fn from(slot_value: &hermes::SessionInit) -> Self {
         match *slot_value {
-            hermes::SessionInit::Notification { .. } => {
-                SNIPS_SESSION_INIT_TYPE::SNIPS_SESSION_INIT_TYPE_NOTIFICATION
-            }
-            hermes::SessionInit::Action { .. } => {
-                SNIPS_SESSION_INIT_TYPE::SNIPS_SESSION_INIT_TYPE_ACTION
-            }
+            hermes::SessionInit::Notification { .. } => SNIPS_SESSION_INIT_TYPE::SNIPS_SESSION_INIT_TYPE_NOTIFICATION,
+            hermes::SessionInit::Action { .. } => SNIPS_SESSION_INIT_TYPE::SNIPS_SESSION_INIT_TYPE_ACTION,
         }
     }
 }
@@ -228,15 +224,11 @@ impl CSessionInit {
                     .ok_or_else(|| format_err!("unexpected null pointer in SessionInit value"))?
                     .to_action_session_init()
             }
-            SNIPS_SESSION_INIT_TYPE::SNIPS_SESSION_INIT_TYPE_NOTIFICATION => {
-                Ok(hermes::SessionInit::Notification {
-                    text: create_rust_string_from!((self.value as *const libc::c_char)
-                        .as_ref()
-                        .ok_or_else(|| format_err!(
-                            "unexpected null pointer in SessionInit value"
-                        ))?),
-                })
-            }
+            SNIPS_SESSION_INIT_TYPE::SNIPS_SESSION_INIT_TYPE_NOTIFICATION => Ok(hermes::SessionInit::Notification {
+                text: create_rust_string_from!((self.value as *const libc::c_char)
+                    .as_ref()
+                    .ok_or_else(|| format_err!("unexpected null pointer in SessionInit value"))?),
+            }),
         }
     }
 }
@@ -326,9 +318,7 @@ impl CReprOf<hermes::SessionStartedMessage> for CSessionStartedMessage {
             session_id: convert_to_c_string!(input.session_id),
             custom_data: convert_to_nullable_c_string!(input.custom_data),
             site_id: convert_to_c_string!(input.site_id),
-            reactivated_from_session_id: convert_to_nullable_c_string!(
-                input.reactivated_from_session_id
-            ),
+            reactivated_from_session_id: convert_to_nullable_c_string!(input.reactivated_from_session_id),
         })
     }
 }
@@ -339,9 +329,7 @@ impl AsRust<hermes::SessionStartedMessage> for CSessionStartedMessage {
             session_id: create_rust_string_from!(self.session_id),
             custom_data: create_optional_rust_string_from!(self.custom_data),
             site_id: create_rust_string_from!(self.site_id),
-            reactivated_from_session_id: create_optional_rust_string_from!(
-                self.reactivated_from_session_id
-            ),
+            reactivated_from_session_id: create_optional_rust_string_from!(self.reactivated_from_session_id),
         })
     }
 }
@@ -431,11 +419,7 @@ impl CReprOf<hermes::ContinueSessionMessage> for CContinueSessionMessage {
             text: convert_to_c_string!(input.text),
             intent_filter: convert_to_nullable_c_string_array!(input.intent_filter),
             custom_data: convert_to_nullable_c_string!(input.custom_data),
-            send_intent_not_recognized: if input.send_intent_not_recognized {
-                1
-            } else {
-                0
-            },
+            send_intent_not_recognized: if input.send_intent_not_recognized { 1 } else { 0 },
         })
     }
 }
@@ -560,10 +544,7 @@ impl CSessionTermination {
             hermes::SessionTerminationType::Error { error } => convert_to_c_string!(error),
             _ => null(),
         };
-        Ok(Self {
-            termination_type,
-            data,
-        })
+        Ok(Self { termination_type, data })
     }
 }
 
@@ -585,9 +566,11 @@ impl AsRust<hermes::SessionTerminationType> for CSessionTermination {
             SNIPS_SESSION_TERMINATION_TYPE::SNIPS_SESSION_TERMINATION_TYPE_TIMEOUT => {
                 hermes::SessionTerminationType::Timeout
             }
-            SNIPS_SESSION_TERMINATION_TYPE::SNIPS_SESSION_TERMINATION_TYPE_ERROR => hermes::SessionTerminationType::Error {
-                error: create_rust_string_from!(self.data),
-            },
+            SNIPS_SESSION_TERMINATION_TYPE::SNIPS_SESSION_TERMINATION_TYPE_ERROR => {
+                hermes::SessionTerminationType::Error {
+                    error: create_rust_string_from!(self.data),
+                }
+            }
         })
     }
 }
@@ -722,9 +705,7 @@ mod tests {
     #[test]
     fn round_trip_start_session() {
         round_trip_test::<_, CStartSessionMessage>(hermes::StartSessionMessage {
-            init: hermes::SessionInit::Notification {
-                text: "text".into(),
-            },
+            init: hermes::SessionInit::Notification { text: "text".into() },
             custom_data: Some("thing".into()),
             site_id: Some("site".into()),
         });

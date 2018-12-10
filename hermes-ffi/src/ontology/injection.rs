@@ -102,9 +102,7 @@ impl CReprOf<hermes::InjectionKind> for SNIPS_INJECTION_KIND {
     fn c_repr_of(input: hermes::InjectionKind) -> Fallible<Self> {
         Ok(match input {
             hermes::InjectionKind::Add => SNIPS_INJECTION_KIND::SNIPS_INJECTION_KIND_ADD,
-            hermes::InjectionKind::AddFromVanilla => {
-                SNIPS_INJECTION_KIND::SNIPS_INJECTION_KIND_ADD_FROM_VANILLA
-            }
+            hermes::InjectionKind::AddFromVanilla => SNIPS_INJECTION_KIND::SNIPS_INJECTION_KIND_ADD_FROM_VANILLA,
         })
     }
 }
@@ -113,9 +111,7 @@ impl AsRust<hermes::InjectionKind> for SNIPS_INJECTION_KIND {
     fn as_rust(&self) -> Fallible<hermes::InjectionKind> {
         Ok(match self {
             SNIPS_INJECTION_KIND::SNIPS_INJECTION_KIND_ADD => hermes::InjectionKind::Add,
-            SNIPS_INJECTION_KIND::SNIPS_INJECTION_KIND_ADD_FROM_VANILLA => {
-                hermes::InjectionKind::AddFromVanilla
-            }
+            SNIPS_INJECTION_KIND::SNIPS_INJECTION_KIND_ADD_FROM_VANILLA => hermes::InjectionKind::AddFromVanilla,
         })
     }
 }
@@ -133,18 +129,8 @@ impl Drop for CInjectionRequestOperation {
     }
 }
 
-impl
-    CReprOf<(
-        hermes::InjectionKind,
-        HashMap<String, Vec<hermes::EntityValue>>,
-    )> for CInjectionRequestOperation
-{
-    fn c_repr_of(
-        input: (
-            hermes::InjectionKind,
-            HashMap<String, Vec<hermes::EntityValue>>,
-        ),
-    ) -> Fallible<Self> {
+impl CReprOf<(hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue>>)> for CInjectionRequestOperation {
+    fn c_repr_of(input: (hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue>>)) -> Fallible<Self> {
         // FIXME: Ugly shortcut to compile faster. We're losing the weight information.
         let mut hash = HashMap::with_capacity(input.1.capacity());
         for (key, entity_values) in input.1 {
@@ -159,18 +145,8 @@ impl
     }
 }
 
-impl
-    AsRust<(
-        hermes::InjectionKind,
-        HashMap<String, Vec<hermes::EntityValue>>,
-    )> for CInjectionRequestOperation
-{
-    fn as_rust(
-        &self,
-    ) -> Fallible<(
-        hermes::InjectionKind,
-        HashMap<String, Vec<hermes::EntityValue>>,
-    )> {
+impl AsRust<(hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue>>)> for CInjectionRequestOperation {
+    fn as_rust(&self) -> Fallible<(hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue>>)> {
         let values = unsafe { CMapStringToStringArray::raw_borrow(self.values) }?.as_rust()?;
 
         // FIXME: Ugly shortcut to compile faster. We're losing the weight information.
@@ -209,20 +185,8 @@ impl Drop for CInjectionRequestOperations {
     }
 }
 
-impl
-    CReprOf<
-        Vec<(
-            hermes::InjectionKind,
-            HashMap<String, Vec<hermes::EntityValue>>,
-        )>,
-    > for CInjectionRequestOperations
-{
-    fn c_repr_of(
-        input: Vec<(
-            hermes::InjectionKind,
-            HashMap<String, Vec<hermes::EntityValue>>,
-        )>,
-    ) -> Fallible<Self> {
+impl CReprOf<Vec<(hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue>>)>> for CInjectionRequestOperations {
+    fn c_repr_of(input: Vec<(hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue>>)>) -> Fallible<Self> {
         Ok(Self {
             count: input.len() as libc::c_int,
             operations: Box::into_raw(
@@ -237,22 +201,8 @@ impl
     }
 }
 
-impl
-    AsRust<
-        Vec<(
-            hermes::InjectionKind,
-            HashMap<String, Vec<hermes::EntityValue>>,
-        )>,
-    > for CInjectionRequestOperations
-{
-    fn as_rust(
-        &self,
-    ) -> Fallible<
-        Vec<(
-            hermes::InjectionKind,
-            HashMap<String, Vec<hermes::EntityValue>>,
-        )>,
-    > {
+impl AsRust<Vec<(hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue>>)>> for CInjectionRequestOperations {
+    fn as_rust(&self) -> Fallible<Vec<(hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue>>)>> {
         let mut result = Vec::with_capacity(self.count as usize);
 
         for e in unsafe { slice::from_raw_parts(self.operations, self.count as usize) } {
@@ -286,8 +236,7 @@ impl Drop for CInjectionRequestMessage {
 impl CReprOf<hermes::InjectionRequestMessage> for CInjectionRequestMessage {
     fn c_repr_of(input: hermes::InjectionRequestMessage) -> Fallible<Self> {
         Ok(Self {
-            operations: CInjectionRequestOperations::c_repr_of(input.operations)?
-                .into_raw_pointer(),
+            operations: CInjectionRequestOperations::c_repr_of(input.operations)?.into_raw_pointer(),
             lexicon: CMapStringToStringArray::c_repr_of(input.lexicon)?.into_raw_pointer(),
             cross_language: convert_to_nullable_c_string!(input.cross_language),
             id: convert_to_nullable_c_string!(input.id),
@@ -297,8 +246,7 @@ impl CReprOf<hermes::InjectionRequestMessage> for CInjectionRequestMessage {
 
 impl AsRust<hermes::InjectionRequestMessage> for CInjectionRequestMessage {
     fn as_rust(&self) -> Fallible<hermes::InjectionRequestMessage> {
-        let operations =
-            unsafe { CInjectionRequestOperations::raw_borrow(self.operations) }?.as_rust()?;
+        let operations = unsafe { CInjectionRequestOperations::raw_borrow(self.operations) }?.as_rust()?;
         let lexicon = unsafe { CMapStringToStringArray::raw_borrow(self.lexicon) }?.as_rust()?;
         Ok(hermes::InjectionRequestMessage {
             operations,
@@ -342,9 +290,7 @@ impl AsRust<hermes::InjectionStatusMessage> for CInjectionStatusMessage {
             None
         };
 
-        Ok(hermes::InjectionStatusMessage {
-            last_injection_date,
-        })
+        Ok(hermes::InjectionStatusMessage { last_injection_date })
     }
 }
 
@@ -356,10 +302,7 @@ mod tests {
 
     #[test]
     fn round_trip_injection_request_operation() {
-        round_trip_test::<_, CInjectionRequestOperation>((
-            hermes::InjectionKind::Add,
-            HashMap::new(),
-        ));
+        round_trip_test::<_, CInjectionRequestOperation>((hermes::InjectionKind::Add, HashMap::new()));
 
         let mut test_map = HashMap::new();
         test_map.insert(

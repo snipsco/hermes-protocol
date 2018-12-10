@@ -184,9 +184,7 @@ impl CReprOf<HashMap<String, Vec<String>>> for CMapStringToStringArray {
             entries: Box::into_raw(
                 input
                     .into_iter()
-                    .map(|e| {
-                        CMapStringToStringArrayEntry::c_repr_of(e).map(|c| c.into_raw_pointer())
-                    })
+                    .map(|e| CMapStringToStringArrayEntry::c_repr_of(e).map(|c| c.into_raw_pointer()))
                     .collect::<Fallible<Vec<*const CMapStringToStringArrayEntry>>>()
                     .context("Could not convert map to C Repr")?
                     .into_boxed_slice(),
@@ -200,8 +198,7 @@ impl AsRust<HashMap<String, Vec<String>>> for CMapStringToStringArray {
     fn as_rust(&self) -> Fallible<HashMap<String, Vec<String>>> {
         let mut result = HashMap::with_capacity(self.count as usize);
         for e in unsafe { slice::from_raw_parts(self.entries, self.count as usize) } {
-            let (key, value) =
-                unsafe { CMapStringToStringArrayEntry::raw_borrow(*e) }?.as_rust()?;
+            let (key, value) = unsafe { CMapStringToStringArrayEntry::raw_borrow(*e) }?.as_rust()?;
             result.insert(key, value);
         }
 
@@ -241,10 +238,7 @@ mod tests {
         round_trip_test::<_, CMapStringToStringArray>(HashMap::new());
 
         let mut test_map = HashMap::new();
-        test_map.insert(
-            "hello".into(),
-            vec!["hello".to_string(), "world".to_string()],
-        );
+        test_map.insert("hello".into(), vec!["hello".to_string(), "world".to_string()]);
         test_map.insert("foo".into(), vec!["bar".to_string(), "baz".to_string()]);
 
         round_trip_test::<_, CMapStringToStringArray>(test_map);
