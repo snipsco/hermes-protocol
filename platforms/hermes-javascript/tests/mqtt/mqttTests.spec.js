@@ -1,4 +1,5 @@
 const { spawn } = require('child_process')
+const path = require('path')
 const mqtt = require('mqtt')
 const { Hermes } = require('../../src')
 const {
@@ -26,7 +27,11 @@ SegfaultHandler.registerHandler('crash.log')
 beforeAll(async () => {
   mosquittoPort = await getFreePort()
   mosquitto = spawn('mosquitto', ['-p', mosquittoPort, '-v'])
-  hermes = new Hermes({ logs: true, address: `localhost:${mosquittoPort}` })
+  hermes = new Hermes({
+    libraryPath: path.join(__dirname, '../../../../target/debug/libhermes_mqtt_ffi'),
+    logs: true,
+    address: `localhost:${mosquittoPort}`
+  })
   dialog = hermes.dialog()
   injection = hermes.injection()
   feedback = hermes.feedback()

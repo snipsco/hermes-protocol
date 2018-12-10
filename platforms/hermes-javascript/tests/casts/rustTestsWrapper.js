@@ -17,7 +17,7 @@ module.exports.library = libraryPath => ffi.Library(libraryPath, {
     hermes_ffi_test_get_last_error: [ 'int', [ 'char **' ]],
 })
 
-module.exports.call = function(libraryPath = path.resolve(__dirname, '../../../../target/release/libhermes_ffi_test')) {
+module.exports.call = function(libraryPath = path.join(__dirname, '../../../../target/debug/libhermes_ffi_test')) {
     const library = module.exports.library(libraryPath)
     return function(funName, ...args) {
         const result = library[funName](...args)
