@@ -8,6 +8,9 @@ const {
   setupSubscriberTest,
   setupPublisherTest
 } = require('./tools')
+const {
+  LIB_ENV_FOLDER
+} = require('../constants')
 
 /* Setup */
 
@@ -28,7 +31,7 @@ beforeAll(async () => {
   mosquittoPort = await getFreePort()
   mosquitto = spawn('mosquitto', ['-p', mosquittoPort, '-v'])
   hermes = new Hermes({
-    libraryPath: path.join(__dirname, '../../../../target/debug/libhermes_mqtt_ffi'),
+    libraryPath: path.join(__dirname, `../../../../target/${LIB_ENV_FOLDER}/libhermes_mqtt_ffi`),
     logs: true,
     address: `localhost:${mosquittoPort}`
   })

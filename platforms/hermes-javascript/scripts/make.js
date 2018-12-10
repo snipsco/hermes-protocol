@@ -24,7 +24,6 @@ const LIB_PATH = baseFolder =>
     path.join(baseFolder, 'target/release/libhermes_mqtt_ffi' + LIB_EXTENSION)
 const LIB_DIST = path.join(__dirname, '../libhermes_mqtt_ffi' + LIB_EXTENSION)
 
-
 const errorStyle = chalk.bold.red
 const successStyle = chalk.bold.green
 const cmdStyle = chalk.bold
@@ -62,7 +61,6 @@ function printCmdError (error) {
 
     logError(output)
 }
-
 
 console.log(chalk.green.bold('>> Building hermes dynamic library from scratch.'))
 console.log(chalk.yellow.bold('/!\\ Requirements: git, rust, cargo and node.js >= 8'))

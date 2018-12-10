@@ -1,6 +1,7 @@
 const path = require('path')
 const ffi = require('ffi-napi')
 const ref = require('ref')
+const { LIB_ENV_FOLDER } = require('../constants')
 
 module.exports.library = libraryPath => ffi.Library(libraryPath, {
     // Round trips
@@ -17,7 +18,9 @@ module.exports.library = libraryPath => ffi.Library(libraryPath, {
     hermes_ffi_test_get_last_error: [ 'int', [ 'char **' ]],
 })
 
-module.exports.call = function(libraryPath = path.join(__dirname, '../../../../target/debug/libhermes_ffi_test')) {
+module.exports.call = function(
+    libraryPath = path.join(__dirname, `../../../../target/${LIB_ENV_FOLDER}/libhermes_ffi_test`)
+) {
     const library = module.exports.library(libraryPath)
     return function(funName, ...args) {
         const result = library[funName](...args)
