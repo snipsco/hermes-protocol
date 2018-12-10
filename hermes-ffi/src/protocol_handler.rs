@@ -174,7 +174,7 @@ macro_rules! generate_hermes_c_symbols {
             U: CReprOf<T> + Sync + 'static {
         if let Some(ptr) = ptr {
             Ok(hermes::Callback::new(move |payload: &T| {
-                let param = Box::into_raw(Box::new(U::c_repr_of(payload.clone()).unwrap()));
+                let param = Box::into_raw(Box::new(U::c_repr_of(payload.clone())?));
                 unsafe { ptr(param, user_data.0) }
             }))
         } else {

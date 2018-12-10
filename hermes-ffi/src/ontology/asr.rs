@@ -223,7 +223,7 @@ impl Drop for CAsrTokenArray {
                 self.count as usize,
             ));
             for e in tokens.iter() {
-                CAsrToken::drop_raw_pointer(*e).unwrap();
+                let _ = CAsrToken::drop_raw_pointer(*e);
             }
         }
     }
@@ -273,7 +273,7 @@ impl Drop for CAsrTokenDoubleArray {
             ));
 
             for e in tokens.iter() {
-                CAsrTokenArray::drop_raw_pointer(*e).unwrap();
+                let _ = CAsrTokenArray::drop_raw_pointer(*e);
             }
         }
     }
