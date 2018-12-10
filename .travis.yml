@@ -21,8 +21,8 @@ script:
   - cargo build --all
   - cargo test --all
   - pwd
-  - (cd platforms/hermes-kotlin && ./gradlew --console plain jar)
-  - (cd platforms/hermes-kotlin && ./gradlew --console plain test)
+  - (cd platforms/hermes-kotlin && ./gradlew --console plain jar -Pdebug)
+  - (cd platforms/hermes-kotlin && ./gradlew --console plain test -Pdebug)
 
 matrix:
   allow_failures:
