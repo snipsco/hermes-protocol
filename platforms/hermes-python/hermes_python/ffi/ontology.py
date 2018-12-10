@@ -184,17 +184,48 @@ class CSessionTermination(Structure):
     _fields_ = [("termination_type", c_int),
                 ("data", c_char_p)]
 
+    @classmethod
+    def build(cls, termination_type, data):
+        data = data.encode('utf-8') if data else None
+        return cls(termination_type, data)
+
+    @classmethod
+    def from_repr(cls, repr):
+        return cls.build(repr.termination_type, repr.data)
+
 class CSessionEndedMessage(Structure):
     _fields_ = [("session_id", c_char_p),
                 ("custom_data", c_char_p),
                 ("termination", CSessionTermination),
                 ("site_id", c_char_p)]
 
+    @classmethod
+    def build(cls, session_id, custom_data, c_termination_repr, site_id):
+        session_id = session_id.encode('utf-8')
+        custom_data = custom_data.encode('utf-8') if custom_data else None
+        site_id = site_id.encode('utf-8')
+        termination = c_termination_repr
+        return cls(session_id, custom_data, termination, site_id)
+
+    @classmethod
+    def from_repr(cls, repr):
+        return cls.build(repr.session_id, repr.custom_data, CSessionTermination.from_repr(repr.termination), repr.site_id)
+
 
 class CSessionQueuedMessage(Structure):
     _fields_ = [("session_id", c_char_p),
                 ("custom_data", c_char_p),
                 ("site_id", c_char_p)]
+    @classmethod
+    def build(cls, session_id, custom_data, site_id):
+        session_id = session_id.encode('utf-8')
+        custom_data = custom_data.encode('utf-8') if custom_data else None
+        site_id = site_id.encode('utf-8')
+        return cls(session_id, custom_data, site_id)
+
+    @classmethod
+    def from_repr(cls, repr):
+        return cls.build(repr.session_id, repr.custom_data, repr.site_id)
 
 
 class CSessionStartedMessage(Structure):
@@ -202,6 +233,18 @@ class CSessionStartedMessage(Structure):
                 ("custom_data", c_char_p),
                 ("site_id", c_char_p),
                 ("reactivated_from_session_id", c_char_p)]
+
+    @classmethod
+    def build(cls, session_id, custom_data, site_id, reactivated_from_session_id):
+        session_id = session_id.encode('utf-8')
+        custom_data = custom_data.encode('utf-8') if custom_data else None
+        site_id = site_id.encode('utf-8')
+        reactivated_from_session_id = reactivated_from_session_id.encode('utf-8') if reactivated_from_session_id else None
+        return cls(session_id, custom_data, site_id, reactivated_from_session_id)
+
+    @classmethod
+    def from_repr(cls, repr):
+        return cls.build(repr.session_id, repr.custom_data, repr.site_id, repr.reactivated_from_session_id)
 
 
 
