@@ -1,5 +1,5 @@
 const path = require('path')
-const ffi = require('ffi')
+const ffi = require('ffi-napi')
 const ref = require('ref')
 
 /*****************

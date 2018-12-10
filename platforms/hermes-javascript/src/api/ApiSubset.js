@@ -1,4 +1,4 @@
-const ffi = require('ffi')
+const ffi = require('ffi-napi')
 const ref = require('ref')
 const { call } = require('../ffi/bindings')
 const { Casteable } = require('../casts')
