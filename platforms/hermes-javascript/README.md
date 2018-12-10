@@ -158,7 +158,7 @@ new Hermes({
     // Use it in conjunction with the RUST_LOG environment variable (set -x RUST_LOG debug)
     logs: true,
     // A custom path to the hermes FFI dynamic library file.
-    libraryPath: // default: at the hermes-js package root folder location
+    libraryPath: // default: at the hermes-javascript package root folder location
 })
 ```
 
