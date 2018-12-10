@@ -14,8 +14,8 @@ before_install:
 
 before_script:
   - if [ "$TRAVIS_RUST_VERSION" == "nightly" ]; then
-      rustup component add rustfmt --toolchain nightly;
-      rustup component add clippy --toolchain nightly;
+      rustup component add rustfmt --toolchain nightly || cargo install --git https://github.com/rust-lang/rustfmt/ --force;
+      rustup component add clippy --toolchain nightly || cargo install --git https://github.com/rust-lang/rust-clippy/ --force clippy;
     else
       rustup component add rustfmt;
       rustup component add clippy;
