@@ -10,12 +10,14 @@ const {
 
 /* Setup */
 
-let mosquittoPort
-let mosquitto
-let hermes
-let dialog
-let injection
-let client
+let
+  mosquitto,
+  mosquittoPort,
+  client,
+  hermes,
+  dialog,
+  injection,
+  feedback
 
 // Log segfaults
 const SegfaultHandler = require('segfault-handler')
@@ -27,6 +29,7 @@ beforeAll(async () => {
   hermes = new Hermes({ logs: true, address: `localhost:${mosquittoPort}` })
   dialog = hermes.dialog()
   injection = hermes.injection()
+  feedback = hermes.feedback()
 })
 
 beforeEach(done => {
@@ -114,6 +117,28 @@ it('[injection] should publish an injection request event', () => {
     expectedJson: require('./mqttPublished/InjectionRequest.json'),
     hermesTopic: 'hermes/injection/perform',
     facadePublication: 'injection_request'
+  })
+})
+
+// Feedback
+
+it('[feedback] should publish an notification sound on event', () => {
+  return setupPublisherTest({
+    client,
+    facade: feedback,
+    publishedJson: require('./hermesPublished/SiteMessage.json'),
+    hermesTopic: 'hermes/feedback/sound/toggleOn',
+    facadePublication: 'notification_on'
+  })
+})
+
+it('[feedback] should publish an notification sound off event', () => {
+  return setupPublisherTest({
+    client,
+    facade: feedback,
+    publishedJson: require('./hermesPublished/SiteMessage.json'),
+    hermesTopic: 'hermes/feedback/sound/toggleOff',
+    facadePublication: 'notification_off'
   })
 })
 

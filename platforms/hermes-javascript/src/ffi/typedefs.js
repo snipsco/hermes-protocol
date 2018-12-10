@@ -249,6 +249,13 @@ const CInjectionRequestMessage = Struct({
   id: coerce('char *')
 })
 
+// Feedback
+
+const CSiteMessage = Struct({
+  site_id: coerce('char *'),
+  session_id: coerce('char *')
+})
+
 const messages = {
   CSessionStartedMessage,
   CSessionQueuedMessage,
@@ -259,6 +266,7 @@ const messages = {
   CIntentMessage,
   CIntentNotRecognizedMessage,
   CSayMessage,
+  CSiteMessage,
   CInjectionRequestMessage,
   CInjectionRequestOperations,
   CInjectionRequestOperation,

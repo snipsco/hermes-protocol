@@ -67,12 +67,23 @@ module.exports.library = libraryPath => ffi.Library(libraryPath, {
     hermes_protocol_handler_injection_facade: [ 'int', [ 'void *', 'void **' ]],
     hermes_drop_injection_facade: [ 'int', [ 'void *' ]],
 
+    // Requests an injection
     hermes_injection_publish_injection_request: [ 'int', [ 'void *', 'void * ']],
+
+    /* Feedback */
+
+    // Allocators & destructors
+    hermes_protocol_handler_sound_feedback_facade: [ 'int', [ 'void *', 'void **' ]],
+    hermes_drop_sound_feedback_facade: [ 'int', [ 'void *' ]],
+
+    // Turn on / off notification sounds
+    hermes_sound_feedback_publish_toggle_on: [ 'int', [ 'void *', 'void *' ]],
+    hermes_sound_feedback_publish_toggle_off: [ 'int', [ 'void *', 'void *' ]],
 
     /* Others */
 
-    hermes_protocol_handler_tts_backend_facade: [ 'int', [ 'void *', 'void **' ]],
-    hermes_tts_backend_subscribe_say: [ 'int', [ 'void *', 'void *' ]]
+    // hermes_protocol_handler_tts_backend_facade: [ 'int', [ 'void *', 'void **' ]],
+    // hermes_tts_backend_subscribe_say: [ 'int', [ 'void *', 'void *' ]]
 })
 
 /**

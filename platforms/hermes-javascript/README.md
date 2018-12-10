@@ -180,9 +180,18 @@ const hermes = new Hermes()
 const injection = hermes.injection()
 ```
 
+#### feedback()
+
+Use the Sound Feedback Api Subset.
+
+```js
+const hermes = new Hermes()
+const feedback = hermes.feedback()
+```
+
 #### destroy()
 
-Release the resources associated with this Hermes instance.
+Release all the resources associated with this Hermes instance.
 
 ```js
 const hermes = new Hermes()
@@ -305,7 +314,7 @@ dialog.publish('continue_session', {
     text: /* string */,
     intent_filter: /* string[] */,
     custom_data: /* string */,
-    send_intent_not_recognized: /* uchar */
+    send_intent_not_recognized: /* boolean */
 })
 ```
 
@@ -467,6 +476,34 @@ dialog.publish('injection_request', {
             }
         }
     ]
+})
+```
+
+### Feedback Api Subset
+
+Control the sound feedback.
+
+#### Events available for publishing
+
+- **notification_on**
+
+Turn the notification sound on.
+
+```js
+feedback.publish('notification_on', {
+    "site_id": /* string */,
+    "session_id": /* string */
+})
+```
+
+- **notification_off**
+
+Turn the notification sound off.
+
+```js
+feedback.publish('notification_off', {
+    "site_id": /* string */,
+    "session_id": /* string */
 })
 ```
 

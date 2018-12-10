@@ -40,6 +40,7 @@ const exportedObject = {
         hermesTopic,
         facadePublication
     }) => {
+        publishedJson = { ...publishedJson }
         return new Promise(resolve => {
             client.subscribe(hermesTopic, function() {
                 facade.publish(facadePublication, publishedJson)

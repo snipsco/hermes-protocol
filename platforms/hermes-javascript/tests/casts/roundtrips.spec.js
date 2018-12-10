@@ -15,7 +15,8 @@ const {
     CSessionQueuedMessage,
     CSessionEndedMessage,
     CSessionTermination,
-    CInjectionRequestMessage
+    CInjectionRequestMessage,
+    CSiteMessage
 } = require('../../src/ffi/typedefs')
 
 
@@ -291,6 +292,15 @@ describe('It should perform casting round-trips on messages', () => {
             MessageClass: InjectionRequestMessage,
             forgeType: CInjectionRequestMessage,
             FFIFunctionName: 'hermes_ffi_test_round_trip_injection_request'
+        })
+    })
+    it('[norust] SiteMessage', () => {
+        roundTrip({
+            data: {
+                site_id: 'default',
+                session_id: 'session id'
+            },
+            forgeType: CSiteMessage
         })
     })
 })

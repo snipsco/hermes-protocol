@@ -1,6 +1,7 @@
 const ref = require('ref')
 const Dialog = require('./dialog')
 const Injection = require('./injection')
+const Feedback = require('./feedback')
 const { call } = require('../ffi/bindings')
 
 /**
@@ -9,6 +10,7 @@ const { call } = require('../ffi/bindings')
 const API_SUBSETS = {
     dialog: Dialog,
     injection: Injection,
+    feedback: Feedback
 }
 
 /**
