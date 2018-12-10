@@ -22,10 +22,10 @@ pub struct InProcessHermesProtocolHandler {
 }
 
 impl InProcessHermesProtocolHandler {
-    pub fn new() -> Fallible<Self> {
-        Ok(Self {
+    pub fn new() -> Self {
+        Self {
             bus: Mutex::new(ripb::Bus::new()),
-        })
+        }
     }
 
     fn get_handler<T: Send + Sync + Debug>(&self, component: T) -> Box<InProcessComponent<T>> {
@@ -35,6 +35,12 @@ impl InProcessHermesProtocolHandler {
             bus: Mutex::new(bus),
             subscriber: Mutex::new(None),
         })
+    }
+}
+
+impl Default for InProcessHermesProtocolHandler {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -934,7 +940,7 @@ mod tests {
     use std::rc::Rc;
 
     fn create_handlers() -> (Rc<InProcessHermesProtocolHandler>, Rc<InProcessHermesProtocolHandler>) {
-        let handler = Rc::new(InProcessHermesProtocolHandler::new().unwrap());
+        let handler = Rc::new(InProcessHermesProtocolHandler::new());
         (Rc::clone(&handler), handler)
     }
 

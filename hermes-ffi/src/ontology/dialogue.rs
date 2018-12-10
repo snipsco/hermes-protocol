@@ -155,6 +155,7 @@ pub struct CActionSessionInit {
 }
 
 impl CActionSessionInit {
+    #[allow(clippy::new_ret_no_self)]
     pub fn new(
         text: Option<String>,
         intent_filter: Option<Vec<String>>,

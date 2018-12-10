@@ -202,6 +202,7 @@ pub struct MqttHermesProtocolHandler {
 }
 
 impl MqttHermesProtocolHandler {
+    #[allow(clippy::new_ret_no_self)]
     pub fn new(broker_address: &str) -> Fallible<MqttHermesProtocolHandler> {
         let id = get_mqtt_id();
         let client_options = rumqtt::MqttOptions::new(id, broker_address);
@@ -806,7 +807,7 @@ mod tests {
         // same goes for /usr/local/sbin on macos/homebrew
         std::env::set_var(
             "PATH",
-            format!("{}:/usr/sbin:/usr/local/sbin", ::std::env::var("PATH").unwrap()),
+            format!("{}:/usr/sbin:/usr/local/sbin", std::env::var("PATH").unwrap()),
         );
 
         let server = Rc::new(ServerHolder {

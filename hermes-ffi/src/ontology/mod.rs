@@ -153,16 +153,16 @@ pub struct CMapStringToStringArray {
 
 impl Drop for CMapStringToStringArray {
     fn drop(&mut self) {
-        let _ = unsafe {
-            for e in Box::from_raw(::std::slice::from_raw_parts_mut(
+        unsafe {
+            let entries = Box::from_raw(std::slice::from_raw_parts_mut(
                 self.entries as *mut *mut CMapStringToStringArrayEntry,
                 self.count as usize,
-            ))
-            .iter()
-            {
-                let _ = CMapStringToStringArrayEntry::drop_raw_pointer(*e).unwrap();
+            ));
+
+            for e in entries.iter() {
+                let _ = CMapStringToStringArrayEntry::drop_raw_pointer(*e);
             }
-        };
+        }
     }
 }
 

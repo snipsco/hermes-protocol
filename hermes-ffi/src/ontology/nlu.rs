@@ -311,16 +311,16 @@ impl AsRust<Vec<hermes::NluSlot>> for CNluSlotArray {
 
 impl Drop for CNluSlotArray {
     fn drop(&mut self) {
-        let _ = unsafe {
-            for e in Box::from_raw(::std::slice::from_raw_parts_mut(
+        unsafe {
+            let slots = Box::from_raw(std::slice::from_raw_parts_mut(
                 self.entries as *mut *mut CNluSlot,
                 self.count as usize,
-            ))
-            .iter()
-            {
-                let _ = CNluSlot::drop_raw_pointer(*e).unwrap();
+            ));
+
+            for e in slots.iter() {
+                let _ = CNluSlot::drop_raw_pointer(*e);
             }
-        };
+        }
     }
 }
 

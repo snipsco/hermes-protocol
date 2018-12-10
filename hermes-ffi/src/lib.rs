@@ -18,5 +18,6 @@ pub use crate::ontology::*;
 pub use crate::protocol_handler::*;
 
 pub fn init_debug_logs() -> failure::Fallible<()> {
-    Ok(env_logger::try_init()?)
+    env_logger::try_init()?;
+    Ok(())
 }

@@ -47,14 +47,14 @@ pub struct CEntityValueArray {
 
 impl Drop for CEntityValueArray {
     fn drop(&mut self) {
-        let _ = unsafe {
-            for e in Box::from_raw(::std::slice::from_raw_parts_mut(
+        unsafe {
+            for e in Box::from_raw(std::slice::from_raw_parts_mut(
                 self.values as *mut *mut CEntityValue,
                 self.count as usize,
             ))
             .iter()
             {
-                let _ = CEntityValue::drop_raw_pointer(*e).unwrap();
+                let _ = CEntityValue::drop_raw_pointer(*e);
             }
         };
     }
@@ -170,23 +170,25 @@ pub struct CInjectionRequestOperations {
     pub count: libc::c_int,
 }
 
+type CInjectionRequest = (hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue>>);
+
 impl Drop for CInjectionRequestOperations {
     fn drop(&mut self) {
-        let _ = unsafe {
-            for e in Box::from_raw(::std::slice::from_raw_parts_mut(
+        unsafe {
+            let operations = Box::from_raw(std::slice::from_raw_parts_mut(
                 self.operations as *mut *mut CInjectionRequestOperation,
                 self.count as usize,
-            ))
-            .iter()
-            {
-                let _ = CInjectionRequestOperation::drop_raw_pointer(*e).unwrap();
+            ));
+
+            for e in operations.iter() {
+                let _ = CInjectionRequestOperation::drop_raw_pointer(*e);
             }
-        };
+        }
     }
 }
 
-impl CReprOf<Vec<(hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue>>)>> for CInjectionRequestOperations {
-    fn c_repr_of(input: Vec<(hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue>>)>) -> Fallible<Self> {
+impl CReprOf<Vec<CInjectionRequest>> for CInjectionRequestOperations {
+    fn c_repr_of(input: Vec<CInjectionRequest>) -> Fallible<Self> {
         Ok(Self {
             count: input.len() as libc::c_int,
             operations: Box::into_raw(
@@ -201,8 +203,8 @@ impl CReprOf<Vec<(hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue
     }
 }
 
-impl AsRust<Vec<(hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue>>)>> for CInjectionRequestOperations {
-    fn as_rust(&self) -> Fallible<Vec<(hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue>>)>> {
+impl AsRust<Vec<CInjectionRequest>> for CInjectionRequestOperations {
+    fn as_rust(&self) -> Fallible<Vec<CInjectionRequest>> {
         let mut result = Vec::with_capacity(self.count as usize);
 
         for e in unsafe { slice::from_raw_parts(self.operations, self.count as usize) } {

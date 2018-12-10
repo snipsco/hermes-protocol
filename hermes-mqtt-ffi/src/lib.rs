@@ -49,12 +49,12 @@ impl AsRust<hermes_mqtt::MqttOptions> for CMqttOptions {
             let mut tls = ::hermes_mqtt::TlsOptions::new(hostname);
             tls.disable_root_store = self.tls_disable_root_store != 0;
             tls.cafile = create_optional_rust_vec_string_from!(self.tls_ca_file)
-                .unwrap_or(vec![])
+                .unwrap_or_else(|| vec![])
                 .iter()
                 .map(::std::path::PathBuf::from)
                 .collect();
             tls.capath = create_optional_rust_vec_string_from!(self.tls_ca_path)
-                .unwrap_or(vec![])
+                .unwrap_or_else(|| vec![])
                 .iter()
                 .map(::std::path::PathBuf::from)
                 .collect();

@@ -217,16 +217,15 @@ impl AsRust<Vec<hermes::AsrToken>> for CAsrTokenArray {
 
 impl Drop for CAsrTokenArray {
     fn drop(&mut self) {
-        let _ = unsafe {
-            for e in Box::from_raw(::std::slice::from_raw_parts_mut(
+        unsafe {
+            let tokens = Box::from_raw(std::slice::from_raw_parts_mut(
                 self.entries as *mut *mut CAsrToken,
                 self.count as usize,
-            ))
-            .iter()
-            {
-                let _ = CAsrToken::drop_raw_pointer(*e).unwrap();
+            ));
+            for e in tokens.iter() {
+                CAsrToken::drop_raw_pointer(*e).unwrap();
             }
-        };
+        }
     }
 }
 
@@ -267,16 +266,16 @@ impl AsRust<Vec<Vec<hermes::AsrToken>>> for CAsrTokenDoubleArray {
 
 impl Drop for CAsrTokenDoubleArray {
     fn drop(&mut self) {
-        let _ = unsafe {
-            for e in Box::from_raw(::std::slice::from_raw_parts_mut(
+        unsafe {
+            let tokens = Box::from_raw(std::slice::from_raw_parts_mut(
                 self.entries as *mut *mut CAsrTokenArray,
                 self.count as usize,
-            ))
-            .iter()
-            {
-                let _ = CAsrTokenArray::drop_raw_pointer(*e).unwrap();
+            ));
+
+            for e in tokens.iter() {
+                CAsrTokenArray::drop_raw_pointer(*e).unwrap();
             }
-        };
+        }
     }
 }
 
