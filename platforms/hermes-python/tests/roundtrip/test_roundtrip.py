@@ -9,7 +9,7 @@ from glob import glob
 
 import hermes_python
 
-DYLIB_NAME = "libhermes_ffi_test.dylib"
+DYLIB_NAME = "libhermes_ffi_test.so"
 DYLIB_DIR = os.path.join(os.path.dirname(__file__), "./debug")
 DYLIB_PATH = glob(os.path.join(DYLIB_DIR, DYLIB_NAME))[0]
 
