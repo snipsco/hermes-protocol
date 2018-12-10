@@ -10,7 +10,7 @@ the Snips platform.
 to communicate with each other. For example an user app for the platform
 can use `hermes` to be notified that a new intent was detected. An other
 example could when the dialogue component asks the Automatic Speech
-Recognition (ASR) component to start capturing user speech, this will also 
+Recognition (ASR) component to start capturing user speech, this will also
 be done through `hermes`.
 
 ### Ontology
@@ -99,14 +99,15 @@ correctness
     - `c` C header
     - `hermes-kotlin` jvm impl
     - `hermes-python` python impl
+    - `hermes-javascript` js impl
 
 ## License
 ### Apache 2.0/MIT
 
 Licensed under either of
- * Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or 
+ * Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or
 http://www.apache.org/licenses/LICENSE-2.0)
- * MIT license ([LICENSE-MIT](LICENSE-MIT) or 
+ * MIT license ([LICENSE-MIT](LICENSE-MIT) or
 http://opensource.org/licenses/MIT)
 
      at your option.
