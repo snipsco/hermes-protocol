@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// const os = require('os')
 
 // TODO : check platform for existing dynamic lib.console
 

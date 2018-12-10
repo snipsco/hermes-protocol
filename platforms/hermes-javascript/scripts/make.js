@@ -6,8 +6,8 @@ const { execSync } = require('child_process')
 const tmp = require('tmp')
 const chalk = require('chalk')
 
-const REPO_URL = 'git@github.com:snipsco/snips-platform.git'
-const REPO_NAME = 'snips-platform'
+const REPO_URL = 'https://github.com/snipsco/hermes-protocol'
+const REPO_NAME = 'hermes-protocol'
 
 const LIB_EXTENSION = {
     linux:  '.so',
@@ -21,8 +21,9 @@ const LIB_EXTENSION = {
     win32:  '.dll'
 }[process.platform]
 const LIB_PATH = baseFolder =>
-    path.resolve(baseFolder, 'target/debug/libhermes_mqtt_ffi' + LIB_EXTENSION)
-const LIB_DIST = path.resolve(__dirname + '../libhermes_mqtt_ffi' + LIB_EXTENSION)
+    path.join(baseFolder, 'target/release/libhermes_mqtt_ffi' + LIB_EXTENSION)
+const LIB_DIST = path.join(__dirname, '../libhermes_mqtt_ffi' + LIB_EXTENSION)
+
 
 const errorStyle = chalk.bold.red
 const successStyle = chalk.bold.green
@@ -80,7 +81,7 @@ try {
     })
 
     logCmd('> Building the dynamic library from sources.')
-    cmd('cargo build -p hermes-mqtt-ffi', {
+    cmd('cargo build -p hermes-mqtt-ffi --release', {
         cwd: repoFolder
     })
 

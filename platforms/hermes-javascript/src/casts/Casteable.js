@@ -51,7 +51,7 @@ class Casteable {
                 const transformedValue = specialFields[key] && specialFields[key](value)
                 messageStruct[key] = transformedValue
             } else if(typeof value === 'string') {
-                // Read the char* pointer until a 0x00 byte is found.
+                // Write the char* buffer with a trailing null byte.
                 messageStruct[key] = ref.allocCString(value)
             } else if(typeof value !== 'object') {
                 // Primitive type.
