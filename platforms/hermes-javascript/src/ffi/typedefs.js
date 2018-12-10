@@ -80,14 +80,14 @@ const CTemperatureValue = Struct({
 })
 
 const CDurationValue = Struct({
-  years: coerce('long'),
-  quarters: coerce('long'),
-  months: coerce('long'),
-  weeks: coerce('long'),
-  days: coerce('long'),
-  hours: coerce('long'),
-  minutes: coerce('long'),
-  seconds: coerce('long'),
+  years: coerce('int64'),
+  quarters: coerce('int64'),
+  months: coerce('int64'),
+  weeks: coerce('int64'),
+  days: coerce('int64'),
+  hours: coerce('int64'),
+  minutes: coerce('int64'),
+  seconds: coerce('int64'),
   precision: coerce('int')
 })
 

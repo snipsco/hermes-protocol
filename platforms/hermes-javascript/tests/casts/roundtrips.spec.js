@@ -1,4 +1,5 @@
 const ref = require('ref')
+const Int64 = require('node-int64')
 const {
     Casteable,
     StringArray,
@@ -205,6 +206,18 @@ describe('It should perform casting round-trips on messages', () => {
                         range_start: 19,
                         range_end: 21,
                         entity: 'snips/number',
+                        slot_name: 'secondTerm'
+                    },
+                    {
+                        confidence: 0.5,
+                        raw_value: 'un',
+                        value: {
+                            value: new Int64(101),
+                            value_type: 3
+                        },
+                        range_start: 19,
+                        range_end: 21,
+                        entity: 'snips/ordinal',
                         slot_name: 'secondTerm'
                     }
                 ]

@@ -1,4 +1,5 @@
 const ref = require('ref')
+const Int64 = require('node-int64')
 const array = require('ref-array')
 const Casteable = require('./Casteable')
 const { cast } = require('../tools')
@@ -36,7 +37,7 @@ function castSlot (slot) {
                     break
                 case 3:
                     valuePtr = ref.reinterpret(valuePtr, ref.types.int64.size)
-                    value = ref.get(valuePtr, 0, 'int64')
+                    value = new Int64(valuePtr)
                     break
                 case 4:
                     valuePtr = ref.reinterpret(valuePtr, CInstantTimeValue.size)
@@ -109,7 +110,11 @@ class SlotArray extends Casteable {
                                 valuePtr = ref.alloc('double', value)
                                 break
                             case 3:
-                                valuePtr = ref.alloc('int64', value)
+                                if(value.toBuffer) {
+                                    valuePtr = value.toBuffer()
+                                } else {
+                                    valuePtr = ref.alloc('int64', value)
+                                }
                                 break
                             case 4:
                                 valuePtr = new Casteable(value).forge(CInstantTimeValue)

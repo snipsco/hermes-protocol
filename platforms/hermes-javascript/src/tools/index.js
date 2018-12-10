@@ -1,3 +1,5 @@
+const Int64 = require('node-int64')
+
 let _keepAlive = true
 const keepAliveFunction = function (timer) {
     if(_keepAlive) {
@@ -66,6 +68,8 @@ module.exports = {
                     obj[key] = module.exports.cast(value)
                 } else if(valueType === 'char*' || valueType === 'string') {
                     obj[key] = value.readCString()
+                } else if(valueType === 'int64') {
+                    obj[key] = new Int64(value)
                 } else {
                     obj[key] = value.deref()
                 }
