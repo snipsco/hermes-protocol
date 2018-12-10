@@ -4,6 +4,24 @@ use semver;
 
 use serde::{Deserialize, Serialize};
 
+pub mod asr;
+pub mod audio_server;
+pub mod dialogue;
+pub mod hotword;
+pub mod injection;
+pub mod nlu;
+pub mod tts;
+pub mod vad;
+
+pub use self::asr::*;
+pub use self::audio_server::*;
+pub use self::dialogue::*;
+pub use self::hotword::*;
+pub use self::injection::*;
+pub use self::nlu::*;
+pub use self::tts::*;
+pub use self::vad::*;
+
 pub trait HermesMessage<'de>: fmt::Debug + Deserialize<'de> + Serialize {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
@@ -25,30 +43,6 @@ impl Default for SiteMessage {
 }
 
 impl<'de> HermesMessage<'de> for SiteMessage {}
-
-pub mod vad;
-pub use vad::*;
-
-pub mod hotword;
-pub use hotword::*;
-
-pub mod asr;
-pub use asr::*;
-
-pub mod nlu;
-pub use nlu::*;
-
-pub mod audio_server;
-pub use audio_server::*;
-
-pub mod tts;
-pub use tts::*;
-
-pub mod injection;
-pub use injection::*;
-
-pub mod dialogue;
-pub use dialogue::*;
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]

@@ -1,4 +1,6 @@
-use super::{AsrToken, HermesMessage, NluSlot};
+use super::asr::AsrToken;
+use super::nlu::NluSlot;
+use super::HermesMessage;
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]

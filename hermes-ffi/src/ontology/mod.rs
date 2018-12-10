@@ -1,13 +1,30 @@
 #![allow(non_camel_case_types)]
 
+use std::collections::HashMap;
+use std::ptr::null;
+use std::slice;
+
 use failure::Fallible;
 use failure::ResultExt;
 use ffi_utils::{AsRust, CReprOf, CStringArray, RawBorrow, RawPointerConverter};
 use hermes;
 use libc;
-use std::collections::HashMap;
-use std::ptr::null;
-use std::slice;
+
+pub mod asr;
+pub mod audio_server;
+pub mod dialogue;
+pub mod hotword;
+pub mod injection;
+pub mod nlu;
+pub mod tts;
+
+pub use self::asr::*;
+pub use self::audio_server::*;
+pub use self::dialogue::*;
+pub use self::hotword::*;
+pub use self::injection::*;
+pub use self::nlu::*;
+pub use self::tts::*;
 
 #[repr(C)]
 #[derive(Debug)]
@@ -49,30 +66,6 @@ impl Drop for CSiteMessage {
         take_back_nullable_c_string!(self.session_id);
     }
 }
-
-pub mod hotword;
-
-pub use hotword::*;
-
-pub mod asr;
-
-pub use asr::*;
-
-pub mod nlu;
-
-pub use nlu::*;
-
-pub mod audio_server;
-
-pub use audio_server::*;
-
-pub mod tts;
-
-pub use tts::*;
-
-pub mod dialogue;
-
-pub use dialogue::*;
 
 #[repr(C)]
 #[derive(Debug)]
@@ -119,10 +112,6 @@ impl Drop for CErrorMessage {
         take_back_nullable_c_string!(self.context);
     }
 }
-
-pub mod injection;
-
-pub use injection::*;
 
 #[repr(C)]
 #[derive(Debug)]

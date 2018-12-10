@@ -31,7 +31,7 @@ use failure::{Fallible, ResultExt, SyncFailure};
 use hermes::*;
 use lazy_static::lazy_static;
 
-use topics::*;
+use crate::topics::*;
 
 pub use rumqtt::{MqttOptions, TlsOptions};
 

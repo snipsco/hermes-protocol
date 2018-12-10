@@ -1,4 +1,5 @@
 extern crate chrono;
+extern crate hermes;
 
 use chrono::prelude::*;
 
@@ -25,7 +26,7 @@ macro_rules! t {
             let (tx, rx) = std::sync::mpsc::channel();
             let tx = std::sync::Mutex::new(tx);
             receiver
-                .$s(::Callback::new(move |o: &$t| {
+                .$s(hermes::Callback::new(move |o: &$t| {
                     tx.lock().map(|it| it.send(o.clone())).unwrap().unwrap()
                 }))
                 .unwrap();
@@ -46,7 +47,7 @@ macro_rules! t {
             let (tx, rx) = std::sync::mpsc::channel();
             let tx = std::sync::Mutex::new(tx);
             receiver
-                .$s(::Callback0::new(move || {
+                .$s(hermes::Callback0::new(move || {
                     tx.lock().map(|it| it.send(())).unwrap().unwrap()
                 }))
                 .unwrap();
@@ -67,7 +68,7 @@ macro_rules! t {
             receiver
                 .$s(
                     $a,
-                    Callback0::new(move || tx.lock().map(|it| it.send(())).unwrap().unwrap()),
+                    hermes::Callback0::new(move || tx.lock().map(|it| it.send(())).unwrap().unwrap()),
                 )
                 .unwrap();
             std::thread::sleep(WAIT_DURATION);
@@ -96,7 +97,7 @@ macro_rules! t {
             receiver
                 .$s(
                     $a,
-                    Callback::new(move |o: &$t| tx.lock().map(|it| it.send(o.clone())).unwrap().unwrap()),
+                    hermes::Callback::new(move |o: &$t| tx.lock().map(|it| it.send(o.clone())).unwrap().unwrap()),
                 )
                 .unwrap();
             let message = $object;
@@ -118,7 +119,7 @@ macro_rules! t {
             receiver
                 .$s(
                     $a,
-                    Callback0::new(move || tx.lock().map(|it| it.send(())).unwrap().unwrap()),
+                    hermes::Callback0::new(move || tx.lock().map(|it| it.send(())).unwrap().unwrap()),
                 )
                 .unwrap();
             std::thread::sleep(WAIT_DURATION);
@@ -147,7 +148,7 @@ macro_rules! t {
             receiver
                 .$s(
                     $a,
-                    Callback::new(move |o: &$t| tx.lock().map(|it| it.send(o.clone())).unwrap().unwrap()),
+                    hermes::Callback::new(move |o: &$t| tx.lock().map(|it| it.send(o.clone())).unwrap().unwrap()),
                 )
                 .unwrap();
             let message = $object;
@@ -167,7 +168,7 @@ macro_rules! t {
             let (tx, rx) = std::sync::mpsc::channel();
             let tx = std::sync::Mutex::new(tx);
             receiver
-                .$s(::Callback0::new(move || {
+                .$s(hermes::Callback0::new(move || {
                     tx.lock().map(|it| it.send(())).unwrap().unwrap()
                 }))
                 .unwrap();
@@ -195,7 +196,7 @@ macro_rules! t {
             let (tx, rx) = std::sync::mpsc::channel();
             let tx = std::sync::Mutex::new(tx);
             receiver
-                .$s(::Callback::new(move |o: &$t| {
+                .$s(hermes::Callback::new(move |o: &$t| {
                     tx.lock().map(|it| it.send(o.clone())).unwrap().unwrap()
                 }))
                 .unwrap();
@@ -225,14 +226,14 @@ macro_rules! t {
             let (tx, rx) = std::sync::mpsc::channel();
             let tx = std::sync::Mutex::new(tx);
             receiver
-                .$s(::Callback::new(move |o: &$t| {
+                .$s(hermes::Callback::new(move |o: &$t| {
                     tx.lock().map(|it| it.send(o.clone())).unwrap().unwrap()
                 }))
                 .unwrap();
             let message = $object;
             std::thread::sleep(WAIT_DURATION);
             source.$p(message.clone()).unwrap();
-            let result = rx.recv_timeout(::std::time::Duration::from_secs(1));
+            let result = rx.recv_timeout(std::time::Duration::from_secs(1));
             assert!(result.is_ok(), "didn't receive message after one second");
             assert_eq!(result.unwrap(), message)
         }

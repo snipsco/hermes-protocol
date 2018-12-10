@@ -523,13 +523,13 @@ struct VoiceActivityVadDown {
 
 impl VoiceActivityFacade for InProcessComponent<VoiceActivity> {
     fn subscribe_vad_up(&self, site_id: String, handler: Callback<VadUpMessage>) -> Fallible<()> {
-        #[rustfmt::skip]
+        #[cfg_attr(rustfmt, rustfmt_skip)]
         subscribe_filter!(self, VoiceActivityVadUp { vad_up }, handler, site_id, |it| { &it.vad_up.site_id })
     }
 
     fn subscribe_vad_down(&self, site_id: String, handler: Callback<VadDownMessage>) -> Fallible<()> {
-        #[rustfmt::skip]
-        subscribe_filter!(self, VoiceActivityVadDown { vad_down }, handler, site_id, |it| &it.vad_down.site_id)
+        #[cfg_attr(rustfmt, rustfmt_skip)]
+        subscribe_filter!(self, VoiceActivityVadDown { vad_down }, handler, site_id, |it| { &it.vad_down.site_id })
     }
 
     fn subscribe_all_vad_up(&self, handler: Callback<VadUpMessage>) -> Fallible<()> {
@@ -562,7 +562,7 @@ struct HotwordDetected {
 
 impl HotwordFacade for InProcessComponent<Hotword> {
     fn subscribe_detected(&self, id: String, handler: Callback<HotwordDetectedMessage>) -> Fallible<()> {
-        #[rustfmt::skip]
+        #[cfg_attr(rustfmt, rustfmt_skip)]
         subscribe_filter!(self, HotwordDetected { message }, handler, id, |it| { &it.id })
     }
 

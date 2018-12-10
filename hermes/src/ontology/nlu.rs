@@ -1,4 +1,5 @@
-use super::{AsrToken, HermesMessage};
+use super::asr::AsrToken;
+use super::HermesMessage;
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]

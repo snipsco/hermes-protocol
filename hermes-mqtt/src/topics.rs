@@ -35,8 +35,8 @@ impl ToPath for HermesTopic {}
 
 impl HermesTopic {
     fn parse_asr<'a, It: Iterator<Item = &'a str>>(mut comps: It) -> Option<HermesTopic> {
-        use AsrCommand::*;
-        use HermesTopic::Asr;
+        use self::AsrCommand::*;
+        use self::HermesTopic::Asr;
         match comps.next() {
             Some("toggleOn") => Some(Asr(ToggleOn)),
             Some("toggleOff") => Some(Asr(ToggleOff)),
@@ -55,8 +55,8 @@ impl HermesTopic {
     }
 
     fn parse_audio_server<'a, It: Iterator<Item = &'a str>>(mut comps: It) -> Option<HermesTopic> {
-        use AudioServerCommand::*;
-        use HermesTopic::AudioServer;
+        use self::AudioServerCommand::*;
+        use self::HermesTopic::AudioServer;
         match (comps.next(), comps.next(), comps.next()) {
             (Some("toggleOn"), None, None) => Some(AudioServer(None, ToggleOn)),
             (Some("toggleOff"), None, None) => Some(AudioServer(None, ToggleOff)),
@@ -87,8 +87,8 @@ impl HermesTopic {
     }
 
     fn parse_dialogue_manager<'a, It: Iterator<Item = &'a str>>(mut comps: It) -> Option<HermesTopic> {
-        use DialogueManagerCommand::*;
-        use HermesTopic::DialogueManager;
+        use self::DialogueManagerCommand::*;
+        use self::HermesTopic::DialogueManager;
         let command = comps.next();
         match command {
             Some("toggleOn") => Some(DialogueManager(ToggleOn)),
@@ -120,7 +120,7 @@ impl HermesTopic {
     }
 
     fn parse_feedback<'a, It: Iterator<Item = &'a str>>(mut comps: It) -> Option<HermesTopic> {
-        use HermesTopic::Feedback;
+        use self::HermesTopic::Feedback;
         let medium = comps.next();
         let command = comps.next();
         match (medium, command) {
@@ -131,8 +131,8 @@ impl HermesTopic {
     }
 
     fn parse_voice_activity<'a, It: Iterator<Item = &'a str>>(mut comps: It) -> Option<HermesTopic> {
-        use HermesTopic::VoiceActivity;
-        use VoiceActivityCommand::*;
+        use self::HermesTopic::VoiceActivity;
+        use self::VoiceActivityCommand::*;
         let one = comps.next();
         let two = comps.next();
         match (one, two) {
@@ -143,8 +143,8 @@ impl HermesTopic {
     }
 
     fn parse_hotword<'a, It: Iterator<Item = &'a str>>(mut comps: It) -> Option<HermesTopic> {
-        use HermesTopic::Hotword;
-        use HotwordCommand::*;
+        use self::HermesTopic::Hotword;
+        use self::HotwordCommand::*;
         let one = comps.next();
         let two = comps.next();
         match (one, two) {
@@ -171,7 +171,7 @@ impl HermesTopic {
     }
 
     fn parse_intent<'a, It: Iterator<Item = &'a str>>(mut comps: It) -> Option<HermesTopic> {
-        use HermesTopic::Intent;
+        use self::HermesTopic::Intent;
         match comps.next() {
             Some(name) => Some(Intent(name.into())),
             _ => None,
@@ -179,8 +179,8 @@ impl HermesTopic {
     }
 
     fn parse_nlu<'a, It: Iterator<Item = &'a str>>(mut comps: It) -> Option<HermesTopic> {
-        use HermesTopic::Nlu;
-        use NluCommand::*;
+        use self::HermesTopic::Nlu;
+        use self::NluCommand::*;
         let command = comps.next();
         match command {
             Some("query") => Some(Nlu(Query)),
@@ -201,8 +201,8 @@ impl HermesTopic {
     }
 
     fn parse_tts<'a, It: Iterator<Item = &'a str>>(mut comps: It) -> Option<HermesTopic> {
-        use HermesTopic::Tts;
-        use TtsCommand::*;
+        use self::HermesTopic::Tts;
+        use self::TtsCommand::*;
         match comps.next() {
             Some("say") => Some(Tts(Say)),
             Some("sayFinished") => Some(Tts(SayFinished)),
@@ -218,8 +218,8 @@ impl HermesTopic {
     }
 
     fn parse_injection<'a, It: Iterator<Item = &'a str>>(mut comps: It) -> Option<HermesTopic> {
-        use HermesTopic::Injection;
-        use InjectionCommand::*;
+        use self::HermesTopic::Injection;
+        use self::InjectionCommand::*;
         match comps.next() {
             Some("perform") => Some(Injection(Perform)),
             Some("status") => Some(Injection(Status)),

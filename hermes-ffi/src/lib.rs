@@ -11,11 +11,11 @@ extern crate snips_nlu_ontology_ffi_macros;
 #[cfg(test)]
 extern crate spectral;
 
-mod protocol_handler;
-pub use protocol_handler::*;
-
 mod ontology;
-pub use ontology::*;
+mod protocol_handler;
+
+pub use crate::ontology::*;
+pub use crate::protocol_handler::*;
 
 pub fn init_debug_logs() -> failure::Fallible<()> {
     Ok(env_logger::try_init()?)

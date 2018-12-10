@@ -10,13 +10,12 @@ extern crate serde_json;
 extern crate snips_nlu_ontology;
 
 pub mod errors;
+pub mod ontology;
 
-mod ontology;
+pub use crate::errors::*;
+pub use crate::ontology::*;
 
 use failure::Fallible;
-
-pub use errors::*;
-pub use ontology::*;
 
 /// A struct wrapping a callback with one argument, create one with the `new` method
 pub struct Callback<T> {
