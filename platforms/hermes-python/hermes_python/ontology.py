@@ -226,6 +226,7 @@ class SessionStartedMessage(object):
         self.session_id = session_id
         self.custom_data = custom_data
         self.site_id = site_id
+        self.reactivated_from_session_id = reactivated_from_session_id
 
     @classmethod
     def from_c_repr(cls, c_repr):
@@ -234,6 +235,9 @@ class SessionStartedMessage(object):
         site_id = c_repr.site_id
         reactivated_from_session_id = c_repr.reactivated_from_session_id
         return cls(session_id, custom_data, site_id, reactivated_from_session_id)
+
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
 
 
 class SessionEndedMessage(object):
@@ -259,6 +263,8 @@ class SessionEndedMessage(object):
         termination = SessionTermination.from_c_repr(c_repr.termination)
         return cls(session_id, custom_data, site_id, termination)
 
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
 
 class SessionQueuedMessage(object):
     def __init__(self, session_id, custom_data, site_id):
@@ -280,6 +286,9 @@ class SessionQueuedMessage(object):
         site_id = c_repr.site_id
         return cls(session_id, custom_data, site_id)
 
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
+
 
 class SessionTermination(object):
     def __init__(self, termination_type, data):
@@ -296,6 +305,9 @@ class SessionTermination(object):
         termination_type = c_repr.termination_type
         data = c_repr.data
         return cls(termination_type, data)
+
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
 
 class CustomValue(object):
     def __init__(self, string_value):
