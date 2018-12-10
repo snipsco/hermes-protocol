@@ -249,6 +249,10 @@ const CInjectionRequestMessage = Struct({
   id: coerce('char *')
 })
 
+const CInjectionStatusMessage = Struct({
+  last_injection_date: coerce('char *')
+})
+
 // Feedback
 
 const CSiteMessage = Struct({
@@ -271,7 +275,8 @@ const messages = {
   CInjectionRequestOperations,
   CInjectionRequestOperation,
   CMapStringToStringArray,
-  CMapStringToStringArrayEntry
+  CMapStringToStringArrayEntry,
+  CInjectionStatusMessage
 }
 
 /* Exports */

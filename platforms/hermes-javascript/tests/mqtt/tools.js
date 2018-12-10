@@ -40,15 +40,24 @@ const exportedObject = {
         hermesTopic,
         facadePublication
     }) => {
-        publishedJson = { ...publishedJson }
+        publishedJson = publishedJson && { ...publishedJson }
         return new Promise(resolve => {
             client.subscribe(hermesTopic, function() {
                 facade.publish(facadePublication, publishedJson)
             })
             client.on('message', (topic, messageBuffer) => {
-                const message = JSON.parse(messageBuffer.toString())
-                const expected = expectedJson || exportedObject.camelize(publishedJson)
-                expect(expected).toMatchObject(message)
+                let message
+                try {
+                    message = JSON.parse(messageBuffer.toString())
+                } catch (e) {
+                    message = null
+                }
+                if(message) {
+                    const expected = expectedJson || exportedObject.camelize(publishedJson)
+                    expect(expected).toMatchObject(message)
+                } else {
+                    expect(null).toEqual(message)
+                }
                 client.unsubscribe(hermesTopic)
                 resolve()
             })
@@ -62,6 +71,7 @@ const exportedObject = {
         hermesTopic,
         facadeSubscription
     }) => {
+        mqttJson = { ...mqttJson }
         return new Promise(resolve => {
             facade.once(facadeSubscription, message => {
                 const expected = expectedJson || exportedObject.camelize(mqttJson)

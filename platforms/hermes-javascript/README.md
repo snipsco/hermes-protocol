@@ -479,6 +479,21 @@ dialog.publish('injection_request', {
 })
 ```
 
+- **injection_status_request**
+
+Will request that a new status message will be sent.
+Note that you should subscribe to `injection_status` beforehand in order to receive the message.
+
+```js
+injection.publish('injection_status_request')
+```
+
+#### Events available for subscribing
+
+- **injection_status**
+
+Get the status of the last injection request.
+
 ### Feedback Api Subset
 
 Control the sound feedback.

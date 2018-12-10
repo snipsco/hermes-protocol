@@ -66,9 +66,14 @@ module.exports.library = libraryPath => ffi.Library(libraryPath, {
     // Allocators & destructors
     hermes_protocol_handler_injection_facade: [ 'int', [ 'void *', 'void **' ]],
     hermes_drop_injection_facade: [ 'int', [ 'void *' ]],
+    hermes_drop_injection_status_message: [ 'int', [ 'void *' ]],
 
     // Requests an injection
     hermes_injection_publish_injection_request: [ 'int', [ 'void *', 'void * ']],
+    // Request an injection status message to be sent
+    hermes_injection_publish_injection_status_request: [ 'int', [ 'void *' ]],
+    // Subscribe to injection status
+    hermes_injection_subscribe_injection_status: [ 'int', [ 'void *', 'void *' ]],
 
     /* Feedback */
 

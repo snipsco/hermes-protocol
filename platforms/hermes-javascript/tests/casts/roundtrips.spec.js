@@ -16,7 +16,8 @@ const {
     CSessionEndedMessage,
     CSessionTermination,
     CInjectionRequestMessage,
-    CSiteMessage
+    CSiteMessage,
+    CInjectionStatusMessage
 } = require('../../src/ffi/typedefs')
 
 
@@ -301,6 +302,14 @@ describe('It should perform casting round-trips on messages', () => {
                 session_id: 'session id'
             },
             forgeType: CSiteMessage
+        })
+    })
+    it('[norust] InjectionStatus', () => {
+        roundTrip({
+            data: {
+                last_injection_date: '2018-12-10T11:14:08.468Z'
+            },
+            forgeType: CInjectionStatusMessage
         })
     })
 })

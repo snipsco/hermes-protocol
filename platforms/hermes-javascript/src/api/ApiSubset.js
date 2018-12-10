@@ -117,8 +117,12 @@ class ApiSubset {
             forgeOptions
         } = getMetadata(this.publishEvents, eventName)
 
-        const cData = new (messageClass || Casteable)(message).forge(forgedStruct, forgeOptions)
-        this.call(fullEventName, this.facade, cData.ref())
+        if(message) {
+            const cDataRef = new (messageClass || Casteable)(message).forge(forgedStruct, forgeOptions).ref()
+            this.call(fullEventName, this.facade, cDataRef)
+        } else {
+            this.call(fullEventName, this.facade)
+        }
     }
 }
 

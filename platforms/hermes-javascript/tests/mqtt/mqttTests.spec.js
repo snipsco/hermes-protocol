@@ -120,6 +120,16 @@ it('[injection] should publish an injection request event', () => {
   })
 })
 
+it('[injection] should publish an injection status request event', () => {
+  return setupPublisherTest({
+    client,
+    facade: injection,
+    publishedJson: null,
+    hermesTopic: 'hermes/injection/statusRequest',
+    facadePublication: 'injection_status_request'
+  })
+})
+
 // Feedback
 
 it('[feedback] should publish an notification sound on event', () => {
@@ -204,5 +214,17 @@ it('[dialog] should receive events related to a specific intent', () => {
     expectedJson: require('./hermesPublished/Intent.json'),
     hermesTopic: 'hermes/intent/anIntent',
     facadeSubscription: 'intent/anIntent'
+  })
+})
+
+// Injection
+
+it('[injection] should receive events related to an injection status', () => {
+  return setupSubscriberTest({
+    client,
+    facade: injection,
+    mqttJson: require('./mqttPublished/InjectionStatus.json'),
+    hermesTopic: 'hermes/injection/status',
+    facadeSubscription: 'injection_status'
   })
 })
