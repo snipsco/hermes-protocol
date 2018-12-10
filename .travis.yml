@@ -12,12 +12,16 @@ before_install:
   - sudo update-alternatives --set java  /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java
   - sudo update-alternatives --set javac  /usr/lib/jvm/java-8-openjdk-amd64/bin/javac
 
+before_script:
+  - rustup component add rustfmt
+
 rust:
   - stable
   - beta
   - nightly
 
 script:
+  - cargo fmt --all -- --check
   - cargo build --all
   - cargo test --all
   - pwd
