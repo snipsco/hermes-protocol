@@ -20,6 +20,7 @@ rust:
 script:
   - cargo build --all
   - cargo test --all
+  - pwd
   - (cd platforms/hermes-kotlin && ./gradlew --console plain jar)
   - (cd platforms/hermes-kotlin && ./gradlew --console plain test)
 
