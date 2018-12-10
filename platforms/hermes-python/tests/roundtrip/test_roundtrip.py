@@ -58,7 +58,7 @@ def test_hermes_ffi_test_round_trip_session_started():
 
     assert session_started_message == round_trip_session_started_message
 
-
+"""
 def test_hermes_ffi_test_round_trip_session_ended():
     session_termination = hermes_python.ontology.SessionTermination(1, "data")
     session_ended_message = hermes_python.ontology.SessionEndedMessage("session_id", "custom_data", "site_id", session_termination)
@@ -92,7 +92,7 @@ def test_hermes_ffi_test_round_trip_intent():
     assert
 
 
-"""
+
 def test_hermes_ffi_test_round_trip_intent_not_recognized():
     intent_not_recognized_message = hermes_python.ontology.Intent
     round_trip__ = get_round_trip_data_structure(
