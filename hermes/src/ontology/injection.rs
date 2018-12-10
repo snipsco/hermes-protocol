@@ -5,7 +5,7 @@ use std::collections::HashMap;
 
 type Value = String;
 type Entity = String;
-type Prononciation = String;
+type Pronunciation = String;
 
 #[derive(Debug, Clone, PartialEq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -59,7 +59,7 @@ pub struct InjectionRequestMessage {
     pub operations: Vec<(InjectionKind, HashMap<Entity, Vec<EntityValue>>)>,
     /// List of pre-computed prononciations to add in a model
     #[serde(default)]
-    pub lexicon: HashMap<Value, Vec<Prononciation>>,
+    pub lexicon: HashMap<Value, Vec<Pronunciation>>,
     /// Language for cross-language G2P
     pub cross_language: Option<String>,
     /// The id of the `InjectionRequest` that was processed
