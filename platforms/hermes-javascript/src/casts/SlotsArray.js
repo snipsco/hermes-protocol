@@ -25,6 +25,9 @@ function castSlot (slot) {
             let value
             switch(value_type) {
                 case 1:
+                case 10:
+                case 11:
+                case 12:
                     value = valuePtr.readCString()
                     break
                 case 2:
@@ -32,8 +35,8 @@ function castSlot (slot) {
                     value = ref.get(valuePtr, 0, 'double')
                     break
                 case 3:
-                    valuePtr = ref.reinterpret(valuePtr, ref.types.int.size)
-                    value = ref.get(valuePtr, 0, 'int')
+                    valuePtr = ref.reinterpret(valuePtr, ref.types.int64.size)
+                    value = ref.get(valuePtr, 0, 'int64')
                     break
                 case 4:
                     valuePtr = ref.reinterpret(valuePtr, CInstantTimeValue.size)
@@ -97,13 +100,16 @@ class SlotArray extends Casteable {
                         let valuePtr = ref.NULL
                         switch(value_type) {
                             case 1:
+                            case 10:
+                            case 11:
+                            case 12:
                                 valuePtr = ref.allocCString(value)
                                 break
                             case 2:
                                 valuePtr = ref.alloc('double', value)
                                 break
                             case 3:
-                                valuePtr = ref.alloc('int', value)
+                                valuePtr = ref.alloc('int64', value)
                                 break
                             case 4:
                                 valuePtr = new Casteable(value).forge(CInstantTimeValue)
