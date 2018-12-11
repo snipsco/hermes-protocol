@@ -69,7 +69,7 @@ class SlotMap(DotMap):
 
         for i in range(slots_list_length):
             nlu_slot = NluSlot.from_c_repr(c_slots_array_repr[i].contents)
-            slot_name = nlu_slot.slot_name.decode('utf-8')
+            slot_name = nlu_slot.slot_name
             mapping[slot_name].append(nlu_slot)
         return cls(mapping)
 
