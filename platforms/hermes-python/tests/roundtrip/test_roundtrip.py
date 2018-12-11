@@ -58,9 +58,10 @@ def test_hermes_ffi_test_round_trip_session_started():
 
     assert session_started_message == round_trip_session_started_message
 
-"""
-def test_hermes_ffi_test_round_trip_session_ended():
-    session_termination = hermes_python.ontology.SessionTermination(1, "data")
+
+def test_hermes_ffi_test_round_trip_session_ended_for_error(): # TODO : Move Termination type to dedicated enum
+    SNIPS_SESSION_TERMINATION_TYPE_ERROR = 6
+    session_termination = hermes_python.ontology.SessionTermination(SNIPS_SESSION_TERMINATION_TYPE_ERROR, "data")
     session_ended_message = hermes_python.ontology.SessionEndedMessage("session_id", "custom_data", "site_id", session_termination)
     round_trip_session_ended_message = get_round_trip_data_structure(
         session_ended_message,
@@ -69,9 +70,26 @@ def test_hermes_ffi_test_round_trip_session_ended():
         lib.hermes_ffi_test_round_trip_session_ended
     )
 
+    assert session_ended_message.termination.data == round_trip_session_ended_message.termination.data
+    assert session_ended_message.termination == round_trip_session_ended_message.termination
     assert session_ended_message == round_trip_session_ended_message
 
+def test_hermes_ffi_test_round_trip_session_ended(): # TODO : Move Termination type to dedicated enum
+    SNIPS_SESSION_TERMINATION_TYPE_NOMINAL = 1
+    session_termination = hermes_python.ontology.SessionTermination(SNIPS_SESSION_TERMINATION_TYPE_NOMINAL, None)
+    session_ended_message = hermes_python.ontology.SessionEndedMessage("session_id", "custom_data", "site_id", session_termination)
+    round_trip_session_ended_message = get_round_trip_data_structure(
+        session_ended_message,
+        hermes_python.ffi.ontology.CSessionEndedMessage,
+        hermes_python.ontology.SessionEndedMessage,
+        lib.hermes_ffi_test_round_trip_session_ended
+    )
 
+    assert session_ended_message.termination.data == round_trip_session_ended_message.termination.data
+    assert session_ended_message.termination == round_trip_session_ended_message.termination
+    assert session_ended_message == round_trip_session_ended_message
+
+"""
 def test_hermes_ffi_test_round_trip_intent():
     intent_message = hermes_python.ontology.IntentMessage(
         "session_id",
@@ -82,14 +100,14 @@ def test_hermes_ffi_test_round_trip_intent():
         hermes_python.ontology.SlotMap())
     
     
-    round_trip__ = get_round_trip_data_structure(
-        _,
-        __,
-        ___,
+    round_trip_intent_message = get_round_trip_data_structure(
+        intent_message,
+        hermes_python.ffi.ontology.CIntentMessage,
+        hermes_python.ontology.IntentMessage,
         lib.hermes_ffi_test_round_trip_intent
     )
 
-    assert
+    assert intent_message == round_trip_intent_message
 
 
 
