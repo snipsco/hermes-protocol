@@ -529,12 +529,12 @@ struct VoiceActivityVadDown {
 
 impl VoiceActivityFacade for InProcessComponent<VoiceActivity> {
     fn subscribe_vad_up(&self, site_id: String, handler: Callback<VadUpMessage>) -> Fallible<()> {
-        #[cfg_attr(rustfmt, rustfmt_skip)]
+        #[rustfmt::skip]
         subscribe_filter!(self, VoiceActivityVadUp { vad_up }, handler, site_id, |it| { &it.vad_up.site_id })
     }
 
     fn subscribe_vad_down(&self, site_id: String, handler: Callback<VadDownMessage>) -> Fallible<()> {
-        #[cfg_attr(rustfmt, rustfmt_skip)]
+        #[rustfmt::skip]
         subscribe_filter!(self, VoiceActivityVadDown { vad_down }, handler, site_id, |it| { &it.vad_down.site_id })
     }
 
@@ -568,7 +568,7 @@ struct HotwordDetected {
 
 impl HotwordFacade for InProcessComponent<Hotword> {
     fn subscribe_detected(&self, id: String, handler: Callback<HotwordDetectedMessage>) -> Fallible<()> {
-        #[cfg_attr(rustfmt, rustfmt_skip)]
+        #[rustfmt::skip]
         subscribe_filter!(self, HotwordDetected { message }, handler, id, |it| { &it.id })
     }
 
@@ -826,7 +826,7 @@ impl DialogueFacade for InProcessComponent<Dialogue> {
     }
 
     fn subscribe_intent(&self, intent_name: String, handler: Callback<IntentMessage>) -> Fallible<()> {
-        #[cfg_attr(rustfmt, rustfmt_skip)]
+        #[rustfmt::skip]
         subscribe_filter!(self, DialogueIntent { intent }, handler, intent_name, |it| { &it.intent.intent.intent_name })
     }
 
