@@ -24,6 +24,8 @@ let
   injection,
   feedback
 
+const robustnessTestsTimeout = 60000
+
 // Log segfaults
 const SegfaultHandler = require('segfault-handler')
 SegfaultHandler.registerHandler('crash.log')
@@ -269,7 +271,7 @@ it('[dialog] should should publish a start session event at least 500 times', as
         }
       })
   })
-}, 20000)
+}, robustnessTestsTimeout)
 
 it('[dialog] should receive a session started message at least 500 times', async () => {
   for (let i = 0; i < 500; i++) {
@@ -282,7 +284,7 @@ it('[dialog] should receive a session started message at least 500 times', async
     })
     await wait(20)
   }
-}, 20000)
+}, robustnessTestsTimeout)
 
 it('[dialog] should receive a session ended message at least 500 times', async () => {
   for (let i = 0; i < 500; i++) {
@@ -296,7 +298,7 @@ it('[dialog] should receive a session ended message at least 500 times', async (
     })
     await wait(20)
   }
-}, 20000)
+}, robustnessTestsTimeout)
 
 it('[dialog] should receive an intent message at least 500 times', () => {
   return new Promise(resolve => {
@@ -312,7 +314,7 @@ it('[dialog] should receive an intent message at least 500 times', () => {
     })
     client.publish('hermes/intent/anIntent', mqttIntentMessageString)
   })
-}, 20000)
+}, robustnessTestsTimeout)
 
 it('[dialog] should perform one round of dialog flow at least 500 times', () => {
   return new Promise(resolve => {
@@ -340,7 +342,7 @@ it('[dialog] should perform one round of dialog flow at least 500 times', () => 
       }
     })
   })
-}, 20000)
+}, robustnessTestsTimeout)
 
 it('[dialog] should perform at least 500 rounds of dialog flow', () => {
   return new Promise(resolve => {
@@ -376,4 +378,4 @@ it('[dialog] should perform at least 500 rounds of dialog flow', () => {
       }
     })
   })
-}, 20000)
+}, robustnessTestsTimeout)
