@@ -129,7 +129,6 @@ class CStartSessionMessageNotification(Structure):
         return cls(init, custom_data, site_id)
 
 
-
 class CIntentClassifierResult(Structure):
     _fields_ = [("intent_name", c_char_p),
                 ("probability", c_float)]
@@ -150,7 +149,13 @@ class CSlotValue(Structure):
         ("value", c_void_p),
         ("value_type", c_int32) # TODO : value_type is an enum
     ]
+    @classmethod
+    def build(cls, value, value_type):
+        return cls(value, value_type)
 
+    @classmethod
+    def from_repr(cls, repr):
+        return cls(pointer(repr.value), repr.value_type)
 
 class CSlot(Structure):
     _fields_ = [
@@ -162,12 +167,31 @@ class CSlot(Structure):
         ("range_end", c_int32)
     ]
 
+    @classmethod
+    def build(cls, c_slot_value, raw_value, entity, slot_name, range_start, range_end):
+        raw_value = raw_value.encode('utf-8') if raw_value else None
+        entity = entity.encode('utf-8') if entity else None
+        slot_name = slot_name.encode('utf-8') if slot_name else None
+        range_start = range_start
+        range_end = range_end
+        return cls(c_slot_value, raw_value, entity, slot_name, range_start, range_end)
+
 
 class CNluSlot(Structure):
     _fields_ = [
         ("confidence", c_float),
         ("nlu_slot", POINTER(CSlot))
     ]
+
+    @classmethod
+    def from_repr(cls, repr):
+        return cls(repr.confidence, repr.slot)
+
+    @classmethod
+    def build(cls, confidence, nlu_slot):
+        confidence = c_float(float(confidence))
+        slot_p = POINTER(CSlot)(nlu_slot)
+        return cls(confidence, slot_p)
 
 
 class CSlotList(Structure):
@@ -189,6 +213,7 @@ class CIntentMessage(Structure):
                 ("input", c_char_p),
                 ("intent", POINTER(CIntentClassifierResult)),
                 ("slots", POINTER(CNluSlotArray))]
+
     @classmethod
     def build(cls, session_id, custom_data, site_id, input, c_intent_classifier_result, c_slot):
         session_id = session_id.encode('utf-8')
@@ -200,8 +225,8 @@ class CIntentMessage(Structure):
 
     @classmethod
     def from_repr(cls, repr):
-        c_intent_classifier_result = CIntentClassifierResult.from_repr(repr.intent)
-        c_slots = CNluSlotArray.from_repr(repr.slots)
+        c_intent_classifier_result = POINTER(CIntentClassifierResult)(CIntentClassifierResult.from_repr(repr.intent))
+        c_slots = POINTER(CNluSlotArray)(CNluSlotArray.from_repr(repr.slots))
         return cls.build(repr.session_id, repr.custom_data, repr.site_id, repr.input, c_intent_classifier_result, c_slots)
 
 class CSessionTermination(Structure):
