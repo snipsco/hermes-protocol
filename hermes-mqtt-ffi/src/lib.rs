@@ -25,9 +25,6 @@ pub struct CMqttOptions {
     password: *mut libc::c_char,
     /// Hostname to use for the TLS configuration. Nullable, setting a value enables TLS
     tls_hostname: *mut libc::c_char,
-    /// Boolean indicating if the root store should be disabled if TLS is enabled. Nullable, the
-    /// pointer char is interpreted as a boolean, 0 meaning false, all other values meaning true
-    tls_disable_root_store: *mut libc::c_char,
     /// CA files to use if TLS is enabled. Nullable
     tls_ca_file: *mut CStringArray,
     /// CA path to use if TLS is enabled. Nullable
@@ -36,6 +33,9 @@ pub struct CMqttOptions {
     tls_client_key: *mut libc::c_char,
     /// Client cert to use if TLS is enabled. Nullable
     tls_client_cert: *mut libc::c_char,
+    /// Boolean indicating if the root store should be disabled if TLS is enabled. The is
+    /// interpreted as a boolean, 0 meaning false, all other values meaning true
+    tls_disable_root_store: libc::c_uchar,
 }
 
 
@@ -47,7 +47,7 @@ impl AsRust<hermes_mqtt::MqttOptions> for CMqttOptions {
         options.password = create_optional_rust_string_from!(self.password);
         if let Some(hostname) = create_optional_rust_string_from!(self.tls_hostname) {
             let mut tls = ::hermes_mqtt::TlsOptions::new(hostname);
-            tls.disable_root_store = unsafe { *self.tls_disable_root_store } != 0;
+            tls.disable_root_store = self.tls_disable_root_store != 0;
             tls.cafile = create_optional_rust_vec_string_from!(self.tls_ca_file)
                 .unwrap_or(vec![])
                 .iter()

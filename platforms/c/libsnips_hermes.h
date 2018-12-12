@@ -455,11 +455,6 @@ typedef struct {
    */
   char *tls_hostname;
   /*
-   * Boolean indicating if the root store should be disabled if TLS is enabled. Nullable, the
-   * pointer char is interpreted as a boolean, 0 meaning false, all other values meaning true
-   */
-  char *tls_disable_root_store;
-  /*
    * CA files to use if TLS is enabled. Nullable
    */
   CStringArray *tls_ca_file;
@@ -475,6 +470,11 @@ typedef struct {
    * Client cert to use if TLS is enabled. Nullable
    */
   char *tls_client_cert;
+  /*
+   * Boolean indicating if the root store should be disabled if TLS is enabled. The is
+   * interpreted as a boolean, 0 meaning false, all other values meaning true
+   */
+  unsigned char tls_disable_root_store;
 } CMqttOptions;
 
 typedef struct {
