@@ -1,5 +1,5 @@
 const path = require('path')
-const ffi = require('ffi-napi')
+const ffi = require('ffi')
 const ref = require('ref')
 
 /*****************
@@ -10,7 +10,7 @@ module.exports.library = libraryPath => ffi.Library(libraryPath, {
 
     /* Global */
 
-    hermes_protocol_handler_new_mqtt: [ 'int', [ 'void **', 'string' ]],
+    hermes_protocol_handler_new_mqtt: [ 'int', [ 'void **', 'string', 'void *' ]],
     hermes_destroy_mqtt_protocol_handler: [ 'int', [ 'void *' ]],
 
     /* Utils */
@@ -100,13 +100,17 @@ module.exports.library = libraryPath => ffi.Library(libraryPath, {
 module.exports.call = function(libraryPath = path.resolve(__dirname, '../../libhermes_mqtt_ffi')) {
     const library = module.exports.library(libraryPath)
     return function(funName, ...args) {
-        const result = library[funName](...args)
-        if(result === 0)
-            return
-        const errorRef = ref.alloc('char **')
-        library['hermes_get_last_error'](errorRef)
-        let errorMessage = 'Error while calling function ' + funName + '\n'
-        errorMessage += errorRef.deref().readCString()
-        throw new Error(errorMessage)
+        try {
+            const result = library[funName](...args)
+            if(result === 0)
+                return
+            const errorRef = ref.alloc('char **')
+            library['hermes_get_last_error'](errorRef)
+            let errorMessage = 'Error while calling function ' + funName + '\n'
+            errorMessage += errorRef.deref().readCString()
+            throw new Error(errorMessage)
+        } catch (error) {
+            throw new Error(error)
+        }
     }
 }

@@ -22,21 +22,39 @@ class Dialog extends ApiSubset {
         super(options, 'hermes_protocol_handler_dialogue_facade', protocolHandler)
     }
 
-    destroy () {
+    destroy() {
         this.call('hermes_drop_dialogue_facade', this.facade)
     }
 
     /**
      * Sets up a dialog flow.
-     * @param {*} intentName Starting intent name.
+     * @param {*} intent Starting intent name.
      * @param {*} action Action to perform when the starting intent is triggered.
-     * @param {*} options The continuation / end message options.
      */
-    flow (intentName, action) {
+    flow(intent, action) {
         const flow = new DialogFlow(this)
-        this.on(`intent/${intentName}`, message => {
+        this.on(`intent/${intent}`, message => {
+            if(flow.sessionId)
+                return
             flow.sessionId = message.session_id
-            return flow.start(intentName, action, message)
+            return flow.start(intent, action, message)
+        })
+        return flow
+    }
+
+    /**
+     * Sets up a dialog flow with multiple starting intents.
+     * @param {*} intents An array of { intent, action } objects. (see flow())
+     */
+    flows(intents) {
+        const flow = new DialogFlow(this)
+        intents.forEach(({ intent, action }) => {
+            this.on(`intent/${intent}`, message => {
+                if(flow.sessionId)
+                    return
+                flow.sessionId = message.session_id
+                return flow.start(intent, action, message)
+            })
         })
         return flow
     }

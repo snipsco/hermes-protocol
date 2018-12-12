@@ -1,4 +1,4 @@
-const ffi = require('ffi-napi')
+const ffi = require('ffi')
 const ref = require('ref')
 const { call } = require('../ffi/bindings')
 const { Casteable } = require('../casts')
@@ -67,7 +67,7 @@ class ApiSubset {
                 callback
             ]
             // Prevent GC
-            process.on('exit', () => { callback })
+            process.on('exit', function() { callback })
             this.call(fullEventName, this.facade, ...args)
         }
         listeners.push(listener)

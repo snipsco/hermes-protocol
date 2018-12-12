@@ -33,7 +33,7 @@
   ],
   "dependencies": {
     "chalk": "^2.4.1",
-    "ffi-napi": "^2.4.4",
+    "ffi": "git+https://github.com/node-ffi/node-ffi.git",
     "node-int64": "^0.4.0",
     "ref": "^1.3.5",
     "ref-array": "^1.2.0",

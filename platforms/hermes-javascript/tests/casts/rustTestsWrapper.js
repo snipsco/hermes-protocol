@@ -1,5 +1,5 @@
 const path = require('path')
-const ffi = require('ffi-napi')
+const ffi = require('ffi')
 const ref = require('ref')
 const { LIB_ENV_FOLDER } = require('../constants')
 

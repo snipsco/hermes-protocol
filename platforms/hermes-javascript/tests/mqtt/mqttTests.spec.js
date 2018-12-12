@@ -6,7 +6,8 @@ const {
   getFreePort,
   camelize,
   setupSubscriberTest,
-  setupPublisherTest
+  setupPublisherTest,
+  wait
 } = require('./tools')
 const {
   LIB_ENV_FOLDER
@@ -29,7 +30,8 @@ SegfaultHandler.registerHandler('crash.log')
 
 beforeAll(async () => {
   mosquittoPort = await getFreePort()
-  mosquitto = spawn('mosquitto', ['-p', mosquittoPort, '-v'])
+  console.log('Launching mosquitto on port [' + mosquittoPort + ']')
+  mosquitto = spawn('mosquitto', ['-p', mosquittoPort, '-v'], { stdio: 'ignore' })
   hermes = new Hermes({
     libraryPath: path.join(__dirname, `../../../../target/${LIB_ENV_FOLDER}/libhermes_mqtt_ffi`),
     logs: true,
@@ -46,7 +48,7 @@ beforeEach(done => {
     done()
   })
   client.on('error', function(err) {
-    client.end()
+    client.end({ force: true })
     throw new Error(err)
   })
 })
@@ -236,3 +238,142 @@ it('[injection] should receive events related to an injection status', () => {
     facadeSubscription: 'injection_status'
   })
 })
+
+/* Robustness tests */
+
+it('[dialog] should should publish a start session event at least 500 times', async () => {
+  const publishedJson = { ...require('./hermesPublished/StartSession.json') }
+  const expected = require('./mqttPublished/StartSession.json')
+  let counter = 0
+  return new Promise(resolve => {
+      client.subscribe('hermes/dialogueManager/startSession', function() {
+        dialog.publish('start_session', publishedJson)
+      })
+      client.on('message', (topic, messageBuffer) => {
+        let message
+        try {
+            message = JSON.parse(messageBuffer.toString())
+        } catch (e) {
+            message = null
+        }
+        if(message) {
+            expect(expected).toMatchObject(message)
+        } else {
+            expect(null).toEqual(message)
+        }
+        if(++counter >= 500) {
+          client.unsubscribe('hermes/dialogueManager/startSession')
+          resolve()
+        } else {
+          wait(20).then(() => dialog.publish('start_session', publishedJson))
+        }
+      })
+  })
+}, 20000)
+
+it('[dialog] should receive a session started message at least 500 times', async () => {
+  for (let i = 0; i < 500; i++) {
+    await setupSubscriberTest({
+      client,
+      facade: dialog,
+      mqttJson: require('./mqttPublished/SessionStarted.json'),
+      hermesTopic: 'hermes/dialogueManager/sessionStarted',
+      facadeSubscription: 'session_started'
+    })
+    await wait(20)
+  }
+}, 20000)
+
+it('[dialog] should receive a session ended message at least 500 times', async () => {
+  for (let i = 0; i < 500; i++) {
+    await setupSubscriberTest({
+      client,
+      facade: dialog,
+      mqttJson: require('./mqttPublished/SessionEnded.json'),
+      expectedJson: require('./hermesPublished/SessionEnded.json'),
+      hermesTopic: 'hermes/dialogueManager/sessionEnded',
+      facadeSubscription: 'session_ended'
+    })
+    await wait(20)
+  }
+}, 20000)
+
+it('[dialog] should receive an intent message at least 500 times', () => {
+  return new Promise(resolve => {
+    let counter = 0
+    const mqttIntentMessageString = JSON.stringify(require('./mqttPublished/Intent.json'))
+    const hermesIntentMessage = require('./hermesPublished/Intent.json')
+
+    dialog.on('intent/anIntent', msg => {
+      expect(msg).toMatchObject(hermesIntentMessage)
+      if(++counter >= 500)
+          return resolve()
+      client.publish('hermes/intent/anIntent', mqttIntentMessageString)
+    })
+    client.publish('hermes/intent/anIntent', mqttIntentMessageString)
+  })
+}, 20000)
+
+it('[dialog] should perform one round of dialog flow at least 500 times', () => {
+  return new Promise(resolve => {
+    let counter = 0
+    const mqttIntentMessageString = JSON.stringify(require('./mqttPublished/Intent.json'))
+    const hermesIntentMessage = require('./hermesPublished/Intent.json')
+    const mqttSessionEndedMessageString = JSON.stringify(require('./mqttPublished/SessionEnded.json'))
+
+    dialog.flow('anIntent', (msg, flow) => {
+      expect(msg).toMatchObject(hermesIntentMessage)
+      flow.end()
+    })
+
+    client.subscribe('hermes/dialogueManager/continueSession', () => {
+      client.subscribe('hermes/dialogueManager/endSession', () => {
+        client.publish('hermes/intent/anIntent', mqttIntentMessageString)
+      })
+    })
+    client.on('message', topic => {
+      if(topic === 'hermes/dialogueManager/endSession') {
+        client.publish('hermes/dialogueManager/sessionEnded', mqttSessionEndedMessageString)
+        if(++counter >= 500)
+          return resolve()
+        client.publish('hermes/intent/anIntent', mqttIntentMessageString)
+      }
+    })
+  })
+}, 20000)
+
+it('[dialog] should perform at least 500 rounds of dialog flow', () => {
+  return new Promise(resolve => {
+    let counter = 0
+    const mqttIntentMessageString = JSON.stringify(require('./mqttPublished/Intent.json'))
+    const mqttSessionEndedMessageString = JSON.stringify(require('./mqttPublished/SessionEnded.json'))
+    const hermesIntentMessage = require('./hermesPublished/Intent.json')
+
+    const loop = (msg, flow) => {
+      expect(msg).toMatchObject(hermesIntentMessage)
+      if(++counter >= 500) {
+        flow.end()
+      } else {
+        flow.continue('anIntent', loop)
+      }
+    }
+    dialog.flow('anIntent', loop)
+
+    client.subscribe('hermes/dialogueManager/continueSession', () => {
+      client.subscribe('hermes/dialogueManager/endSession', () => {
+        client.publish('hermes/intent/anIntent', mqttIntentMessageString)
+      })
+    })
+    client.on('message', (topic) => {
+      if(topic === 'hermes/dialogueManager/continueSession') {
+        return client.publish('hermes/intent/anIntent', mqttIntentMessageString)
+      }
+      if(topic === 'hermes/dialogueManager/endSession') {
+        client.unsubscribe('hermes/dialogueManager/continueSession')
+        client.unsubscribe('hermes/dialogueManager/endSession')
+        client.publish('hermes/dialogueManager/sessionEnded', mqttSessionEndedMessageString)
+        return resolve()
+      }
+    })
+  })
+}, 20000)

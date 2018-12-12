@@ -38,7 +38,7 @@ class Hermes {
 
         // Allocate the ProtocolHandler
         const protocolHandlerRef = ref.alloc('void **')
-        this.call('hermes_protocol_handler_new_mqtt', protocolHandlerRef, this.options.address)
+        this.call('hermes_protocol_handler_new_mqtt', protocolHandlerRef, this.options.address, ref.NULL_POINTER)
         this.protocolHandler = protocolHandlerRef.deref()
 
         // Enable logs if needed

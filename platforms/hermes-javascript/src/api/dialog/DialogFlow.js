@@ -7,7 +7,7 @@ class DialogFlow {
         const onSessionEnded = msg => {
             if(msg.session_id === this.sessionId) {
                 this.cleanUpListeners()
-                this.dialog.off('session_ended', onSessionEnded)
+                this.sessionId = null
             }
         }
         this.dialog.on('session_ended', onSessionEnded)
@@ -49,6 +49,7 @@ class DialogFlow {
         if(this.ended) {
             // End the session.
             return this.dialog.publish('end_session', {
+                text: '',
                 ...options,
                 session_id: this.sessionId
             })
@@ -72,6 +73,7 @@ class DialogFlow {
         }
         // Publish a continue session message
         this.dialog.publish('continue_session', {
+            text: '',
             ...options,
             session_id: this.sessionId,
             intent_filter

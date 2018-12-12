@@ -363,7 +363,7 @@ A dialog session has started.
 
 No intents were recognized.
 
-#### flow(intentName, action)
+#### flow(intent, action)
 
 Starts a new dialog flow.
 
@@ -402,6 +402,27 @@ dialog.flow('intentName', async (message, flow) => {
 
     return 'Fetched some stuff!'
 })
+```
+
+#### flows([{ intent, action }])
+
+Same as `flow()`, but with multiple starting intents.
+
+Useful when designing speech patterns with loops `((intentOne or intentTwo) -> intentTwo -> intentOne -> intentTwo -> ...`,
+so that the starting intents callbacks will get called multiple times if a session is already in progress.
+
+```js
+const intents = [
+    {
+        intent: 'intentOne',
+        action: (msg, flow) => { /* ... */ }
+    },
+    {
+        intent: 'intentTwo',
+        action: (msg, flow) => { /* ... */ }
+    }
+]
+dialog.flows(intents)
 ```
 
 #### flow->continue(intentName, action)

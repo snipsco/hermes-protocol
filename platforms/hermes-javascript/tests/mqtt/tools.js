@@ -2,6 +2,7 @@ const { createServer } = require('net')
 const camelcase = require('camelcase')
 
 const exportedObject = {
+    wait: time => new Promise(resolve => setTimeout(resolve, time)),
     getFreePort: () => {
         return new Promise((resolve, reject) => {
             const server = createServer()
