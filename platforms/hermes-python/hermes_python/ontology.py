@@ -230,10 +230,10 @@ class SessionStartedMessage(object):
 
     @classmethod
     def from_c_repr(cls, c_repr):
-        session_id = c_repr.session_id
-        custom_data = c_repr.custom_data
-        site_id = c_repr.site_id
-        reactivated_from_session_id = c_repr.reactivated_from_session_id
+        session_id = c_repr.session_id.decode('utf-8') if c_repr.session_id else None
+        custom_data = c_repr.custom_data.decode('utf-8') if c_repr.custom_data else None
+        site_id = c_repr.site_id.decode('utf-8') if c_repr.site_id else None
+        reactivated_from_session_id = c_repr.reactivated_from_session_id.decode('utf-8') if c_repr.reactivated_from_session_id else None
         return cls(session_id, custom_data, site_id, reactivated_from_session_id)
 
     def __eq__(self, other):
@@ -257,9 +257,9 @@ class SessionEndedMessage(object):
 
     @classmethod
     def from_c_repr(cls, c_repr):
-        session_id = c_repr.session_id
-        custom_data = c_repr.custom_data
-        site_id = c_repr.site_id
+        session_id = c_repr.session_id.decode('utf-8') if c_repr.session_id else None
+        custom_data = c_repr.custom_data.decode('utf-8') if c_repr.custom_data else None
+        site_id = c_repr.site_id.decode('utf-8') if c_repr.site_id else None
         termination = SessionTermination.from_c_repr(c_repr.termination)
         return cls(session_id, custom_data, site_id, termination)
 
@@ -281,9 +281,9 @@ class SessionQueuedMessage(object):
 
     @classmethod
     def from_c_repr(cls, c_repr):
-        session_id = c_repr.session_id
-        custom_data = c_repr.custom_data
-        site_id = c_repr.site_id
+        session_id = c_repr.session_id.decode('utf-8') if c_repr.session_id else None
+        custom_data = c_repr.custom_data.decode('utf-8') if c_repr.custom_data else None
+        site_id = c_repr.site_id.decode('utf-8') if c_repr.site_id else None
         return cls(session_id, custom_data, site_id)
 
     def __eq__(self, other):
@@ -303,7 +303,7 @@ class SessionTermination(object):
     @classmethod
     def from_c_repr(cls, c_repr):
         termination_type = c_repr.termination_type
-        data = c_repr.data
+        data = c_repr.data.decode('utf-8') if c_repr.data else None
         return cls(termination_type, data)
 
     def __eq__(self, other):
