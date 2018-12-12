@@ -12,35 +12,40 @@ def test_initialization():
     assert 0 == len(h._c_callback_subscribe_intent)
 
 
-@mock.patch("hermes_python.hermes.lib")
-def test_context_manager_enter(mocked_lib):
+@mock.patch("hermes_python.hermes.hermes_protocol_handler_dialogue_facade")
+@mock.patch("hermes_python.hermes.hermes_protocol_handler_new_mqtt")
+def test_context_manager_enter(hermes_protocol_handler_new_mqtt, hermes_protocol_handler_dialogue_facade):
     with Hermes(HOST) as h:
         pass
 
-    mocked_lib.hermes_protocol_handler_new_mqtt.assert_called_once()
-    mocked_lib.hermes_protocol_handler_dialogue_facade.assert_called_once()
+    hermes_protocol_handler_new_mqtt.assert_called_once()
+    hermes_protocol_handler_dialogue_facade.assert_called_once()
 
-
-@mock.patch("hermes_python.hermes.lib")
-def test_context_manager_exit(mocked_lib):
-    with Hermes(HOST) as h:
-        pass
-    mocked_lib.hermes_drop_dialogue_facade.assert_called_once()
-
-
+@mock.patch("hermes_python.hermes.hermes_protocol_handler_dialogue_facade")
 @mock.patch("hermes_python.hermes.hermes_drop_dialogue_facade")
-@mock.patch("hermes_python.hermes.lib")
-def test_context_manager_catches_exceptions(mocked_lib, mocked_hermes_drop_dialogue_facade):
-    mocked_lib.hermes_protocol_handler_dialogue_facade.side_effect = Exception("An exception occured!")
+@mock.patch("hermes_python.hermes.hermes_protocol_handler_new_mqtt")
+def test_context_manager_exit(hermes_protocol_handler_new_mqtt, hermes_drop_dialogue_facade, hermes_protocol_handler_dialogue_facade):
+    with Hermes(HOST) as h:
+        pass
+    hermes_drop_dialogue_facade.assert_called_once()
+
+
+@mock.patch("hermes_python.hermes.hermes_protocol_handler_dialogue_facade")
+@mock.patch("hermes_python.hermes.hermes_drop_dialogue_facade")
+@mock.patch("hermes_python.hermes.hermes_protocol_handler_new_mqtt")
+def test_context_manager_catches_exceptions(hermes_protocol_handler_new_mqtt, mocked_hermes_drop_dialogue_facade, hermes_protocol_handler_dialogue_facade):
+    hermes_protocol_handler_dialogue_facade.side_effect = Exception("An exception occured!")
 
     with pytest.raises(Exception):
         with Hermes(HOST) as h:
             pass
 
 
-@mock.patch("hermes_python.hermes.lib")
-def test_subscribe_intent_correctly_registers_callback(mocked_lib):
-
+@mock.patch("hermes_python.hermes.hermes_dialogue_subscribe_intent")
+@mock.patch("hermes_python.hermes.hermes_protocol_handler_dialogue_facade")
+@mock.patch("hermes_python.hermes.hermes_drop_dialogue_facade")
+@mock.patch("hermes_python.hermes.hermes_protocol_handler_new_mqtt")
+def test_subscribe_intent_correctly_registers_callback(hermes_protocol_handler_new_mqtt, hermes_drop_dialogue_facade, hermes_protocol_handler_dialogue_facade, hermes_dialogue_subscribe_intent):
     def user_callback(hermes, intentMessage):
         pass
 
@@ -48,13 +53,17 @@ def test_subscribe_intent_correctly_registers_callback(mocked_lib):
         h.subscribe_intent(DUMMY_INTENT_NAME, user_callback)
         assert len(h._c_callback_subscribe_intent) == 1
 
-    mocked_lib.hermes_protocol_handler_new_mqtt.assert_called_once()
-    mocked_lib.hermes_dialogue_subscribe_intent.assert_called_once()
+    hermes_protocol_handler_new_mqtt.assert_called_once()
+    hermes_dialogue_subscribe_intent.assert_called_once()
 
 
-@mock.patch("hermes_python.hermes.lib")
-def test_subscribe_intent_correctly_registers_two_callbacks_for_same_intent(mocked_lib):
 
+@mock.patch("hermes_python.hermes.hermes_dialogue_subscribe_intent")
+@mock.patch("hermes_python.hermes.hermes_protocol_handler_dialogue_facade")
+@mock.patch("hermes_python.hermes.hermes_drop_dialogue_facade")
+@mock.patch("hermes_python.hermes.hermes_protocol_handler_new_mqtt")
+def test_subscribe_intent_correctly_registers_two_callbacks_for_same_intent(hermes_protocol_handler_new_mqtt, hermes_drop_dialogue_facade, hermes_protocol_handler_dialogue_facade, hermes_dialogue_subscribe_intent):
+    hermes_protocol_handler_new_mqtt.assert_not_called()
     def user_callback_1(hermes, intentMessage):
         pass
 
@@ -63,15 +72,19 @@ def test_subscribe_intent_correctly_registers_two_callbacks_for_same_intent(mock
 
     with Hermes(HOST) as h:
         h.subscribe_intent(DUMMY_INTENT_NAME, user_callback_1)
+        hermes_protocol_handler_new_mqtt.assert_called_once()
         h.subscribe_intent(DUMMY_INTENT_NAME, user_callback_2)
+        hermes_protocol_handler_new_mqtt.assert_called_once()
         assert len(h._c_callback_subscribe_intent) == 2
 
-    mocked_lib.hermes_protocol_handler_new_mqtt.assert_called_once()
+    hermes_protocol_handler_new_mqtt.assert_called_once()
 
 
-
-@mock.patch("hermes_python.hermes.lib")
-def test_subscribe_intents_correctly_registers_callback(mocked_lib):
+@mock.patch("hermes_python.hermes.hermes_dialogue_subscribe_intents")
+@mock.patch("hermes_python.hermes.hermes_protocol_handler_dialogue_facade")
+@mock.patch("hermes_python.hermes.hermes_drop_dialogue_facade")
+@mock.patch("hermes_python.hermes.hermes_protocol_handler_new_mqtt")
+def test_subscribe_intents_correctly_registers_callback(hermes_protocol_handler_new_mqtt, hermes_drop_dialogue_facade, hermes_protocol_handler_dialogue_facade, hermes_dialogue_subscribe_intents):
 
     def user_callback(hermes, intentMessage):
         pass
@@ -80,8 +93,7 @@ def test_subscribe_intents_correctly_registers_callback(mocked_lib):
         h.subscribe_intents(user_callback)
         assert h._c_callback_subscribe_intents is not None
 
-    mocked_lib.hermes_protocol_handler_new_mqtt.assert_called_once()
-    mocked_lib.hermes_dialogue_subscribe_intents.assert_called_once()
-
+    hermes_protocol_handler_new_mqtt.assert_called_once()
+    hermes_dialogue_subscribe_intents.assert_called_once()
 
 
