@@ -4,6 +4,8 @@ extern crate hermes;
 #[cfg(test)]
 #[macro_use]
 extern crate hermes_test_suite;
+extern crate hostname;
+extern crate lazy_static;
 #[macro_use]
 extern crate log;
 #[cfg(test)]
@@ -18,17 +20,34 @@ extern crate snips_nlu_ontology;
 extern crate strum;
 #[macro_use]
 extern crate strum_macros;
-extern crate uuid;
 
 mod topics;
 
+use lazy_static::lazy_static;
 use failure::{ResultExt, SyncFailure};
 use hermes::*;
 use std::string::ToString;
 use std::sync::Arc;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use topics::*;
 
 pub use rumqtt::{MqttOptions, TlsOptions};
+
+lazy_static!(
+    static ref MQTT_ID_COUNTER: AtomicUsize = AtomicUsize::from(0);
+);
+
+pub fn get_mqtt_id() -> String {
+    format!(
+        "{}|{}-{}-{}",
+        ::std::env::current_exe().ok()
+            .and_then(|it| it.file_name().map(|it| it.to_string_lossy().into_owned()))
+            .unwrap_or_else(||"snips".to_owned()),
+        ::std::process::id(),
+        ::hostname::get_hostname().unwrap_or_else(|| "unknown".to_owned()),
+        MQTT_ID_COUNTER.fetch_add(1, Ordering::Relaxed),
+    )
+}
 
 struct MqttHandler {
     mqtt_client: rumqtt::MqttClient,
@@ -196,7 +215,7 @@ pub struct MqttHermesProtocolHandler {
 
 impl MqttHermesProtocolHandler {
     pub fn new(broker_address: &str) -> Result<MqttHermesProtocolHandler> {
-        let id = ::uuid::Uuid::new_v4().to_simple().to_string();
+        let id = get_mqtt_id();
         let client_options = rumqtt::MqttOptions::new(id, broker_address);
         Self::new_with_options(client_options)
     }
