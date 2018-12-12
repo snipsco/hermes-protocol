@@ -32,9 +32,9 @@ class Hermes(object):
         self._thread_terminate = False
 
     def __enter__(self):
-        lib.hermes_protocol_handler_new_mqtt(byref(self._protocol_handler), self.mqtt_server_address)
+        hermes_protocol_handler_new_mqtt(byref(self._protocol_handler), self.mqtt_server_address)
 
-        lib.hermes_protocol_handler_dialogue_facade(self._protocol_handler,
+        hermes_protocol_handler_dialogue_facade(self._protocol_handler,
                                                     byref(self._facade))
 
         if self.rust_logs_enabled:
@@ -46,7 +46,7 @@ class Hermes(object):
         if self._thread is not None:
             self.loop_stop()
 
-        lib.hermes_drop_dialogue_facade(self._facade)
+        hermes_drop_dialogue_facade(self._facade)
 
     def _wraps(self, user_callback, callback_argtype, callback_restype, argtype):
         def params_converter(func):
@@ -74,7 +74,7 @@ class Hermes(object):
                                                         IntentMessage))
 
         number_of_callbacks = len(self._c_callback_subscribe_intent)
-        lib.hermes_dialogue_subscribe_intent(self._facade, c_char_p(intent_name.encode('utf-8')), self._c_callback_subscribe_intent[number_of_callbacks - 1]) # We retrieve the last callback we
+        hermes_dialogue_subscribe_intent(self._facade, c_char_p(intent_name.encode('utf-8')), self._c_callback_subscribe_intent[number_of_callbacks - 1]) # We retrieve the last callback we
         return self
 
     def subscribe_intents(self, user_callback_subscribe_intents):
@@ -91,7 +91,7 @@ class Hermes(object):
         """
         self._c_callback_subscribe_intents = self._wraps(user_callback_subscribe_intents, CIntentMessage, c_void_p,
                                                          IntentMessage)
-        lib.hermes_dialogue_subscribe_intents(self._facade, self._c_callback_subscribe_intents)
+        hermes_dialogue_subscribe_intents(self._facade, self._c_callback_subscribe_intents)
         return self
 
     def subscribe_session_started(self, user_callback_subscribe_session_started):
@@ -108,7 +108,7 @@ class Hermes(object):
         self._c_callback_subscribe_session_started = self._wraps(user_callback_subscribe_session_started,
                                                                  CSessionStartedMessage, c_void_p,
                                                                  SessionStartedMessage)
-        lib.hermes_dialogue_subscribe_session_started(self._facade, self._c_callback_subscribe_session_started)
+        hermes_dialogue_subscribe_session_started(self._facade, self._c_callback_subscribe_session_started)
         return self
 
     def subscribe_session_queued(self, user_callback_subscribe_session_queued):
@@ -124,7 +124,7 @@ class Hermes(object):
         """
         self._c_callback_subscribe_session_queued = self._wraps(user_callback_subscribe_session_queued,
                                                                 CSessionQueuedMessage, c_void_p, SessionQueuedMessage)
-        lib.hermes_dialogue_subscribe_session_queued(self._facade, self._c_callback_subscribe_session_queued)
+        hermes_dialogue_subscribe_session_queued(self._facade, self._c_callback_subscribe_session_queued)
         return self
 
     def subscribe_session_ended(self, user_callback_subscribe_session_ended):
@@ -140,7 +140,7 @@ class Hermes(object):
         """
         self._c_callback_subscribe_session_ended = self._wraps(user_callback_subscribe_session_ended,
                                                                CSessionEndedMessage, c_void_p, SessionEndedMessage)
-        lib.hermes_dialogue_subscribe_session_ended(self._facade, self._c_callback_subscribe_session_ended)
+        hermes_dialogue_subscribe_session_ended(self._facade, self._c_callback_subscribe_session_ended)
         return self
 
     def publish_continue_session(self, session_id, text, intent_filter):
@@ -153,7 +153,7 @@ class Hermes(object):
         :return: the current instance of Hermes to allow chaining.
         """
         cContinueSessionMessage = CContinueSessionMessage.build(session_id, text, intent_filter)
-        lib.hermes_dialogue_publish_continue_session(self._facade, byref(cContinueSessionMessage))
+        hermes_dialogue_publish_continue_session(self._facade, byref(cContinueSessionMessage))
         return self
 
     def publish_end_session(self, session_id, text):
@@ -168,7 +168,7 @@ class Hermes(object):
         :return: the current instance of Hermes to allow chaining.
         """
         cEndSessionMessage = CEndSessionMessage.build(session_id, text)
-        lib.hermes_dialogue_publish_end_session(self._facade, byref(cEndSessionMessage))
+        hermes_dialogue_publish_end_session(self._facade, byref(cEndSessionMessage))
         return self
 
     def publish_start_session_notification(self, site_id, session_init_value, custom_data):
@@ -184,7 +184,7 @@ class Hermes(object):
         """
         init = CSessionInitNotification.build(session_init_value)
         cStartSessionMessage = CStartSessionMessageNotification.build(init, custom_data, site_id)
-        lib.hermes_dialogue_publish_start_session(self._facade, byref(cStartSessionMessage))
+        hermes_dialogue_publish_start_session(self._facade, byref(cStartSessionMessage))
         return self
 
     def publish_start_session_action(self, site_id, session_init_text, session_init_intent_filter, session_init_can_be_enqueued, custom_data):
@@ -205,7 +205,7 @@ class Hermes(object):
         """
         init = CSessionInitAction.build(session_init_text, session_init_intent_filter, session_init_can_be_enqueued)
         cStartSessionMessage = CStartSessionMessageAction.build(init, custom_data, site_id)
-        lib.hermes_dialogue_publish_start_session(self._facade, byref(cStartSessionMessage))
+        hermes_dialogue_publish_start_session(self._facade, byref(cStartSessionMessage))
         return self
 
     def start(self):
