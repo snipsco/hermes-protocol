@@ -7,6 +7,7 @@ class DialogFlow {
         const onSessionEnded = msg => {
             if(msg.session_id === this.sessionId) {
                 this.cleanUpListeners()
+                this.reset()
                 this.sessionId = null
             }
         }
