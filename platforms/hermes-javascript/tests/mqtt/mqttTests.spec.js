@@ -25,6 +25,8 @@ let
   feedback
 
 const robustnessTestsTimeout = 60000
+const robustnessIterations = 500
+const robustnessDelay = 5
 
 // Log segfaults
 const SegfaultHandler = require('segfault-handler')
@@ -59,9 +61,12 @@ afterEach(() => {
   client.end({ force: true })
 })
 
-afterAll(() => {
+afterAll(done => {
   hermes.destroy()
-  mosquitto.kill()
+  setTimeout(() => {
+    mosquitto.kill()
+    done()
+  }, 100)
 })
 
 /* Tools */
@@ -243,7 +248,7 @@ it('[injection] should receive events related to an injection status', () => {
 
 /* Robustness tests */
 
-it('[dialog] should should publish a start session event at least 500 times', async () => {
+it(`[dialog] should should publish a start session event at least ${robustnessIterations} times`, async () => {
   const publishedJson = { ...require('./hermesPublished/StartSession.json') }
   const expected = require('./mqttPublished/StartSession.json')
   let counter = 0
@@ -263,18 +268,18 @@ it('[dialog] should should publish a start session event at least 500 times', as
         } else {
             expect(null).toEqual(message)
         }
-        if(++counter >= 500) {
+        if(++counter >= robustnessIterations) {
           client.unsubscribe('hermes/dialogueManager/startSession')
           resolve()
         } else {
-          wait(20).then(() => dialog.publish('start_session', publishedJson))
+          wait(robustnessDelay).then(() => dialog.publish('start_session', publishedJson))
         }
       })
   })
 }, robustnessTestsTimeout)
 
-it('[dialog] should receive a session started message at least 500 times', async () => {
-  for (let i = 0; i < 500; i++) {
+it(`[dialog] should receive a session started message at least ${robustnessIterations} times`, async () => {
+  for (let i = 0; i < robustnessIterations; i++) {
     await setupSubscriberTest({
       client,
       facade: dialog,
@@ -282,12 +287,12 @@ it('[dialog] should receive a session started message at least 500 times', async
       hermesTopic: 'hermes/dialogueManager/sessionStarted',
       facadeSubscription: 'session_started'
     })
-    await wait(20)
+    await wait(robustnessDelay)
   }
 }, robustnessTestsTimeout)
 
-it('[dialog] should receive a session ended message at least 500 times', async () => {
-  for (let i = 0; i < 500; i++) {
+it(`[dialog] should receive a session ended message at least ${robustnessIterations} times`, async () => {
+  for (let i = 0; i < robustnessIterations; i++) {
     await setupSubscriberTest({
       client,
       facade: dialog,
@@ -296,11 +301,11 @@ it('[dialog] should receive a session ended message at least 500 times', async (
       hermesTopic: 'hermes/dialogueManager/sessionEnded',
       facadeSubscription: 'session_ended'
     })
-    await wait(20)
+    await wait(robustnessDelay)
   }
 }, robustnessTestsTimeout)
 
-it('[dialog] should receive an intent message at least 500 times', () => {
+it(`[dialog] should receive an intent message at least ${robustnessIterations} times`, () => {
   return new Promise(resolve => {
     let counter = 0
     const mqttIntentMessageString = JSON.stringify(require('./mqttPublished/Intent.json'))
@@ -308,7 +313,7 @@ it('[dialog] should receive an intent message at least 500 times', () => {
 
     dialog.on('intent/anIntent', msg => {
       expect(msg).toMatchObject(hermesIntentMessage)
-      if(++counter >= 500)
+      if(++counter >= robustnessDelay)
           return resolve()
       client.publish('hermes/intent/anIntent', mqttIntentMessageString)
     })
@@ -316,7 +321,7 @@ it('[dialog] should receive an intent message at least 500 times', () => {
   })
 }, robustnessTestsTimeout)
 
-it('[dialog] should perform one round of dialog flow at least 500 times', () => {
+it(`[dialog] should perform one round of dialog flow at least ${robustnessIterations} times`, () => {
   return new Promise(resolve => {
     let counter = 0
     const mqttIntentMessageString = JSON.stringify(require('./mqttPublished/Intent.json'))
@@ -336,7 +341,7 @@ it('[dialog] should perform one round of dialog flow at least 500 times', () => 
     client.on('message', topic => {
       if(topic === 'hermes/dialogueManager/endSession') {
         client.publish('hermes/dialogueManager/sessionEnded', mqttSessionEndedMessageString)
-        if(++counter >= 500)
+        if(++counter >= robustnessIterations)
           return resolve()
         client.publish('hermes/intent/anIntent', mqttIntentMessageString)
       }
@@ -344,7 +349,7 @@ it('[dialog] should perform one round of dialog flow at least 500 times', () => 
   })
 }, robustnessTestsTimeout)
 
-it('[dialog] should perform at least 500 rounds of dialog flow', () => {
+it(`[dialog] should perform at least ${robustnessIterations} rounds of dialog flow`, () => {
   return new Promise(resolve => {
     let counter = 0
     const mqttIntentMessageString = JSON.stringify(require('./mqttPublished/Intent.json'))
@@ -353,7 +358,7 @@ it('[dialog] should perform at least 500 rounds of dialog flow', () => {
 
     const loop = (msg, flow) => {
       expect(msg).toMatchObject(hermesIntentMessage)
-      if(++counter >= 500) {
+      if(++counter >= robustnessIterations) {
         flow.end()
       } else {
         flow.continue('anIntent', loop)
