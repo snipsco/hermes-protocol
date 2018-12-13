@@ -66,7 +66,7 @@ setup(
     long_description=readme + history,
     author='Anthony Reinette',
     author_email='anthony.reinette@snips.ai',
-    url='https://github.com/snipsco/snips-platform/tree/main/hermes-ffi-python-extension/hermes-protocol/hermes-ffi/platforms/hermes-python',
+    url='https://github.com/snipsco/hermes-protocol/tree/develop/platforms/hermes-python', 
     classifiers=[
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
