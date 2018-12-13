@@ -29,8 +29,15 @@ class bdist_wheel(_bdist_wheel, object):
 PACKAGE_NAME = "hermes_python"
 ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
 PACKAGE_PATH = os.path.join(ROOT_PATH, PACKAGE_NAME)
-README = os.path.join(ROOT_PATH, "README.rst")
+README = os.path.join(ROOT_PATH, "README.md")
 VERSION = "__version__"
+
+with io.open(os.path.join(PACKAGE_PATH, VERSION)) as f:
+	version = f.readline()
+
+with io.open(README, "rt", encoding="utf8") as f:
+	readme = f.read()
+
 
 packages = [p for p in find_packages() if "tests" not in p]
 
@@ -51,15 +58,16 @@ def get_rust_extension_command(argvs):
 
 setup(
     name=PACKAGE_NAME,
-    version='0.1.24',
-    description='Python bindings for Hermes',
+    version=version,
+    description='Python bindings for Snips Hermes Protocol',
+    long_description=readme,
     author='Anthony Reinette',
     author_email='anthony.reinette@snips.ai',
     url='https://github.com/snipsco/snips-platform/tree/main/hermes-ffi-python-extension/hermes-protocol/hermes-ffi/platforms/hermes-python',
     classifiers=[
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.6'],
+        'Programming Language :: Python :: 3.5'],
     download_url='',
     license='MIT',
     keywords=['snips'],
