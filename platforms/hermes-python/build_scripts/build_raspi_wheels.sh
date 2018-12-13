@@ -8,6 +8,7 @@ fi
 
 CARGO_TARGET_DIR=../target cargo dinghy --platform raspbian build -p hermes-mqtt-ffi --release || exit 1
 
+mkdir -p ../hermes_python/dylib
 mv ../target/arm-unknown-linux-gnueabihf/release/libhermes_mqtt_ffi.so ../hermes_python/dylib/
 
 # Build wheel
