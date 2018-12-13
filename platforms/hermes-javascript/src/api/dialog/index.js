@@ -20,6 +20,7 @@ class Dialog extends ApiSubset {
 
     constructor(protocolHandler, options) {
         super(options, 'hermes_protocol_handler_dialogue_facade', protocolHandler)
+        this.activeSessions = new Set()
     }
 
     destroy() {
@@ -32,31 +33,27 @@ class Dialog extends ApiSubset {
      * @param {*} action Action to perform when the starting intent is triggered.
      */
     flow(intent, action) {
-        const flow = new DialogFlow(this)
-        this.on(`intent/${intent}`, message => {
-            if(flow.sessionId)
-                return
-            flow.sessionId = message.session_id
-            return flow.start(intent, action, message)
-        })
-        return flow
+        return this.flows([{ intent, action }])
     }
 
     /**
      * Sets up a dialog flow with multiple starting intents.
-     * @param {*} intents An array of { intent, action } objects. (see flow())
+     * @param {*} intents An array of { intent, action } objects.
      */
     flows(intents) {
-        const flow = new DialogFlow(this)
         intents.forEach(({ intent, action }) => {
             this.on(`intent/${intent}`, message => {
-                if(flow.sessionId)
+                const sessionId = message.session_id
+                // If this particular session is already in progress - prevent
+                if(this.activeSessions.has(sessionId))
                     return
-                flow.sessionId = message.session_id
+                const flow = new DialogFlow(this, sessionId, () => {
+                    this.activeSessions.delete(sessionId)
+                })
+                this.activeSessions.add(sessionId)
                 return flow.start(intent, action, message)
             })
         })
-        return flow
     }
 }
 

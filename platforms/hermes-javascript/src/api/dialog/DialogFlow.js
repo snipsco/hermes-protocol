@@ -1,6 +1,7 @@
 class DialogFlow {
-    constructor(dialog) {
+    constructor(dialog, sessionId, done) {
         this.dialog = dialog
+        this.sessionId = sessionId
         this.reset()
 
         // Sets up a subscriber to clean up in case the session is ended programatically.
@@ -9,9 +10,10 @@ class DialogFlow {
                 this.cleanUpListeners()
                 this.reset()
                 this.sessionId = null
+                done()
             }
         }
-        this.dialog.on('session_ended', onSessionEnded)
+        this.dialog.once('session_ended', onSessionEnded)
     }
 
     reset() {
