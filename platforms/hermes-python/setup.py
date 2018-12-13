@@ -59,11 +59,6 @@ def get_rust_extension_command(argvs):
         return RustExtension(TARGET, CARGO_FILE_PATH, binding=Binding.NoBinding, dinghy=True, rust_x_compile_target="arm-unknown-linux-gnueabihf", dinghy_platform="raspbian")
     return RustExtension(TARGET, CARGO_FILE_PATH, binding=Binding.NoBinding)
 
-print readme
-print history
-
-print readme + history
-
 setup(
     name=PACKAGE_NAME,
     version=version,
