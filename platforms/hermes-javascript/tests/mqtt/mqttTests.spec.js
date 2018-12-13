@@ -36,6 +36,7 @@ beforeAll(async () => {
   mosquittoPort = await getFreePort()
   console.log('Launching mosquitto on port [' + mosquittoPort + ']')
   mosquitto = spawn('mosquitto', ['-p', mosquittoPort, '-v'], { stdio: 'ignore' })
+  console.log('Mosquitto ready!')
   hermes = new Hermes({
     libraryPath: path.join(__dirname, `../../../../target/${LIB_ENV_FOLDER}/libhermes_mqtt_ffi`),
     logs: true,
@@ -63,10 +64,12 @@ afterEach(() => {
 
 afterAll(done => {
   hermes.destroy()
+  console.log('Hermes destroyed.')
   setTimeout(() => {
     mosquitto.kill()
+    console.log('Mosquitto killed.')
     done()
-  }, 100)
+  }, 500)
 })
 
 /* Tools */
