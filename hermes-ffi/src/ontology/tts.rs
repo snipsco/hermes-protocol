@@ -1,6 +1,6 @@
-use Result;
-use ffi_utils::{AsRust, CReprOf, RawPointerConverter};
+use failure::Fallible;
 use failure::ResultExt;
+use ffi_utils::{AsRust, CReprOf, RawPointerConverter};
 use std::ptr::null;
 
 #[repr(C)]
@@ -17,7 +17,7 @@ pub struct CSayMessage {
 }
 
 impl CReprOf<hermes::SayMessage> for CSayMessage {
-    fn c_repr_of(input: hermes::SayMessage) -> Result<Self> {
+    fn c_repr_of(input: hermes::SayMessage) -> Fallible<Self> {
         Ok(Self {
             text: convert_to_c_string!(input.text),
             lang: convert_to_nullable_c_string!(input.lang),
@@ -29,7 +29,7 @@ impl CReprOf<hermes::SayMessage> for CSayMessage {
 }
 
 impl AsRust<hermes::SayMessage> for CSayMessage {
-    fn as_rust(&self) -> Result<hermes::SayMessage> {
+    fn as_rust(&self) -> Fallible<hermes::SayMessage> {
         Ok(hermes::SayMessage {
             text: create_rust_string_from!(self.text),
             lang: create_optional_rust_string_from!(self.lang),
@@ -41,11 +41,11 @@ impl AsRust<hermes::SayMessage> for CSayMessage {
 }
 
 impl CSayMessage {
-    pub fn from(input: hermes::SayMessage) -> Result<Self> {
+    pub fn from(input: hermes::SayMessage) -> Fallible<Self> {
         Self::c_repr_of(input)
     }
 
-    pub fn to_say_message(&self) -> Result<hermes::SayMessage> {
+    pub fn to_say_message(&self) -> Fallible<hermes::SayMessage> {
         self.as_rust()
     }
 }
@@ -74,17 +74,17 @@ pub struct CSayFinishedMessage {
 unsafe impl Sync for CSayFinishedMessage {}
 
 impl CSayFinishedMessage {
-    pub fn from(input: hermes::SayFinishedMessage) -> Result<Self> {
+    pub fn from(input: hermes::SayFinishedMessage) -> Fallible<Self> {
         Self::c_repr_of(input)
     }
 
-    pub fn to_say_finished_message(&self) -> Result<hermes::SayFinishedMessage> {
+    pub fn to_say_finished_message(&self) -> Fallible<hermes::SayFinishedMessage> {
         self.as_rust()
     }
 }
 
 impl CReprOf<hermes::SayFinishedMessage> for CSayFinishedMessage {
-    fn c_repr_of(input: hermes::SayFinishedMessage) -> Result<Self> {
+    fn c_repr_of(input: hermes::SayFinishedMessage) -> Fallible<Self> {
         Ok(Self {
             id: convert_to_nullable_c_string!(input.id),
             session_id: convert_to_nullable_c_string!(input.session_id),
@@ -93,7 +93,7 @@ impl CReprOf<hermes::SayFinishedMessage> for CSayFinishedMessage {
 }
 
 impl AsRust<hermes::SayFinishedMessage> for CSayFinishedMessage {
-    fn as_rust(&self) -> Result<hermes::SayFinishedMessage> {
+    fn as_rust(&self) -> Fallible<hermes::SayFinishedMessage> {
         Ok(hermes::SayFinishedMessage {
             id: create_optional_rust_string_from!(self.id),
             session_id: create_optional_rust_string_from!(self.session_id),

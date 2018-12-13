@@ -12,12 +12,24 @@ before_install:
   - sudo update-alternatives --set java  /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java
   - sudo update-alternatives --set javac  /usr/lib/jvm/java-8-openjdk-amd64/bin/javac
 
+before_script:
+  - if [ "$TRAVIS_RUST_VERSION" == "stable" ]; then
+      rustup component add rustfmt;
+      rustup component add clippy;
+    fi
+
 rust:
   - stable
   - beta
   - nightly
 
 script:
+  - if [ "$TRAVIS_RUST_VERSION" == "stable" ]; then
+      cargo fmt --all -- --check;
+    fi
+  - if [ "$TRAVIS_RUST_VERSION" == "stable" ]; then
+      cargo clippy --all-targets --all-features -- -D warnings;
+    fi
   - cargo build --all
   - cargo test --all
   - pwd

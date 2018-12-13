@@ -1,6 +1,6 @@
-use Result;
-use ffi_utils::{AsRust, CReprOf, RawPointerConverter};
+use failure::Fallible;
 use failure::ResultExt;
+use ffi_utils::{AsRust, CReprOf, RawPointerConverter};
 
 #[repr(C)]
 #[derive(Debug)]
@@ -12,7 +12,7 @@ pub struct CHotwordDetectedMessage {
 unsafe impl Sync for CHotwordDetectedMessage {}
 
 impl CReprOf<hermes::HotwordDetectedMessage> for CHotwordDetectedMessage {
-    fn c_repr_of(input: hermes::HotwordDetectedMessage) -> Result<Self> {
+    fn c_repr_of(input: hermes::HotwordDetectedMessage) -> Fallible<Self> {
         Ok(Self {
             site_id: convert_to_c_string!(input.site_id),
             model_id: convert_to_c_string!(input.model_id),
@@ -21,7 +21,7 @@ impl CReprOf<hermes::HotwordDetectedMessage> for CHotwordDetectedMessage {
 }
 
 impl AsRust<hermes::HotwordDetectedMessage> for CHotwordDetectedMessage {
-    fn as_rust(&self) -> Result<hermes::HotwordDetectedMessage> {
+    fn as_rust(&self) -> Fallible<hermes::HotwordDetectedMessage> {
         Ok(hermes::HotwordDetectedMessage {
             site_id: create_rust_string_from!(self.site_id),
             model_id: create_rust_string_from!(self.model_id),

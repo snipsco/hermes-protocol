@@ -2,22 +2,35 @@ use std::fmt;
 
 use semver;
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
+
+pub mod asr;
+pub mod audio_server;
+pub mod dialogue;
+pub mod hotword;
+pub mod injection;
+pub mod nlu;
+pub mod tts;
+pub mod vad;
+
+pub use self::asr::*;
+pub use self::audio_server::*;
+pub use self::dialogue::*;
+pub use self::hotword::*;
+pub use self::injection::*;
+pub use self::nlu::*;
+pub use self::tts::*;
+pub use self::vad::*;
 
 pub trait HermesMessage<'de>: fmt::Debug + Deserialize<'de> + Serialize {}
-
-pub type SiteId = String;
-pub type SessionId = String;
-pub type RequestId = String;
-
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SiteMessage {
     /// The site concerned
-    pub site_id: SiteId,
+    pub site_id: String,
     /// An optional session id if there is a related session
-    pub session_id: Option<SessionId>,
+    pub session_id: Option<String>,
 }
 
 impl Default for SiteMessage {
@@ -30,30 +43,6 @@ impl Default for SiteMessage {
 }
 
 impl<'de> HermesMessage<'de> for SiteMessage {}
-
-pub mod vad;
-pub use vad::*;
-
-pub mod hotword;
-pub use hotword::*;
-
-pub mod asr;
-pub use asr::*;
-
-pub mod nlu;
-pub use nlu::*;
-
-pub mod audio_server;
-pub use audio_server::*;
-
-pub mod tts;
-pub use tts::*;
-
-pub mod injection;
-pub use injection::*;
-
-pub mod dialogue;
-pub use dialogue::*;
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -68,7 +57,7 @@ impl<'de> HermesMessage<'de> for VersionMessage {}
 #[serde(rename_all = "camelCase")]
 pub struct ErrorMessage {
     /// An optional session id if there is a related session
-    pub session_id: Option<SessionId>,
+    pub session_id: Option<String>,
     /// The error that occurred
     pub error: String,
     /// Optional additional information on the context in which the error occurred
@@ -76,5 +65,3 @@ pub struct ErrorMessage {
 }
 
 impl<'de> HermesMessage<'de> for ErrorMessage {}
-
-

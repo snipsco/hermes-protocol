@@ -23,28 +23,31 @@ extern crate strum_macros;
 
 mod topics;
 
-use lazy_static::lazy_static;
-use failure::{ResultExt, SyncFailure};
-use hermes::*;
 use std::string::ToString;
-use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
-use topics::*;
+use std::sync::Arc;
+
+use failure::{Fallible, ResultExt, SyncFailure};
+use hermes::*;
+use lazy_static::lazy_static;
+
+use crate::topics::*;
 
 pub use rumqtt::{MqttOptions, TlsOptions};
 
-lazy_static!(
+lazy_static! {
     static ref MQTT_ID_COUNTER: AtomicUsize = AtomicUsize::from(0);
-);
+}
 
 pub fn get_mqtt_id() -> String {
     format!(
         "{}|{}-{}-{}",
-        ::std::env::current_exe().ok()
+        std::env::current_exe()
+            .ok()
             .and_then(|it| it.file_name().map(|it| it.to_string_lossy().into_owned()))
-            .unwrap_or_else(||"snips".to_owned()),
-        ::std::process::id(),
-        ::hostname::get_hostname().unwrap_or_else(|| "unknown".to_owned()),
+            .unwrap_or_else(|| "snips".to_owned()),
+        std::process::id(),
+        hostname::get_hostname().unwrap_or_else(|| "unknown".to_owned()),
         MQTT_ID_COUNTER.fetch_add(1, Ordering::Relaxed),
     )
 }
@@ -54,7 +57,7 @@ struct MqttHandler {
 }
 
 impl MqttHandler {
-    pub fn publish(&self, topic: &HermesTopic) -> Result<()> {
+    pub fn publish(&self, topic: &HermesTopic) -> Fallible<()> {
         let topic = &*topic.as_path();
         debug!("Publishing on MQTT topic '{}'", topic);
         self.mqtt_client
@@ -64,11 +67,7 @@ impl MqttHandler {
         Ok(())
     }
 
-    pub fn publish_payload<P: serde::Serialize>(
-        &self,
-        topic: &HermesTopic,
-        payload: P,
-    ) -> Result<()> {
+    pub fn publish_payload<P: serde::Serialize>(&self, topic: &HermesTopic, payload: P) -> Fallible<()> {
         serde_json::to_vec(&payload).map(|p| {
             let topic = &*topic.as_path();
             debug!(
@@ -77,11 +76,7 @@ impl MqttHandler {
                 if p.len() < 2048 {
                     String::from_utf8_lossy(&p).to_string()
                 } else {
-                    format!(
-                        "size = {}, start = {}",
-                        p.len(),
-                        String::from_utf8_lossy(&p[0..128])
-                    )
+                    format!("size = {}, start = {}", p.len(), String::from_utf8_lossy(&p[0..128]))
                 }
             );
             trace!("Payload: {}", String::from_utf8_lossy(&p));
@@ -94,7 +89,7 @@ impl MqttHandler {
         Ok(())
     }
 
-    pub fn publish_binary_payload(&self, topic: &HermesTopic, payload: Vec<u8>) -> Result<()> {
+    pub fn publish_binary_payload(&self, topic: &HermesTopic, payload: Vec<u8>) -> Fallible<()> {
         let topic = &*topic.as_path();
         debug!(
             "Publishing as binary on MQTT topic '{}', with size {}",
@@ -110,22 +105,18 @@ impl MqttHandler {
         Ok(())
     }
 
-    pub fn subscribe<F>(&self, topic: &HermesTopic, handler: F) -> Result<()>
+    pub fn subscribe<F>(&self, topic: &HermesTopic, handler: F) -> Fallible<()>
     where
         F: Fn() -> () + Send + Sync + 'static,
     {
         let log_level = Self::log_level(topic);
         self.inner_subscribe(topic, move |m| {
-            log!(
-                log_level,
-                "Received a message on MQTT topic '{:?}'",
-                m.topic_name
-            );
+            log!(log_level, "Received a message on MQTT topic '{:?}'", m.topic_name);
             handler()
         })
     }
 
-    pub fn subscribe_payload<F, P>(&self, topic: &HermesTopic, handler: F) -> Result<()>
+    pub fn subscribe_payload<F, P>(&self, topic: &HermesTopic, handler: F) -> Fallible<()>
     where
         F: Fn(&P) -> () + Send + Sync + 'static,
         P: serde::de::DeserializeOwned,
@@ -150,15 +141,12 @@ impl MqttHandler {
             let r = serde_json::from_slice(m.payload.as_slice());
             match r {
                 Ok(p) => handler(&p),
-                Err(e) => warn!(
-                    "Error while decoding object on topic {:?}: {}",
-                    m.topic_name, e
-                ),
+                Err(e) => warn!("Error while decoding object on topic {:?}: {}", m.topic_name, e),
             }
         })
     }
 
-    pub fn subscribe_binary_payload<F>(&self, topic: &HermesTopic, handler: F) -> Result<()>
+    pub fn subscribe_binary_payload<F>(&self, topic: &HermesTopic, handler: F) -> Fallible<()>
     where
         F: Fn(&HermesTopic, &[u8]) -> () + Send + Sync + 'static,
     {
@@ -188,7 +176,7 @@ impl MqttHandler {
         })
     }
 
-    fn inner_subscribe<F>(&self, topic: &HermesTopic, callback: F) -> Result<()>
+    fn inner_subscribe<F>(&self, topic: &HermesTopic, callback: F) -> Fallible<()>
     where
         F: Fn(&::rumqtt::Publish) -> () + Send + Sync + 'static,
     {
@@ -200,10 +188,10 @@ impl MqttHandler {
         Ok(())
     }
 
-    fn log_level(topic: &HermesTopic) -> ::log::Level {
+    fn log_level(topic: &HermesTopic) -> log::Level {
         match *topic {
-            HermesTopic::AudioServer(_, AudioServerCommand::AudioFrame) => ::log::Level::Trace,
-            _ => ::log::Level::Debug,
+            HermesTopic::AudioServer(_, AudioServerCommand::AudioFrame) => log::Level::Trace,
+            _ => log::Level::Debug,
         }
     }
 }
@@ -214,13 +202,14 @@ pub struct MqttHermesProtocolHandler {
 }
 
 impl MqttHermesProtocolHandler {
-    pub fn new(broker_address: &str) -> Result<MqttHermesProtocolHandler> {
+    #[allow(clippy::new_ret_no_self)]
+    pub fn new(broker_address: &str) -> Fallible<MqttHermesProtocolHandler> {
         let id = get_mqtt_id();
         let client_options = rumqtt::MqttOptions::new(id, broker_address);
         Self::new_with_options(client_options)
     }
 
-    pub fn new_with_options(mut options: rumqtt::MqttOptions) -> Result<MqttHermesProtocolHandler> {
+    pub fn new_with_options(mut options: rumqtt::MqttOptions) -> Fallible<MqttHermesProtocolHandler> {
         let name = options.broker_addr.clone();
         options.max_packet_size = 10_000_000;
         let mqtt_client = rumqtt::MqttClient::start(options)
@@ -235,19 +224,19 @@ impl MqttHermesProtocolHandler {
 
 macro_rules! s {
     ($n:ident<$t:ty> $topic:expr; ) => {
-        fn $n(&self, handler: Callback<$t>) -> Result<()> {
+        fn $n(&self, handler: Callback<$t>) -> Fallible<()> {
             self.mqtt_handler.subscribe_payload($topic, move |p| handler.call(p))
         }
     };
 
     ($n:ident<$t:ty>($($a:ident: $ta:ty),*) $topic:block) => {
-        fn $n(&self, $($a: $ta),*, handler: Callback<$t>) -> Result<()> {
+        fn $n(&self, $($a: $ta),*, handler: Callback<$t>) -> Fallible<()> {
             self.mqtt_handler.subscribe_payload($topic, move |p| handler.call(p))
         }
     };
 
     ($n:ident $topic:expr; ) => {
-        fn $n(&self, handler: Callback0) -> Result<()> {
+        fn $n(&self, handler: Callback0) -> Fallible<()> {
             self.mqtt_handler.subscribe($topic, move || handler.call())
         }
     };
@@ -255,13 +244,13 @@ macro_rules! s {
 
 macro_rules! s_bin {
     ($n:ident<$t:ty> $topic:block |$rt:ident, $p:ident| $decoder:block) => {
-        fn $n(&self, handler: Callback<$t>) -> Result<()> {
+        fn $n(&self, handler: Callback<$t>) -> Fallible<()> {
             self.mqtt_handler.subscribe_binary_payload($topic, move |$rt, $p| handler.call(&$decoder))
         }
     };
 
     ($n:ident<$t:ty>($($a:ident: $ta:ty),*) $topic:block |$rt:ident, $p:ident| $decoder:block) => {
-        fn $n(&self, $($a: $ta),*, handler: Callback<$t>) -> Result<()> {
+        fn $n(&self, $($a: $ta),*, handler: Callback<$t>) -> Fallible<()> {
             self.mqtt_handler.subscribe_binary_payload($topic, move |$rt, $p| handler.call(&$decoder))
         }
     };
@@ -269,25 +258,25 @@ macro_rules! s_bin {
 
 macro_rules! p {
     ($n:ident<$t:ty> $topic:expr; ) => {
-        fn $n(&self, payload: $t) -> Result<()> {
+        fn $n(&self, payload: $t) -> Fallible<()> {
             self.mqtt_handler.publish_payload($topic, payload)
         }
     };
 
     ($n:ident<$t:ty>($param1:ident: $t1:ty) $topic:block ) => {
-        fn $n(&self, $param1: $t1, payload: $t) -> Result<()> {
+        fn $n(&self, $param1: $t1, payload: $t) -> Fallible<()> {
             self.mqtt_handler.publish_payload($topic, payload)
         }
     };
 
     ($n:ident($payload:ident: $t:ty) $topic:block ) => {
-        fn $n(&self, $payload: $t) -> Result<()> {
+        fn $n(&self, $payload: $t) -> Fallible<()> {
             self.mqtt_handler.publish_payload($topic, $payload)
         }
     };
 
     ($n:ident $topic:expr; ) => {
-        fn $n(&self) -> Result<()> {
+        fn $n(&self) -> Fallible<()> {
             self.mqtt_handler.publish($topic)
         }
     };
@@ -295,7 +284,7 @@ macro_rules! p {
 
 macro_rules! p_bin {
     ($n:ident($payload:ident: $t:ty) $topic:block $bytes:block ) => {
-        fn $n(&self, $payload: $t) -> Result<()> {
+        fn $n(&self, $payload: $t) -> Fallible<()> {
             self.mqtt_handler.publish_binary_payload($topic, $bytes)
         }
     };
@@ -306,7 +295,7 @@ macro_rules! impl_component_facades_for {
     // to get the component... I'm sad...
     ($t:ty) => {
         impl ComponentFacade for $t {
-            fn publish_version_request(&self) -> Result<()> {
+            fn publish_version_request(&self) -> Fallible<()> {
                 self.mqtt_handler.publish(&HermesTopic::Component(
                     None,
                     self.component,
@@ -314,14 +303,14 @@ macro_rules! impl_component_facades_for {
                 ))
             }
 
-            fn subscribe_version(&self, handler: Callback<VersionMessage>) -> Result<()> {
+            fn subscribe_version(&self, handler: Callback<VersionMessage>) -> Fallible<()> {
                 self.mqtt_handler.subscribe_payload(
                     &HermesTopic::Component(None, self.component, ComponentCommand::Version),
                     move |p| handler.call(p),
                 )
             }
 
-            fn subscribe_error(&self, handler: Callback<ErrorMessage>) -> Result<()> {
+            fn subscribe_error(&self, handler: Callback<ErrorMessage>) -> Fallible<()> {
                 self.mqtt_handler.subscribe_payload(
                     &HermesTopic::Component(None, self.component, ComponentCommand::Error),
                     move |p| handler.call(p),
@@ -330,21 +319,21 @@ macro_rules! impl_component_facades_for {
         }
 
         impl ComponentBackendFacade for $t {
-            fn subscribe_version_request(&self, handler: Callback0) -> Result<()> {
+            fn subscribe_version_request(&self, handler: Callback0) -> Fallible<()> {
                 self.mqtt_handler.subscribe(
                     &HermesTopic::Component(None, self.component, ComponentCommand::VersionRequest),
                     move || handler.call(),
                 )
             }
 
-            fn publish_version(&self, version: VersionMessage) -> Result<()> {
+            fn publish_version(&self, version: VersionMessage) -> Fallible<()> {
                 self.mqtt_handler.publish_payload(
                     &HermesTopic::Component(None, self.component, ComponentCommand::Version),
                     version,
                 )
             }
 
-            fn publish_error(&self, error: ErrorMessage) -> Result<()> {
+            fn publish_error(&self, error: ErrorMessage) -> Fallible<()> {
                 self.mqtt_handler.publish_payload(
                     &HermesTopic::Component(None, self.component, ComponentCommand::Error),
                     error,
@@ -359,22 +348,22 @@ macro_rules! impl_toggleable_facades_for {
     // to get the toggle on/off topics... I'm sad...
     ($t:ty) => {
         impl ToggleableFacade for $t {
-            fn publish_toggle_on(&self) -> Result<()> {
+            fn publish_toggle_on(&self) -> Fallible<()> {
                 self.mqtt_handler.publish(&self.toggle_on_topic)
             }
 
-            fn publish_toggle_off(&self) -> Result<()> {
+            fn publish_toggle_off(&self) -> Fallible<()> {
                 self.mqtt_handler.publish(&self.toggle_off_topic)
             }
         }
 
         impl ToggleableBackendFacade for $t {
-            fn subscribe_toggle_on(&self, handler: Callback0) -> Result<()> {
+            fn subscribe_toggle_on(&self, handler: Callback0) -> Fallible<()> {
                 self.mqtt_handler
                     .subscribe(&self.toggle_on_topic, move || handler.call())
             }
 
-            fn subscribe_toggle_off(&self, handler: Callback0) -> Result<()> {
+            fn subscribe_toggle_off(&self, handler: Callback0) -> Fallible<()> {
                 self.mqtt_handler
                     .subscribe(&self.toggle_off_topic, move || handler.call())
             }
@@ -385,24 +374,22 @@ macro_rules! impl_toggleable_facades_for {
 macro_rules! impl_identifiable_toggleable_facades_for {
     ($t:ty) => {
         impl IdentifiableToggleableFacade for $t {
-            fn publish_toggle_on(&self, site: SiteMessage) -> Result<()> {
-                self.mqtt_handler
-                    .publish_payload(&self.toggle_on_topic, site)
+            fn publish_toggle_on(&self, site: SiteMessage) -> Fallible<()> {
+                self.mqtt_handler.publish_payload(&self.toggle_on_topic, site)
             }
 
-            fn publish_toggle_off(&self, site: SiteMessage) -> Result<()> {
-                self.mqtt_handler
-                    .publish_payload(&self.toggle_off_topic, site)
+            fn publish_toggle_off(&self, site: SiteMessage) -> Fallible<()> {
+                self.mqtt_handler.publish_payload(&self.toggle_off_topic, site)
             }
         }
 
         impl IdentifiableToggleableBackendFacade for $t {
-            fn subscribe_toggle_on(&self, handler: Callback<SiteMessage>) -> Result<()> {
+            fn subscribe_toggle_on(&self, handler: Callback<SiteMessage>) -> Fallible<()> {
                 self.mqtt_handler
                     .subscribe_payload(&self.toggle_on_topic, move |p| handler.call(p))
             }
 
-            fn subscribe_toggle_off(&self, handler: Callback<SiteMessage>) -> Result<()> {
+            fn subscribe_toggle_off(&self, handler: Callback<SiteMessage>) -> Fallible<()> {
                 self.mqtt_handler
                     .subscribe_payload(&self.toggle_off_topic, move |p| handler.call(p))
             }
@@ -413,7 +400,7 @@ macro_rules! impl_identifiable_toggleable_facades_for {
 macro_rules! impl_identifiable_component_facades_for {
     ($t:ty) => {
         impl IdentifiableComponentFacade for $t {
-            fn publish_version_request(&self, site_id: SiteId) -> Result<()> {
+            fn publish_version_request(&self, site_id: String) -> Fallible<()> {
                 self.mqtt_handler.publish(&HermesTopic::Component(
                     Some(site_id),
                     self.component,
@@ -421,26 +408,14 @@ macro_rules! impl_identifiable_component_facades_for {
                 ))
             }
 
-            fn subscribe_version(
-                &self,
-                site_id: SiteId,
-                handler: Callback<VersionMessage>,
-            ) -> Result<()> {
+            fn subscribe_version(&self, site_id: String, handler: Callback<VersionMessage>) -> Fallible<()> {
                 self.mqtt_handler.subscribe_payload(
-                    &HermesTopic::Component(
-                        Some(site_id),
-                        self.component,
-                        ComponentCommand::Version,
-                    ),
+                    &HermesTopic::Component(Some(site_id), self.component, ComponentCommand::Version),
                     move |p| handler.call(p),
                 )
             }
 
-            fn subscribe_error(
-                &self,
-                site_id: SiteId,
-                handler: Callback<ErrorMessage>,
-            ) -> Result<()> {
+            fn subscribe_error(&self, site_id: String, handler: Callback<ErrorMessage>) -> Fallible<()> {
                 self.mqtt_handler.subscribe_payload(
                     &HermesTopic::Component(Some(site_id), self.component, ComponentCommand::Error),
                     move |p| handler.call(p),
@@ -449,29 +424,21 @@ macro_rules! impl_identifiable_component_facades_for {
         }
 
         impl IdentifiableComponentBackendFacade for $t {
-            fn subscribe_version_request(&self, site_id: SiteId, handler: Callback0) -> Result<()> {
+            fn subscribe_version_request(&self, site_id: String, handler: Callback0) -> Fallible<()> {
                 self.mqtt_handler.subscribe(
-                    &HermesTopic::Component(
-                        Some(site_id),
-                        self.component,
-                        ComponentCommand::VersionRequest,
-                    ),
+                    &HermesTopic::Component(Some(site_id), self.component, ComponentCommand::VersionRequest),
                     move || handler.call(),
                 )
             }
 
-            fn publish_version(&self, site_id: SiteId, version: VersionMessage) -> Result<()> {
+            fn publish_version(&self, site_id: String, version: VersionMessage) -> Fallible<()> {
                 self.mqtt_handler.publish_payload(
-                    &HermesTopic::Component(
-                        Some(site_id),
-                        self.component,
-                        ComponentCommand::Version,
-                    ),
+                    &HermesTopic::Component(Some(site_id), self.component, ComponentCommand::Version),
                     version,
                 )
             }
 
-            fn publish_error(&self, site_id: SiteId, error: ErrorMessage) -> Result<()> {
+            fn publish_error(&self, site_id: String, error: ErrorMessage) -> Fallible<()> {
                 self.mqtt_handler.publish_payload(
                     &HermesTopic::Component(Some(site_id), self.component, ComponentCommand::Error),
                     error,
@@ -579,7 +546,7 @@ impl NluBackendFacade for MqttComponentFacade {
 }
 
 impl AudioServerFacade for MqttToggleableComponentFacade {
-    s_bin!(subscribe_audio_frame<AudioFrameMessage>(site_id: SiteId) { &HermesTopic::AudioServer(Some(site_id), AudioServerCommand::AudioFrame) }
+    s_bin!(subscribe_audio_frame<AudioFrameMessage>(site_id: String) { &HermesTopic::AudioServer(Some(site_id), AudioServerCommand::AudioFrame) }
             |topic, bytes| {
                 if let HermesTopic::AudioServer(Some(ref site_id), AudioServerCommand::AudioFrame) = *topic {
                     AudioFrameMessage { site_id: site_id.to_owned(), wav_frame: bytes.into() }
@@ -588,7 +555,7 @@ impl AudioServerFacade for MqttToggleableComponentFacade {
                 }
             });
     p!(publish_replay_request(message: ReplayRequestMessage) { &HermesTopic::AudioServer(Some(message.site_id.clone()), AudioServerCommand::ReplayRequest) });
-    s_bin!(subscribe_replay_response<AudioFrameMessage>(site_id: SiteId) { &HermesTopic::AudioServer(Some(site_id), AudioServerCommand::ReplayResponse) }
+    s_bin!(subscribe_replay_response<AudioFrameMessage>(site_id: String) { &HermesTopic::AudioServer(Some(site_id), AudioServerCommand::ReplayResponse) }
             |topic, bytes| {
                 if let HermesTopic::AudioServer(Some(ref site_id), AudioServerCommand::ReplayResponse) = *topic {
                     AudioFrameMessage { site_id: site_id.to_owned(), wav_frame: bytes.into() }
@@ -599,7 +566,7 @@ impl AudioServerFacade for MqttToggleableComponentFacade {
     p_bin!(publish_play_bytes(bytes: PlayBytesMessage)
         { &HermesTopic::AudioServer(Some(bytes.site_id), AudioServerCommand::PlayBytes(bytes.id)) }
         { bytes.wav_bytes });
-    s!(subscribe_play_finished<PlayFinishedMessage>(site_id: SiteId) { &HermesTopic::AudioServer(Some(site_id), AudioServerCommand::PlayFinished) });
+    s!(subscribe_play_finished<PlayFinishedMessage>(site_id: String) { &HermesTopic::AudioServer(Some(site_id), AudioServerCommand::PlayFinished) });
     s!(subscribe_all_play_finished<PlayFinishedMessage> &HermesTopic::AudioServer(Some("+".into()), AudioServerCommand::PlayFinished););
 }
 
@@ -607,7 +574,7 @@ impl AudioServerBackendFacade for MqttToggleableComponentFacade {
     p_bin!(publish_audio_frame(frame: AudioFrameMessage)
         { &HermesTopic::AudioServer(Some(frame.site_id), AudioServerCommand::AudioFrame) }
         { frame.wav_frame });
-    s!(subscribe_replay_request<ReplayRequestMessage>(site_id: SiteId) { &HermesTopic::AudioServer(Some(site_id), AudioServerCommand::ReplayRequest) } );
+    s!(subscribe_replay_request<ReplayRequestMessage>(site_id: String) { &HermesTopic::AudioServer(Some(site_id), AudioServerCommand::ReplayRequest) } );
     p_bin!(publish_replay_response(frame: AudioFrameMessage)
         { &HermesTopic::AudioServer(Some(frame.site_id), AudioServerCommand::ReplayResponse) }
         { frame.wav_frame });
@@ -619,7 +586,7 @@ impl AudioServerBackendFacade for MqttToggleableComponentFacade {
                     unreachable!()
                 }
             });
-    s_bin!(subscribe_play_bytes<PlayBytesMessage>(site_id: SiteId) { &HermesTopic::AudioServer(Some(site_id), AudioServerCommand::PlayBytes("#".into())) }
+    s_bin!(subscribe_play_bytes<PlayBytesMessage>(site_id: String) { &HermesTopic::AudioServer(Some(site_id), AudioServerCommand::PlayBytes("#".into())) }
             |topic, bytes| {
                 if let HermesTopic::AudioServer(Some(ref site_id), AudioServerCommand::PlayBytes(ref request_id)) = *topic {
                     PlayBytesMessage { site_id: site_id.to_owned(), id: request_id.to_owned(), wav_bytes: bytes.into() }
@@ -679,9 +646,7 @@ impl MqttHermesProtocolHandler {
         Box::new(MqttToggleableFacade {
             mqtt_handler: Arc::clone(&self.mqtt_handler),
             toggle_on_topic: HermesTopic::Feedback(FeedbackCommand::Sound(SoundCommand::ToggleOn)),
-            toggle_off_topic: HermesTopic::Feedback(FeedbackCommand::Sound(
-                SoundCommand::ToggleOff,
-            )),
+            toggle_off_topic: HermesTopic::Feedback(FeedbackCommand::Sound(SoundCommand::ToggleOff)),
         })
     }
 
@@ -810,7 +775,7 @@ mod tests {
     use std::time::Duration;
 
     struct ServerHolder {
-        server: ::std::process::Child,
+        server: std::process::Child,
     }
 
     struct HandlerHolder {
@@ -836,13 +801,14 @@ mod tests {
 
     fn create_handlers() -> (HandlerHolder, HandlerHolder) {
         // get a random free port form the OS
-        let port = {
-            TcpListener::bind("localhost:0").unwrap().local_addr().unwrap().port()
-        };
+        let port = { TcpListener::bind("localhost:0").unwrap().local_addr().unwrap().port() };
 
         // /usr/sbin is not in path on non login session on raspbian and it is where mosquitto is
         // same goes for /usr/local/sbin on macos/homebrew
-        ::std::env::set_var("PATH", format!("{}:/usr/sbin:/usr/local/sbin",::std::env::var("PATH").unwrap()));
+        std::env::set_var(
+            "PATH",
+            format!("{}:/usr/sbin:/usr/local/sbin", std::env::var("PATH").unwrap()),
+        );
 
         let server = Rc::new(ServerHolder {
             server: Command::new("mosquitto")
@@ -859,24 +825,25 @@ mod tests {
         let server_is_live = || {
             for _ in 0..50 {
                 if TcpStream::connect(&server_address).is_ok() {
-                    return true
+                    return true;
                 } else {
                     sleep(Duration::from_millis(50));
                 }
-            };
+            }
             false
         };
-        assert!(server_is_live(), format!("can't connect to mosquitto server {}", &server_address));
+        assert!(
+            server_is_live(),
+            format!("can't connect to mosquitto server {}", &server_address)
+        );
 
         let handler1 = HandlerHolder {
-            handler: MqttHermesProtocolHandler::new(&server_address)
-                .expect("could not create first client"),
+            handler: MqttHermesProtocolHandler::new(&server_address).expect("could not create first client"),
             server: Rc::clone(&server),
         };
 
         let handler2 = HandlerHolder {
-            handler: MqttHermesProtocolHandler::new(&server_address)
-                .expect("could not create second client"),
+            handler: MqttHermesProtocolHandler::new(&server_address).expect("could not create second client"),
             server,
         };
 

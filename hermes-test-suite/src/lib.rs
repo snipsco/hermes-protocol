@@ -1,4 +1,5 @@
 extern crate chrono;
+extern crate hermes;
 
 use chrono::prelude::*;
 
@@ -22,17 +23,17 @@ macro_rules! t {
             let (handler_source, handler_receiver) = create_handlers();
             let source = handler_source.$p_facade();
             let receiver = handler_receiver.$s_facade();
-            let (tx, rx) = ::std::sync::mpsc::channel();
-            let tx = ::std::sync::Mutex::new(tx);
+            let (tx, rx) = std::sync::mpsc::channel();
+            let tx = std::sync::Mutex::new(tx);
             receiver
-                .$s(::Callback::new(move |o: &$t| {
+                .$s(hermes::Callback::new(move |o: &$t| {
                     tx.lock().map(|it| it.send(o.clone())).unwrap().unwrap()
                 }))
                 .unwrap();
             let message = $object;
-            ::std::thread::sleep(WAIT_DURATION);
+            std::thread::sleep(WAIT_DURATION);
             source.$p(message.clone()).unwrap();
-            let result = rx.recv_timeout(::std::time::Duration::from_secs(1));
+            let result = rx.recv_timeout(std::time::Duration::from_secs(1));
             assert!(result.is_ok(), "didn't receive message after one second");
             assert_eq!(result.unwrap(), message)
         }
@@ -43,16 +44,16 @@ macro_rules! t {
             let (handler_source, handler_receiver) = create_handlers();
             let source = handler_source.$p_facade();
             let receiver = handler_receiver.$s_facade();
-            let (tx, rx) = ::std::sync::mpsc::channel();
-            let tx = ::std::sync::Mutex::new(tx);
+            let (tx, rx) = std::sync::mpsc::channel();
+            let tx = std::sync::Mutex::new(tx);
             receiver
-                .$s(::Callback0::new(move || {
+                .$s(hermes::Callback0::new(move || {
                     tx.lock().map(|it| it.send(())).unwrap().unwrap()
                 }))
                 .unwrap();
-            ::std::thread::sleep(WAIT_DURATION);
+            std::thread::sleep(WAIT_DURATION);
             source.$p().unwrap();
-            let result = rx.recv_timeout(::std::time::Duration::from_secs(1));
+            let result = rx.recv_timeout(std::time::Duration::from_secs(1));
             assert!(result.is_ok(), "didn't receive message after one second");
         }
     };
@@ -62,17 +63,17 @@ macro_rules! t {
             let (handler_source, handler_receiver) = create_handlers();
             let source = handler_source.$p_facade();
             let receiver = handler_receiver.$s_facade();
-            let (tx, rx) = ::std::sync::mpsc::channel();
-            let tx = ::std::sync::Mutex::new(tx);
+            let (tx, rx) = std::sync::mpsc::channel();
+            let tx = std::sync::Mutex::new(tx);
             receiver
                 .$s(
                     $a,
-                    ::Callback0::new(move || tx.lock().map(|it| it.send(())).unwrap().unwrap()),
+                    hermes::Callback0::new(move || tx.lock().map(|it| it.send(())).unwrap().unwrap()),
                 )
                 .unwrap();
-            ::std::thread::sleep(WAIT_DURATION);
+            std::thread::sleep(WAIT_DURATION);
             source.$p($a).unwrap();
-            let result = rx.recv_timeout(::std::time::Duration::from_secs(1));
+            let result = rx.recv_timeout(std::time::Duration::from_secs(1));
             assert!(result.is_ok(), "didn't receive message after one second");
         }
     };
@@ -91,20 +92,18 @@ macro_rules! t {
             let (handler_source, handler_receiver) = create_handlers();
             let source = handler_source.$p_facade();
             let receiver = handler_receiver.$s_facade();
-            let (tx, rx) = ::std::sync::mpsc::channel();
-            let tx = ::std::sync::Mutex::new(tx);
+            let (tx, rx) = std::sync::mpsc::channel();
+            let tx = std::sync::Mutex::new(tx);
             receiver
                 .$s(
                     $a,
-                    ::Callback::new(move |o: &$t| {
-                        tx.lock().map(|it| it.send(o.clone())).unwrap().unwrap()
-                    }),
+                    hermes::Callback::new(move |o: &$t| tx.lock().map(|it| it.send(o.clone())).unwrap().unwrap()),
                 )
                 .unwrap();
             let message = $object;
-            ::std::thread::sleep(WAIT_DURATION);
+            std::thread::sleep(WAIT_DURATION);
             source.$p($a, message.clone()).unwrap();
-            let result = rx.recv_timeout(::std::time::Duration::from_secs(1));
+            let result = rx.recv_timeout(std::time::Duration::from_secs(1));
             assert!(result.is_ok(), "didn't receive message after one second");
             assert_eq!(result.unwrap(), message)
         }
@@ -115,17 +114,17 @@ macro_rules! t {
             let (handler_source, handler_receiver) = create_handlers();
             let source = handler_source.$p_facade();
             let receiver = handler_receiver.$s_facade();
-            let (tx, rx) = ::std::sync::mpsc::channel();
-            let tx = ::std::sync::Mutex::new(tx);
+            let (tx, rx) = std::sync::mpsc::channel();
+            let tx = std::sync::Mutex::new(tx);
             receiver
                 .$s(
                     $a,
-                    ::Callback0::new(move || tx.lock().map(|it| it.send(())).unwrap().unwrap()),
+                    hermes::Callback0::new(move || tx.lock().map(|it| it.send(())).unwrap().unwrap()),
                 )
                 .unwrap();
-            ::std::thread::sleep(WAIT_DURATION);
+            std::thread::sleep(WAIT_DURATION);
             source.$p($a).unwrap();
-            let result = rx.recv_timeout(::std::time::Duration::from_secs(1));
+            let result = rx.recv_timeout(std::time::Duration::from_secs(1));
             assert!(result.is_ok(), "didn't receive message after one second");
         }
     };
@@ -144,20 +143,18 @@ macro_rules! t {
             let (handler_source, handler_receiver) = create_handlers();
             let source = handler_source.$p_facade();
             let receiver = handler_receiver.$s_facade();
-            let (tx, rx) = ::std::sync::mpsc::channel();
-            let tx = ::std::sync::Mutex::new(tx);
+            let (tx, rx) = std::sync::mpsc::channel();
+            let tx = std::sync::Mutex::new(tx);
             receiver
                 .$s(
                     $a,
-                    ::Callback::new(move |o: &$t| {
-                        tx.lock().map(|it| it.send(o.clone())).unwrap().unwrap()
-                    }),
+                    hermes::Callback::new(move |o: &$t| tx.lock().map(|it| it.send(o.clone())).unwrap().unwrap()),
                 )
                 .unwrap();
             let message = $object;
-            ::std::thread::sleep(WAIT_DURATION);
+            std::thread::sleep(WAIT_DURATION);
             source.$p(message.clone()).unwrap();
-            let result = rx.recv_timeout(::std::time::Duration::from_secs(1));
+            let result = rx.recv_timeout(std::time::Duration::from_secs(1));
             assert!(result.is_ok(), "didn't receive message after one second");
             assert_eq!(result.unwrap(), message)
         }
@@ -168,16 +165,16 @@ macro_rules! t {
             let (handler_source, handler_receiver) = create_handlers();
             let source = handler_source.$p_facade();
             let receiver = handler_receiver.$s_facade();
-            let (tx, rx) = ::std::sync::mpsc::channel();
-            let tx = ::std::sync::Mutex::new(tx);
+            let (tx, rx) = std::sync::mpsc::channel();
+            let tx = std::sync::Mutex::new(tx);
             receiver
-                .$s(::Callback0::new(move || {
+                .$s(hermes::Callback0::new(move || {
                     tx.lock().map(|it| it.send(())).unwrap().unwrap()
                 }))
                 .unwrap();
-            ::std::thread::sleep(WAIT_DURATION);
+            std::thread::sleep(WAIT_DURATION);
             source.$p($a).unwrap();
-            let result = rx.recv_timeout(::std::time::Duration::from_secs(1));
+            let result = rx.recv_timeout(std::time::Duration::from_secs(1));
             assert!(result.is_ok(), "didn't receive message after one second");
         }
     };
@@ -196,17 +193,17 @@ macro_rules! t {
             let (handler_source, handler_receiver) = create_handlers();
             let source = handler_source.$p_facade();
             let receiver = handler_receiver.$s_facade();
-            let (tx, rx) = ::std::sync::mpsc::channel();
-            let tx = ::std::sync::Mutex::new(tx);
+            let (tx, rx) = std::sync::mpsc::channel();
+            let tx = std::sync::Mutex::new(tx);
             receiver
-                .$s(::Callback::new(move |o: &$t| {
+                .$s(hermes::Callback::new(move |o: &$t| {
                     tx.lock().map(|it| it.send(o.clone())).unwrap().unwrap()
                 }))
                 .unwrap();
             let message = $object;
-            ::std::thread::sleep(WAIT_DURATION);
+            std::thread::sleep(WAIT_DURATION);
             source.$p($a, message.clone()).unwrap();
-            let result = rx.recv_timeout(::std::time::Duration::from_secs(1));
+            let result = rx.recv_timeout(std::time::Duration::from_secs(1));
             assert!(result.is_ok(), "didn't receive message after one second");
             assert_eq!(result.unwrap(), message)
         }
@@ -226,17 +223,17 @@ macro_rules! t {
             let (handler_source, handler_receiver) = create_handlers();
             let source = handler_source.$p_facade();
             let receiver = handler_receiver.$s_facade();
-            let (tx, rx) = ::std::sync::mpsc::channel();
-            let tx = ::std::sync::Mutex::new(tx);
+            let (tx, rx) = std::sync::mpsc::channel();
+            let tx = std::sync::Mutex::new(tx);
             receiver
-                .$s(::Callback::new(move |o: &$t| {
+                .$s(hermes::Callback::new(move |o: &$t| {
                     tx.lock().map(|it| it.send(o.clone())).unwrap().unwrap()
                 }))
                 .unwrap();
             let message = $object;
-            ::std::thread::sleep(WAIT_DURATION);
+            std::thread::sleep(WAIT_DURATION);
             source.$p(message.clone()).unwrap();
-            let result = rx.recv_timeout(::std::time::Duration::from_secs(1));
+            let result = rx.recv_timeout(std::time::Duration::from_secs(1));
             assert!(result.is_ok(), "didn't receive message after one second");
             assert_eq!(result.unwrap(), message)
         }
@@ -280,7 +277,7 @@ macro_rules! t_component {
                         $f_back.subscribe_version_request <= $f.publish_version_request);
                 t!(version_works:
                         $f.subscribe_version <= VersionMessage | $f_back.publish_version
-                        with VersionMessage { version: ::semver::Version { major: 1, minor: 0, patch: 0, pre: vec![], build: vec![]} };);
+                        with VersionMessage { version: semver::Version { major: 1, minor: 0, patch: 0, pre: vec![], build: vec![]} };);
                 t!(error_works:
                         $f.subscribe_error <= ErrorMessage | $f_back.publish_error
                         with ErrorMessage { session_id: Some("123abc".into()), error: "some error".into(), context: None };);
@@ -297,7 +294,7 @@ macro_rules! t_identifiable_component {
                         $f_back.subscribe_version_request { "identifier".to_string() } <= $f.publish_version_request);
                 t!(version_works:
                         $f.subscribe_version { "identifier".to_string() } <= VersionMessage | $f_back.publish_version
-                        with VersionMessage { version: ::semver::Version { major: 1, minor: 0, patch: 0, pre: vec![], build: vec![]} };);
+                        with VersionMessage { version: semver::Version { major: 1, minor: 0, patch: 0, pre: vec![], build: vec![]} };);
                 t!(error_works:
                         $f.subscribe_error { "identifier".to_string() } <= ErrorMessage | $f_back.publish_error
                         with ErrorMessage { session_id: Some("123abc".into()), error: "some error".into(), context: None };);
@@ -314,7 +311,7 @@ macro_rules! test_suite {
     (WAIT_DURATION = $wait_duration:expr) => {
         use snips_nlu_ontology::*;
 
-        const WAIT_DURATION: ::std::time::Duration = ::std::time::Duration::from_millis($wait_duration);
+        const WAIT_DURATION: std::time::Duration = std::time::Duration::from_millis($wait_duration);
 
         t_identifiable_component!(voice_activity_identifiable_component: voice_activity_backend | voice_activity);
         t!(voice_activity_vad_up_works:
@@ -338,11 +335,11 @@ macro_rules! test_suite {
         t_identifiable_toggleable!(hotword_identifiable_toggleable: hotword_backend | hotword);
         t!(hotword_detected_works:
                     hotword.subscribe_detected { "hotword_identifier".into() } <= HotwordDetectedMessage | hotword_backend.publish_detected
-                    with HotwordDetectedMessage { model_id: "some model".into(), site_id: "some site".into(), model_type: Some(::hermes::HotwordModelType::Universal), model_version: Some("1.2.3".into()), current_sensitivity: Some(0.5), detection_signal_ms: None, end_signal_ms: None };);
+                    with HotwordDetectedMessage { model_id: "some model".into(), site_id: "some site".into(), model_type: Some(hermes::HotwordModelType::Universal), model_version: Some("1.2.3".into()), current_sensitivity: Some(0.5), detection_signal_ms: None, end_signal_ms: None };);
         t!(hotword_all_detected_works:
                     ManyToOne
                     hotword.subscribe_all_detected <= HotwordDetectedMessage | hotword_backend.publish_detected { "hotword_identifier".into() }
-                    with HotwordDetectedMessage { model_id: "some model".into(), site_id: "some site".into(), model_type: Some(::hermes::HotwordModelType::Universal), model_version: Some("1.2.3".into()), current_sensitivity: Some(0.5), detection_signal_ms: Some(12345), end_signal_ms: None };);
+                    with HotwordDetectedMessage { model_id: "some model".into(), site_id: "some site".into(), model_type: Some(hermes::HotwordModelType::Universal), model_version: Some("1.2.3".into()), current_sensitivity: Some(0.5), detection_signal_ms: Some(12345), end_signal_ms: None };);
 
         t_identifiable_toggleable!(sound_feedback_identifiable_toggleable: sound_feedback_backend | sound_feedback );
 
@@ -384,7 +381,7 @@ macro_rules! test_suite {
             );
         t!(nlu_slot_parsed_works:
                     nlu.subscribe_slot_parsed <= NluSlotMessage | nlu_backend.publish_slot_parsed
-                    with NluSlotMessage { id: None, input: "some input".into(), intent_name: "some intent".into(), slot: Some(NluSlot { confidence: Some(1.), nlu_slot: Slot { slot_name: "my slot".into(), raw_value: "value".into(), value: ::snips_nlu_ontology::SlotValue::Custom("my slot".into()), range: None, entity: "entity".into() }}), session_id: Some("abc".into()) };
+                    with NluSlotMessage { id: None, input: "some input".into(), intent_name: "some intent".into(), slot: Some(NluSlot { confidence: Some(1.), nlu_slot: Slot { slot_name: "my slot".into(), raw_value: "value".into(), value: snips_nlu_ontology::SlotValue::Custom("my slot".into()), range: None, entity: "entity".into() }}), session_id: Some("abc".into()) };
             );
         t!(nlu_intent_parsed_works:
                     nlu.subscribe_intent_parsed <= NluIntentMessage | nlu_backend.publish_intent_parsed
@@ -466,7 +463,7 @@ macro_rules! test_suite {
         t_component!(injection_component: injection_backend | injection);
         t!(injection_request:
                     injection_backend.subscribe_injection_request <= InjectionRequestMessage | injection.publish_injection_request
-                    with InjectionRequestMessage { operations: vec![], lexicon: ::std::collections::HashMap::new(), cross_language: None, id: Some("abc".into()) };);
+                    with InjectionRequestMessage { operations: vec![], lexicon: std::collections::HashMap::new(), cross_language: None, id: Some("abc".into()) };);
         t!(injection_status_request:
                     injection_backend.subscribe_injection_status_request <= injection.publish_injection_status_request);
         t!(injection_status:

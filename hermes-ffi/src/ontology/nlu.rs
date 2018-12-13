@@ -1,10 +1,10 @@
-use Result;
 use super::CAsrTokenArray;
-use std::ptr::null;
-use std::slice;
+use failure::Fallible;
 use failure::ResultExt;
 use ffi_utils::{AsRust, CReprOf, CStringArray, RawBorrow, RawPointerConverter};
 use snips_nlu_ontology_ffi_macros::{CIntentClassifierResult, CSlot};
+use std::ptr::null;
+use std::slice;
 
 #[repr(C)]
 #[derive(Debug)]
@@ -23,13 +23,13 @@ pub struct CNluQueryMessage {
 unsafe impl Sync for CNluQueryMessage {}
 
 impl CNluQueryMessage {
-    pub fn from(input: hermes::NluQueryMessage) -> Result<Self> {
+    pub fn from(input: hermes::NluQueryMessage) -> Fallible<Self> {
         Self::c_repr_of(input)
     }
 }
 
 impl CReprOf<hermes::NluQueryMessage> for CNluQueryMessage {
-    fn c_repr_of(input: hermes::NluQueryMessage) -> Result<Self> {
+    fn c_repr_of(input: hermes::NluQueryMessage) -> Fallible<Self> {
         Ok(Self {
             input: convert_to_c_string!(input.input),
             asr_tokens: if let Some(asr_tokens) = input.asr_tokens {
@@ -45,7 +45,7 @@ impl CReprOf<hermes::NluQueryMessage> for CNluQueryMessage {
 }
 
 impl AsRust<hermes::NluQueryMessage> for CNluQueryMessage {
-    fn as_rust(&self) -> Result<hermes::NluQueryMessage> {
+    fn as_rust(&self) -> Fallible<hermes::NluQueryMessage> {
         Ok(hermes::NluQueryMessage {
             input: create_rust_string_from!(self.input),
             asr_tokens: match unsafe { self.asr_tokens.as_ref() } {
@@ -85,13 +85,13 @@ pub struct CNluSlotQueryMessage {
 unsafe impl Sync for CNluSlotQueryMessage {}
 
 impl CNluSlotQueryMessage {
-    pub fn from(input: hermes::NluSlotQueryMessage) -> Result<Self> {
+    pub fn from(input: hermes::NluSlotQueryMessage) -> Fallible<Self> {
         Self::c_repr_of(input)
     }
 }
 
 impl CReprOf<hermes::NluSlotQueryMessage> for CNluSlotQueryMessage {
-    fn c_repr_of(input: hermes::NluSlotQueryMessage) -> Result<Self> {
+    fn c_repr_of(input: hermes::NluSlotQueryMessage) -> Fallible<Self> {
         Ok(Self {
             input: convert_to_c_string!(input.input),
             asr_tokens: if let Some(asr_tokens) = input.asr_tokens {
@@ -108,7 +108,7 @@ impl CReprOf<hermes::NluSlotQueryMessage> for CNluSlotQueryMessage {
 }
 
 impl AsRust<hermes::NluSlotQueryMessage> for CNluSlotQueryMessage {
-    fn as_rust(&self) -> Result<hermes::NluSlotQueryMessage> {
+    fn as_rust(&self) -> Fallible<hermes::NluSlotQueryMessage> {
         Ok(hermes::NluSlotQueryMessage {
             input: create_rust_string_from!(self.input),
             asr_tokens: match unsafe { self.asr_tokens.as_ref() } {
@@ -150,13 +150,13 @@ pub struct CNluSlotMessage {
 unsafe impl Sync for CNluSlotMessage {}
 
 impl CNluSlotMessage {
-    pub fn from(input: hermes::NluSlotMessage) -> Result<Self> {
+    pub fn from(input: hermes::NluSlotMessage) -> Fallible<Self> {
         Self::c_repr_of(input)
     }
 }
 
 impl CReprOf<hermes::NluSlotMessage> for CNluSlotMessage {
-    fn c_repr_of(input: hermes::NluSlotMessage) -> Result<Self> {
+    fn c_repr_of(input: hermes::NluSlotMessage) -> Fallible<Self> {
         Ok(Self {
             id: convert_to_nullable_c_string!(input.id),
             input: convert_to_c_string!(input.input),
@@ -172,7 +172,7 @@ impl CReprOf<hermes::NluSlotMessage> for CNluSlotMessage {
 }
 
 impl AsRust<hermes::NluSlotMessage> for CNluSlotMessage {
-    fn as_rust(&self) -> Result<hermes::NluSlotMessage> {
+    fn as_rust(&self) -> Fallible<hermes::NluSlotMessage> {
         Ok(hermes::NluSlotMessage {
             id: create_optional_rust_string_from!(self.id),
             input: create_rust_string_from!(self.input),
@@ -209,13 +209,13 @@ pub struct CNluIntentNotRecognizedMessage {
 unsafe impl Sync for CNluIntentNotRecognizedMessage {}
 
 impl CNluIntentNotRecognizedMessage {
-    pub fn from(input: hermes::NluIntentNotRecognizedMessage) -> Result<Self> {
+    pub fn from(input: hermes::NluIntentNotRecognizedMessage) -> Fallible<Self> {
         Self::c_repr_of(input)
     }
 }
 
 impl CReprOf<hermes::NluIntentNotRecognizedMessage> for CNluIntentNotRecognizedMessage {
-    fn c_repr_of(input: hermes::NluIntentNotRecognizedMessage) -> Result<Self> {
+    fn c_repr_of(input: hermes::NluIntentNotRecognizedMessage) -> Fallible<Self> {
         Ok(Self {
             input: convert_to_c_string!(input.input),
             id: convert_to_nullable_c_string!(input.id),
@@ -225,7 +225,7 @@ impl CReprOf<hermes::NluIntentNotRecognizedMessage> for CNluIntentNotRecognizedM
 }
 
 impl AsRust<hermes::NluIntentNotRecognizedMessage> for CNluIntentNotRecognizedMessage {
-    fn as_rust(&self) -> Result<hermes::NluIntentNotRecognizedMessage> {
+    fn as_rust(&self) -> Fallible<hermes::NluIntentNotRecognizedMessage> {
         Ok(hermes::NluIntentNotRecognizedMessage {
             input: create_rust_string_from!(self.input),
             id: create_optional_rust_string_from!(self.id),
@@ -250,7 +250,7 @@ pub struct CNluSlot {
 }
 
 impl CReprOf<hermes::NluSlot> for CNluSlot {
-    fn c_repr_of(input: hermes::NluSlot) -> Result<Self> {
+    fn c_repr_of(input: hermes::NluSlot) -> Fallible<Self> {
         Ok(Self {
             confidence: input.confidence.unwrap_or(-1.),
             nlu_slot: CSlot::from(input.nlu_slot).into_raw_pointer(),
@@ -259,7 +259,7 @@ impl CReprOf<hermes::NluSlot> for CNluSlot {
 }
 
 impl AsRust<hermes::NluSlot> for CNluSlot {
-    fn as_rust(&self) -> Result<hermes::NluSlot> {
+    fn as_rust(&self) -> Fallible<hermes::NluSlot> {
         //hermes::NluSlot {
         //confidence: self.confidence,
         //nlu_slot: unimplemented!(),
@@ -282,14 +282,14 @@ pub struct CNluSlotArray {
 }
 
 impl CReprOf<Vec<hermes::NluSlot>> for CNluSlotArray {
-    fn c_repr_of(input: Vec<hermes::NluSlot>) -> Result<Self> {
+    fn c_repr_of(input: Vec<hermes::NluSlot>) -> Fallible<Self> {
         let array = Self {
             count: input.len() as _,
             entries: Box::into_raw(
                 input
                     .into_iter()
                     .map(|e| CNluSlot::c_repr_of(e).map(|c| c.into_raw_pointer()))
-                    .collect::<Result<Vec<_>>>()
+                    .collect::<Fallible<Vec<_>>>()
                     .context("Could not convert map to C Repr")?
                     .into_boxed_slice(),
             ) as *const *const _,
@@ -299,7 +299,7 @@ impl CReprOf<Vec<hermes::NluSlot>> for CNluSlotArray {
 }
 
 impl AsRust<Vec<hermes::NluSlot>> for CNluSlotArray {
-    fn as_rust(&self) -> Result<Vec<hermes::NluSlot>> {
+    fn as_rust(&self) -> Fallible<Vec<hermes::NluSlot>> {
         let mut result = Vec::with_capacity(self.count as usize);
 
         for e in unsafe { slice::from_raw_parts(self.entries, self.count as usize) } {
@@ -311,14 +311,16 @@ impl AsRust<Vec<hermes::NluSlot>> for CNluSlotArray {
 
 impl Drop for CNluSlotArray {
     fn drop(&mut self) {
-        let _ = unsafe {
-            for e in Box::from_raw(::std::slice::from_raw_parts_mut(
+        unsafe {
+            let slots = Box::from_raw(std::slice::from_raw_parts_mut(
                 self.entries as *mut *mut CNluSlot,
                 self.count as usize,
-            )).iter() {
-                let _ = CNluSlot::drop_raw_pointer(*e).unwrap();
+            ));
+
+            for e in slots.iter() {
+                let _ = CNluSlot::drop_raw_pointer(*e);
             }
-        };
+        }
     }
 }
 
@@ -338,13 +340,13 @@ pub struct CNluIntentMessage {
 unsafe impl Sync for CNluIntentMessage {}
 
 impl CNluIntentMessage {
-    pub fn from(input: hermes::NluIntentMessage) -> Result<Self> {
+    pub fn from(input: hermes::NluIntentMessage) -> Fallible<Self> {
         Self::c_repr_of(input)
     }
 }
 
 impl CReprOf<hermes::NluIntentMessage> for CNluIntentMessage {
-    fn c_repr_of(input: hermes::NluIntentMessage) -> Result<Self> {
+    fn c_repr_of(input: hermes::NluIntentMessage) -> Fallible<Self> {
         Ok(Self {
             id: convert_to_nullable_c_string!(input.id),
             input: convert_to_c_string!(input.input),
@@ -360,7 +362,7 @@ impl CReprOf<hermes::NluIntentMessage> for CNluIntentMessage {
 }
 
 impl AsRust<hermes::NluIntentMessage> for CNluIntentMessage {
-    fn as_rust(&self) -> Result<hermes::NluIntentMessage> {
+    fn as_rust(&self) -> Fallible<hermes::NluIntentMessage> {
         /*Ok(hermes::NluIntentMessage {
             id: create_optional_rust_string_from!(self.id),
             input: create_rust_string_from!(self.input),
@@ -381,5 +383,3 @@ impl Drop for CNluIntentMessage {
         take_back_nullable_c_string!(self.session_id);
     }
 }
-
-

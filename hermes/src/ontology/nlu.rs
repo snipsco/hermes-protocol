@@ -1,4 +1,5 @@
-use super::{AsrToken, RequestId, SessionId, HermesMessage};
+use super::asr::AsrToken;
+use super::HermesMessage;
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -11,9 +12,9 @@ pub struct NluQueryMessage {
     pub intent_filter: Option<Vec<String>>,
     /// An optional id for the request, if provided it will be passed back in the
     /// response `NluIntentMessage` or `NluIntentNotRecognizedMessage`
-    pub id: Option<RequestId>,
+    pub id: Option<String>,
     /// An optional session id if there is a related session
-    pub session_id: Option<SessionId>,
+    pub session_id: Option<String>,
 }
 
 impl<'de> HermesMessage<'de> for NluQueryMessage {}
@@ -31,19 +32,18 @@ pub struct NluSlotQueryMessage {
     pub slot_name: String,
     /// An optional id for the request, if provided it will be passed back in the
     /// response `SlotMessage`
-    pub id: Option<RequestId>,
+    pub id: Option<String>,
     /// An optional session id if there is a related session
-    pub session_id: Option<SessionId>,
+    pub session_id: Option<String>,
 }
 
 impl<'de> HermesMessage<'de> for NluSlotQueryMessage {}
-
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NluSlotMessage {
     /// The id of the `NluSlotQueryMessage` that was processed
-    pub id: Option<RequestId>,
+    pub id: Option<String>,
     /// The input that was processed
     pub input: String,
     /// The intent used to find the slot
@@ -51,7 +51,7 @@ pub struct NluSlotMessage {
     /// The resulting slot, if found
     pub slot: Option<NluSlot>,
     /// An optional session id if there is a related session
-    pub session_id: Option<SessionId>,
+    pub session_id: Option<String>,
 }
 
 impl<'de> HermesMessage<'de> for NluSlotMessage {}
@@ -60,11 +60,11 @@ impl<'de> HermesMessage<'de> for NluSlotMessage {}
 #[serde(rename_all = "camelCase")]
 pub struct NluIntentNotRecognizedMessage {
     /// The id of the `NluQueryMessage` that was processed
-    pub id: Option<RequestId>,
+    pub id: Option<String>,
     /// The text that didn't match any intent
     pub input: String,
     /// An optional session id if there is a related session
-    pub session_id: Option<SessionId>,
+    pub session_id: Option<String>,
 }
 
 impl<'de> HermesMessage<'de> for NluIntentNotRecognizedMessage {}
@@ -75,23 +75,22 @@ pub struct NluSlot {
     /// The slot confidence
     pub confidence: Option<f32>,
     #[serde(flatten)]
-    pub nlu_slot: ::snips_nlu_ontology::Slot,
+    pub nlu_slot: snips_nlu_ontology::Slot,
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NluIntentMessage {
     /// The id of the `NluQueryMessage` that was processed
-    pub id: Option<RequestId>,
+    pub id: Option<String>,
     /// The input that was processed
     pub input: String,
     /// The result of the intent classification
-    pub intent: ::snips_nlu_ontology::IntentClassifierResult,
+    pub intent: snips_nlu_ontology::IntentClassifierResult,
     /// The detected slots, if any
     pub slots: Option<Vec<NluSlot>>,
     /// An optional session id if there is a related session
-    pub session_id: Option<SessionId>,
+    pub session_id: Option<String>,
 }
 
 impl<'de> HermesMessage<'de> for NluIntentMessage {}
-

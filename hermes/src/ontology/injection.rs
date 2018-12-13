@@ -1,12 +1,11 @@
-use super::{RequestId, HermesMessage};
-use serde::{Serialize, Serializer, Deserialize, Deserializer};
+use super::HermesMessage;
 use chrono::prelude::*;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::collections::HashMap;
-
 
 type Value = String;
 type Entity = String;
-type Prononciation = String;
+type Pronunciation = String;
 
 #[derive(Debug, Clone, PartialEq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -60,11 +59,11 @@ pub struct InjectionRequestMessage {
     pub operations: Vec<(InjectionKind, HashMap<Entity, Vec<EntityValue>>)>,
     /// List of pre-computed prononciations to add in a model
     #[serde(default)]
-    pub lexicon: HashMap<Value, Vec<Prononciation>>,
+    pub lexicon: HashMap<Value, Vec<Pronunciation>>,
     /// Language for cross-language G2P
     pub cross_language: Option<String>,
     /// The id of the `InjectionRequest` that was processed
-    pub id: Option<RequestId>,
+    pub id: Option<String>,
 }
 
 impl<'de> HermesMessage<'de> for InjectionRequestMessage {}
@@ -78,7 +77,6 @@ pub struct InjectionStatusMessage {
 
 impl<'de> HermesMessage<'de> for InjectionStatusMessage {}
 
-
 #[cfg(test)]
 mod test {
     use super::*;
@@ -88,16 +86,31 @@ mod test {
     fn custom_deserialization_entityvalue_works() {
         let json = r#" "a" "#;
         let entity_value: EntityValue = serde_json::from_str(&json).unwrap();
-        assert_eq!(entity_value, EntityValue { value: "a".to_string(), weight: 1 });
+        assert_eq!(
+            entity_value,
+            EntityValue {
+                value: "a".to_string(),
+                weight: 1
+            }
+        );
 
         let json = r#"["a", 42]"#;
         let entity_value: EntityValue = serde_json::from_str(&json).unwrap();
-        assert_eq!(entity_value, EntityValue { value: "a".to_string(), weight: 42 });
+        assert_eq!(
+            entity_value,
+            EntityValue {
+                value: "a".to_string(),
+                weight: 42
+            }
+        );
     }
 
     #[test]
     fn custom_serialization_entityvalue_works() {
-        let entity_value = EntityValue { value: "hello".to_string(), weight: 42 };
+        let entity_value = EntityValue {
+            value: "hello".to_string(),
+            weight: 42,
+        };
         let string = serde_json::to_string(&entity_value).unwrap();
         assert_eq!(string, r#"["hello",42]"#);
     }
@@ -112,8 +125,20 @@ mod test {
         let (operation, values_per_entity) = &my_struct.operations[0];
 
         assert_eq!(operation, &InjectionKind::Add);
-        assert_eq!(values_per_entity["e_0"][0], EntityValue { value: "a".to_string(), weight: 1 });
-        assert_eq!(values_per_entity["e_0"][1], EntityValue { value: "b".to_string(), weight: 42 });
+        assert_eq!(
+            values_per_entity["e_0"][0],
+            EntityValue {
+                value: "a".to_string(),
+                weight: 1
+            }
+        );
+        assert_eq!(
+            values_per_entity["e_0"][1],
+            EntityValue {
+                value: "b".to_string(),
+                weight: 42
+            }
+        );
     }
 
     #[test]
@@ -126,8 +151,19 @@ mod test {
         let (operation, values_per_entity) = &my_struct.operations[0];
 
         assert_eq!(operation, &InjectionKind::Add);
-        assert_eq!(values_per_entity["e_0"][0], EntityValue { value: "a".to_string(), weight: 22 });
-        assert_eq!(values_per_entity["e_0"][1], EntityValue { value: "b".to_string(), weight: 31 });
+        assert_eq!(
+            values_per_entity["e_0"][0],
+            EntityValue {
+                value: "a".to_string(),
+                weight: 22
+            }
+        );
+        assert_eq!(
+            values_per_entity["e_0"][1],
+            EntityValue {
+                value: "b".to_string(),
+                weight: 31
+            }
+        );
     }
 }
-

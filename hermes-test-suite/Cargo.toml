@@ -2,6 +2,8 @@
 name = "hermes-test-suite"
 version = "0.61.0-SNAPSHOT"
 authors = ["Thibaut Lorrain <thibaut.lorrain@snips.ai>"]
+edition = "2018"
 
 [dependencies]
 chrono = "0.4"
+hermes = { path = "../hermes" }

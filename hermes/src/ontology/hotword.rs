@@ -1,17 +1,17 @@
-use super::{SiteId, HermesMessage};
-
+use super::HermesMessage;
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum HotwordModelType {
-    Universal, Personal
+    Universal,
+    Personal,
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct HotwordDetectedMessage {
     /// The site where the hotword was triggered
-    pub site_id: SiteId,
+    pub site_id: String,
     /// Which model was triggered
     pub model_id: String,
     /// The version of the model
@@ -28,4 +28,3 @@ pub struct HotwordDetectedMessage {
 }
 
 impl<'de> HermesMessage<'de> for HotwordDetectedMessage {}
-

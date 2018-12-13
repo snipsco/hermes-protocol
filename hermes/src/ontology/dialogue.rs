@@ -1,21 +1,22 @@
-use super::{SessionId, SiteId, AsrToken, NluSlot, HermesMessage};
-
+use super::asr::AsrToken;
+use super::nlu::NluSlot;
+use super::HermesMessage;
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct IntentMessage {
     /// The session in which this intent was detected
-    pub session_id: SessionId,
+    pub session_id: String,
     /// The custom data that was given at the session creation
     pub custom_data: Option<String>,
     /// The site where the intent was detected.
-    pub site_id: SiteId,
+    pub site_id: String,
     /// The input that generated this intent
     pub input: String,
     /// The tokens detected by the ASR. The first vec represents the different ASR invocations
     pub asr_tokens: Option<Vec<Vec<AsrToken>>>,
     /// The result of the intent classification
-    pub intent: ::snips_nlu_ontology::IntentClassifierResult,
+    pub intent: snips_nlu_ontology::IntentClassifierResult,
     /// The detected slots, if any
     pub slots: Option<Vec<NluSlot>>,
 }
@@ -26,17 +27,16 @@ impl<'de> HermesMessage<'de> for IntentMessage {}
 #[serde(rename_all = "camelCase")]
 pub struct IntentNotRecognizedMessage {
     /// The session in which no intent was recognized
-    pub session_id: SessionId,
+    pub session_id: String,
     /// The custom data that was given at the session creation
     pub custom_data: Option<String>,
     /// The site where the intent was detected.
-    pub site_id: SiteId,
+    pub site_id: String,
     /// The text that didn't match any intent, `None` if no text wa captured
     pub input: Option<String>,
 }
 
 impl<'de> HermesMessage<'de> for IntentNotRecognizedMessage {}
-
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(tag = "type", rename_all = "camelCase")]
@@ -51,7 +51,7 @@ pub enum SessionInit {
         intent_filter: Option<Vec<String>>,
         /// An optional boolean to indicate if the session can be enqueued if it can't be started
         /// immediately (ie there is another running session on the site). The default value is true
-        #[serde(default="boolean_default_true")]
+        #[serde(default = "boolean_default_true")]
         can_be_enqueued: bool,
         /// An optional boolean to indicate whether the dialogue manager should handle non
         /// recognized intents by itself or sent them as an `IntentNotRecognizedMessage` for the
@@ -65,7 +65,9 @@ pub enum SessionInit {
     Notification { text: String },
 }
 
-fn boolean_default_true() -> bool { true }
+fn boolean_default_true() -> bool {
+    true
+}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -78,7 +80,7 @@ pub struct StartSessionMessage {
     pub custom_data: Option<String>,
     /// The site where the session should be started, a value of `None` will be interpreted as the
     /// default one
-    pub site_id: Option<SiteId>,
+    pub site_id: Option<String>,
 }
 
 impl<'de> HermesMessage<'de> for StartSessionMessage {}
@@ -91,7 +93,7 @@ pub struct SessionStartedMessage {
     /// The custom data that was given at the session creation
     pub custom_data: Option<String>,
     /// The site on which this session was started
-    pub site_id: SiteId,
+    pub site_id: String,
     /// This optional field indicates this session is a reactivation of a previously ended session.
     /// This is for example provided when the user continues talking to the platform without saying
     /// the hotword again after a session was ended.
@@ -108,7 +110,7 @@ pub struct SessionQueuedMessage {
     /// The custom data that was given at the session creation
     pub custom_data: Option<String>,
     /// The site on which this session was started
-    pub site_id: SiteId,
+    pub site_id: String,
 }
 
 impl<'de> HermesMessage<'de> for SessionQueuedMessage {}
@@ -175,8 +177,7 @@ pub struct SessionEndedMessage {
     /// How the session was ended
     pub termination: SessionTerminationType,
     /// The site on which this session was ended.
-    pub site_id: SiteId,
+    pub site_id: String,
 }
 
 impl<'de> HermesMessage<'de> for SessionEndedMessage {}
-

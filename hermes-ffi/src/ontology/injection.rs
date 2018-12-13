@@ -1,12 +1,12 @@
+use super::CMapStringToStringArray;
+use failure::Fallible;
 use failure::ResultExt;
 use ffi_utils::{AsRust, CReprOf, RawBorrow, RawPointerConverter};
 use hermes;
 use libc;
-use Result;
 use std::collections::HashMap;
 use std::ptr::null;
 use std::slice;
-use super::CMapStringToStringArray;
 
 #[repr(C)]
 pub struct CEntityValue {
@@ -15,7 +15,7 @@ pub struct CEntityValue {
 }
 
 impl CReprOf<hermes::EntityValue> for CEntityValue {
-    fn c_repr_of(input: hermes::EntityValue) -> Result<Self> {
+    fn c_repr_of(input: hermes::EntityValue) -> Fallible<Self> {
         Ok(Self {
             value: convert_to_c_string!(input.value),
             weight: input.weight,
@@ -24,7 +24,7 @@ impl CReprOf<hermes::EntityValue> for CEntityValue {
 }
 
 impl AsRust<hermes::EntityValue> for CEntityValue {
-    fn as_rust(&self) -> Result<hermes::EntityValue> {
+    fn as_rust(&self) -> Fallible<hermes::EntityValue> {
         Ok(hermes::EntityValue {
             value: create_rust_string_from!(self.value),
             weight: self.weight,
@@ -47,26 +47,28 @@ pub struct CEntityValueArray {
 
 impl Drop for CEntityValueArray {
     fn drop(&mut self) {
-        let _ = unsafe {
-            for e in Box::from_raw(::std::slice::from_raw_parts_mut(
+        unsafe {
+            for e in Box::from_raw(std::slice::from_raw_parts_mut(
                 self.values as *mut *mut CEntityValue,
                 self.count as usize,
-            )).iter() {
-                let _ = CEntityValue::drop_raw_pointer(*e).unwrap();
+            ))
+            .iter()
+            {
+                let _ = CEntityValue::drop_raw_pointer(*e);
             }
         };
     }
 }
 
 impl CReprOf<Vec<hermes::EntityValue>> for CEntityValueArray {
-    fn c_repr_of(input: Vec<hermes::EntityValue>) -> Result<Self> {
+    fn c_repr_of(input: Vec<hermes::EntityValue>) -> Fallible<Self> {
         let array = Self {
             count: input.len() as _,
             values: Box::into_raw(
                 input
                     .into_iter()
                     .map(|e| CEntityValue::c_repr_of(e).map(|c| c.into_raw_pointer()))
-                    .collect::<Result<Vec<_>>>()
+                    .collect::<Fallible<Vec<_>>>()
                     .context("Could not convert map to C Repr")?
                     .into_boxed_slice(),
             ) as *const *const _,
@@ -76,7 +78,7 @@ impl CReprOf<Vec<hermes::EntityValue>> for CEntityValueArray {
 }
 
 impl AsRust<Vec<hermes::EntityValue>> for CEntityValueArray {
-    fn as_rust(&self) -> Result<Vec<hermes::EntityValue>> {
+    fn as_rust(&self) -> Fallible<Vec<hermes::EntityValue>> {
         let mut result = Vec::with_capacity(self.count as usize);
 
         for e in unsafe { slice::from_raw_parts(self.values, self.count as usize) } {
@@ -89,7 +91,6 @@ impl AsRust<Vec<hermes::EntityValue>> for CEntityValueArray {
     }
 }
 
-
 #[repr(C)]
 #[derive(Debug)]
 pub enum SNIPS_INJECTION_KIND {
@@ -98,7 +99,7 @@ pub enum SNIPS_INJECTION_KIND {
 }
 
 impl CReprOf<hermes::InjectionKind> for SNIPS_INJECTION_KIND {
-    fn c_repr_of(input: hermes::InjectionKind) -> Result<Self> {
+    fn c_repr_of(input: hermes::InjectionKind) -> Fallible<Self> {
         Ok(match input {
             hermes::InjectionKind::Add => SNIPS_INJECTION_KIND::SNIPS_INJECTION_KIND_ADD,
             hermes::InjectionKind::AddFromVanilla => SNIPS_INJECTION_KIND::SNIPS_INJECTION_KIND_ADD_FROM_VANILLA,
@@ -107,7 +108,7 @@ impl CReprOf<hermes::InjectionKind> for SNIPS_INJECTION_KIND {
 }
 
 impl AsRust<hermes::InjectionKind> for SNIPS_INJECTION_KIND {
-    fn as_rust(&self) -> Result<hermes::InjectionKind> {
+    fn as_rust(&self) -> Fallible<hermes::InjectionKind> {
         Ok(match self {
             SNIPS_INJECTION_KIND::SNIPS_INJECTION_KIND_ADD => hermes::InjectionKind::Add,
             SNIPS_INJECTION_KIND::SNIPS_INJECTION_KIND_ADD_FROM_VANILLA => hermes::InjectionKind::AddFromVanilla,
@@ -129,7 +130,7 @@ impl Drop for CInjectionRequestOperation {
 }
 
 impl CReprOf<(hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue>>)> for CInjectionRequestOperation {
-    fn c_repr_of(input: (hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue>>)) -> Result<Self> {
+    fn c_repr_of(input: (hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue>>)) -> Fallible<Self> {
         // FIXME: Ugly shortcut to compile faster. We're losing the weight information.
         let mut hash = HashMap::with_capacity(input.1.capacity());
         for (key, entity_values) in input.1 {
@@ -145,13 +146,16 @@ impl CReprOf<(hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue>>)>
 }
 
 impl AsRust<(hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue>>)> for CInjectionRequestOperation {
-    fn as_rust(&self) -> Result<(hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue>>)> {
+    fn as_rust(&self) -> Fallible<(hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue>>)> {
         let values = unsafe { CMapStringToStringArray::raw_borrow(self.values) }?.as_rust()?;
 
         // FIXME: Ugly shortcut to compile faster. We're losing the weight information.
         let mut hash = HashMap::with_capacity(values.capacity());
         for (key, entity_values) in values {
-            let entity_values = entity_values.into_iter().map(|value| hermes::EntityValue { value, weight: 1}).collect();
+            let entity_values = entity_values
+                .into_iter()
+                .map(|value| hermes::EntityValue { value, weight: 1 })
+                .collect();
             hash.insert(key, entity_values);
         }
 
@@ -166,28 +170,32 @@ pub struct CInjectionRequestOperations {
     pub count: libc::c_int,
 }
 
+type CInjectionRequest = (hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue>>);
+
 impl Drop for CInjectionRequestOperations {
     fn drop(&mut self) {
-        let _ = unsafe {
-            for e in Box::from_raw(::std::slice::from_raw_parts_mut(
+        unsafe {
+            let operations = Box::from_raw(std::slice::from_raw_parts_mut(
                 self.operations as *mut *mut CInjectionRequestOperation,
                 self.count as usize,
-            )).iter() {
-                let _ = CInjectionRequestOperation::drop_raw_pointer(*e).unwrap();
+            ));
+
+            for e in operations.iter() {
+                let _ = CInjectionRequestOperation::drop_raw_pointer(*e);
             }
-        };
+        }
     }
 }
 
-impl CReprOf<Vec<(hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue>>)>> for CInjectionRequestOperations {
-    fn c_repr_of(input: Vec<(hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue>>)>) -> Result<Self> {
+impl CReprOf<Vec<CInjectionRequest>> for CInjectionRequestOperations {
+    fn c_repr_of(input: Vec<CInjectionRequest>) -> Fallible<Self> {
         Ok(Self {
             count: input.len() as libc::c_int,
             operations: Box::into_raw(
                 input
                     .into_iter()
                     .map(|e| CInjectionRequestOperation::c_repr_of(e).map(|c| c.into_raw_pointer()))
-                    .collect::<Result<Vec<*const CInjectionRequestOperation>>>()
+                    .collect::<Fallible<Vec<*const CInjectionRequestOperation>>>()
                     .context("Could not convert map to C Repr")?
                     .into_boxed_slice(),
             ) as *const *const CInjectionRequestOperation,
@@ -195,8 +203,8 @@ impl CReprOf<Vec<(hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue
     }
 }
 
-impl AsRust<Vec<(hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue>>)>> for CInjectionRequestOperations {
-    fn as_rust(&self) -> Result<Vec<(hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue>>)>> {
+impl AsRust<Vec<CInjectionRequest>> for CInjectionRequestOperations {
+    fn as_rust(&self) -> Fallible<Vec<CInjectionRequest>> {
         let mut result = Vec::with_capacity(self.count as usize);
 
         for e in unsafe { slice::from_raw_parts(self.operations, self.count as usize) } {
@@ -228,7 +236,7 @@ impl Drop for CInjectionRequestMessage {
 }
 
 impl CReprOf<hermes::InjectionRequestMessage> for CInjectionRequestMessage {
-    fn c_repr_of(input: hermes::InjectionRequestMessage) -> Result<Self> {
+    fn c_repr_of(input: hermes::InjectionRequestMessage) -> Fallible<Self> {
         Ok(Self {
             operations: CInjectionRequestOperations::c_repr_of(input.operations)?.into_raw_pointer(),
             lexicon: CMapStringToStringArray::c_repr_of(input.lexicon)?.into_raw_pointer(),
@@ -239,7 +247,7 @@ impl CReprOf<hermes::InjectionRequestMessage> for CInjectionRequestMessage {
 }
 
 impl AsRust<hermes::InjectionRequestMessage> for CInjectionRequestMessage {
-    fn as_rust(&self) -> Result<hermes::InjectionRequestMessage> {
+    fn as_rust(&self) -> Fallible<hermes::InjectionRequestMessage> {
         let operations = unsafe { CInjectionRequestOperations::raw_borrow(self.operations) }?.as_rust()?;
         let lexicon = unsafe { CMapStringToStringArray::raw_borrow(self.lexicon) }?.as_rust()?;
         Ok(hermes::InjectionRequestMessage {
@@ -266,7 +274,7 @@ impl Drop for CInjectionStatusMessage {
 }
 
 impl CReprOf<hermes::InjectionStatusMessage> for CInjectionStatusMessage {
-    fn c_repr_of(status: hermes::InjectionStatusMessage) -> Result<Self> {
+    fn c_repr_of(status: hermes::InjectionStatusMessage) -> Fallible<Self> {
         let last_injection_date_str = status.last_injection_date.map(|d| d.to_rfc3339());
 
         Ok(Self {
@@ -276,7 +284,7 @@ impl CReprOf<hermes::InjectionStatusMessage> for CInjectionStatusMessage {
 }
 
 impl AsRust<hermes::InjectionStatusMessage> for CInjectionStatusMessage {
-    fn as_rust(&self) -> Result<hermes::InjectionStatusMessage> {
+    fn as_rust(&self) -> Fallible<hermes::InjectionStatusMessage> {
         let last_injection_date = create_optional_rust_string_from!(self.last_injection_date);
         let last_injection_date = if let Some(date_str) = last_injection_date {
             Some(date_str.parse()?)
@@ -288,86 +296,131 @@ impl AsRust<hermes::InjectionStatusMessage> for CInjectionStatusMessage {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::super::tests::round_trip_test;
+    use super::*;
     use chrono::prelude::*;
-
 
     #[test]
     fn round_trip_injection_request_operation() {
-        round_trip_test::<_, CInjectionRequestOperation>(
-            (hermes::InjectionKind::Add, HashMap::new())
-        );
+        round_trip_test::<_, CInjectionRequestOperation>((hermes::InjectionKind::Add, HashMap::new()));
 
         let mut test_map = HashMap::new();
-        test_map.insert("hello".into(), vec![
-            hermes::EntityValue { value: "hello".to_string(), weight: 1 },
-            hermes::EntityValue { value: "world".to_string(), weight: 1 },
-        ]);
-        test_map.insert("foo".into(), vec![
-            hermes::EntityValue { value: "bar".to_string(), weight: 1 },
-            hermes::EntityValue { value: "baz".to_string(), weight: 1 },
-        ]);
-
-        round_trip_test::<_, CInjectionRequestOperation>(
-            (hermes::InjectionKind::Add, test_map)
+        test_map.insert(
+            "hello".into(),
+            vec![
+                hermes::EntityValue {
+                    value: "hello".to_string(),
+                    weight: 1,
+                },
+                hermes::EntityValue {
+                    value: "world".to_string(),
+                    weight: 1,
+                },
+            ],
         );
+        test_map.insert(
+            "foo".into(),
+            vec![
+                hermes::EntityValue {
+                    value: "bar".to_string(),
+                    weight: 1,
+                },
+                hermes::EntityValue {
+                    value: "baz".to_string(),
+                    weight: 1,
+                },
+            ],
+        );
+
+        round_trip_test::<_, CInjectionRequestOperation>((hermes::InjectionKind::Add, test_map));
     }
 
     #[test]
     fn round_trip_injection_request_operations() {
-        round_trip_test::<_, CInjectionRequestOperations>(
-            vec![]
-        );
+        round_trip_test::<_, CInjectionRequestOperations>(vec![]);
 
         let mut test_map = HashMap::new();
-        test_map.insert("hello".into(), vec![
-            hermes::EntityValue { value: "hello".to_string(), weight: 1 },
-            hermes::EntityValue { value: "world".to_string(), weight: 1 },
-        ]);
-        test_map.insert("foo".into(), vec![
-            hermes::EntityValue { value: "bar".to_string(), weight: 1 },
-            hermes::EntityValue { value: "baz".to_string(), weight: 1 },
-        ]);
-
-        round_trip_test::<_, CInjectionRequestOperations>(
+        test_map.insert(
+            "hello".into(),
             vec![
-                (hermes::InjectionKind::Add, HashMap::new()),
-                (hermes::InjectionKind::Add, test_map)
-            ]
+                hermes::EntityValue {
+                    value: "hello".to_string(),
+                    weight: 1,
+                },
+                hermes::EntityValue {
+                    value: "world".to_string(),
+                    weight: 1,
+                },
+            ],
         );
+        test_map.insert(
+            "foo".into(),
+            vec![
+                hermes::EntityValue {
+                    value: "bar".to_string(),
+                    weight: 1,
+                },
+                hermes::EntityValue {
+                    value: "baz".to_string(),
+                    weight: 1,
+                },
+            ],
+        );
+
+        round_trip_test::<_, CInjectionRequestOperations>(vec![
+            (hermes::InjectionKind::Add, HashMap::new()),
+            (hermes::InjectionKind::Add, test_map),
+        ]);
     }
 
     #[test]
     fn round_trip_injection_request() {
         let mut injections = HashMap::new();
-        injections.insert("hello".into(), vec![
-            hermes::EntityValue { value: "hello".to_string(), weight: 1 },
-            hermes::EntityValue { value: "world".to_string(), weight: 1 },
-        ]);
-        injections.insert("foo".into(), vec![
-            hermes::EntityValue { value: "bar".to_string(), weight: 1 },
-            hermes::EntityValue { value: "baz".to_string(), weight: 1 },
-        ]);
+        injections.insert(
+            "hello".into(),
+            vec![
+                hermes::EntityValue {
+                    value: "hello".to_string(),
+                    weight: 1,
+                },
+                hermes::EntityValue {
+                    value: "world".to_string(),
+                    weight: 1,
+                },
+            ],
+        );
+        injections.insert(
+            "foo".into(),
+            vec![
+                hermes::EntityValue {
+                    value: "bar".to_string(),
+                    weight: 1,
+                },
+                hermes::EntityValue {
+                    value: "baz".to_string(),
+                    weight: 1,
+                },
+            ],
+        );
 
         let mut lexicon = HashMap::new();
-        lexicon.insert("this".into(), vec!["is ".to_string(), "a".to_string(), "lexicon".to_string()]);
+        lexicon.insert(
+            "this".into(),
+            vec!["is ".to_string(), "a".to_string(), "lexicon".to_string()],
+        );
         lexicon.insert("baz".into(), vec!["bar".to_string(), "foo".to_string()]);
 
-        round_trip_test::<_, CInjectionRequestMessage>(
-            hermes::InjectionRequestMessage {
-                cross_language: Some("en".to_string()),
-                operations: vec![
-                    (hermes::InjectionKind::Add, HashMap::new()),
-                    (hermes::InjectionKind::Add, injections)
-                ],
-                lexicon,
-                id: Some("some id".to_string()),
-            }
-        );
+        round_trip_test::<_, CInjectionRequestMessage>(hermes::InjectionRequestMessage {
+            cross_language: Some("en".to_string()),
+            operations: vec![
+                (hermes::InjectionKind::Add, HashMap::new()),
+                (hermes::InjectionKind::Add, injections),
+            ],
+            lexicon,
+            id: Some("some id".to_string()),
+        });
     }
 
     #[test]
