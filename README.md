@@ -1,4 +1,5 @@
 # hermes-protocol
+[![Build Status](https://travis-ci.org/snipsco/hermes-protocol.svg?branch=develop)](https://travis-ci.org/snipsco/hermes-protocol)
 
 This repository contains the definition of the hermes protocol used by
 the Snips platform
@@ -13,8 +14,6 @@ the Snips platform
 - `platforms` guest language bindings
     - `c` C header
     - `hermes-kotlin` jvm impl
-
-
 
 ## License
 
@@ -33,4 +32,3 @@ http://opensource.org/licenses/MIT)
 Unless you explicitly state otherwise, any contribution intentionally submitted
 for inclusion in the work by you, as defined in the Apache-2.0 license, shall
 be dual licensed as above, without any additional terms or conditions.
-
