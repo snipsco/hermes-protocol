@@ -30,6 +30,7 @@ PACKAGE_NAME = "hermes_python"
 ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
 PACKAGE_PATH = os.path.join(ROOT_PATH, PACKAGE_NAME)
 README = os.path.join(ROOT_PATH, "README.md")
+HISTORY = os.path.join(ROOT_PATH, "HISTORY.rst")
 VERSION = "__version__"
 
 with io.open(os.path.join(PACKAGE_PATH, VERSION)) as f:
@@ -38,6 +39,8 @@ with io.open(os.path.join(PACKAGE_PATH, VERSION)) as f:
 with io.open(README, "rt", encoding="utf8") as f:
 	readme = f.read()
 
+with io.open(HISTORY, "rt", encoding="utf8") as f:
+	history = f.read()
 
 packages = [p for p in find_packages() if "tests" not in p]
 
@@ -56,11 +59,16 @@ def get_rust_extension_command(argvs):
         return RustExtension(TARGET, CARGO_FILE_PATH, binding=Binding.NoBinding, dinghy=True, rust_x_compile_target="arm-unknown-linux-gnueabihf", dinghy_platform="raspbian")
     return RustExtension(TARGET, CARGO_FILE_PATH, binding=Binding.NoBinding)
 
+print readme
+print history
+
+print readme + history
+
 setup(
     name=PACKAGE_NAME,
     version=version,
     description='Python bindings for Snips Hermes Protocol',
-    long_description=readme,
+    long_description=readme + history,
     author='Anthony Reinette',
     author_email='anthony.reinette@snips.ai',
     url='https://github.com/snipsco/snips-platform/tree/main/hermes-ffi-python-extension/hermes-protocol/hermes-ffi/platforms/hermes-python',
