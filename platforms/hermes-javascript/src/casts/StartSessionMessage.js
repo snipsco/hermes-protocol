@@ -41,13 +41,17 @@ class StartSessionMessage extends Casteable {
         return super.forge(this.type, {
             session_init: function(sessionInit) {
                 return new Casteable(sessionInit).forge(CSessionInit, {
-                    value: function(value) {
+                    value: value => {
                         if(sessionInit.init_type === 1) {
-                            return new Casteable(value).forge(CActionSessionInit, {
+                            const sessionInitRef = new Casteable(value).forge(CActionSessionInit, {
                                 intent_filter: intents => new StringArray(intents).forge()
                             }).ref()
+                            ref._attach(sessionInitRef, this)
+                            return sessionInitRef
                         } else if(sessionInit.init_type === 2) {
-                            return ref.allocCString(value)
+                            const stringPointer = ref.allocCString(value)
+                            ref._attach(stringPointer, this)
+                            return stringPointer
                         } else {
                             return ref.NULL
                         }

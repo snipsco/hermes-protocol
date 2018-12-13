@@ -48,11 +48,12 @@ class Casteable {
             const value = this[key]
             if(specialFields[key]) {
                 // Custom casting method
-                const transformedValue = specialFields[key] && specialFields[key](value)
-                messageStruct[key] = transformedValue
+                messageStruct[key] = specialFields[key] && specialFields[key](value)
             } else if(typeof value === 'string') {
                 // Write the char* buffer with a trailing null byte.
-                messageStruct[key] = ref.allocCString(value)
+                const strPtr = ref.allocCString(value)
+                ref._attach(strPtr, this)
+                messageStruct[key] = strPtr
             } else if(typeof value !== 'object') {
                 // Primitive type.
                 messageStruct[key] = value

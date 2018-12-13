@@ -146,11 +146,13 @@ class SlotArray extends Casteable {
         return new DoubleArray(this._array, {
             itemArrayType: CNluSlotArray,
             refArrayType: SlotsArrayType,
-            forge: ({ confidence, ...rest }) => (
-                new Casteable({ confidence, nlu_slot: { ...rest }}).forge(CNluSlot, {
+            forge: ({ confidence, ...rest }) => {
+                const arrayRef = new Casteable({ confidence, nlu_slot: { ...rest }}).forge(CNluSlot, {
                     nlu_slot: forgeSlotPtr
                 }).ref()
-            )
+                ref._attach(arrayRef, this)
+                return arrayRef
+            }
         }).forge()
     }
 }

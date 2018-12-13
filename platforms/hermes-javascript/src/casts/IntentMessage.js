@@ -1,3 +1,4 @@
+const ref = require('ref')
 const Casteable = require('./Casteable')
 const SlotsArray = require('./SlotsArray')
 const AsrTokensDoubleArray = require('./AsrTokensDoubleArray')
@@ -18,7 +19,11 @@ class IntentMessage extends Casteable {
     }
     forge() {
         return super.forge(this.type, {
-            intent: intent => new Casteable(intent).forge(types.CIntentClassifierResult).ref(),
+            intent: intent => {
+                const intentRef = new Casteable(intent).forge(types.CIntentClassifierResult).ref()
+                ref._attach(intentRef, this)
+                return intentRef
+            },
             slots: slots => new SlotsArray(slots).forge(),
             asr_tokens: asrTokens => new AsrTokensDoubleArray(asrTokens).forge()
         })
