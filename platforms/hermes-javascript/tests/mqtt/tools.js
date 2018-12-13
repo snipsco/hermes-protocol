@@ -73,13 +73,14 @@ const exportedObject = {
         facadeSubscription
     }) => {
         mqttJson = { ...mqttJson }
-        return new Promise(resolve => {
+        return new Promise(async resolve => {
             facade.once(facadeSubscription, message => {
                 const expected = expectedJson || exportedObject.camelize(mqttJson)
                 const received = expectedJson ? message : exportedObject.camelize(message)
                 expect(received).toMatchObject(expected)
                 resolve()
             })
+            await exportedObject.wait(5)
             client.publish(hermesTopic, JSON.stringify(mqttJson))
         })
     }

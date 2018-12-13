@@ -251,7 +251,7 @@ it('[injection] should receive events related to an injection status', () => {
 
 /* Robustness tests */
 
-it(`[dialog] should should publish a start session event at least ${robustnessIterations} times`, async () => {
+it(`[dialog] should should publish a start session message at least ${robustnessIterations} times`, () => {
   const publishedJson = { ...require('./hermesPublished/StartSession.json') }
   const expected = require('./mqttPublished/StartSession.json')
   let counter = 0
@@ -276,6 +276,36 @@ it(`[dialog] should should publish a start session event at least ${robustnessIt
           resolve()
         } else {
           wait(robustnessDelay).then(() => dialog.publish('start_session', publishedJson))
+        }
+      })
+  })
+}, robustnessTestsTimeout)
+
+it(`[dialog] should should publish an end session message at least ${robustnessIterations} times`, () => {
+  const publishedJson = { ...require('./hermesPublished/EndSession.json') }
+  const expected = require('./mqttPublished/EndSession.json')
+  let counter = 0
+  return new Promise(resolve => {
+      client.subscribe('hermes/dialogueManager/endSession', function() {
+        dialog.publish('end_session', publishedJson)
+      })
+      client.on('message', (topic, messageBuffer) => {
+        let message
+        try {
+            message = JSON.parse(messageBuffer.toString())
+        } catch (e) {
+            message = null
+        }
+        if(message) {
+            expect(expected).toMatchObject(message)
+        } else {
+            expect(null).toEqual(message)
+        }
+        if(++counter >= robustnessIterations) {
+          client.unsubscribe('hermes/dialogueManager/endSession')
+          resolve()
+        } else {
+          wait(robustnessDelay).then(() => dialog.publish('end_session', publishedJson))
         }
       })
   })
