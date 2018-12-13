@@ -13,10 +13,7 @@ before_install:
   - sudo update-alternatives --set javac  /usr/lib/jvm/java-8-openjdk-amd64/bin/javac
 
 before_script:
-  - if [ "$TRAVIS_RUST_VERSION" == "nightly" ]; then
-      rustup component add rustfmt --toolchain nightly || cargo install --git https://github.com/rust-lang/rustfmt/ --force;
-      rustup component add clippy --toolchain nightly || cargo install --git https://github.com/rust-lang/rust-clippy/ --force clippy;
-    else
+  - if [ "$TRAVIS_RUST_VERSION" == "stable" ]; then
       rustup component add rustfmt;
       rustup component add clippy;
     fi
@@ -27,8 +24,12 @@ rust:
   - nightly
 
 script:
-  - cargo fmt --all -- --check
-  - cargo clippy --all-targets --all-features -- -D warnings
+  - if [ "$TRAVIS_RUST_VERSION" == "stable" ]; then
+      cargo fmt --all -- --check;
+    fi
+  - if [ "$TRAVIS_RUST_VERSION" == "stable" ]; then
+      cargo clippy --all-targets --all-features -- -D warnings;
+    fi
   - cargo build --all
   - cargo test --all
   - pwd
