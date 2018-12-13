@@ -658,6 +658,49 @@ typedef struct {
   uint64_t patch;
 } CVersionMessage;
 
+/*
+ * A struct representing the configuration of the MQTT client
+ */
+typedef struct {
+  /*
+   * Address of the MQTT broker in the form `ip:port`
+   */
+  char *broker_address;
+  /*
+   * Username to use on the broker. Nullable
+   */
+  char *username;
+  /*
+   * Password to use on the broker. Nullable
+   */
+  char *password;
+  /*
+   * Hostname to use for the TLS configuration. Nullable, setting a value enables TLS
+   */
+  char *tls_hostname;
+  /*
+   * CA files to use if TLS is enabled. Nullable
+   */
+  CStringArray *tls_ca_file;
+  /*
+   * CA path to use if TLS is enabled. Nullable
+   */
+  CStringArray *tls_ca_path;
+  /*
+   * Client key to use if TLS is enabled. Nullable
+   */
+  char *tls_client_key;
+  /*
+   * Client cert to use if TLS is enabled. Nullable
+   */
+  char *tls_client_cert;
+  /*
+   * Boolean indicating if the root store should be disabled if TLS is enabled. The is
+   * interpreted as a boolean, 0 meaning false, all other values meaning true
+   */
+  unsigned char tls_disable_root_store;
+} CMqttOptions;
+
 typedef struct {
   /*
    * Nullable
@@ -1063,6 +1106,10 @@ SNIPS_RESULT hermes_protocol_handler_injection_facade(const CProtocolHandler *ha
 SNIPS_RESULT hermes_protocol_handler_new_mqtt(const CProtocolHandler **handler,
                                               const char *broker_address,
                                               void *user_data);
+
+SNIPS_RESULT hermes_protocol_handler_new_mqtt_with_options(const CProtocolHandler **handler,
+                                                           const CMqttOptions *mqtt_options,
+                                                           void *user_data);
 
 SNIPS_RESULT hermes_protocol_handler_nlu_backend_facade(const CProtocolHandler *handler,
                                                         const CNluBackendFacade **facade);
