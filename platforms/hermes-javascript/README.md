@@ -177,7 +177,7 @@ new Hermes({
     // Password used when connecting to the broker
     password: 'password',
     // Hostname to use for the TLS configuration. If set, enables TLS.
-    hostname: 'hostname',
+    tls_hostname: 'hostname',
     // CA files to use if TLS is enabled.
     tls_ca_file: [ 'my-cert.cert' ],
     // CA paths to use if TLS is enabled.

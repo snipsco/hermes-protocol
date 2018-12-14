@@ -22,7 +22,7 @@
     "postinstall": "node scripts/postinstall.js",
     "build:sources": "node scripts/make.js",
     "test": "npm run test:mqtt && npm run test:roundtrip",
-    "test:mqtt": "jest ./tests/mqtt/mqttTests.spec.js",
+    "test:mqtt": "jest ./tests/mqtt/mqttTests.spec.js && jest ./tests/mqtt/mqttTls.spec.js",
     "test:roundtrip": "jest ./tests/casts/roundtrips.spec.js"
   },
   "author": "Julien Elbaz",
