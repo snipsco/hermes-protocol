@@ -11,6 +11,7 @@ module.exports.library = libraryPath => ffi.Library(libraryPath, {
     /* Global */
 
     hermes_protocol_handler_new_mqtt: [ 'int', [ 'void **', 'string', 'void *' ]],
+    hermes_protocol_handler_new_mqtt_with_options: [ 'int', [ 'void **', 'void *', 'void *' ]],
     hermes_destroy_mqtt_protocol_handler: [ 'int', [ 'void *' ]],
 
     /* Utils */

@@ -2,6 +2,7 @@ const ref = require('ref')
 const Dialog = require('./dialog')
 const Injection = require('./injection')
 const Feedback = require('./feedback')
+const { MqttOptions } = require('../casts')
 const { call } = require('../ffi/bindings')
 
 /**
@@ -24,10 +25,18 @@ class Hermes {
      * @param {*} options.address The bus address *(default localhost:1883)*
      * @param {*} options.logs Enables or Disables stdout logs *(default true)*
      * @param {*} options.libraryPath A custom path for the dynamic hermes ffi library
+     * @param {*} options.username Username used when connecting to the broker.
+     * @param {*} options.password Password used when connecting to the broker.
+     * @param {*} options.tls_hostname Hostname to use for the TLS configuration. If set, enables TLS.
+     * @param {*} options.tls_ca_file CA files to use if TLS is enabled.
+     * @param {*} options.tls_ca_path CA paths to use if TLS is enabled.
+     * @param {*} options.tls_client_key Client key to use if TLS is enabled.
+     * @param {*} options.tls_client_cert Client cert to use if TLS is enabled.
+     * @param {*} options.tls_disable_root_store Boolean indicating if the root store should be disabled if TLS is enabled.
      */
     constructor(options = {}) {
 
-        // Instance init.
+        // Initialize a new Hermes instance.
         this.options = {
             ...Hermes.defaultOptions,
             ...options
@@ -36,12 +45,32 @@ class Hermes {
         this.activeSubsets = new Map()
         this.call = call(this.options.libraryPath)
 
-        // Allocate the ProtocolHandler
+        // Allocate the ProtocolHandler double reference
         const protocolHandlerRef = ref.alloc('void **')
-        this.call('hermes_protocol_handler_new_mqtt', protocolHandlerRef, this.options.address, ref.NULL_POINTER)
+        // Allocate mqtt broker options
+        const mqttOptions = new MqttOptions({
+            broker_address: this.options.address,
+            username: this.options.username,
+            password: this.options.password,
+            tls_hostname: this.options.tls_hostname,
+            tls_ca_file: this.options.tls_ca_file,
+            tls_ca_path: this.options.tls_ca_path,
+            tls_client_key: this.options.tls_client_key,
+            tls_client_cert: this.options.tls_client_cert,
+            tls_disable_root_store: this.options.tls_disable_root_store
+        })
+        const mqttOptionsStructPtr = mqttOptions.forge().ref()
+        ref._attach(mqttOptionsStructPtr, this)
+        // Connect to MQTT with the specified options
+        this.call(
+            'hermes_protocol_handler_new_mqtt_with_options',
+            protocolHandlerRef,
+            mqttOptionsStructPtr,
+            ref.NULL_POINTER
+        )
         this.protocolHandler = protocolHandlerRef.deref()
 
-        // Enable logs if needed
+        // Extra API call to enable logs if needed
         if(this.options.logs) {
             this.call('hermes_enable_debug_logs')
         }

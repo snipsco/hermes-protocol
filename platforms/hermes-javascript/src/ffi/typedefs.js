@@ -11,6 +11,18 @@ const CStringArray = Struct({
   size: coerce('int')
 })
 
+const CMqttOptions = Struct({
+  broker_address: coerce('char *'),
+  username: coerce('char *'),
+  password: coerce('char *'),
+  tls_hostname: coerce('char *'),
+  tls_ca_file: pointer(CStringArray),
+  tls_ca_path: pointer(CStringArray),
+  tls_client_key: coerce('char *'),
+  tls_client_cert: coerce('char *'),
+  tls_disable_root_store: coerce('uchar'),
+})
+
 const CActionSessionInit = Struct({
   text: coerce('char *'),
   intent_filter: pointer(CStringArray),
@@ -115,6 +127,7 @@ const CAsrTokenDoubleArray = Struct({
 })
 
 const misc = {
+  CMqttOptions,
   CStringArray,
   CActionSessionInit,
   CSessionInit,

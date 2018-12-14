@@ -37,14 +37,18 @@ beforeAll(async () => {
   console.log('Launching mosquitto on port [' + mosquittoPort + ']')
   mosquitto = spawn('mosquitto', ['-p', mosquittoPort, '-v'], { stdio: 'ignore' })
   console.log('Mosquitto ready!')
-  hermes = new Hermes({
-    libraryPath: path.join(__dirname, `../../../../target/${LIB_ENV_FOLDER}/libhermes_mqtt_ffi`),
-    logs: true,
-    address: `localhost:${mosquittoPort}`
-  })
-  dialog = hermes.dialog()
-  injection = hermes.injection()
-  feedback = hermes.feedback()
+  try {
+    hermes = new Hermes({
+      libraryPath: path.join(__dirname, `../../../../target/${LIB_ENV_FOLDER}/libhermes_mqtt_ffi`),
+      logs: true,
+      address: `localhost:${mosquittoPort}`
+    })
+    dialog = hermes.dialog()
+    injection = hermes.injection()
+    feedback = hermes.feedback()
+  } catch (error) {
+    console.error(error)
+  }
 })
 
 beforeEach(done => {
@@ -63,7 +67,8 @@ afterEach(() => {
 })
 
 afterAll(done => {
-  hermes.destroy()
+  if(hermes)
+    hermes.destroy()
   console.log('Hermes destroyed.')
   setTimeout(() => {
     mosquitto.kill()

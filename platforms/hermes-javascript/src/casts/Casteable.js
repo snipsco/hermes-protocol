@@ -54,11 +54,11 @@ class Casteable {
                 const strPtr = ref.allocCString(value)
                 ref._attach(strPtr, this)
                 messageStruct[key] = strPtr
+            } else if (value === null || value === undefined) {
+                messageStruct[key] = null
             } else if(typeof value !== 'object') {
                 // Primitive type.
                 messageStruct[key] = value
-            } else if (value === null || value === undefined) {
-                messageStruct[key] = null
             } else {
                 // This is an object, and we expected to have a special field entry for casting it.
                 if(!specialFields[key]) {

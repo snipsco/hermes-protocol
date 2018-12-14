@@ -167,10 +167,27 @@ new Hermes({
     // The hermes bus address (default localhost:1883)
     address: 'localhost:1883',
     // Enables or disables stdout logs (default true).
-    // Use it in conjunction with the RUST_LOG environment variable (set -x RUST_LOG debug)
+    // Use it in conjunction with the RUST_LOG environment variable. (env RUST_LOG=debug ...)
     logs: true,
-    // A custom path to the hermes FFI dynamic library file.
-    libraryPath: // default: at the hermes-javascript package root folder location
+    // Path to the hermes FFI dynamic library file.
+    // Defaults to the hermes-javascript package folder, usually equivalent to:
+    libraryPath: 'node_modules/hermes-javascript/libhermes_mqtt_ffi',
+    // Username used when connecting to the broker.
+    username: 'user name',
+    // Password used when connecting to the broker
+    password: 'password',
+    // Hostname to use for the TLS configuration. If set, enables TLS.
+    hostname: 'hostname',
+    // CA files to use if TLS is enabled.
+    tls_ca_file: [ 'my-cert.cert' ],
+    // CA paths to use if TLS is enabled.
+    tls_ca_path: [ '/ca/path', '/ca/other/path' ],
+    // Client key to use if TLS is enabled.
+    tls_client_key: 'my-key.key',
+    // Client cert to use if TLS is enabled.
+    tls_client_cert: 'client-cert.cert',
+    // Boolean indicating if the root store should be disabled if TLS is enabled.
+    tls_disable_root_store: false
 })
 ```
 
