@@ -1,9 +1,32 @@
-const ffi = require('ffi')
-const ref = require('ref')
-const { call } = require('../ffi/bindings')
-const { Casteable } = require('../casts')
+import ffi from 'ffi'
+import ref from 'ref'
+import { Casteable } from '../casts'
 
-const getMetadata = function(obj, eventName) {
+/* Types */
+
+export type SubscribeEventDescriptor = {
+    fullEventName: string,
+    dropEventName: string,
+    messageStruct?: any, // CStruct
+    messageClass?: any, // Casteable
+    additionalArguments?: (eventName: string) => any[]
+}
+
+export type PublishEventDescriptor = {
+    fullEventName: string,
+    messageClass?: any,
+    forgedStruct?: any,
+    forgeOptions?: { [key: string]: (property: string) => any }
+}
+
+export type MessageListener = (message?: { [key: string]: any }) => void
+
+/* Tools */
+
+const getMetadata = function<T = (SubscribeEventDescriptor | PublishEventDescriptor)>(
+    obj: { [key: string]: T },
+    eventName: string
+) : T {
     let metadata = obj[eventName]
     if(!metadata) {
         const matchingEntry = Object
@@ -18,10 +41,19 @@ const getMetadata = function(obj, eventName) {
     return metadata
 }
 
-class ApiSubset {
+/* Class */
 
-    constructor(options = {}, facadeName, protocolHandler) {
-        this.call = call(options.libraryPath)
+export default class ApiSubset {
+
+    public call: (functionName: string, ...args: any[]) => void
+    public destroy() {}
+    private listeners = new Map()
+    protected facade: Buffer
+    protected subscribeEvents: { [key: string]: SubscribeEventDescriptor }
+    protected publishEvents: { [key: string]: PublishEventDescriptor}
+
+    constructor(protocolHandler: Buffer, call: (functionName: string, ...args: any[]) => void, facadeName: string) {
+        this.call = call
         this.listeners = new Map()
         if(facadeName && protocolHandler) {
             const facadeRef = ref.alloc('void **')
@@ -36,7 +68,7 @@ class ApiSubset {
      * @param {*} eventName The event name to subscribe to.
      * @param {*} listener  A callback triggered when receiving a message.
      */
-    on(eventName, listener) {
+    on(eventName: string, listener: MessageListener) {
         const {
             messageStruct,
             messageClass,
@@ -71,6 +103,7 @@ class ApiSubset {
             this.call(fullEventName, this.facade, ...args)
         }
         listeners.push(listener)
+        return listener
     }
 
     /**
@@ -80,7 +113,7 @@ class ApiSubset {
      * @returns {*} The reference to the wrapped listener.
      */
 
-    once(eventName, listener) {
+    once(eventName: string, listener: MessageListener) {
         const listenerWrapper = (...args) => {
             listener(...args)
             this.off(eventName, listenerWrapper)
@@ -95,7 +128,7 @@ class ApiSubset {
      * @param {*} eventName The event name that was subscribed to.
      * @param {*} listener The reference to the listener callback to remove.
      */
-    off(eventName, listener) {
+    off(eventName: string, listener: MessageListener) {
         const listeners = this.listeners.get(eventName)
         if(!listeners)
             return false
@@ -109,7 +142,7 @@ class ApiSubset {
     /**
      * Publish a message.
      */
-    publish(eventName, message) {
+    publish(eventName: string, message?: {[key: string]: any}) {
         const {
             messageClass,
             fullEventName,
@@ -125,8 +158,3 @@ class ApiSubset {
         }
     }
 }
-
-ApiSubset.prototype.subscribeEvents = {}
-ApiSubset.prototype.publishEvents = {}
-
-module.exports = ApiSubset

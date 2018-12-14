@@ -15,20 +15,23 @@
   "bugs": {
     "url": "https://github.com/snipsco/hermes-protocol/issues"
   },
-  "main": "src/index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "start": "npm run lint && npm run test",
+    "start": "npm run lint && npm run build && npm run test",
     "lint": "eslint src",
+    "build": "npm run build:sources && npm run build:declarations",
+    "build:sources": "tsc",
+    "build:declarations": "tsc -d --emitDeclarationOnly --allowJs false",
+    "build:hermes": "node scripts/make.js",
     "postinstall": "node scripts/postinstall.js",
-    "build:sources": "node scripts/make.js",
     "test": "npm run test:mqtt && npm run test:roundtrip",
-    "test:mqtt": "jest ./tests/mqtt/mqttTests.spec.js && jest ./tests/mqtt/mqttTls.spec.js",
+    "test:mqtt": "jest ./tests/mqtt/mqttTests.spec.ts && jest ./tests/mqtt/mqttTls.spec.js",
     "test:roundtrip": "jest ./tests/casts/roundtrips.spec.js"
   },
   "author": "Julien Elbaz",
   "license": "MIT",
   "files": [
-    "src",
+    "dist",
     "scripts"
   ],
   "dependencies": {
@@ -41,11 +44,21 @@
     "tmp": "0.0.33"
   },
   "devDependencies": {
+    "@types/ffi": "^0.2.1",
+    "@types/jest": "^23.3.10",
+    "@types/node-int64": "^0.4.29",
+    "@types/ref": "0.0.28",
+    "@types/ref-array": "0.0.28",
+    "@types/ref-struct": "0.0.29",
     "camelcase": "^5.0.0",
     "eslint": "^5.9.0",
     "eslint-plugin-jest": "^22.1.0",
+    "eslint-plugin-typescript": "^0.14.0",
     "jest": "^23.6.0",
     "mqtt": "^2.18.8",
-    "segfault-handler": "^1.0.1"
+    "segfault-handler": "^1.0.1",
+    "ts-jest": "^23.10.5",
+    "typescript": "^3.2.2",
+    "typescript-eslint-parser": "^21.0.2"
   }
 }

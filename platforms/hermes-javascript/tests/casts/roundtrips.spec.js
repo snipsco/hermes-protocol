@@ -6,7 +6,7 @@ const {
     StartSessionMessage,
     IntentMessage,
     InjectionRequestMessage
-} = require('../../src/casts')
+} = require('../../dist/casts')
 const {
     CContinueSessionMessage,
     CEndSessionMessage,
@@ -19,7 +19,7 @@ const {
     CInjectionRequestMessage,
     CSiteMessage,
     CInjectionStatusMessage
-} = require('../../src/ffi/typedefs')
+} = require('../../dist/ffi/typedefs')
 
 
 // Log segfaults

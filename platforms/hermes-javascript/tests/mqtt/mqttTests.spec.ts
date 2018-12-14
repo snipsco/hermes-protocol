@@ -1,17 +1,18 @@
-const { spawn } = require('child_process')
-const path = require('path')
-const mqtt = require('mqtt')
-const { Hermes } = require('../../src')
-const {
+import { spawn } from 'child_process'
+import path from 'path'
+import mqtt from 'mqtt'
+// eslint-disable-next-line
+import { Hermes, Dialog, Injection, Feedback } from '../../dist'
+import {
   getFreePort,
   camelize,
   setupSubscriberTest,
   setupPublisherTest,
   wait
-} = require('./tools')
-const {
+} from './tools'
+import {
   LIB_ENV_FOLDER
-} = require('../constants')
+} from '../constants'
 
 /* Setup */
 
@@ -19,10 +20,10 @@ let
   mosquitto,
   mosquittoPort,
   client,
-  hermes,
-  dialog,
-  injection,
-  feedback
+  hermes: Hermes,
+  dialog: Dialog,
+  injection: Injection,
+  feedback: Feedback
 
 const robustnessTestsTimeout = 60000
 const robustnessIterations = 500

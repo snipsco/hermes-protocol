@@ -1,9 +1,30 @@
-class DialogFlow {
-    constructor(dialog, sessionId, done) {
-        this.dialog = dialog
-        this.sessionId = sessionId
-        this.reset()
+// eslint-disable-next-line
+import Dialog from './index'
 
+export type FlowContinuation = {
+    continue: (intentName: string, action: FlowAction) => void,
+    notRecognized: (action: FlowAction) => void,
+    end: () => void
+}
+export type FlowActionReturn = string | {
+    text?: string,
+    custom_data?: string
+}
+export type FlowAction = (
+    message: { [key: string]: any },
+    flow: FlowContinuation
+) => FlowActionReturn | Promise<FlowActionReturn | void> | void
+
+export default class DialogFlow {
+
+    private continuations = new Map()
+    private continuationsListeners = new Map()
+    private notRecognizedAction = null
+    private notRecognizedListener = null
+    private ended = false
+
+    // eslint-disable-next-line
+    constructor(private dialog: Dialog, public sessionId: string, done: () => void) {
         // Sets up a subscriber to clean up in case the session is ended programatically.
         const onSessionEnded = msg => {
             if(msg.session_id === this.sessionId) {
@@ -16,7 +37,7 @@ class DialogFlow {
         this.dialog.once('session_ended', onSessionEnded)
     }
 
-    reset() {
+    private reset() {
         this.continuations = new Map()
         this.continuationsListeners = new Map()
         this.notRecognizedAction = null
@@ -24,7 +45,7 @@ class DialogFlow {
         this.ended = false
     }
 
-    cleanUpListeners() {
+    private cleanUpListeners() {
         this.continuationsListeners.forEach((listener, intentName) => {
             this.dialog.off(`intent/${intentName}`, listener)
         })
@@ -34,8 +55,8 @@ class DialogFlow {
     }
 
     // Starts a dialog flow.
-    start(intentName, action, message) {
-        const flow = {
+    start(action: FlowAction, message: { [key: string]: any }) {
+        const flow : FlowContinuation = {
             continue: this.continue.bind(this),
             notRecognized: this.notRecognized.bind(this),
             end: this.end.bind(this)
@@ -45,7 +66,7 @@ class DialogFlow {
     }
 
     // Executed after a message callback has been processed.
-    continuation(options = {}) {
+    private continuation(options: { [key: string]: any } = {}) {
         if(typeof options === 'string') {
             options = { text: options }
         }
@@ -83,7 +104,7 @@ class DialogFlow {
         })
     }
 
-    createListener(action) {
+    private createListener(action) {
         return message => {
             // Checks the session id
             if(message.session_id !== this.sessionId)
@@ -107,12 +128,12 @@ class DialogFlow {
     /* Exposed methods */
 
     // Registers an intent filter and continue the current dialog session.
-    continue(intentName, action) {
+    continue(intentName: string, action: FlowAction) {
         this.continuations.set(intentName, action)
     }
 
     // Registers a listener that will be called if no intents have been recognized.
-    notRecognized(action) {
+    notRecognized(action: FlowAction) {
         this.notRecognizedAction = action
     }
 

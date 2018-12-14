@@ -2,7 +2,7 @@ const fs = require('fs')
 const path = require('path')
 const { spawn } = require('child_process')
 const mqtt = require('mqtt')
-const { Hermes } = require('../../src')
+const { Hermes } = require('../../dist')
 const { LIB_ENV_FOLDER } = require('../constants')
 
 // Log segfaults

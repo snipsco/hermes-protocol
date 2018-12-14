@@ -1,24 +1,36 @@
-const ref = require('ref')
-const Dialog = require('./dialog')
-const Injection = require('./injection')
-const Feedback = require('./feedback')
-const { MqttOptions } = require('../casts')
-const { call } = require('../ffi/bindings')
+import ref from 'ref'
+import Dialog from './dialog'
+import Injection from './injection'
+import Feedback from './feedback'
+import { MqttOptions } from '../casts'
+import { call } from '../ffi/bindings'
+import ApiSubset from './ApiSubset'
 
-/**
- * List of API subsets that will be used to auto-generate getters.
- */
-const API_SUBSETS = {
-    dialog: Dialog,
-    injection: Injection,
-    feedback: Feedback
+/* Types */
+
+export type HermesOptions = {
+    address?: string,
+    logs?: boolean,
+    libraryPath?: string,
+    username?: string,
+    password?: string,
+    tls_hostname?: string,
+    tls_ca_file?: string[],
+    tls_ca_path?: string[],
+    tls_client_key?: string,
+    tls_client_cert?: string,
+    tls_disable_root_store?: string
 }
+
+export { Dialog, Injection, Feedback }
+export { FlowAction } from './dialog/DialogFlow'
+export { ApiSubset }
 
 /**
  * Hermes javascript is an high level API that allows you to
  * subscribe and send Snips messages using the Hermes protocol.
  */
-class Hermes {
+export class Hermes {
 
     /**
      * Create a new Hermes instance that connects to the underlying event bus.
@@ -34,15 +46,13 @@ class Hermes {
      * @param {*} options.tls_client_cert Client cert to use if TLS is enabled.
      * @param {*} options.tls_disable_root_store Boolean indicating if the root store should be disabled if TLS is enabled.
      */
-    constructor(options = {}) {
+    constructor(options: HermesOptions = {}) {
 
         // Initialize a new Hermes instance.
         this.options = {
             ...Hermes.defaultOptions,
             ...options
         }
-        this.listeners = new Map()
-        this.activeSubsets = new Map()
         this.call = call(this.options.libraryPath)
 
         // Allocate the ProtocolHandler double reference
@@ -74,18 +84,25 @@ class Hermes {
         if(this.options.logs) {
             this.call('hermes_enable_debug_logs')
         }
+    }
 
-        /**
-         * Exposes public methods to get the subset api instances.
-         */
-        Object.entries(API_SUBSETS).forEach(([key, Class]) => {
-            this[key] = () => {
-                if(!this.activeSubsets.has(key)) {
-                    this.activeSubsets.set(key, new Class(this.protocolHandler, this.options))
-                }
-                return this.activeSubsets.get(key)
-            }
-        })
+    /**
+     * Return a Dialog instance used to interact with the dialog API.
+     */
+    dialog(): Dialog {
+        return this._getOrCreateSubset('dialog', Dialog)
+    }
+    /**
+     * Return an Injection instance used to interact with the vocabulary injection API.
+     */
+    injection(): Injection {
+        return this._getOrCreateSubset('injection', Injection)
+    }
+    /**
+     * Return a Feedback object instance used to interact with the audio feedback API.
+     */
+    feedback(): Feedback {
+        return this._getOrCreateSubset('feedback', Feedback)
     }
 
     /**
@@ -97,11 +114,25 @@ class Hermes {
         })
         this.call('hermes_destroy_mqtt_protocol_handler', this.protocolHandler)
     }
-}
 
-Hermes.defaultOptions = {
-    address: 'localhost:1883',
-    logs: false
-}
 
-module.exports = Hermes
+    // Private //
+
+    private _getOrCreateSubset<T extends ApiSubset>(key: string, Class): T {
+        if(!this.activeSubsets.has(key)) {
+            this.activeSubsets.set(key, new Class(this.protocolHandler, this.call))
+        }
+        return this.activeSubsets.get(key)
+    }
+
+    private static defaultOptions = {
+        address: 'localhost:1883',
+        logs: false
+    }
+
+    private options : HermesOptions
+    private listeners = new Map()
+    private activeSubsets: Map<string, any> = new Map()
+    private call
+    private protocolHandler
+}
