@@ -115,8 +115,8 @@ export default class ApiSubset {
 
     once(eventName: string, listener: MessageListener) {
         const listenerWrapper = (...args) => {
-            listener(...args)
             this.off(eventName, listenerWrapper)
+            listener(...args)
         }
         this.on(eventName, listenerWrapper)
         return listenerWrapper
