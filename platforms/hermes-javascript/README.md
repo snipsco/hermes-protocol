@@ -500,7 +500,7 @@ Vocabulary injection for the speech recognition.
 Requests custom payload to be injected.
 
 ```js
-dialog.publish('injection_request', {
+injection.publish('injection_request', {
     id: /* string */,
     cross_language: /* string */,
     // An object having string keys mapped with an array of string entries
