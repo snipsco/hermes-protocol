@@ -1,6 +1,5 @@
 import { createServer } from 'net'
 import camelcase from 'camelcase'
-// eslint-disable-next-line
 import ApiSubset from '../../dist/api/ApiSubset'
 
 export const wait = (time) => new Promise(resolve => setTimeout(resolve, time))

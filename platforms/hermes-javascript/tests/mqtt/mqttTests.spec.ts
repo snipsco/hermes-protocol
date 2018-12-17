@@ -1,7 +1,6 @@
 import { spawn } from 'child_process'
 import path from 'path'
 import mqtt from 'mqtt'
-// eslint-disable-next-line
 import { Hermes, Dialog, Injection, Feedback } from '../../dist'
 import {
   getFreePort,

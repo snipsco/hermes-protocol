@@ -1,4 +1,3 @@
-// eslint-disable-next-line
 import { Hermes, HermesOptions } from './api'
 import * as tools from './tools'
 

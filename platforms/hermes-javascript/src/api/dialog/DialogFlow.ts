@@ -1,19 +1,9 @@
-// eslint-disable-next-line
 import Dialog from './index'
-
-export type FlowContinuation = {
-    continue: (intentName: string, action: FlowAction) => void,
-    notRecognized: (action: FlowAction) => void,
-    end: () => void
-}
-export type FlowActionReturn = string | {
-    text?: string,
-    custom_data?: string
-}
-export type FlowAction = (
-    message: { [key: string]: any },
-    flow: FlowContinuation
-) => FlowActionReturn | Promise<FlowActionReturn | void> | void
+import {
+    FlowContinuation,
+    FlowActionReturn,
+    FlowAction
+} from '../types'
 
 export default class DialogFlow {
 
@@ -23,7 +13,6 @@ export default class DialogFlow {
     private notRecognizedListener = null
     private ended = false
 
-    // eslint-disable-next-line
     constructor(private dialog: Dialog, public sessionId: string, done: () => void) {
         // Sets up a subscriber to clean up in case the session is ended programatically.
         const onSessionEnded = msg => {
@@ -52,17 +41,6 @@ export default class DialogFlow {
         if(this.notRecognizedListener) {
             this.dialog.off('intent_not_recognized', this.notRecognizedListener)
         }
-    }
-
-    // Starts a dialog flow.
-    start(action: FlowAction, message: { [key: string]: any }) {
-        const flow : FlowContinuation = {
-            continue: this.continue.bind(this),
-            notRecognized: this.notRecognized.bind(this),
-            end: this.end.bind(this)
-        }
-        return Promise.resolve(action(message, flow))
-            .then(this.continuation.bind(this))
     }
 
     // Executed after a message callback has been processed.
@@ -113,7 +91,7 @@ export default class DialogFlow {
             this.cleanUpListeners()
             // Resets the state
             this.reset()
-            // Exposes .continue / .end
+            // Exposes .continue / .end / .notRecognized
             const flow = {
                 continue: this.continue.bind(this),
                 notRecognized: this.notRecognized.bind(this),
@@ -125,7 +103,16 @@ export default class DialogFlow {
         }
     }
 
-    /* Exposed methods */
+    // Starts a dialog flow.
+    start(action: FlowAction, message: { [key: string]: any }) {
+        const flow : FlowContinuation = {
+            continue: this.continue.bind(this),
+            notRecognized: this.notRecognized.bind(this),
+            end: this.end.bind(this)
+        }
+        return Promise.resolve(action(message, flow))
+            .then(this.continuation.bind(this))
+    }
 
     // Registers an intent filter and continue the current dialog session.
     continue(intentName: string, action: FlowAction) {

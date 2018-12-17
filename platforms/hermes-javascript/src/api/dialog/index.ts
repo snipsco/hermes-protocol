@@ -1,7 +1,7 @@
 import ref from 'ref'
 import ApiSubset from '../ApiSubset'
-// eslint-disable-next-line
-import DialogFlow, { FlowAction } from './DialogFlow'
+import DialogFlow from './DialogFlow'
+import { FlowAction } from '../types'
 import {
     StringArray,
     StartSessionMessage,

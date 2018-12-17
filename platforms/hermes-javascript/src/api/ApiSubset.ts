@@ -1,25 +1,12 @@
 import ffi from 'ffi'
 import ref from 'ref'
 import { Casteable } from '../casts'
-
-/* Types */
-
-export type SubscribeEventDescriptor = {
-    fullEventName: string,
-    dropEventName: string,
-    messageStruct?: any, // CStruct
-    messageClass?: any, // Casteable
-    additionalArguments?: (eventName: string) => any[]
-}
-
-export type PublishEventDescriptor = {
-    fullEventName: string,
-    messageClass?: any,
-    forgedStruct?: any,
-    forgeOptions?: { [key: string]: (property: string) => any }
-}
-
-export type MessageListener = (message?: { [key: string]: any }) => void
+import {
+    SubscribeEventDescriptor,
+    PublishEventDescriptor,
+    MessageListener,
+    FFIFunctionCall
+} from './types'
 
 /* Tools */
 
@@ -45,14 +32,14 @@ const getMetadata = function<T = (SubscribeEventDescriptor | PublishEventDescrip
 
 export default class ApiSubset {
 
-    public call: (functionName: string, ...args: any[]) => void
+    public call: FFIFunctionCall
     public destroy() {}
     private listeners = new Map()
     protected facade: Buffer
     protected subscribeEvents: { [key: string]: SubscribeEventDescriptor }
     protected publishEvents: { [key: string]: PublishEventDescriptor}
 
-    constructor(protocolHandler: Buffer, call: (functionName: string, ...args: any[]) => void, facadeName: string) {
+    constructor(protocolHandler: Buffer, call: FFIFunctionCall, facadeName: string) {
         this.call = call
         this.listeners = new Map()
         if(facadeName && protocolHandler) {

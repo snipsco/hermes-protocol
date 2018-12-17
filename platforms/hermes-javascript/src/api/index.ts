@@ -5,26 +5,13 @@ import Feedback from './feedback'
 import { MqttOptions } from '../casts'
 import { call } from '../ffi/bindings'
 import ApiSubset from './ApiSubset'
+import { HermesOptions, FFIFunctionCall, SubsetConstructor } from './types'
 
 /* Types */
 
-export type HermesOptions = {
-    address?: string,
-    logs?: boolean,
-    libraryPath?: string,
-    username?: string,
-    password?: string,
-    tls_hostname?: string,
-    tls_ca_file?: string[],
-    tls_ca_path?: string[],
-    tls_client_key?: string,
-    tls_client_cert?: string,
-    tls_disable_root_store?: string
-}
-
 export { Dialog, Injection, Feedback }
-export { FlowAction } from './dialog/DialogFlow'
 export { ApiSubset }
+export * from './types'
 
 /**
  * Hermes javascript is an high level API that allows you to
@@ -89,19 +76,19 @@ export class Hermes {
     /**
      * Return a Dialog instance used to interact with the dialog API.
      */
-    dialog(): Dialog {
+    dialog() {
         return this._getOrCreateSubset('dialog', Dialog)
     }
     /**
      * Return an Injection instance used to interact with the vocabulary injection API.
      */
-    injection(): Injection {
+    injection() {
         return this._getOrCreateSubset('injection', Injection)
     }
     /**
      * Return a Feedback object instance used to interact with the audio feedback API.
      */
-    feedback(): Feedback {
+    feedback() {
         return this._getOrCreateSubset('feedback', Feedback)
     }
 
@@ -118,7 +105,7 @@ export class Hermes {
 
     // Private //
 
-    private _getOrCreateSubset<T extends ApiSubset>(key: string, Class): T {
+    private _getOrCreateSubset<T extends ApiSubset>(key: string, Class: SubsetConstructor<T>): T {
         if(!this.activeSubsets.has(key)) {
             this.activeSubsets.set(key, new Class(this.protocolHandler, this.call))
         }
@@ -133,6 +120,6 @@ export class Hermes {
     private options : HermesOptions
     private listeners = new Map()
     private activeSubsets: Map<string, any> = new Map()
-    private call
-    private protocolHandler
+    private call: FFIFunctionCall
+    private protocolHandler: Buffer
 }
