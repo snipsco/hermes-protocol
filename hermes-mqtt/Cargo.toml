@@ -21,7 +21,7 @@ uuid = { version = "0.7", features = ["v4"] }
 [dev-dependencies]
 rand = "0.5"
 semver = "0.9"
-snips-nlu-ontology = { git = "https://github.com/snipsco/snips-nlu-ontology", tag = "0.61.1" }
+snips-nlu-ontology = { git = "https://github.com/snipsco/snips-nlu-ontology", tag = "0.61.2" }
 
 [package.metadata.dinghy]
 ignored_rustc_triples = [
