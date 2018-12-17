@@ -33,6 +33,7 @@ const rustRoundTrip = require('./rustTestsWrapper').call()
 function roundTrip({ data, MessageClass = Casteable, forgeType, forgeOptions = {}, roundTripOptions = {}, FFIFunctionName }) {
     try {
         const pojo = new MessageClass(data)
+        expect(pojo).toEqual(data)
         const cStructPointer = pojo.forge(forgeType, forgeOptions).ref()
         const StructType = forgeType || pojo.type
         let roundTrip
@@ -188,7 +189,7 @@ describe('It should perform casting round-trips on messages', () => {
                         confidence: 0.5,
                         raw_value: 'un',
                         value: {
-                            value: 1.0,
+                            value: 1.2,
                             value_type: 2
                         },
                         range_start: 11,
@@ -200,7 +201,7 @@ describe('It should perform casting round-trips on messages', () => {
                         confidence: 0.5,
                         raw_value: 'un',
                         value: {
-                            value: 1.0,
+                            value: 1.5,
                             value_type: 2
                         },
                         range_start: 19,

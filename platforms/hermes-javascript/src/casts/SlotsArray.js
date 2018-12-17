@@ -32,11 +32,12 @@ function castSlot (slot) {
                     value = valuePtr.readCString()
                     break
                 case 2:
-                    valuePtr = ref.reinterpret(valuePtr, ref.types.double.size)
+                case 9:
+                    valuePtr = ref.reinterpret(valuePtr, ref.sizeof.double)
                     value = ref.get(valuePtr, 0, 'double')
                     break
                 case 3:
-                    valuePtr = ref.reinterpret(valuePtr, ref.types.int64.size)
+                    valuePtr = ref.reinterpret(valuePtr, ref.sizeof.int64)
                     value = new Int64(valuePtr)
                     break
                 case 4:
@@ -58,10 +59,6 @@ function castSlot (slot) {
                 case 8:
                     valuePtr = ref.reinterpret(valuePtr, CDurationValue.size)
                     value = ref.get(valuePtr, 0, CDurationValue)
-                    break
-                case 9:
-                    valuePtr = ref.reinterpret(valuePtr, ref.types.double.size)
-                    value = ref.get(valuePtr, 0, 'double')
                     break
                 default:
                     value = null
@@ -107,6 +104,7 @@ class SlotArray extends Casteable {
                                 valuePtr = ref.allocCString(value)
                                 break
                             case 2:
+                            case 9:
                                 valuePtr = ref.alloc('double', value)
                                 break
                             case 3:
@@ -130,9 +128,6 @@ class SlotArray extends Casteable {
                                 break
                             case 8:
                                 valuePtr = new Casteable(value).forge(CDurationValue)
-                                break
-                            case 9:
-                                valuePtr = ref.alloc('double', value)
                                 break
                             default:
                                 valuePtr = ref.NULL
