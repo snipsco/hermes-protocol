@@ -14,7 +14,7 @@ export type Done = () => void
  */
 export const withHermes = function(context: (hermes: Hermes, done: Done) => void, opts?: HermesOptions) {
     const hermes = new Hermes(opts)
-    const keepAliveRef = tools.keepAlive(20)
+    const keepAliveRef = tools.keepAlive(60000)
     const done: Done = () => {
         hermes.destroy()
         tools.killKeepAlive(keepAliveRef)

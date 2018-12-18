@@ -216,8 +216,8 @@ const { Hermes, tools: { keepAlive, killKeepAlive }} = require('hermes-javascrip
 
 const hermes = new Hermes(/* options */)
 
-// Sleeps for 20 miliseconds between each loop cycle to prevent heavy CPU usage
-const keepAliveRef = keepAlive(20)
+// Sleeps for 60000 miliseconds between each loop cycle to prevent heavy CPU usage
+const keepAliveRef = keepAlive(60000)
 
 // Call done to free resources and stop the loop
 function done () {
