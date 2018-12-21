@@ -106,13 +106,13 @@ class InjectionRequestMessage extends Casteable {
     fromBuffer(buffer) {
         return cast(buffer, {
             operations: operations => new InjectionRequestOperations(operations)._array,
-            lexicon: lexicon => new MapToStringArray(lexicon)._object
+            lexicon: lexicon => new MapToStringArray(lexicon || {})._object
         })
     }
     forge() {
         return super.forge(CInjectionRequestMessage, {
             operations: operations => operations && new InjectionRequestOperations(operations).forge(),
-            lexicon: lexicon => lexicon && new MapToStringArray(lexicon).forge() || ref.NULL_POINTER
+            lexicon: lexicon => new MapToStringArray(lexicon || {}).forge()
         })
     }
 }
