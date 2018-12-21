@@ -5,5 +5,5 @@
 
 // If not, then require make to build from scratch.
 
-if(process.env.HERMES_BUILD_FROM_SOURCES)
-    require('./make')
+// if(process.env.HERMES_BUILD_FROM_SOURCES)
+require('./make')
