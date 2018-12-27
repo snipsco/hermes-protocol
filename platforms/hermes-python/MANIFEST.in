@@ -1,3 +1,5 @@
 include LICENSE.txt
+include LICENSE-APACHE
+include LICENSE-MIT
 include README.md
 recursive-include hermes_python/dylib/ *
