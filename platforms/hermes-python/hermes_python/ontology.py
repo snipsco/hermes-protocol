@@ -338,6 +338,9 @@ class IntentNotRecognizedMessage(object):
 
         return cls(site_id, session_id, input, custom_data)
 
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
+
 
 class CustomValue(object):
     def __init__(self, string_value):

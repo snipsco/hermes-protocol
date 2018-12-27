@@ -9,7 +9,7 @@ from glob import glob
 
 import hermes_python
 
-DYLIB_NAME = "libhermes_ffi_test.so"
+DYLIB_NAME = "libhermes_ffi_test.dylib"
 DYLIB_DIR = os.path.join(os.path.dirname(__file__), "./debug")
 DYLIB_PATH = glob(os.path.join(DYLIB_DIR, DYLIB_NAME))[0]
 
@@ -83,6 +83,7 @@ def test_hermes_ffi_test_round_trip_session_ended_for_error(): # TODO : Move Ter
     assert session_ended_message.termination == round_trip_session_ended_message.termination
     assert session_ended_message == round_trip_session_ended_message
 
+
 def test_hermes_ffi_test_round_trip_session_ended(): # TODO : Move Termination type to dedicated enum
     SNIPS_SESSION_TERMINATION_TYPE_NOMINAL = 1
     session_termination = hermes_python.ontology.SessionTermination(SNIPS_SESSION_TERMINATION_TYPE_NOMINAL, None)
@@ -97,6 +98,18 @@ def test_hermes_ffi_test_round_trip_session_ended(): # TODO : Move Termination t
     assert session_ended_message.termination.data == round_trip_session_ended_message.termination.data
     assert session_ended_message.termination == round_trip_session_ended_message.termination
     assert session_ended_message == round_trip_session_ended_message
+
+
+def test_hermes_ffi_test_round_trip_intent_not_recognized():
+    intent_not_recognized_message = hermes_python.ontology.IntentNotRecognizedMessage("site_id", "session_id", "input", "custom_data")
+    round_trip_intent_not_recognized_message = get_round_trip_data_structure(
+        intent_not_recognized_message,
+        hermes_python.ffi.ontology.CIntentNotRecognizedMessage,
+        hermes_python.ontology.IntentNotRecognizedMessage,
+        lib.hermes_ffi_test_round_trip_intent_not_recognized
+    )
+
+    assert intent_not_recognized_message == round_trip_intent_not_recognized_message
 
 
 # TODO : Uncomment tests one by one.
