@@ -6,7 +6,7 @@ from builtins import object
 from ctypes import *
 from .ffi.ontology import CProtocolHandler, CDialogueFacade, CContinueSessionMessage, CEndSessionMessage, \
     CStartSessionMessageAction, CStartSessionMessageNotification, CStringArray, CIntentMessage, CSessionStartedMessage, CSessionQueuedMessage, \
-    CSessionEndedMessage, CSessionInitNotification, CSessionInitAction, CActionSessionInit
+    CSessionEndedMessage, CSessionInitNotification, CSessionInitAction, CActionSessionInit, CIntentNotRecognizedMessage
 from .ffi.utils import *
 import threading
 from time import sleep
@@ -27,6 +27,7 @@ class Hermes(object):
         self._c_callback_subscribe_session_started = None
         self._c_callback_subscribe_session_queued = None
         self._c_callback_subscribe_session_ended = None
+        self._c_callback_subscribe_intent_not_recognized = None
 
         self._thread = None
         self._thread_terminate = False
@@ -141,6 +142,27 @@ class Hermes(object):
         self._c_callback_subscribe_session_ended = self._wraps(user_callback_subscribe_session_ended,
                                                                CSessionEndedMessage, c_void_p, SessionEndedMessage)
         hermes_dialogue_subscribe_session_ended(self._facade, self._c_callback_subscribe_session_ended)
+        return self
+
+
+    def subscribe_intent_not_recognized(self, user_callback_subscribe_intent_not_recognized):
+        """
+        Register a callback when the Dialogue Manager doesn't recognize an intent.
+
+        Note that you need to have initialized a session with the intent_not_recognized field set to true.
+        Otherwise, the DialogueManager will take care itself of not recognized intent and the callback you registered will
+        never be called.
+
+        The callback will be called with the following parameters :
+            - hermes: the current instance of the Hermes object
+            - intentNotRecognizedMessage : message that the handler receives from the Dialogue Manager when an intent is not recognized.
+
+        :param user_callback_subscribe_intent_not_recognized: the callback executed when an intent is not recognized.
+        :return: the current instance of Hermes to allow chaining.
+        """
+        self._c_callback_subscribe_intent_not_recognized = self._wraps(user_callback_subscribe_intent_not_recognized, CIntentNotRecognizedMessage, c_void_p, IntentNotRecognizedMessage)
+
+        hermes_dialogue_subscribe_intent_not_recognized(self._facade, self._c_callback_subscribe_intent_not_recognized)
         return self
 
     def publish_continue_session(self, session_id, text, intent_filter):

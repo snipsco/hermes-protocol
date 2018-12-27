@@ -296,6 +296,25 @@ class CSessionStartedMessage(Structure):
         return cls.build(repr.session_id, repr.custom_data, repr.site_id, repr.reactivated_from_session_id)
 
 
+class CIntentNotRecognizedMessage(Structure):
+    _fields_ = [("site_id", c_char_p),
+                ("session_id", c_char_p),
+                ("input", c_char_p),  # Nullable
+                ("custom_data", c_char_p)]  # Nullable
+
+    @classmethod
+    def build(cls, site_id, session_id, input, custom_data):
+        site_id = site_id.encode('utf-8')
+        session_id = session_id.encode('utf-8')
+        input = input.encode('utf-8') if input else None
+        custom_data = custom_data.encode('utf-8') if custom_data else None
+
+        return cls(site_id, session_id, input, custom_data)
+
+    @classmethod
+    def from_repr(cls, repr):
+        return cls.build(repr.site_id, repr.session_id, repr.input, repr.custom_data)
+
 
 # Slot Types Structs
 

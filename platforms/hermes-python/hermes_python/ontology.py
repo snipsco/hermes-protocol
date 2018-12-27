@@ -312,6 +312,33 @@ class SessionTermination(object):
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
 
+
+class IntentNotRecognizedMessage(object):
+    def __init__(self, site_id, session_id, input, custom_data):
+        """
+        A message that the handler receives from the Dialogue manager when an intent is not recognized and that the
+        session was initialized with the intent_not_recognized flag turned on.
+
+        :param site_id: Site where the user interaction is taking place.
+        :param session_id: Session identifier that was started.
+        :param input: The user input that has generated this intent. This parameter is nullable
+        :param custom_data: Custom data passed by the Dialogue Manager in the current dialogue session. This parameter is nullable
+        """
+        self.site_id = site_id
+        self.session_id = session_id
+        self.input = input
+        self.custom_data = custom_data
+
+    @classmethod
+    def from_c_repr(cls, c_repr):
+        site_id = c_repr.site_id.decode('utf-8')
+        session_id = c_repr.session_id.decode('utf-8')
+        input = c_repr.input.decode('utf-8') if c_repr.input else None
+        custom_data = c_repr.custom_data.decode('utf-8') if c_repr.custom_data else None
+
+        return cls(site_id, session_id, input, custom_data)
+
+
 class CustomValue(object):
     def __init__(self, string_value):
         """
