@@ -175,25 +175,25 @@ class SlotValue(object):
             c_repr_number = c_double.from_address(c_repr.value)
             number = c_repr_number.value
             value = NumberValue(number)
-        elif 4 == value_type: # INSTANTTIME # TODO : Encoding here
+        elif 4 == value_type: # INSTANTTIME
             c_repr_instant_time_value = CInstantTimeValue.from_address(c_repr.value)
             value = InstantTimeValue.from_c_repr(c_repr_instant_time_value)
-        elif 5 == value_type: # TIMEINTERVAL # TODO : Encoding here
+        elif 5 == value_type: # TIMEINTERVAL
             c_repr_time_interval_value = CTimeIntervalValue.from_address(c_repr.value)
             value = TimeIntervalValue.from_c_repr(c_repr_time_interval_value)
-        elif 6 == value_type: # AMOUNTOFMONEY # TODO : Encoding
+        elif 6 == value_type: # AMOUNTOFMONEY
             c_repr_amount_of_money_value = CAmountOfMoneyValue.from_address(c_repr.value)
             value = AmountOfMoneyValue.from_c_repr(c_repr_amount_of_money_value)
-        elif 7 == value_type: # TEMPERATURE # TODO : Encoding
+        elif 7 == value_type: # TEMPERATURE
             c_repr_temperature_value = CTemperatureValue.from_address(c_repr.value)
             value = TemperatureValue.from_c_repr(c_repr_temperature_value)
-        elif 8 == value_type: # DURATION # TODO : Encoding
+        elif 8 == value_type: # DURATION
             c_repr_duration_value = CDurationValue.from_address(c_repr.value)
             value = DurationValue.from_c_repr(c_repr_duration_value)
         elif 9 == value_type: # PERCENTAGE
             c_repr_percentage = c_double.from_address(c_repr.value)
             value = PercentageValue(c_repr_percentage.value)
-        elif 10 == value_type:  # MUSICARTIST  # I FORGOT TO DECODE TO UTF-8
+        elif 10 == value_type:  # MUSICARTIST
             c_repr_music_artist_value = c_repr.value
             string_value = string_at(c_repr_music_artist_value).decode('utf-8')
             value = MusicArtistValue(string_value)
@@ -385,7 +385,7 @@ class InstantTimeValue(object):
 
     @classmethod
     def from_c_repr(cls, c_repr):
-        value = c_repr.value
+        value = c_repr.value.decode('utf-8')
         grain = c_repr.grain
         precision = c_repr.precision
 
@@ -405,8 +405,8 @@ class TimeIntervalValue(object):
 
     @classmethod
     def from_c_repr(cls, c_repr):
-        from_date = c_repr.from_date
-        to_date = c_repr.to_date
+        from_date = c_repr.from_date.encode('utf-8') if c_repr.from_date else None
+        to_date = c_repr.to_date.encode('utf-8') if c_repr.to_date else None
         return cls(from_date, to_date)
 
 
