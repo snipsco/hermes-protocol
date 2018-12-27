@@ -41,6 +41,7 @@ class IntentMessage(object):
         slots = SlotMap.from_c_repr(c_repr.slots.contents)
         return cls(session_id, custom_data, site_id, input, intent, slots)
 
+
 class IntentClassifierResult(object):
     def __init__(self, intent_name, probability):
         """
@@ -95,6 +96,7 @@ class SlotsList(list):  # An extension to make things easier to reach slot_value
         else:
             return None
 
+
 class NluSlot(object):
     def __init__(self, confidence, slot_value, raw_value, entity, slot_name, range_start, range_end):
         self.confidence = confidence
@@ -117,6 +119,7 @@ class NluSlot(object):
         range_start = slot.range_start
         range_end = slot.range_end
         return cls(confidence, slot_value, raw_value, entity, slot_name, range_start, range_end)
+
 
 class Slot(object):
     def __init__(self, slot_value, raw_value, entity, slot_name, range_start, range_end):
@@ -212,7 +215,6 @@ class SlotValue(object):
         return cls(value_type, value)
 
 
-
 class SessionStartedMessage(object):
     def __init__(self, session_id, custom_data, site_id, reactivated_from_session_id):
         """
@@ -265,6 +267,7 @@ class SessionEndedMessage(object):
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
+
 
 class SessionQueuedMessage(object):
     def __init__(self, session_id, custom_data, site_id):
@@ -327,7 +330,6 @@ class NumberValue(object):
         :param value:
         """
         self.value = value
-
 
 
 class AmountOfMoneyValue(object):
