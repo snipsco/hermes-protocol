@@ -165,16 +165,19 @@ class Hermes(object):
         hermes_dialogue_subscribe_intent_not_recognized(self._facade, self._c_callback_subscribe_intent_not_recognized)
         return self
 
-    def publish_continue_session(self, session_id, text, intent_filter):
+    def publish_continue_session(self, session_id, text, intent_filter, send_intent_not_recognized=False):
         """
         Publishes a ContinueSession message to the Dialogue Manage to continue a dialogue session.
 
         :param session_id: The identifier of the session to be continued.
         :param text: the text the TTS should say to start this additional request of the session.
         :param intent_filter: A list of intents names to restrict the NLU resolution on the answer of this query.
+        :param send_intent_not_recognized: An optional boolean to indicate whether the dialogue manager should handle non
+        recognized intents by itself or sent them as an `IntentNotRecognizedMessage` for the client to handle. This setting applies only to the next conversation turn. The default
+        value is false (and the dialogue manager will handle non recognized intents by itself)
         :return: the current instance of Hermes to allow chaining.
         """
-        cContinueSessionMessage = CContinueSessionMessage.build(session_id, text, intent_filter)
+        cContinueSessionMessage = CContinueSessionMessage.build(session_id, text, intent_filter, send_intent_not_recognized)
         hermes_dialogue_publish_continue_session(self._facade, byref(cContinueSessionMessage))
         return self
 

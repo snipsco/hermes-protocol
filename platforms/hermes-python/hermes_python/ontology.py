@@ -313,6 +313,43 @@ class SessionTermination(object):
         return self.__dict__ == other.__dict__
 
 
+class ContinueSessionMessage(object):
+    def __init__(self, session_id, text, intent_filter, custom_data, send_intent_not_recognized):
+        """
+        :param session_id: Identifier of the dialogue session during which this intent was parsed.
+        :param text:
+        :param intent_filter: a list of allowed intent names that the dialogue manager will use to filter incoming intents. Nullable argument
+        :param custom_data: Nullable argument.
+        :param send_intent_not_recognized: An optional boolean to indicate whether the dialogue manager should handle non
+        recognized intents by itself or sent them as an `IntentNotRecognizedMessage` for the client to handle. This setting applies only to the next conversation turn. The default
+        value is false (and the dialogue manager will handle non recognized intents by itself)
+        """
+        self.session_id = session_id
+        self.text = text
+        self.intent_filter = intent_filter
+        self.custom_data = custom_data
+        self.send_intent_not_recognized = send_intent_not_recognized
+
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
+
+    @classmethod
+    def from_c_repr(cls, c_repr):
+        session_id = c_repr.session_id.decode('utf-8')
+        text = c_repr.text.decode('utf-8') if c_repr.text else None
+
+        intent_filter = []
+        intent_filter_length = c_repr.intent_filter.contents.size
+        for i in range(intent_filter_length):
+            intent_name = c_repr.intent_filter.contents.data[i].decode('utf-8')
+            intent_filter.append(intent_name)
+
+        custom_data = c_repr.custom_data.decode('utf-8') if c_repr.custom_data else None
+        send_intent_not_recognized = True if c_repr.send_intent_not_recognized > 0 else False
+
+        return cls(session_id, text, intent_filter, custom_data, send_intent_not_recognized)
+
+
 class IntentNotRecognizedMessage(object):
     def __init__(self, site_id, session_id, input, custom_data):
         """

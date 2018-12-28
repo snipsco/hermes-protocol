@@ -112,6 +112,17 @@ def test_hermes_ffi_test_round_trip_intent_not_recognized():
     assert intent_not_recognized_message == round_trip_intent_not_recognized_message
 
 
+def test_hermes_ffi_test_round_trip_continue_session():
+    continue_session_message = hermes_python.ontology.ContinueSessionMessage("session_id", "this is a text", ["test"], "custom_data", True)
+    round_trip_continue_session_message = get_round_trip_data_structure(
+        continue_session_message,
+        hermes_python.ffi.ontology.CContinueSessionMessage,
+        hermes_python.ontology.ContinueSessionMessage,
+        lib.hermes_ffi_test_round_trip_continue_session
+    )
+
+    assert continue_session_message == round_trip_continue_session_message
+
 # TODO : Uncomment tests one by one.
 """
 def test_hermes_ffi_test_round_trip_intent():
@@ -163,16 +174,6 @@ def test_hermes_ffi_test_round_trip_start_session():
 
 
 
-def test_hermes_ffi_test_round_trip_continue_session():
-    continue_session_message = hermes_python.ontology
-    round_trip__ = get_round_trip_data_structure(
-        _,
-        __,
-        ___,
-        lib.hermes_ffi_test_round_trip_continue_session
-    )
-
-    assert
 
 
 def test_hermes_ffi_test_round_trip_end_session():

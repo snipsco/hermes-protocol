@@ -39,10 +39,12 @@ class CSayFinishedMessage(Structure):
 class CContinueSessionMessage(Structure):
     _fields_ = [("session_id", c_char_p),
                 ("text", c_char_p),
-                ("intent_filter", POINTER(CStringArray))]
+                ("intent_filter", POINTER(CStringArray)),
+                ("custom_data", c_char_p),
+                ("send_intent_not_recognized", c_uint8)]
 
     @classmethod
-    def build(cls, session_id, text, intent_filter):
+    def build(cls, session_id, text, intent_filter, custom_data, send_intent_not_recognized=False):
         session_id = session_id.encode('utf-8')
         text = text.encode('utf-8') if text else None
         intent_filter = [intent_filter_item.encode('utf-8') for intent_filter_item in intent_filter]
@@ -51,8 +53,21 @@ class CContinueSessionMessage(Structure):
         c_intent_filter.size = c_int(len(intent_filter))
         c_intent_filter.data = (c_char_p * len(intent_filter))(*intent_filter)
 
-        cContinueSessionMessage = cls(session_id, text, pointer(c_intent_filter))
+        custom_data = custom_data.encode('utf-8') if custom_data else None
+        send_intent_not_recognized = 1 if send_intent_not_recognized else 0  # send_intent_not_recognized is a boolean
+
+        cContinueSessionMessage = cls(session_id, text, pointer(c_intent_filter), custom_data, send_intent_not_recognized)
         return cContinueSessionMessage
+
+    @classmethod
+    def from_repr(cls, repr):
+        session_id = repr.session_id
+        text = repr.text
+        intent_filter = repr.intent_filter
+        custom_data = repr.custom_data
+        send_intent_not_recognized = repr.send_intent_not_recognized
+
+        return cls.build(session_id, text, intent_filter, custom_data, send_intent_not_recognized)
 
 
 class CEndSessionMessage(Structure):
@@ -70,12 +85,13 @@ class CSessionInit(Structure):
     _fields_ = [("init_type", c_int32)]  # 1 : Action, 2: Notification
 
 class CActionSessionInit(Structure):
-    _fields_ = [("text", c_char_p),
-                ("intent_filter", POINTER(CStringArray)),
-                ("can_be_enqueued", c_uint8)] \
+    _fields_ = [("text", c_char_p),  # Nullable
+                ("intent_filter", POINTER(CStringArray)),  # Nullable
+                ("can_be_enqueued", c_uint8),
+                ("send_intent_not_recognized", c_uint8)] \
 
     @classmethod
-    def build(cls, text, intent_filter, can_be_enqueued_boolean):
+    def build(cls, text, intent_filter, can_be_enqueued_boolean, send_intent_not_recognized):
         text = text.encode('utf-8') if text else None
         intent_filter = [intent_filter_item.encode('utf-8') for intent_filter_item in intent_filter]
 
@@ -84,16 +100,17 @@ class CActionSessionInit(Structure):
         c_intent_filter.data = (c_char_p * len(intent_filter))(*intent_filter)
 
         can_be_enqueued = 1 if can_be_enqueued_boolean else 0
+        send_intent_not_recognized = 1 if send_intent_not_recognized else 0  # send_intent_not_recognized is a boolean
 
-        return cls(text, pointer(c_intent_filter), can_be_enqueued)
+        return cls(text, pointer(c_intent_filter), can_be_enqueued, send_intent_not_recognized)
 
 
 class CSessionInitAction(CSessionInit):
     _fields_ = [("value", POINTER(CActionSessionInit))]
 
     @classmethod
-    def build(cls, text, intent_filter, can_be_enqueued_boolean):
-        cActionSessionInit = CActionSessionInit.build(text, intent_filter, can_be_enqueued_boolean)
+    def build(cls, text, intent_filter, can_be_enqueued_boolean, send_intent_not_recognized):
+        cActionSessionInit = CActionSessionInit.build(text, intent_filter, can_be_enqueued_boolean, send_intent_not_recognized)
         return cls(c_int(1), pointer(cActionSessionInit))
 
 
