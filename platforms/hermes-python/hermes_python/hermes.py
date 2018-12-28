@@ -165,7 +165,7 @@ class Hermes(object):
         hermes_dialogue_subscribe_intent_not_recognized(self._facade, self._c_callback_subscribe_intent_not_recognized)
         return self
 
-    def publish_continue_session(self, session_id, text, intent_filter, send_intent_not_recognized=False):
+    def publish_continue_session(self, session_id, text, intent_filter, custom_data, send_intent_not_recognized=False):
         """
         Publishes a ContinueSession message to the Dialogue Manage to continue a dialogue session.
 
@@ -177,7 +177,7 @@ class Hermes(object):
         value is false (and the dialogue manager will handle non recognized intents by itself)
         :return: the current instance of Hermes to allow chaining.
         """
-        cContinueSessionMessage = CContinueSessionMessage.build(session_id, text, intent_filter, send_intent_not_recognized)
+        cContinueSessionMessage = CContinueSessionMessage.build(session_id, text, intent_filter, custom_data, send_intent_not_recognized)
         hermes_dialogue_publish_continue_session(self._facade, byref(cContinueSessionMessage))
         return self
 
@@ -212,7 +212,7 @@ class Hermes(object):
         hermes_dialogue_publish_start_session(self._facade, byref(cStartSessionMessage))
         return self
 
-    def publish_start_session_action(self, site_id, session_init_text, session_init_intent_filter, session_init_can_be_enqueued, custom_data):
+    def publish_start_session_action(self, site_id, session_init_text, session_init_intent_filter, session_init_can_be_enqueued, session_init_send_intent_not_recognized, custom_data):
         """
         Publishes a StartSession message to the Dialogue Manager to initiate a new session.
 
@@ -228,7 +228,10 @@ class Hermes(object):
         :param custom_data: Additional information that can be provided by the handler. Each message related to the new session - sent by the Dialogue Manager - will contain this data.
         :return: the current instance of Hermes to allow chaining.
         """
-        init = CSessionInitAction.build(session_init_text, session_init_intent_filter, session_init_can_be_enqueued)
+        init = CSessionInitAction.build(session_init_text,
+                                        session_init_intent_filter,
+                                        session_init_can_be_enqueued,
+                                        session_init_send_intent_not_recognized)
         cStartSessionMessage = CStartSessionMessageAction.build(init, custom_data, site_id)
         hermes_dialogue_publish_start_session(self._facade, byref(cStartSessionMessage))
         return self
