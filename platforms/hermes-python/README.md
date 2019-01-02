@@ -69,3 +69,12 @@ You can also check this repository for other language bindings.
 ### API
 *Coming soon.*
 
+## Release Checklist 
+
+Everytime you need to perform a release, do the following steps : 
+- [ ] Commit all changes to the project for said release
+- [ ] Write all the changes introduced in the Changelog (HISTORY.rst file) and commit it
+- [ ] Run tests
+- [ ] Bump the version and commit it
+- [ ] Upload to PyPI
+ 
