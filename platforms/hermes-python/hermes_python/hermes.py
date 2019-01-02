@@ -149,7 +149,7 @@ class Hermes(object):
         """
         Register a callback when the Dialogue Manager doesn't recognize an intent.
 
-        Note that you need to have initialized a session with the intent_not_recognized field set to true.
+        Note that you need to have initialized a session, (or call publish_continue_session method on an existing session) with the intent_not_recognized field set to true.
         Otherwise, the DialogueManager will take care itself of not recognized intent and the callback you registered will
         never be called.
 

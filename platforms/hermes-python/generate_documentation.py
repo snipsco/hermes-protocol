@@ -39,6 +39,7 @@ def import_module_safely(module_name):
 
     except pydoc.ErrorDuringImport as e:
         print "Error while trying to import {} ... The docs could not be generated".format(module_name)
+	sys.exit(1)
 
 
 def generate_docs():
@@ -49,6 +50,8 @@ def generate_docs():
 
 def getmarkdown(package):
     output = list()
+    print package
+    print "ANtho"
     output.append(package_header_template.format(package.__name__))  # Adds header for module
 
     modules = pydoc.inspect.getmembers(package, pydoc.inspect.ismodule)  # Inspect classes
@@ -82,3 +85,4 @@ def getmarkdown(package):
 
 if __name__ == "__main__":
     print generate_docs()
+
