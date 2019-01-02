@@ -226,6 +226,37 @@ describe('It should perform casting round-trips on messages', () => {
             MessageClass: IntentMessage,
             forgeType: CIntentMessage
         })
+        roundTrip({
+            data: {
+                session_id: 'fad16235-2b00-48fb-8684-d729284686f5',
+                custom_data: null,
+                site_id: 'default',
+                input: 'what will be the weather in parish this sunday',
+                asr_tokens: null,
+                intent: {
+                    intent_name: 'davidsnips:WeatherForecast',
+                    probability: 0.6884455680847168
+                },
+                slots: [{
+                    confidence: 1.0,
+                    raw_value: 'this sunday',
+                    value: {
+                        value_type: 4,
+                        value: {
+                            value: '2019-01-06 00:00:00 +01:00',
+                            grain: 4,
+                            precision: 1
+                        }
+                    },
+                    range_start: 35,
+                    range_end: 46,
+                    entity: 'snips/datetime',
+                    slot_name: 'forecast_datetime'
+                }]
+            },
+            MessageClass: IntentMessage,
+            forgeType: CIntentMessage
+        })
     })
     it('IntentNotRecognizedMessage(s)', () => {
         roundTrip({

@@ -42,19 +42,24 @@ function castSlot (slot) {
                     break
                 case 4:
                     valuePtr = ref.reinterpret(valuePtr, CInstantTimeValue.size)
-                    value = ref.get(valuePtr, 0, CInstantTimeValue)
+                    value = ref.get(valuePtr, 0, CInstantTimeValue).toObject()
+                    value.value = value.value.readCString()
                     break
                 case 5:
                     valuePtr = ref.reinterpret(valuePtr, CTimeIntervalValue.size)
-                    value = ref.get(valuePtr, 0, CTimeIntervalValue)
+                    value = ref.get(valuePtr, 0, CTimeIntervalValue).toObject()
+                    value.from = value.from.readCString()
+                    value.to = value.to.readCString()
                     break
                 case 6:
                     valuePtr = ref.reinterpret(valuePtr, CAmountOfMoneyValue.size)
-                    value = ref.get(valuePtr, 0, CAmountOfMoneyValue)
+                    value = ref.get(valuePtr, 0, CAmountOfMoneyValue).toObject()
+                    value.unit = value.unit.readCString()
                     break
                 case 7:
                     valuePtr = ref.reinterpret(valuePtr, CTemperatureValue.size)
-                    value = ref.get(valuePtr, 0, CTemperatureValue)
+                    value = ref.get(valuePtr, 0, CTemperatureValue).toObject()
+                    value.unit = value.unit.readCString()
                     break
                 case 8:
                     valuePtr = ref.reinterpret(valuePtr, CDurationValue.size)
@@ -115,19 +120,28 @@ class SlotArray extends Casteable {
                                 }
                                 break
                             case 4:
-                                valuePtr = new Casteable(value).forge(CInstantTimeValue)
+                                valuePtr = new Casteable(value).forge(CInstantTimeValue, {
+                                    value: value => ref.allocCString(value)
+                                }).ref()
                                 break
                             case 5:
-                                valuePtr = new Casteable(value).forge(CTimeIntervalValue)
+                                valuePtr = new Casteable(value).forge(CTimeIntervalValue,{
+                                    from: f => ref.allocCString(f),
+                                    to: t => ref.allocCString(t)
+                                }).ref()
                                 break
                             case 6:
-                                valuePtr = new Casteable(value).forge(CAmountOfMoneyValue)
+                                valuePtr = new Casteable(value).forge(CAmountOfMoneyValue, {
+                                    unit: u => ref.allocCString(u)
+                                }).ref()
                                 break
                             case 7:
-                                valuePtr = new Casteable(value).forge(CTemperatureValue)
+                                valuePtr = new Casteable(value).forge(CTemperatureValue, {
+                                    unit: u => ref.allocCString(u)
+                                }).ref()
                                 break
                             case 8:
-                                valuePtr = new Casteable(value).forge(CDurationValue)
+                                valuePtr = new Casteable(value).forge(CDurationValue).ref()
                                 break
                             default:
                                 valuePtr = ref.NULL
