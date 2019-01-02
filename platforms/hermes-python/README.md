@@ -1,5 +1,5 @@
 # Hermes Python 
-[![Build Status](https://travis-ci.org/snipsco/hermes-protocol.svg?branch=hermes-python-ffi)](https://travis-ci.org/snipsco/hermes-protocol)
+[![Build Status](https://travis-ci.org/snipsco/hermes-protocol.svg)](https://travis-ci.org/snipsco/hermes-protocol)
 [![PyPI version](https://badge.fury.io/py/hermes-python.svg)](https://badge.fury.io/py/hermes-python)
 
 The `hermes-python` library provides python bindings for the Hermes protocol that snips components use to communicate together.
