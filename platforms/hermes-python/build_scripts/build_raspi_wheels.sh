@@ -2,19 +2,19 @@
 set -e -x
 
 # Build the .so file
-if ! [[ -z "$(ls -A ../hermes_python/dylib)" ]]; then
+if ! [[ -z "$(ls -A platforms/hermes-python/hermes_python/dylib)" ]]; then
    echo "hermes_python/dylib should be empty. Aborting!" && exit 1
 fi
 
-CARGO_TARGET_DIR=../target cargo dinghy --platform raspbian build -p hermes-mqtt-ffi --release || exit 1
+CARGO_TARGET_DIR=platforms/hermes-python/target cargo dinghy --platform raspbian build -p hermes-mqtt-ffi --release || exit 1
 
-mkdir -p ../hermes_python/dylib
-mv ../target/arm-unknown-linux-gnueabihf/release/libhermes_mqtt_ffi.so ../hermes_python/dylib/
+mkdir -p platforms/hermes-python/hermes_python/dylib
+mv platforms/hermes-python/target/arm-unknown-linux-gnueabihf/release/libhermes_mqtt_ffi.so platforms/hermes-python/hermes_python/dylib/
 
 # Build wheel
 PYTHON_INTERPRETERS=( 'python2.7' 'python3.5')
 
-cd ..
+cd platforms/hermes-python
 for PYINTERPRETER in "${PYTHON_INTERPRETERS[@]}";
 do
 	echo $PYINTERPRETER
@@ -31,4 +31,4 @@ rm hermes_python/dylib/*.so
 ls -1 dist/
 cp dist/*.whl wheelhouse/
 rm -rf dist/*.whl
-cd build_scripts
+cd ../..
