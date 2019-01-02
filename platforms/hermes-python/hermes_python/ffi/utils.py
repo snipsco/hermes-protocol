@@ -88,3 +88,4 @@ hermes_drop_tts_facade = wrap_library_call(lib.hermes_drop_tts_facade)
 
 hermes_protocol_handler_new_mqtt = wrap_library_call(lib.hermes_protocol_handler_new_mqtt)
 hermes_protocol_handler_dialogue_facade = wrap_library_call(lib.hermes_protocol_handler_dialogue_facade)
+
