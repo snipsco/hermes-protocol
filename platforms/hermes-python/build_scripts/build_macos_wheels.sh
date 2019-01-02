@@ -28,4 +28,6 @@ done
 rm hermes_python/dylib/*.dylib
 
 ls -1 dist/
+cp dist/ wheelhouse/
+rm -rf dist/*.whl
 cd build_scripts
