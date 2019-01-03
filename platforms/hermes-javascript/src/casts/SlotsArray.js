@@ -43,23 +43,23 @@ function castSlot (slot) {
                 case 4:
                     valuePtr = ref.reinterpret(valuePtr, CInstantTimeValue.size)
                     value = ref.get(valuePtr, 0, CInstantTimeValue).toObject()
-                    value.value = value.value.readCString()
+                    value.value = ref.isNull(value.value) ? null : value.value.readCString()
                     break
                 case 5:
                     valuePtr = ref.reinterpret(valuePtr, CTimeIntervalValue.size)
                     value = ref.get(valuePtr, 0, CTimeIntervalValue).toObject()
-                    value.from = value.from.readCString()
-                    value.to = value.to.readCString()
+                    value.from = ref.isNull(value.from) ? null : value.from.readCString()
+                    value.to = ref.isNull(value.to) ? null : value.to.readCString()
                     break
                 case 6:
                     valuePtr = ref.reinterpret(valuePtr, CAmountOfMoneyValue.size)
                     value = ref.get(valuePtr, 0, CAmountOfMoneyValue).toObject()
-                    value.unit = value.unit.readCString()
+                    value.unit = ref.isNull(value.unit) ? null : value.unit.readCString()
                     break
                 case 7:
                     valuePtr = ref.reinterpret(valuePtr, CTemperatureValue.size)
                     value = ref.get(valuePtr, 0, CTemperatureValue).toObject()
-                    value.unit = value.unit.readCString()
+                    value.unit = ref.isNull(value.unit) ? null : value.unit.readCString()
                     break
                 case 8:
                     valuePtr = ref.reinterpret(valuePtr, CDurationValue.size)
