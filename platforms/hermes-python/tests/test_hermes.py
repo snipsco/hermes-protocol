@@ -96,4 +96,13 @@ def test_subscribe_intents_correctly_registers_callback(hermes_protocol_handler_
     hermes_protocol_handler_new_mqtt.assert_called_once()
     hermes_dialogue_subscribe_intents.assert_called_once()
 
+@mock.patch("hermes_python.hermes.hermes_dialogue_publish_continue_session")
+@mock.patch("hermes_python.hermes.hermes_protocol_handler_dialogue_facade")
+@mock.patch("hermes_python.hermes.hermes_drop_dialogue_facade")
+@mock.patch("hermes_python.hermes.hermes_protocol_handler_new_mqtt")
+def test_publish_continue_session(hermes_protocol_handler_new_mqtt, hermes_drop_dialogue_facade, hermes_protocol_handler_dialogue_facade, hermes_dialogue_publish_continue_session):
+    with Hermes(HOST) as h:
+        h.publish_continue_session("session_id", "text", [])
 
+    hermes_protocol_handler_new_mqtt.assert_called_once()
+    hermes_dialogue_publish_continue_session.assert_called_once()

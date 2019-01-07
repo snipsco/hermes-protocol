@@ -15,7 +15,7 @@ from time import sleep
 
 class Hermes(object):
     def __init__(self, mqtt_server_address, rust_logs_enabled=False):
-        self.mqtt_server_address = mqtt_server_address
+        self.mqtt_server_address = str(mqtt_server_address)
         self.rust_logs_enabled = rust_logs_enabled
 
         self._protocol_handler = POINTER(CProtocolHandler)()
@@ -144,7 +144,6 @@ class Hermes(object):
         hermes_dialogue_subscribe_session_ended(self._facade, self._c_callback_subscribe_session_ended)
         return self
 
-
     def subscribe_intent_not_recognized(self, user_callback_subscribe_intent_not_recognized):
         """
         Register a callback when the Dialogue Manager doesn't recognize an intent.
@@ -165,7 +164,7 @@ class Hermes(object):
         hermes_dialogue_subscribe_intent_not_recognized(self._facade, self._c_callback_subscribe_intent_not_recognized)
         return self
 
-    def publish_continue_session(self, session_id, text, intent_filter, custom_data, send_intent_not_recognized=False):
+    def publish_continue_session(self, session_id, text, intent_filter, custom_data=None, send_intent_not_recognized=False):
         """
         Publishes a ContinueSession message to the Dialogue Manage to continue a dialogue session.
 
