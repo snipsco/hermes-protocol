@@ -2,7 +2,7 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
-from builtins import object
+from builtins import object, bytes
 from ctypes import *
 from .ffi.ontology import CProtocolHandler, CDialogueFacade, CContinueSessionMessage, CEndSessionMessage, \
     CStartSessionMessageAction, CStartSessionMessageNotification, CStringArray, CIntentMessage, CSessionStartedMessage, CSessionQueuedMessage, \
@@ -15,7 +15,7 @@ from time import sleep
 
 class Hermes(object):
     def __init__(self, mqtt_server_address, rust_logs_enabled=False):
-        self.mqtt_server_address = str(mqtt_server_address)
+        self.mqtt_server_address = bytes(mqtt_server_address, "utf-8")
         self.rust_logs_enabled = rust_logs_enabled
 
         self._protocol_handler = POINTER(CProtocolHandler)()
