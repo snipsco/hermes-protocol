@@ -1,0 +1,6 @@
+mock
+pytest
+coverage
+pytest-cov
+dotmap
+future
