@@ -98,7 +98,7 @@ correctness
 - `platforms` guest language bindings
     - `c` C header
     - `hermes-kotlin` jvm impl
-    _ `hermes-python` python impl
+    - `hermes-python` python impl
 
 ## License
 ### Apache 2.0/MIT
