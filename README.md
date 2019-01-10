@@ -2,7 +2,7 @@
 [![Build Status](https://travis-ci.org/snipsco/hermes-protocol.svg?branch=develop)](https://travis-ci.org/snipsco/hermes-protocol)
 
 This repository contains the definition of the `hermes` protocol used by
-the Snips platform
+the Snips platform.
 
 ## What is `hermes`?
 
@@ -10,26 +10,27 @@ the Snips platform
 to communicate with each other. For example an user app for the platform
 can use `hermes` to be notified that a new intent was detected. An other
 example could when the dialogue component asks the Automatic Speech
-Recognition (ASR) component to start capturing user speech.
+Recognition (ASR) component to start capturing user speech, this will also 
+be done through `hermes`.
 
 ### Ontology
 
 The various messages that can be sent using `hermes` are defined in what
 we call an ontology. It is an ensemble of rust `struct`s definitions.
 Relevant parts of the ontology are available in the guest languages that
-hermes supports
+hermes supports.
 
 ### Sites
 
 An important notion when using the Snips platform is the notion of
-"site". A site can be seen as an "interaction locus". It is thought a
+"site". A site can be seen as an "interaction locus". It is throught a
 site than an user will interact with the platform. A site consists at
 least of a voice input (a microphone) and also probably of speakers and
 maybe other devices used to give information to the user (leds,
-screens...)
+screens...).
 
 A site is identified in `hermes` by a `site_id`. When there is a single
-site, it is usually `default`
+site, it is usually `default`.
 
 
 ### Components and facades
@@ -45,7 +46,7 @@ Each component is represented in hermes by two "facades":
  component as it represents the communication side that should be
  implemented by it.
 
-Facades are retrieved though a `ProtocolHandler` more on that later
+Facades are retrieved through a `ProtocolHandler` more on that later.
 
 Let's take the example of the detection of an hotword:
  1. The code that wants to react to an hotword first need to "subscribe"
@@ -70,7 +71,7 @@ When writing an app for the Snips platform, the facade you'll want to
 use is the main dialogue facade. The dialogue component orchestrates the
 interaction with the user and your app should interact with the platform
 through it. You can find an overview of the available apis on the [Snips
-documentation](https://docs.snips.ai/ressources/messages-reference)
+documentation](https://docs.snips.ai/ressources/messages-reference).
 
 ### Communication layer and `ProtocolHandler`s
 
@@ -97,6 +98,7 @@ correctness
 - `platforms` guest language bindings
     - `c` C header
     - `hermes-kotlin` jvm impl
+    _ `hermes-python` python impl
 
 ## License
 ### Apache 2.0/MIT
