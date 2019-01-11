@@ -32,33 +32,50 @@ function getPlatformName () {
     // cpu data
     const cpuInfo = os.cpus()[0]
 
+    // Eliminate unsupported Operating Systems
     if (OS_SUPPORTED.indexOf(osType) < 0) {
         logger.warning(`There is no prebuilt dynamic library file available for your operating system (${osType}).\n`)
         return false
     }
+    // Eliminate unsupported architectures
     if (ARCHITECTURES_SUPPORTED.indexOf(architecture) < 0) {
         logger.warning(`There is no prebuilt dynamic library file available for your hardware architecture (${architecture}).\n`)
         return false
     }
 
-    // Minimum osx version supported is El Capitan (15.0.0)
+    // Specific to MacOS
     if(osType === 'darwin') {
+        // Minimum osx version supported is El Capitan (15.0.0)
         if((+osRelease.split('.')[0]) < 15) {
-            logger.warning(`There is no prebuilt dynamic library file available for your version os MacOS (${osRelease}).\n`)
+            logger.warning(`There is no prebuilt dynamic library file available for your version of MacOS (${osRelease}).\n`)
+            return false
+        }
+        // Do not support macbook with arm cpus (if they ever exist…)
+        if(architecture === 'arm') {
+            logger.warning('There is no prebuilt dynamic library file available for macintosh having ARM cpus.\n')
             return false
         }
         return 'macos-darwin-x86_64'
     }
 
+    // Specific to Raspbian
     if(osIsRaspbian()) {
-        // Support only ARMv7
-        if(cpuInfo.model.toLowerCase().indexOf('armv7') < 0) {
+        // Support only ARMv6 & ARMv7
+        if(
+            cpuInfo.model.toLowerCase().indexOf('armv7') < 0 &&
+            cpuInfo.model.toLocaleLowerCase().indexOf('armv6') < 0
+        ) {
             logger.warning('Prebuilt dynamic library file is only available for ARMv7 cpus.\n')
             return false
         }
         return 'linux-raspbian-armhf'
     }
 
+    // Arm but not raspbian
+    if(architecture === 'arm')
+        return false
+
+    // Linux x86
     return 'linux-debian-x86_64'
 }
 
