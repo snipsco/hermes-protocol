@@ -48,6 +48,7 @@ class Hermes(object):
             self.loop_stop()
 
         hermes_drop_dialogue_facade(self._facade)
+        self._facade = POINTER(CDialogueFacade)()
 
     def _wraps(self, user_callback, callback_argtype, callback_restype, argtype):
         def params_converter(func):
