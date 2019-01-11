@@ -118,7 +118,6 @@ export class Hermes {
     }
 
     private options : HermesOptions
-    private listeners = new Map()
     private activeSubsets: Map<string, any> = new Map()
     private call: FFIFunctionCall
     private protocolHandler: Buffer

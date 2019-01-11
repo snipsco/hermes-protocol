@@ -1,6 +1,10 @@
 const ref = require('ref')
 const Int64 = require('node-int64')
 const {
+    Dialog,
+    Injection
+} = require('../../dist')
+const {
     Casteable,
     StringArray,
     StartSessionMessage,
@@ -20,7 +24,6 @@ const {
     CSiteMessage,
     CInjectionStatusMessage
 } = require('../../dist/ffi/typedefs')
-
 
 // Log segfaults
 const SegfaultHandler = require('segfault-handler')
@@ -59,7 +62,7 @@ describe('It should perform casting round-trips on messages', () => {
         roundTrip({
             data: {
                 session_init: {
-                    init_type: 1,
+                    init_type: Dialog.enums.initType.action,
                     value: {
                         text: 'toto',
                         intent_filter: ['intent', 'filter'],
@@ -77,7 +80,7 @@ describe('It should perform casting round-trips on messages', () => {
          roundTrip({
             data: {
                 session_init: {
-                    init_type: 2,
+                    init_type: Dialog.enums.initType.notification,
                     value: 'notification'
                 },
                 custom_data: 'customThing',
@@ -161,7 +164,7 @@ describe('It should perform casting round-trips on messages', () => {
                     confidence: 0.5,
                     raw_value: 'vert',
                     value: {
-                        value_type: 1,
+                        value_type: Dialog.enums.slotType.custom,
                         value: 'vert'
                     },
                     range_start: 7,
@@ -190,7 +193,7 @@ describe('It should perform casting round-trips on messages', () => {
                         raw_value: 'un',
                         value: {
                             value: 1.2,
-                            value_type: 2
+                            value_type: Dialog.enums.slotType.number
                         },
                         range_start: 11,
                         range_end: 13,
@@ -202,7 +205,7 @@ describe('It should perform casting round-trips on messages', () => {
                         raw_value: 'un',
                         value: {
                             value: 1.5,
-                            value_type: 2
+                            value_type: Dialog.enums.slotType.number
                         },
                         range_start: 19,
                         range_end: 21,
@@ -214,7 +217,7 @@ describe('It should perform casting round-trips on messages', () => {
                         raw_value: 'un',
                         value: {
                             value: new Int64(101),
-                            value_type: 3
+                            value_type: Dialog.enums.slotType.ordinal
                         },
                         range_start: 19,
                         range_end: 21,
@@ -241,7 +244,7 @@ describe('It should perform casting round-trips on messages', () => {
                     confidence: 1.0,
                     raw_value: 'this sunday',
                     value: {
-                        value_type: 4,
+                        value_type: Dialog.enums.slotType.instantTime,
                         value: {
                             value: '2019-01-06 00:00:00 +01:00',
                             grain: 4,
@@ -299,7 +302,7 @@ describe('It should perform casting round-trips on messages', () => {
                 session_id: 'Session id',
                 custom_data: 'Custom data',
                 termination: {
-                    termination_type: 6,
+                    termination_type: Dialog.enums.terminationType.error,
                     data: 'Error message'
                 },
                 site_id: 'Site id'
@@ -325,7 +328,7 @@ describe('It should perform casting round-trips on messages', () => {
                 },
                 operations: [
                     {
-                        kind: 1,
+                        kind: Injection.enums.injectionKind.add,
                         values: {
                             films : [
                                 'The Wolf of Wall Street',

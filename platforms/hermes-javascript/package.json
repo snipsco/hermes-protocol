@@ -20,6 +20,7 @@
   "scripts": {
     "start": "npm run lint && npm run build && npm run test",
     "lint": "eslint src",
+    "lint:fix": "eslint --fix src",
     "build": "npm run build:sources && npm run build:declarations",
     "build:sources": "tsc",
     "build:declarations": "tsc -d --emitDeclarationOnly --allowJs false",
