@@ -36,4 +36,11 @@ export default class Injection extends ApiSubset {
     destroy () {
         this.call('hermes_drop_injection_facade', this.facade)
     }
+
+    static enums = {
+        injectionKind: {
+            add: 1,
+            addFromVanilla: 2
+        }
+    }
 }

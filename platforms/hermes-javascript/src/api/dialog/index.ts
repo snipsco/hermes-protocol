@@ -112,4 +112,47 @@ export default class Dialog extends ApiSubset {
             })
         })
     }
+
+    static enums = {
+        grain: {
+            year: 0,
+            quarter: 1,
+            month: 2,
+            week: 3,
+            day: 4,
+            hour: 5,
+            minute: 6,
+            second: 7
+        },
+        precision: {
+            approximate: 0,
+            exact: 1
+        },
+        initType: {
+            action: 1,
+            notification: 2
+        },
+        terminationType: {
+            nominal: 1,
+            unavailable: 2,
+            abortedByUser: 3,
+            intentNotRecognized: 4,
+            timeout: 5,
+            error: 6
+        },
+        slotType: {
+            custom: 1,
+            number: 2,
+            ordinal: 3,
+            instantTime: 4,
+            timeInterval: 5,
+            amountOfMoney: 6,
+            temperature: 7,
+            duration: 8,
+            percentage: 9,
+            musicAlbum: 10,
+            musicArtist: 11,
+            musicTrack: 12
+        }
+    }
 }
