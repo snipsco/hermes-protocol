@@ -4,31 +4,14 @@ const path = require('path')
 const fs = require('fs')
 const { execSync } = require('child_process')
 const tmp = require('tmp')
-const chalk = require('chalk')
 
-const REPO_URL = 'https://github.com/snipsco/hermes-protocol'
-const REPO_NAME = 'hermes-protocol'
-
-const LIB_EXTENSION = {
-    linux:  '.so',
-    linux2: '.so',
-    sunos:  '.so',
-    solaris: '.so',
-    freebsd: '.so',
-    openbsd: '.so',
-    darwin: '.dylib',
-    mac:    '.dylib',
-    win32:  '.dll'
-}[process.platform]
-const LIB_PATH = baseFolder =>
-    path.join(baseFolder, 'target/release/libhermes_mqtt_ffi' + LIB_EXTENSION)
-const LIB_DIST = path.join(__dirname, '../libhermes_mqtt_ffi' + LIB_EXTENSION)
-
-const errorStyle = chalk.bold.red
-const successStyle = chalk.bold.green
-const cmdStyle = chalk.bold
-const logError = err => console.error(errorStyle(err+'\n'))
-const logCmd = cmd => console.log(cmdStyle(cmd+'\n'))
+const {
+    LIB_PATH,
+    LIB_DIST,
+    REPO_URL,
+    REPO_NAME,
+    logger
+} = require('./utils')
 
 const cmd = (command, options = {}) => {
     try {
@@ -44,11 +27,12 @@ const cmd = (command, options = {}) => {
 
 function printCmdError (error) {
     const { cmd, status, signal } = error
-    let output = '!> Error during the build!\n'
+    let output = 'Error during the build!\n'
 
     if(!cmd) {
-        console.error(output)
-        return console.error(error)
+        logger.error(output)
+        logger.error(error)
+        return
     }
 
     output += 'Command [' + cmd +'] exited '
@@ -59,34 +43,33 @@ function printCmdError (error) {
         output += 'when receiving signal (' + signal + ')'
     }
 
-    logError(output)
+    logger.error(output + '\n')
 }
 
-console.log(chalk.green.bold('>> Building hermes dynamic library from scratch.'))
-console.log(chalk.yellow.bold('/!\\ Requirements: git, rust, cargo and node.js >= 8'))
-console.log('\n')
+logger.success('- Building hermes dynamic library from scratch.')
+logger.warning('/!\\ Requirements: git, rust, cargo and node.js >= 8\n')
 
 const tmpDir = tmp.dirSync()
 try {
-    logCmd('> Cloning hermes repository.')
+    logger.cmd('- Cloning hermes repository.\n')
     cmd(`git clone ${REPO_URL}`, {
         cwd: tmpDir.name
     })
     const repoFolder = path.resolve(tmpDir.name, REPO_NAME)
-    logCmd('Repository cloned @ ' + repoFolder)
+    logger.cmd('Repository cloned @ ' + repoFolder + '\n')
     cmd('git submodule update --init --recursive', {
         cwd: repoFolder
     })
 
-    logCmd('> Building the dynamic library from sources.')
+    logger.cmd('- Building the dynamic library from sources.\n')
     cmd('cargo build -p hermes-mqtt-ffi --release', {
         cwd: repoFolder
     })
 
-    logCmd('> Copy the generated dynamic library file to the current working folder.')
+    logger.cmd('- Copy the generated dynamic library file to the current working folder.\n')
     fs.copyFileSync(LIB_PATH(repoFolder), LIB_DIST)
 
-    console.log(successStyle('> Done!'))
+    logger.success('> Done!\n')
 } catch(error) {
     printCmdError(error)
 }
