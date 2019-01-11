@@ -2,8 +2,8 @@
 
 #### A javascript wrapper around the hermes protocol
 
-[![Build Status](https://travis-ci.org/snipsco/hermes-protocol.svg?branch=hermes-js)](https://travis-ci.org/snipsco/hermes-protocol)
-[![npm version](https://badge.fury.io/js/hermes-javascript.svg)](https://badge.fury.io/js/hermes-javascript)
+[![Build Status](https://travis-ci.org/snipsco/hermes-protocol.svg)](https://travis-ci.org/snipsco/hermes-protocol)
+[![npm version](https://badge.fury.io/js/hermes-javascript.svg)](https://www.npmjs.com/package/hermes-javascript)
 
 ## Context
 
@@ -91,20 +91,23 @@ withHermes((hermes, done) => {
         // And here is how to grab the intent name.
         console.log('Received intent', message.intent.intent_name)
 
-        // Then, you can either :
-        // 1 - Continue the dialog session if you expect another intent to be detected.
-        dialog.publish('continue_session', {
-            session_id: message.session_id,
-            text: 'Session continued',
-            intent_filter: ['nextIntent']
-        })
-        // In this case, if you already set up a subscription for 'intent/nextIntent' then it will be triggered if the user speaks that intent.
-
-        // 2 - Or end the dialog session.
-        dialog.publish('end_session', {
-            session_id: message.session_id,
-            text: 'Session ended'
-        })
+        // Then, you can either:
+        if(continueSession) {
+            // 1 - Continue the dialog session if you expect another intent to be detected.
+            dialog.publish('continue_session', {
+                session_id: message.session_id,
+                text: 'Session continued',
+                // In this case, if you already set up a subscription for 'intent/nextIntent' then it will be triggered if the user speaks that intent.
+                intent_filter: ['nextIntent']
+            })
+        } else {
+            // 2 - Or end the dialog session.
+            dialog.publish('end_session', {
+                session_id: message.session_id,
+                text: 'Session ended'
+            })
+        }
+        // !! But not both !!
     })
 
     // You can also unsubscribe to a registered event.
@@ -194,7 +197,7 @@ An hermes client should implement a context loop that will prevent the program f
 ```js
 const { withHermes } = require('hermes-javascript')
 
-// See the Hermes class documentation below for available options.
+// Check the Hermes class documentation (next section) for available options.
 const hermesOptions = { /* ... */ }
 
 /*
@@ -209,17 +212,20 @@ withHermes((hermes, done) => {
 }, hermesOptions)
 ```
 
-#### Using the keepAlive tools
+#### Instantiate Hermes and use the keepAlive tool
+
+In case you want to create and manage the lifetime of the Hermes instance yourself, you can
+use `keepAlive` and `killKeepAlive` to prevent the `node.js` process from exiting.
 
 ```js
 const { Hermes, tools: { keepAlive, killKeepAlive }} = require('hermes-javascript')
 
-const hermes = new Hermes(/* options */)
+const hermes = new Hermes(/* options, see below (next section) */)
 
 // Sleeps for 60000 miliseconds between each loop cycle to prevent heavy CPU usage
 const keepAliveRef = keepAlive(60000)
 
-// Call done to free resources and stop the loop
+// Call done to free the Hermes instance resources and stop the loop
 function done () {
     hermes.destroy()
     killKeepAlive(keepAliveRef)
@@ -349,6 +355,8 @@ dialog.off('intent/myIntent', handler)
 Publish an event programatically.
 
 ```js
+import { Dialog } from 'hermes-javascript
+
 const hermes = new Hermes()
 const dialog = hermes.dialog()
 
@@ -356,7 +364,7 @@ dialog.publish('start_session', {
     custom_data: 'some data',
     site_id: 'site Id',
     session_init: {
-        init_type: 1,
+        init_type:  Dialog.enums.initType.notification,
         value: 'notification'
     }
 })
@@ -373,15 +381,18 @@ The dialog manager.
 Start a new dialog session.
 
 ```js
+import { Dialog } from 'hermes-javascript
+
 dialog.publish('start_session', {
     custom_data: /* string */,
     site_id: /* string */,
     session_init: {
-        init_type: /* 1 or 2 */,
+        // An enumeration, either 'action' or 'notification'
+        init_type: Dialog.enums.initType.['action' || 'notification'],
         value:
-        /* If init_type is 1 */
+            // If init_type is notification then:
             /* string */
-        /* If init_type is 2 */
+            // If init_type is 'action' then:
             {
                 text: /* string */,
                 intent_filter: /* string[] */,
@@ -438,6 +449,8 @@ A dialog session has started.
 - **intent_not_recognized**
 
 No intents were recognized.
+
+*Note that the dialog session must have been started or continued with the `send_intent_not_recognized` flag in order for this to work.*
 
 ### DialogFlow
 
@@ -563,6 +576,8 @@ Vocabulary injection for the speech recognition.
 Requests custom payload to be injected.
 
 ```js
+import { Injection } from 'hermes-javascript'
+
 injection.publish('injection_request', {
     id: /* string */,
     cross_language: /* string */,
@@ -576,10 +591,9 @@ injection.publish('injection_request', {
     // An array of operations objects
     operations: [
         {
-            // Enumeration: 1 or 2
-            // 1 is 'add', 2 is 'add_from_vanilla'
+            // Enumeration: add or addFromVanilla
             // see documentation here: https://docs.snips.ai/guides/advanced-configuration/dynamic-vocabulary#3-inject-entity-values
-            kind: 1,
+            kind: Injection.enums.injectionKind.add,
             // An object having string keys mapped with an array of string entries
             values: {
                 films : [
