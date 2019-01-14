@@ -32,22 +32,29 @@ class Hermes(object):
         self._thread = None
         self._thread_terminate = False
 
-    def __enter__(self):
+    def connect(self):
         hermes_protocol_handler_new_mqtt(byref(self._protocol_handler), self.mqtt_server_address)
-
-        hermes_protocol_handler_dialogue_facade(self._protocol_handler,
-                                                    byref(self._facade))
+        hermes_protocol_handler_dialogue_facade(self._protocol_handler, byref(self._facade))
 
         if self.rust_logs_enabled:
             lib.hermes_enable_debug_logs()
 
         return self
 
-    def __exit__(self, exception_type, exception_val, trace):
+    def disconnect(self):
         if self._thread is not None:
             self.loop_stop()
 
         hermes_drop_dialogue_facade(self._facade)
+        self._facade = POINTER(CDialogueFacade)()
+
+        return self
+
+    def __enter__(self):
+        return self.connect()
+
+    def __exit__(self, exception_type, exception_val, trace):
+        return self.disconnect()
 
     def _wraps(self, user_callback, callback_argtype, callback_restype, argtype):
         def params_converter(func):

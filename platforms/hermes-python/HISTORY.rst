@@ -1,4 +1,8 @@
 ## History
+### 0.1.28 (2019-01-14)
+* Fixes bug when the `__exit__` method was called twice on the `Hermes` class.
+* Introduces two methods to the public api : `connect` and `disconnect` that should bring more flexibility  
+
 ### 0.1.27 (2019-01-07)
 * Fixed broken API introduced in `0.1.26` with the publish_continue_session method of the Hermes class. 
 * Cast any string that goes in the mqtt_server_adress parameter in the constructor of the Hermes class to be a 8-bit string.
