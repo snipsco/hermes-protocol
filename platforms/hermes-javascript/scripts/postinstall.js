@@ -112,7 +112,7 @@ if(process.env.HERMES_BUILD_FROM_SOURCES || !platformName) {
                 }
                 res.body.on('data', onChunk)
                 res.body.once('end', () => {
-                    fileStream.off('data', onChunk)
+                    fileStream.removeListener('data', onChunk)
                     return resolve()
                 })
             })
