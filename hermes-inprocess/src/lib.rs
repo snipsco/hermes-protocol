@@ -323,11 +323,11 @@ impl<T: Send + Sync + Debug + Copy + 'static> IdentifiableComponentFacade for In
     }
 
     fn subscribe_version(&self, site_id: String, handler: Callback<VersionMessage>) -> Fallible<()> {
-        subscribe_filter!(self, IdentifiableComponentVersion<T> { version }, handler, site_id, |it| {&it.site_id})
+        subscribe_filter!(self, IdentifiableComponentVersion<T> { version }, handler, site_id, |it| &it.site_id)
     }
 
     fn subscribe_error(&self, site_id: String, handler: Callback<ErrorMessage>) -> Fallible<()> {
-        subscribe_filter!(self, IdentifiableComponentError<T> { error }, handler, site_id, |it| {&it.site_id})
+        subscribe_filter!(self, IdentifiableComponentError<T> { error }, handler, site_id, |it| &it.site_id)
     }
 }
 
@@ -529,11 +529,15 @@ struct VoiceActivityVadDown {
 
 impl VoiceActivityFacade for InProcessComponent<VoiceActivity> {
     fn subscribe_vad_up(&self, site_id: String, handler: Callback<VadUpMessage>) -> Fallible<()> {
-        subscribe_filter!(self, VoiceActivityVadUp { vad_up }, handler, site_id, |it| { &it.vad_up.site_id })
+        subscribe_filter!(self, VoiceActivityVadUp { vad_up }, handler, site_id, |it| &it
+            .vad_up
+            .site_id)
     }
 
     fn subscribe_vad_down(&self, site_id: String, handler: Callback<VadDownMessage>) -> Fallible<()> {
-        subscribe_filter!(self, VoiceActivityVadDown { vad_down }, handler, site_id, |it| { &it.vad_down.site_id })
+        subscribe_filter!(self, VoiceActivityVadDown { vad_down }, handler, site_id, |it| &it
+            .vad_down
+            .site_id)
     }
 
     fn subscribe_all_vad_up(&self, handler: Callback<VadUpMessage>) -> Fallible<()> {
@@ -566,7 +570,7 @@ struct HotwordDetected {
 
 impl HotwordFacade for InProcessComponent<Hotword> {
     fn subscribe_detected(&self, id: String, handler: Callback<HotwordDetectedMessage>) -> Fallible<()> {
-        subscribe_filter!(self, HotwordDetected { message }, handler, id, |it| { &it.id })
+        subscribe_filter!(self, HotwordDetected { message }, handler, id, |it| &it.id)
     }
 
     fn subscribe_all_detected(&self, handler: Callback<HotwordDetectedMessage>) -> Fallible<()> {
@@ -823,7 +827,10 @@ impl DialogueFacade for InProcessComponent<Dialogue> {
     }
 
     fn subscribe_intent(&self, intent_name: String, handler: Callback<IntentMessage>) -> Fallible<()> {
-        subscribe_filter!(self, DialogueIntent { intent }, handler, intent_name, |it| { &it.intent.intent.intent_name })
+        subscribe_filter!(self, DialogueIntent { intent }, handler, intent_name, |it| &it
+            .intent
+            .intent
+            .intent_name)
     }
 
     fn subscribe_intents(&self, handler: Callback<IntentMessage>) -> Fallible<()> {
