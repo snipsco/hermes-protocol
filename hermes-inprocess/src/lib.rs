@@ -229,7 +229,7 @@ macro_rules! subscribe_filter {
         $handler:ident,
         $filter:ident, |
         $it:ident |
-        $filter_path:block
+        $filter_path:expr
     ) => {{
         debug!("Subscribing on {:?}/{}", $sel.component, stringify!($t));
         $sel.subscribe_filter($handler, |it: &$t| &it.$field, move |$it: &$t| $filter_path == &$filter)
