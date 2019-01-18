@@ -11,7 +11,7 @@ ffi-utils = { git = "https://github.com/snipsco/snips-utils-rs", rev = "e7a9649d
 hermes = { path = "../hermes" }
 lazy_static = { version="1.0" }
 libc = "0.2"
-snips-nlu-ontology-ffi-macros = { git = "https://github.com/snipsco/snips-nlu-ontology", tag = "0.61.2" }
+snips-nlu-ontology-ffi-macros = { git = "https://github.com/snipsco/snips-nlu-ontology", tag = "0.61.3" }
 env_logger = "0.5.10"
 
 [dev-dependencies]
