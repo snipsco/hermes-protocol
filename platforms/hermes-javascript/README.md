@@ -518,6 +518,20 @@ const intents = [
 dialog.flows(intents)
 ```
 
+#### sessionFlow(id, action)
+
+**Advanced, for basic purposes use flow() or flows().**
+
+Creates a dialog flow that will trigger when the target session starts.
+Useful when initiating a session programmatically.
+
+```js
+// The id should match the custom_data session string.
+dialog.sessionFlow('a_unique_id', (msg, flow) => {
+    // ... //
+})
+```
+
 #### flow->continue(intentName, action)
 
 Subscribes to an intent for the next dialog step.

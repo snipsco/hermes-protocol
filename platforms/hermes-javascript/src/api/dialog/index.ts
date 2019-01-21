@@ -113,6 +113,25 @@ export default class Dialog extends ApiSubset {
         })
     }
 
+    /**
+     * Creates a dialog flow that will trigger when the target session starts.
+     * Useful when initiating a session programmatically.
+     *
+     * @param id : An id that should match the custom_data field of the started session.
+     * @param action : The action to execute on session startup.
+     */
+    sessionFlow(id: string, action: FlowAction) {
+        this.on('session_started', message => {
+            if(message.custom_data !== id)
+                return
+            const flow = new DialogFlow(this, message.session_id, () => {
+                this.activeSessions.delete(message.session_id)
+            })
+            this.activeSessions.add(message.session_id)
+            return flow.start(action, message)
+        })
+    }
+
     static enums = {
         grain: {
             year: 0,
