@@ -121,15 +121,17 @@ export default class Dialog extends ApiSubset {
      * @param action : The action to execute on session startup.
      */
     sessionFlow(id: string, action: FlowAction) {
-        this.on('session_started', message => {
+        const listener = message => {
             if(message.custom_data !== id)
                 return
+            this.off('session_started', listener)
             const flow = new DialogFlow(this, message.session_id, () => {
                 this.activeSessions.delete(message.session_id)
             })
             this.activeSessions.add(message.session_id)
             return flow.start(action, message)
-        })
+        }
+        this.on('session_started', listener)
     }
 
     static enums = {
