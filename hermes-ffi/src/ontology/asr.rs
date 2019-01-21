@@ -1,8 +1,9 @@
-use failure::Fallible;
-use failure::ResultExt;
-use ffi_utils::{AsRust, CReprOf, RawBorrow, RawPointerConverter};
 use std::ptr::null;
 use std::slice;
+
+use failure::Fallible;
+use failure::ResultExt;
+use ffi_utils::*;
 
 #[repr(C)]
 #[derive(Debug)]

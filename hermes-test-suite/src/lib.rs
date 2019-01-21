@@ -1,6 +1,3 @@
-extern crate chrono;
-extern crate hermes;
-
 use chrono::prelude::*;
 
 pub fn now() -> DateTime<Utc> {
@@ -305,10 +302,11 @@ macro_rules! t_identifiable_component {
 #[macro_export]
 macro_rules! test_suite {
     () => {
-        test_suite!(WAIT_DURATION = 0);
+        $crate::test_suite!(WAIT_DURATION = 0);
     };
 
     (WAIT_DURATION = $wait_duration:expr) => {
+        use $crate::{t, t_identifiable_component, t_identifiable_toggleable, t_component, t_toggleable};
         use snips_nlu_ontology::*;
 
         const WAIT_DURATION: std::time::Duration = std::time::Duration::from_millis($wait_duration);

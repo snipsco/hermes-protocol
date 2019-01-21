@@ -13,7 +13,7 @@ default = ["full_bindings"]
 
 [dependencies]
 failure = "0.1"
-ffi-utils = { git = "https://github.com/snipsco/snips-utils-rs", rev = "e7a9649df" }
+ffi-utils = { git = "https://github.com/snipsco/snips-utils-rs", rev = "291ce1d" }
 hermes = { path = "../hermes" }
 hermes-ffi = { path = "../hermes-ffi" }
 hermes-mqtt = { path = "../hermes-mqtt" }

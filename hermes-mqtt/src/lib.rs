@@ -1,35 +1,13 @@
-#[macro_use]
-extern crate failure;
-extern crate hermes;
-#[cfg(test)]
-#[macro_use]
-extern crate hermes_test_suite;
-extern crate hostname;
-extern crate lazy_static;
-#[macro_use]
-extern crate log;
-#[cfg(test)]
-extern crate rand;
-extern crate rumqtt;
-#[cfg(test)]
-extern crate semver;
-extern crate serde;
-extern crate serde_json;
-#[cfg(test)]
-extern crate snips_nlu_ontology;
-extern crate strum;
-#[macro_use]
-extern crate strum_macros;
-
 mod topics;
 
 use std::string::ToString;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
-use failure::{Fallible, ResultExt, SyncFailure};
+use failure::{format_err, Fallible, ResultExt, SyncFailure};
 use hermes::*;
 use lazy_static::lazy_static;
+use log::*;
 
 use crate::topics::*;
 
@@ -852,5 +830,5 @@ mod tests {
 
     // sleep 50ms between registering the callback and sending the message to be "sure" the event
     // arrive in the right order to the mosquitto server
-    test_suite!(WAIT_DURATION = 50);
+    hermes_test_suite::test_suite!(WAIT_DURATION = 50);
 }

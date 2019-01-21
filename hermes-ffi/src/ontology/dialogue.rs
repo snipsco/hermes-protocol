@@ -1,10 +1,11 @@
+use std::ptr::null;
+
+use failure::bail;
+use failure::format_err;
 use failure::Fallible;
 use failure::ResultExt;
-use ffi_utils::{AsRust, CReprOf, CStringArray, RawPointerConverter};
-use hermes;
-use libc;
+use ffi_utils::*;
 use snips_nlu_ontology_ffi_macros::CIntentClassifierResult;
-use std::ptr::null;
 
 use super::{CAsrTokenDoubleArray, CNluSlotArray};
 
