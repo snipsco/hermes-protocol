@@ -155,16 +155,6 @@ const CProtocolHandler = Struct({
   user_data: coerce('void *')
 })
 
-/* Facades */
-
-const CTtsBackendFacade = Struct({
-  facade: coerce('void *')
-})
-
-const facades = {
-  CTtsBackendFacade
-}
-
 /* Messages */
 
 // Dialogue
@@ -273,6 +263,20 @@ const CSiteMessage = Struct({
   session_id: coerce('char *')
 })
 
+// Audio server
+
+const CPlayBytesMessage = Struct({
+  id: coerce('char *'),
+  wav_bytes: coerce('uint8 *'),
+  wav_bytes_len:  coerce('int'),
+  site_id: coerce('char *')
+})
+
+const CPlayFinishedMessage = Struct({
+  id: coerce('char *'),
+  site_id: coerce('char *')
+})
+
 const messages = {
   CSessionStartedMessage,
   CSessionQueuedMessage,
@@ -289,14 +293,15 @@ const messages = {
   CInjectionRequestOperation,
   CMapStringToStringArray,
   CMapStringToStringArrayEntry,
-  CInjectionStatusMessage
+  CInjectionStatusMessage,
+  CPlayBytesMessage,
+  CPlayFinishedMessage
 }
 
 /* Exports */
 
 module.exports = {
   CProtocolHandler,
-  ...facades,
   ...messages,
   ...misc
 }

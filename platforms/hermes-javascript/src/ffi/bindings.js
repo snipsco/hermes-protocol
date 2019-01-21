@@ -35,16 +35,6 @@ module.exports.library = libraryPath => ffi.Library(libraryPath, {
     hermes_drop_session_started_message: [ 'int', [ 'void *' ]],
     hermes_drop_intent_not_recognized_message: [ 'int', [ 'void *' ]],
 
-    // Backend API - DO NOT EXPOSE - NO RUST ADAPTER YET
-
-    // hermes_dialogue_backend_publish_intent: [ 'int', [ 'void *', 'void *' ]],
-    // hermes_dialogue_backend_publish_session_ended: [ 'int', [ 'void *', 'void *' ]],
-    // hermes_dialogue_backend_publish_session_queued: [ 'int', [ 'void *', 'void *' ]],
-    // hermes_dialogue_backend_publish_session_started: [ 'int', [ 'void *', 'void *' ]],
-    // hermes_dialogue_backend_subscribe_continue_session: [ 'int', [ 'void *', 'void *' ]],
-    // hermes_dialogue_backend_subscribe_end_session: [ 'int', [ 'void *', 'void *' ]],
-    // hermes_dialogue_backend_subscribe_start_session: [ 'int', [ 'void *', 'void *' ]],
-
     // Resumes the current session
     hermes_dialogue_publish_continue_session: [ 'int', [ 'void *', 'void *' ]],
     // Ends the current session
@@ -85,6 +75,20 @@ module.exports.library = libraryPath => ffi.Library(libraryPath, {
     // Turn on / off notification sounds
     hermes_sound_feedback_publish_toggle_on: [ 'int', [ 'void *', 'void *' ]],
     hermes_sound_feedback_publish_toggle_off: [ 'int', [ 'void *', 'void *' ]],
+
+    /* Audio */
+
+    // Allocators & destructors
+    hermes_protocol_handler_audio_server_facade: [ 'int', [ 'void *', 'void **' ]],
+    hermes_drop_audio_server_facade: [ 'int', [ 'void * ' ]],
+    hermes_drop_play_finished_message: [ 'int', [ 'void *' ]],
+
+    // Play sound
+    hermes_audio_server_publish_play_bytes: [ 'int', [ 'void *', 'void *' ] ],
+    // Playback finished on a specific site id
+    hermes_audio_server_subscribe_play_finished: [ 'int', [ 'void *', 'char *', 'void *' ] ],
+    // Playback finished on any site id
+    hermes_audio_server_subscribe_all_play_finished: [ 'int', [ 'void *', 'void *' ] ],
 
     /* Others */
 

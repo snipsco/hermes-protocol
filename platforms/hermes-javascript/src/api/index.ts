@@ -2,6 +2,7 @@ import ref from 'ref'
 import Dialog from './dialog'
 import Injection from './injection'
 import Feedback from './feedback'
+import Audio from './audio'
 import { MqttOptions } from '../casts'
 import { call } from '../ffi/bindings'
 import ApiSubset from './ApiSubset'
@@ -9,7 +10,7 @@ import { HermesOptions, FFIFunctionCall, SubsetConstructor } from './types'
 
 /* Types */
 
-export { Dialog, Injection, Feedback }
+export { Dialog, Injection, Feedback, Audio }
 export { ApiSubset }
 export * from './types'
 
@@ -90,6 +91,17 @@ export class Hermes {
      */
     feedback() {
         return this._getOrCreateSubset('feedback', Feedback)
+    }
+
+    /**
+     * @experimental
+     *
+     * Warning: Experimental, use at your own risk!
+     *
+     * Returns an Audio object instance used to interact with the audio playback API.
+     */
+    audio() {
+        return this._getOrCreateSubset('audio', Audio)
     }
 
     /**

@@ -1,7 +1,7 @@
 import { spawn } from 'child_process'
 import path from 'path'
 import mqtt from 'mqtt'
-import { Hermes, Dialog, Injection, Feedback } from '../../dist'
+import { Hermes, Dialog, Injection, Feedback, Audio } from '../../dist'
 import {
   getFreePort,
   camelize,
@@ -22,7 +22,8 @@ let
   hermes: Hermes,
   dialog: Dialog,
   injection: Injection,
-  feedback: Feedback
+  feedback: Feedback,
+  audio: Audio
 
 const robustnessTestsTimeout = 60000
 const robustnessIterations = 500
@@ -46,6 +47,7 @@ beforeAll(async () => {
     dialog = hermes.dialog()
     injection = hermes.injection()
     feedback = hermes.feedback()
+    audio = hermes.audio()
   } catch (error) {
     console.error(error)
   }
@@ -177,6 +179,30 @@ it('[feedback] should publish an notification sound off event', () => {
   })
 })
 
+// Audio
+
+it('[audio] should publish an audio playback event', () => {
+  const wavBuffer = Buffer.from([0x00, 0x01, 0x02, 0x03])
+  const hermesTopic = 'hermes/audioServer/default/playBytes/8ewnjksdf093jb42'
+
+  return new Promise(resolve => {
+    const message = {
+      id: '8ewnjksdf093jb42',
+      site_id: 'default',
+      wav_bytes: wavBuffer,
+      wav_bytes_len:  wavBuffer.length,
+  }
+    client.subscribe(hermesTopic, function() {
+        audio.publish('play_audio', message)
+    })
+    client.on('message', (topic, messageBuffer) => {
+        expect(wavBuffer).toEqual(messageBuffer)
+        client.unsubscribe(hermesTopic)
+        resolve()
+    })
+})
+})
+
 /* Subscribe */
 
 it('[dialog] should receive and parse a session started event', () => {
@@ -251,6 +277,28 @@ it('[injection] should receive events related to an injection status', () => {
     mqttJson: require('./mqttPublished/InjectionStatus.json'),
     hermesTopic: 'hermes/injection/status',
     facadeSubscription: 'injection_status'
+  })
+})
+
+// Audio
+
+it.skip('[audio] should receive events when a sound playback finished', async () => {
+  await setupSubscriberTest({
+    client,
+    facade: audio,
+    mqttJson: require('./mqttPublished/PlayFinished.json'),
+    hermesTopic: 'hermes/audioServer/default/playFinished',
+    facadeSubscription: 'play_finished/default'
+  })
+})
+
+it.skip('[audio] should receive events when a sound playback finished', async () => {
+  await setupSubscriberTest({
+    client,
+    facade: audio,
+    mqttJson: require('./mqttPublished/PlayFinished.json'),
+    hermesTopic: 'hermes/audioServer/default/playFinished',
+    facadeSubscription: 'play_finished_all'
   })
 })
 

@@ -48,7 +48,7 @@ class Casteable {
             const value = this[key]
             if(specialFields[key]) {
                 // Custom casting method
-                messageStruct[key] = specialFields[key] && specialFields[key](value)
+                messageStruct[key] = specialFields[key] && specialFields[key](value, messageStruct)
             } else if(typeof value === 'string') {
                 // Write the char* buffer with a trailing null byte.
                 const strPtr = ref.allocCString(value)

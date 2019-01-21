@@ -9,7 +9,8 @@ const {
     StringArray,
     StartSessionMessage,
     IntentMessage,
-    InjectionRequestMessage
+    InjectionRequestMessage,
+    PlayBytesMessage
 } = require('../../dist/casts')
 const {
     CContinueSessionMessage,
@@ -22,7 +23,8 @@ const {
     CSessionTermination,
     CInjectionRequestMessage,
     CSiteMessage,
-    CInjectionStatusMessage
+    CInjectionStatusMessage,
+    CPlayFinishedMessage
 } = require('../../dist/ffi/typedefs')
 
 // Log segfaults
@@ -358,6 +360,27 @@ describe('It should perform casting round-trips on messages', () => {
                 last_injection_date: '2018-12-10T11:14:08.468Z'
             },
             forgeType: CInjectionStatusMessage
+        })
+    })
+    it('[norust] PlayBytesMessage', () => {
+        const wavBuffer = Buffer.from([0x00, 0x01, 0x02, 0x03])
+        roundTrip({
+            data: {
+                id: 'ABCDEF',
+                site_id: 'default',
+                wav_bytes: wavBuffer,
+                wav_bytes_len:  wavBuffer.length,
+            },
+            MessageClass: PlayBytesMessage
+        })
+    })
+    it('[norust] PlayFinishedMessage', () => {
+        roundTrip({
+            data: {
+                id: 'ABCDEF',
+                site_id: 'default'
+            },
+            forgeType: CPlayFinishedMessage
         })
     })
 })

@@ -46,7 +46,7 @@ export function cast(struct, customKeysCasting = {}) {
             }
 
             if(customKeysCasting[key]) {
-                obj[key] = customKeysCasting[key](value)
+                obj[key] = customKeysCasting[key](value, struct)
                 continue
             }
 

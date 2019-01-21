@@ -6,5 +6,6 @@ module.exports = {
     InjectionRequestMessage: require('./InjectionRequestMessage'),
     StartSessionMessage: require('./StartSessionMessage'),
     AsrTokensDoubleArray: require('./AsrTokensDoubleArray'),
-    MqttOptions: require('./MqttOptions')
+    MqttOptions: require('./MqttOptions'),
+    PlayBytesMessage: require('./PlayBytesMessage')
 }
