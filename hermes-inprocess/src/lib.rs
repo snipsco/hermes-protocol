@@ -1,21 +1,9 @@
-extern crate failure;
-extern crate hermes;
-#[cfg(test)]
-#[macro_use]
-extern crate hermes_test_suite;
-#[macro_use]
-extern crate log;
-extern crate ripb;
-#[cfg(test)]
-extern crate semver;
-#[cfg(test)]
-extern crate snips_nlu_ontology;
-
-use failure::Fallible;
 use std::fmt::Debug;
 use std::sync::Mutex;
 
+use failure::Fallible;
 use hermes::*;
+use log::*;
 
 pub struct InProcessHermesProtocolHandler {
     bus: Mutex<ripb::Bus>,
@@ -205,18 +193,18 @@ impl<T: Send + Sync + Debug> InProcessComponent<T> {
 
 macro_rules! subscribe {
     ($sel:ident, $t:ty { $field:ident }, $handler:ident) => {{
-        debug!("Subscribing on {:?}/{}", $sel.component, stringify!($t));
+        log::debug!("Subscribing on {:?}/{}", $sel.component, stringify!($t));
         $sel.subscribe($handler, |it: &$t| &it.$field)
     }};
     ($sel:ident, $t:ty, $handler:ident) => {{
-        debug!("Subscribing on {:?}/{}", $sel.component, stringify!($t));
+        log::debug!("Subscribing on {:?}/{}", $sel.component, stringify!($t));
         $sel.subscribe0::<$t>($handler)
     }};
 }
 
 macro_rules! subscribe_filter {
     ($sel:ident, $t:ty { $field:ident }, $handler:ident, $filter:ident) => {{
-        debug!("Subscribing on {:?}/{}", $sel.component, stringify!($t));
+        log::debug!("Subscribing on {:?}/{}", $sel.component, stringify!($t));
         $sel.subscribe_filter(
             $handler,
             |it: &$t| &it.$field,
@@ -231,11 +219,11 @@ macro_rules! subscribe_filter {
         $it:ident |
         $filter_path:expr
     ) => {{
-        debug!("Subscribing on {:?}/{}", $sel.component, stringify!($t));
+        log::debug!("Subscribing on {:?}/{}", $sel.component, stringify!($t));
         $sel.subscribe_filter($handler, |it: &$t| &it.$field, move |$it: &$t| $filter_path == &$filter)
     }};
     ($sel:ident, $t:ty, $handler:ident, $filter:ident) => {{
-        debug!("Subscribing on {:?}/{}", $sel.component, stringify!($t));
+        log::debug!("Subscribing on {:?}/{}", $sel.component, stringify!($t));
         $sel.subscribe0_filter($handler, move |it: &$t| it.$filter == $filter)
     }};
 }
@@ -947,5 +935,5 @@ mod tests {
         (Rc::clone(&handler), handler)
     }
 
-    test_suite!();
+    hermes_test_suite::test_suite!();
 }

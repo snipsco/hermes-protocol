@@ -1,6 +1,7 @@
 use failure::Fallible;
 use failure::ResultExt;
-use ffi_utils::{AsRust, CReprOf, RawPointerConverter};
+
+use ffi_utils::*;
 
 #[repr(C)]
 #[derive(Debug)]

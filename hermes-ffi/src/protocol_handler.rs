@@ -82,7 +82,7 @@ macro_rules! generate_facade_wrapper {
             }
 
             pub fn user_data(&self) -> &UserData {
-                unsafe{ &(*(self.user_data as *mut UserData))}
+                unsafe { &(*(self.user_data as *mut UserData)) }
             }
         }
 
@@ -92,7 +92,7 @@ macro_rules! generate_facade_wrapper {
             }
         }
 
-        generate_destroy!($drop_name for $wrapper_name);
+        $crate::generate_destroy!($drop_name for $wrapper_name);
 
         #[no_mangle]
         pub extern "C" fn $getter_name(
@@ -111,7 +111,7 @@ macro_rules! generate_facade_wrapper {
                 Ok(())
             }
 
-            wrap!(fun(handler, facade))
+            ffi_utils::wrap!(fun(handler, facade))
         }
     };
 }
@@ -126,7 +126,7 @@ macro_rules! generate_facade_publish {
                 unsafe {(*facade).extract().$method($(<$qualifier as RawBorrow<$qualifier_raw>>::raw_borrow($qualifier_name)?.as_rust()?,)* message)}
             }
 
-            wrap!(fun(facade, $($qualifier_name,)* message))
+            ffi_utils::wrap!(fun(facade, $($qualifier_name,)* message))
         }
     };
     ($c_symbol:ident = $facade:ty:$method:ident($( + $qualifier_name:ident : $qualifier:ty as $qualifier_raw:ty,)*)) => {
@@ -136,7 +136,7 @@ macro_rules! generate_facade_publish {
                 unsafe {(*facade).extract().$method($(<$qualifier as RawBorrow<$qualifier_raw>>::raw_borrow($qualifier_name)?.as_rust()?,)*)}
             }
 
-            wrap!(fun(facade, $($qualifier_name,)*))
+            ffi_utils::wrap!(fun(facade, $($qualifier_name,)*))
         }
     };
 
@@ -153,7 +153,7 @@ macro_rules! generate_facade_subscribe {
                 unsafe { (*facade).extract().$method($(<$filter as RawBorrow<$filter_raw>>::raw_borrow($filter_name)?.as_rust()?,)* callback) }
             }
 
-            wrap!(fun(facade, $($filter_name,)* handler))
+            ffi_utils::wrap!(fun(facade, $($filter_name,)* handler))
         }
     };
 }
@@ -178,13 +178,13 @@ macro_rules! generate_hermes_c_symbols {
                 unsafe { ptr(param, user_data.0) }
             }))
         } else {
-            Err(format_err!("null pointer"))
+            Err(failure::format_err!("null pointer"))
         }
     }
 
     #[no_mangle]
     pub extern "C" fn hermes_enable_debug_logs() -> ffi_utils::SNIPS_RESULT {
-        wrap!($crate::init_debug_logs())
+        ffi_utils::wrap!($crate::init_debug_logs())
     }
 
     #[cfg(feature="full_bindings")]

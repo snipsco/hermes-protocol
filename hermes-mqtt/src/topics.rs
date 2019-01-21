@@ -1,5 +1,7 @@
 use std::{fmt, path};
 
+use strum_macros::ToString;
+
 pub trait ToPath: ToString {
     fn as_path(&self) -> String {
         let raw_path = self.to_string();

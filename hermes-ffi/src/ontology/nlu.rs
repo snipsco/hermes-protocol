@@ -1,10 +1,13 @@
-use super::CAsrTokenArray;
-use failure::Fallible;
-use failure::ResultExt;
-use ffi_utils::{AsRust, CReprOf, CStringArray, RawBorrow, RawPointerConverter};
-use snips_nlu_ontology_ffi_macros::{CIntentClassifierResult, CSlot};
 use std::ptr::null;
 use std::slice;
+
+use failure::bail;
+use failure::Fallible;
+use failure::ResultExt;
+use ffi_utils::*;
+use snips_nlu_ontology_ffi_macros::{CIntentClassifierResult, CSlot};
+
+use super::CAsrTokenArray;
 
 #[repr(C)]
 #[derive(Debug)]

@@ -1,17 +1,9 @@
-#[macro_use]
-extern crate failure;
-extern crate ffi_utils;
-extern crate hermes;
-extern crate hermes_ffi;
-extern crate hermes_mqtt;
-extern crate libc;
-#[macro_use]
-extern crate log;
-
+use failure::format_err;
 use failure::Fallible;
 use failure::ResultExt;
 use ffi_utils::*;
 use hermes_ffi::*;
+use log::*;
 
 generate_error_handling!(hermes_get_last_error);
 

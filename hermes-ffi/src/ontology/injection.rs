@@ -1,12 +1,12 @@
-use super::CMapStringToStringArray;
-use failure::Fallible;
-use failure::ResultExt;
-use ffi_utils::{AsRust, CReprOf, RawBorrow, RawPointerConverter};
-use hermes;
-use libc;
 use std::collections::HashMap;
 use std::ptr::null;
 use std::slice;
+
+use failure::Fallible;
+use failure::ResultExt;
+use ffi_utils::*;
+
+use super::CMapStringToStringArray;
 
 #[repr(C)]
 pub struct CEntityValue {
