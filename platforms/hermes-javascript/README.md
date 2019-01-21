@@ -355,7 +355,7 @@ dialog.off('intent/myIntent', handler)
 Publish an event programatically.
 
 ```js
-import { Dialog } from 'hermes-javascript
+import { Dialog } from 'hermes-javascript'
 
 const hermes = new Hermes()
 const dialog = hermes.dialog()
@@ -381,7 +381,7 @@ The dialog manager.
 Start a new dialog session.
 
 ```js
-import { Dialog } from 'hermes-javascript
+import { Dialog } from 'hermes-javascript'
 
 dialog.publish('start_session', {
     custom_data: /* string */,
