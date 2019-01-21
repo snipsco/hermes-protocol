@@ -15,6 +15,6 @@ default = ["full_bindings"]
 failure = "0.1"
 hermes = { path = "../hermes" }
 hermes-ffi = { path = "../hermes-ffi" }
-ffi-utils = { git = "https://github.com/snipsco/snips-utils-rs", rev = "e7a9649df" }
+ffi-utils = { git = "https://github.com/snipsco/snips-utils-rs", rev = "291ce1d" }
 libc = "0.2"
 
