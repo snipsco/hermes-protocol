@@ -12,7 +12,7 @@ hermes = { path = "../hermes" }
 lazy_static = { version="1.0" }
 libc = "0.2"
 snips-nlu-ontology-ffi-macros = { git = "https://github.com/snipsco/snips-nlu-ontology", tag = "0.61.3" }
-env_logger = "0.5.10"
+env_logger = "0.6"
 
 [dev-dependencies]
 spectral = "0.6"
