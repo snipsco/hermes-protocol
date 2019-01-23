@@ -282,7 +282,7 @@ it('[injection] should receive events related to an injection status', () => {
 
 // Audio
 
-it.skip('[audio] should receive events when a sound playback finished', async () => {
+it('[audio] should receive events when a sound playback finished', async () => {
   await setupSubscriberTest({
     client,
     facade: audio,
@@ -292,7 +292,7 @@ it.skip('[audio] should receive events when a sound playback finished', async ()
   })
 })
 
-it.skip('[audio] should receive events when a sound playback finished', async () => {
+it('[audio] should receive events when a sound playback finished', async () => {
   await setupSubscriberTest({
     client,
     facade: audio,
