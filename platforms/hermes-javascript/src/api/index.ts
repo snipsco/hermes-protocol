@@ -23,7 +23,7 @@ export class Hermes {
     /**
      * Create a new Hermes instance that connects to the underlying event bus.
      * @param {*} options.address The bus address *(default localhost:1883)*
-     * @param {*} options.logs Enables or Disables stdout logs *(default true)*
+     * @param {*} options.logs Enables or Disables stdout logs *(default false)*
      * @param {*} options.libraryPath A custom path for the dynamic hermes ffi library
      * @param {*} options.username Username used when connecting to the broker.
      * @param {*} options.password Password used when connecting to the broker.
