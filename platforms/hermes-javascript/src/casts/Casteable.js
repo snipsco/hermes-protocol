@@ -63,7 +63,9 @@ class Casteable {
                 // This is an object, and we expected to have a special field entry for casting it.
                 if(!specialFields[key]) {
                     const error = new Error(`Expected specialField entry for [${key}] property (type: ${type} / specialFields: ${JSON.stringify(specialFields)})`)
+                    // eslint-disable-next-line
                     console.error(error)
+                    // eslint-disable-next-line
                     console.error(error.stack)
                 }
                 messageStruct[key] = ref.NULL

@@ -1,7 +1,6 @@
 import Dialog from './index'
 import {
     FlowContinuation,
-    FlowActionReturn,
     FlowAction
 } from '../types'
 

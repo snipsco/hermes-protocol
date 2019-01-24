@@ -77,6 +77,7 @@ export default class ApiSubset {
                 } catch (err) {
                     // console.error('Error while executing callback for event: ' + fullEventName)
                     // console.error('message:', err.message)
+                    // eslint-disable-next-line
                     console.error(err)
                     throw err
                 }

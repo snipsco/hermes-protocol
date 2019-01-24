@@ -66,6 +66,7 @@ export function cast(struct, customKeysCasting = {}) {
                 obj[key] = value.deref()
             }
         } catch (error) {
+            // eslint-disable-next-line
             console.error(error)
             obj[key] = null
         }
