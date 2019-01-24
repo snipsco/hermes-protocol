@@ -30,6 +30,9 @@
     "test:mqtt": "jest ./tests/mqtt/mqttTests.spec.ts && jest ./tests/mqtt/mqttTls.spec.js",
     "test:roundtrip": "jest ./tests/casts/roundtrips.spec.js"
   },
+  "engines" : {
+    "node" : ">=10"
+  },
   "author": "Julien Elbaz",
   "license": "MIT",
   "files": [
