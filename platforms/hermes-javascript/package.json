@@ -1,0 +1,71 @@
+{
+  "name": "hermes-javascript",
+  "version": "0.1.0",
+  "hermes-mqtt-version": "0.61.0",
+  "description": "Hermes javascript bindings",
+  "keywords": [
+    "snips",
+    "hermes",
+    "mqtt",
+    "voice"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/snipsco/hermes-protocol"
+  },
+  "bugs": {
+    "url": "https://github.com/snipsco/hermes-protocol/issues"
+  },
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "npm run lint && npm run build && npm run test",
+    "lint": "eslint --ext .js,.ts src",
+    "lint:fix": "eslint --ext .js,.ts --fix src",
+    "build": "npm run build:sources && npm run build:declarations",
+    "build:sources": "tsc",
+    "build:declarations": "tsc -d --emitDeclarationOnly --allowJs false",
+    "build:hermes": "node scripts/make.js",
+    "postinstall": "node scripts/postinstall.js",
+    "test": "npm run test:mqtt && npm run test:roundtrip",
+    "test:mqtt": "jest ./tests/mqtt/mqttTests.spec.ts && jest ./tests/mqtt/mqttTls.spec.js",
+    "test:roundtrip": "jest ./tests/casts/roundtrips.spec.js"
+  },
+  "engines": {
+    "node": ">=10"
+  },
+  "author": "Julien Elbaz",
+  "license": "MIT",
+  "files": [
+    "dist",
+    "scripts"
+  ],
+  "dependencies": {
+    "chalk": "^2.4.2",
+    "ffi": "git+https://github.com/node-ffi/node-ffi.git",
+    "node-fetch": "^2.3.0",
+    "node-int64": "^0.4.0",
+    "ref": "^1.3.5",
+    "ref-array": "^1.2.0",
+    "ref-struct": "^1.1.0",
+    "tmp": "0.0.33",
+    "wretch": "^1.4.2"
+  },
+  "devDependencies": {
+    "@types/ffi": "^0.2.1",
+    "@types/jest": "^23.3.13",
+    "@types/node-int64": "^0.4.29",
+    "@types/ref": "0.0.28",
+    "@types/ref-array": "0.0.28",
+    "@types/ref-struct": "0.0.29",
+    "@typescript-eslint/eslint-plugin": "^1.1.0",
+    "@typescript-eslint/parser": "^1.1.0",
+    "camelcase": "^5.0.0",
+    "eslint": "^5.12.1",
+    "eslint-plugin-jest": "^22.1.3",
+    "jest": "^23.6.0",
+    "mqtt": "^2.18.8",
+    "segfault-handler": "^1.0.1",
+    "ts-jest": "^23.10.5",
+    "typescript": "^3.2.4"
+  }
+}

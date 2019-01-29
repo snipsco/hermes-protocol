@@ -36,6 +36,8 @@ script:
   - (cd platforms/hermes-kotlin && ./gradlew --console plain jar -Pdebug)
   - (cd platforms/hermes-kotlin && ./gradlew --console plain test -Pdebug)
   - (cd platforms/hermes-python && ./run-tests-travis.sh)
+  - (cd platforms/hermes-javascript && npm install && npm start)
+
 matrix:
   allow_failures:
   - rust: nightly

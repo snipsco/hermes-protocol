@@ -1,0 +1,60 @@
+{
+    "sessionId": "677a2717-7ac8-44f8-9013-db2222f7923d",
+    "customData": "customThing",
+    "siteId": "default",
+    "input": "moi du vert",
+    "intent": {
+        "intentName": "jelb:lightsColor",
+        "probability": 0.5
+    },
+    "asrTokens": [
+        [
+            {
+                "value": "moi",
+                "confidence": 0.5,
+                "range_start": 0,
+                "range_end": 3,
+                "time": {
+                    "start": 0.5,
+                    "end": 1
+                }
+            },
+            {
+                "value": "du",
+                "confidence": 0.5,
+                "range_start": 4,
+                "range_end": 6,
+                "time": {
+                    "start": 1,
+                    "end": 1.5
+                }
+            },
+            {
+                "value": "vert",
+                "confidence": 0.5,
+                "range_start": 7,
+                "range_end": 11,
+                "time": {
+                    "start": 1.5,
+                    "end": 2.5
+                }
+            }
+        ]
+    ],
+    "slots": [
+        {
+            "confidence": 0.5,
+            "rawValue": "vert",
+            "value": {
+                "kind": "Custom",
+                "value": "vert"
+            },
+            "range": {
+                "start": 7,
+                "end": 11
+            },
+            "entity": "Color",
+            "slotName": "Color"
+        }
+    ]
+}

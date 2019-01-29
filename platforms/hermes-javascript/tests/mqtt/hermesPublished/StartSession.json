@@ -1,0 +1,13 @@
+{
+    "session_init": {
+        "init_type": 1,
+        "value": {
+            "text": "toto",
+            "intent_filter": ["intent", "filter"],
+            "can_be_enqueued": true,
+            "send_intent_not_recognized": false
+        }
+    },
+    "custom_data": "customThing",
+    "site_id": "siteId"
+}

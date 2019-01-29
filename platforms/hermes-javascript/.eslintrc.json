@@ -1,0 +1,21 @@
+{
+    "env": {
+        "es6": true,
+        "node": true,
+        "jest/globals": true
+    },
+    "parser": "@typescript-eslint/parser",
+    "plugins": ["jest", "@typescript-eslint"],
+    "extends": "eslint:recommended",
+    "parserOptions": {
+        "ecmaVersion": 2018,
+        "sourceType": "module"
+    },
+    "rules": {
+        "no-console": "warn",
+        "quotes": ["error", "single", { "avoidEscape": true }],
+        "quote-props": ["error", "as-needed"],
+        "@typescript-eslint/no-unused-vars": "error",
+        "semi": ["error", "never"]
+    }
+}
