@@ -1,7 +1,11 @@
 ## History
+### 0.1.29 (2019-01-29)
+* Fixes bug when deserializing `TimeIntervalValue` that used wrong `encode` method instead of `decode`.
+
+
 ### 0.1.28 (2019-01-14)
 * Fixes bug when the `__exit__` method was called twice on the `Hermes` class.
-* Introduces two methods to the public api : `connect` and `disconnect` that should bring more flexibility  
+* Introduces two methods to the public api : `connect` and `disconnect` that should bring more flexibility
 
 ### 0.1.27 (2019-01-07)
 * Fixed broken API introduced in `0.1.26` with the publish_continue_session method of the Hermes class. 

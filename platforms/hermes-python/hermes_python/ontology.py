@@ -474,8 +474,8 @@ class TimeIntervalValue(object):
 
     @classmethod
     def from_c_repr(cls, c_repr):
-        from_date = c_repr.from_date.encode('utf-8') if c_repr.from_date else None
-        to_date = c_repr.to_date.encode('utf-8') if c_repr.to_date else None
+        from_date = c_repr.from_date.decode('utf-8') if c_repr.from_date else None
+        to_date = c_repr.to_date.decode('utf-8') if c_repr.to_date else None
         return cls(from_date, to_date)
 
 
