@@ -74,8 +74,6 @@ impl<'de> HermesMessage<'de> for NluIntentNotRecognizedMessage {}
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NluSlot {
-    /// The slot confidence
-    pub confidence: Option<f32>,
     #[serde(flatten)]
     pub nlu_slot: snips_nlu_ontology::Slot,
 }

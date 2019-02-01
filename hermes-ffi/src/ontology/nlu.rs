@@ -7,7 +7,7 @@ use failure::ResultExt;
 use ffi_utils::*;
 use snips_nlu_ontology_ffi_macros::CSlot;
 
-use super::CAsrTokenArray;
+use crate::asr::CAsrTokenArray;
 
 #[repr(C)]
 #[derive(Debug)]
@@ -251,14 +251,12 @@ impl Drop for CNluIntentNotRecognizedMessage {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CNluSlot {
-    pub confidence: f32,
     pub nlu_slot: *const CSlot,
 }
 
 impl CReprOf<hermes::NluSlot> for CNluSlot {
     fn c_repr_of(input: hermes::NluSlot) -> Fallible<Self> {
         Ok(Self {
-            confidence: input.confidence.unwrap_or(-1.),
             nlu_slot: CSlot::from(input.nlu_slot).into_raw_pointer(),
         })
     }
