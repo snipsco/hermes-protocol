@@ -80,15 +80,24 @@ pub struct NluSlot {
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct NluIntentClassifierResult {
+    /// Name of the intent that was found
+    pub intent_name: String,
+    /// The confidence score
+    pub confidence_score: f32,
+}
+
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct NluIntentMessage {
     /// The id of the `NluQueryMessage` that was processed
     pub id: Option<String>,
     /// The input that was processed
     pub input: String,
     /// The result of the intent classification
-    pub intent: snips_nlu_ontology::IntentClassifierResult,
+    pub intent: NluIntentClassifierResult,
     /// The detected slots, if any
-    pub slots: Option<Vec<NluSlot>>,
+    pub slots: Vec<NluSlot>,
     /// An optional session id if there is a related session
     pub session_id: Option<String>,
 }

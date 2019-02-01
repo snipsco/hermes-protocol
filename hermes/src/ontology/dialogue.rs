@@ -1,5 +1,5 @@
 use super::asr::AsrToken;
-use super::nlu::NluSlot;
+use super::nlu::{NluIntentClassifierResult, NluSlot};
 use super::HermesMessage;
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
@@ -16,9 +16,9 @@ pub struct IntentMessage {
     /// The tokens detected by the ASR. The first vec represents the different ASR invocations
     pub asr_tokens: Option<Vec<Vec<AsrToken>>>,
     /// The result of the intent classification
-    pub intent: snips_nlu_ontology::IntentClassifierResult,
+    pub intent: NluIntentClassifierResult,
     /// The detected slots, if any
-    pub slots: Option<Vec<NluSlot>>,
+    pub slots: Vec<NluSlot>,
 }
 
 impl<'de> HermesMessage<'de> for IntentMessage {}
