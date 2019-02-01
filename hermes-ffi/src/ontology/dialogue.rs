@@ -85,6 +85,7 @@ pub struct CIntentNotRecognizedMessage {
     pub input: *const libc::c_char,
     /// Nullable
     pub custom_data: *const libc::c_char,
+    pub confidence_score: libc::c_float,
 }
 
 unsafe impl Sync for CIntentNotRecognizedMessage {}
@@ -96,6 +97,7 @@ impl CReprOf<hermes::IntentNotRecognizedMessage> for CIntentNotRecognizedMessage
             session_id: convert_to_c_string!(input.session_id),
             input: convert_to_nullable_c_string!(input.input),
             custom_data: convert_to_nullable_c_string!(input.custom_data),
+            confidence_score: input.confidence_score,
         })
     }
 }
@@ -107,6 +109,7 @@ impl AsRust<hermes::IntentNotRecognizedMessage> for CIntentNotRecognizedMessage 
             session_id: create_rust_string_from!(self.session_id),
             input: create_optional_rust_string_from!(self.input),
             custom_data: create_optional_rust_string_from!(self.custom_data),
+            confidence_score: self.confidence_score,
         })
     }
 }
@@ -635,6 +638,7 @@ mod tests {
             custom_data: Some("custom".into()),
             session_id: "session id".into(),
             input: Some("some text".into()),
+            confidence_score: 0.5,
         });
 
         round_trip_test::<_, CIntentNotRecognizedMessage>(hermes::IntentNotRecognizedMessage {
@@ -642,6 +646,7 @@ mod tests {
             custom_data: None,
             session_id: "session id".into(),
             input: None,
+            confidence_score: 0.5,
         });
     }
 

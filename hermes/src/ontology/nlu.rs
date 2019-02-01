@@ -63,6 +63,8 @@ pub struct NluIntentNotRecognizedMessage {
     pub id: Option<String>,
     /// The text that didn't match any intent
     pub input: String,
+    /// Expresses the confidence that no intent was found
+    pub confidence_score: f32,
     /// An optional session id if there is a related session
     pub session_id: Option<String>,
 }

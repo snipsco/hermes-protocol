@@ -34,6 +34,8 @@ pub struct IntentNotRecognizedMessage {
     pub site_id: String,
     /// The text that didn't match any intent, `None` if no text wa captured
     pub input: Option<String>,
+    /// Expresses the confidence that no intent was found
+    pub confidence_score: f32,
 }
 
 impl<'de> HermesMessage<'de> for IntentNotRecognizedMessage {}

@@ -207,6 +207,7 @@ pub struct CNluIntentNotRecognizedMessage {
     pub id: *const libc::c_char,
     /// Nullable
     pub session_id: *const libc::c_char,
+    pub confidence_score: libc::c_float,
 }
 
 unsafe impl Sync for CNluIntentNotRecognizedMessage {}
@@ -223,6 +224,7 @@ impl CReprOf<hermes::NluIntentNotRecognizedMessage> for CNluIntentNotRecognizedM
             input: convert_to_c_string!(input.input),
             id: convert_to_nullable_c_string!(input.id),
             session_id: convert_to_nullable_c_string!(input.session_id),
+            confidence_score: input.confidence_score,
         })
     }
 }
@@ -233,6 +235,7 @@ impl AsRust<hermes::NluIntentNotRecognizedMessage> for CNluIntentNotRecognizedMe
             input: create_rust_string_from!(self.input),
             id: create_optional_rust_string_from!(self.id),
             session_id: create_optional_rust_string_from!(self.session_id),
+            confidence_score: self.confidence_score,
         })
     }
 }
