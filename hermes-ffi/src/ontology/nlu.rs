@@ -367,14 +367,7 @@ impl CReprOf<hermes::NluIntentMessage> for CNluIntentMessage {
 
 impl AsRust<hermes::NluIntentMessage> for CNluIntentMessage {
     fn as_rust(&self) -> Fallible<hermes::NluIntentMessage> {
-        /*Ok(hermes::NluIntentMessage {
-            id: create_optional_rust_string_from!(self.id),
-            input: create_rust_string_from!(self.input),
-            intent: unsafe {CIntentClassifierResult::raw_borrow(self.intent) }?.as_rust()?, // TODO impl in snips-nlu-ontology
-            slots: if self.slots.is_null() { None }  else { unsafe {CSlotList::raw_borrow(self.slots)}?.as_rust()? }, // TODO impl in snips-nlu-ontology
-            session_id: create_optional_rust_string_from!(self.session_id),
-        })*/
-        bail!("Missing converter for CIntentClassifierResult and CSlotList, if you need this feature, please tell us !")
+        bail!("Missing converter for CSlotList, if you need this feature, please tell us !")
     }
 }
 
