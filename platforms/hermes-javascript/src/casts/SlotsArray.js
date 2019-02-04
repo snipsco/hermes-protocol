@@ -19,7 +19,7 @@ const {
 const SlotsArrayType = array(ref.refType(CNluSlot))
 
 function castSlot (slot) {
-    const slotContents = cast(slot.nlu_slot.deref(), {
+    return cast(slot.nlu_slot.deref(), {
         value: function (slotValue) {
             const value_type = slotValue.value_type
             let valuePtr = slotValue.value
@@ -74,11 +74,6 @@ function castSlot (slot) {
             }
         }
     })
-
-    return {
-        confidence: slot.confidence,
-        ...slotContents
-    }
 }
 
 class SlotArray extends Casteable {
@@ -155,8 +150,8 @@ class SlotArray extends Casteable {
         return new DoubleArray(this._array, {
             itemArrayType: CNluSlotArray,
             refArrayType: SlotsArrayType,
-            forge: ({ confidence, ...rest }) => {
-                const arrayRef = new Casteable({ confidence, nlu_slot: { ...rest }}).forge(CNluSlot, {
+            forge: nlu_slot => {
+                const arrayRef = new Casteable({ nlu_slot }).forge(CNluSlot, {
                     nlu_slot: forgeSlotPtr
                 }).ref()
                 ref._attach(arrayRef, this)

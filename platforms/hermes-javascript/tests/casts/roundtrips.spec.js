@@ -130,7 +130,7 @@ describe('It should perform casting round-trips on messages', () => {
                 input: 'moi du vert',
                 intent: {
                     intent_name: 'jelb:lightsColor',
-                    probability: 0.5
+                    confidence_score: 0.5
                 },
                 asr_tokens: [
                     [{
@@ -163,7 +163,7 @@ describe('It should perform casting round-trips on messages', () => {
                     }]
                 ],
                 slots: [{
-                    confidence: 0.5,
+                    confidence_score: 0.5,
                     raw_value: 'vert',
                     value: {
                         value_type: Dialog.enums.slotType.custom,
@@ -186,12 +186,12 @@ describe('It should perform casting round-trips on messages', () => {
                 input: 'additionne un plus un',
                 intent: {
                     intent_name: 'jelb:getAddition',
-                    probability: 0.5
+                    confidence_score: 0.5
                 },
                 asr_tokens: null,
                 slots: [
                     {
-                        confidence: 0.5,
+                        confidence_score: 0.5,
                         raw_value: 'un',
                         value: {
                             value: 1.2,
@@ -203,7 +203,7 @@ describe('It should perform casting round-trips on messages', () => {
                         slot_name: 'firstTerm'
                     },
                     {
-                        confidence: 0.5,
+                        confidence_score: 0.5,
                         raw_value: 'un',
                         value: {
                             value: 1.5,
@@ -215,7 +215,7 @@ describe('It should perform casting round-trips on messages', () => {
                         slot_name: 'secondTerm'
                     },
                     {
-                        confidence: 0.5,
+                        confidence_score: 0.5,
                         raw_value: 'un',
                         value: {
                             value: new Int64(101),
@@ -240,10 +240,10 @@ describe('It should perform casting round-trips on messages', () => {
                 asr_tokens: null,
                 intent: {
                     intent_name: 'davidsnips:WeatherForecast',
-                    probability: 0.6884455680847168
+                    confidence_score: 0.6884455680847168
                 },
                 slots: [{
-                    confidence: 1.0,
+                    confidence_score: 1.0,
                     raw_value: 'this sunday',
                     value: {
                         value_type: Dialog.enums.slotType.instantTime,
@@ -269,7 +269,8 @@ describe('It should perform casting round-trips on messages', () => {
                 site_id: 'default',
                 session_id: '6ce651f7-0aec-4910-bfec-b246ea6ca550',
                 input: 'additionne un plus un',
-                custom_data: null
+                custom_data: null,
+                confidence_score: 0.5
             },
             forgeType: CIntentNotRecognizedMessage,
             FFIFunctionName: 'hermes_ffi_test_round_trip_intent_not_recognized'

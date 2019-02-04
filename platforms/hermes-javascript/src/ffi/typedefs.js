@@ -35,9 +35,9 @@ const CSessionInit = Struct({
   value: coerce('void *')
 })
 
-const CIntentClassifierResult = Struct({
+const CNluIntentClassifierResult = Struct({
   intent_name: coerce('char *'),
-  probability: coerce('float')
+  confidence_score: coerce('float')
 })
 
 const CSlotValue = Struct({
@@ -51,11 +51,11 @@ const CSlot = Struct({
   entity: coerce('char *'),
   slot_name: coerce('char *'),
   range_start: coerce('int'),
-  range_end: coerce('int')
+  range_end: coerce('int'),
+  confidence_score: coerce('float')
 })
 
 const CNluSlot = Struct({
-  confidence: coerce('float'),
   nlu_slot: pointer(CSlot),
 })
 
@@ -131,7 +131,7 @@ const misc = {
   CStringArray,
   CActionSessionInit,
   CSessionInit,
-  CIntentClassifierResult,
+  CNluIntentClassifierResult,
   CSlotValue,
   CSlot,
   CNluSlot,
@@ -164,7 +164,7 @@ const CIntentMessage = Struct({
   custom_data: coerce('char *'),
   site_id: coerce('char *'),
   input: coerce('char *'),
-  intent: pointer(CIntentClassifierResult),
+  intent: pointer(CNluIntentClassifierResult),
   slots:  pointer(CNluSlotArray),
   asr_tokens: pointer(CAsrTokenDoubleArray)
 })
@@ -173,7 +173,8 @@ const CIntentNotRecognizedMessage = Struct({
   site_id: coerce('char *'),
   session_id: coerce('char *'),
   input: coerce('char *'),
-  custom_data: coerce('char *')
+  custom_data: coerce('char *'),
+  confidence_score: coerce('float')
 })
 
 const CSessionEndedMessage = Struct({

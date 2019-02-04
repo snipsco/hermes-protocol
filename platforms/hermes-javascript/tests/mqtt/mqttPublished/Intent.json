@@ -5,7 +5,7 @@
     "input": "moi du vert",
     "intent": {
         "intentName": "jelb:lightsColor",
-        "probability": 0.5
+        "confidenceScore": 0.5
     },
     "asrTokens": [
         [
@@ -43,7 +43,7 @@
     ],
     "slots": [
         {
-            "confidence": 0.5,
+            "confidenceScore": 0.5,
             "rawValue": "vert",
             "value": {
                 "kind": "Custom",

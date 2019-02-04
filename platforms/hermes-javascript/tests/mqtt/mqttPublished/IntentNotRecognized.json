@@ -2,5 +2,6 @@
     "sessionId": "session id",
     "customData": "data",
     "siteId": "site id",
-    "input": "Hello world"
+    "input": "Hello world",
+    "confidenceScore": 0.5
 }
