@@ -1,4 +1,7 @@
 ## History
+### 0.2.0 (2019-02-04)
+* Introduces options to connect to the MQTT broker (auth + TLS are now supported).
+
 ### 0.1.29 (2019-01-29)
 * Fixes bug when deserializing `TimeIntervalValue` that used wrong `encode` method instead of `decode`.
 
