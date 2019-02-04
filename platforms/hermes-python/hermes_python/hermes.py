@@ -14,9 +14,22 @@ from time import sleep
 
 
 class Hermes(object):
-    def __init__(self, mqtt_server_address, rust_logs_enabled=False):
-        self.mqtt_server_address = bytes(mqtt_server_address, "utf-8")
+    def __init__(self,
+                 broker_address=None,
+                 rust_logs_enabled=False,
+                 mqtt_options=MqttOptions()):
+
+        """
+        :param broker_address: Address of the MQTT broker in the form 'ip:port'
+        :param rust_logs_enabled: Enables or Disables stdout logs *(default false)*
+        :param mqtt_options: Options to connect to the mqtt broker.
+        """
+
         self.rust_logs_enabled = rust_logs_enabled
+
+        self.mqtt_options = mqtt_options
+        if broker_address:  # This test is kept for API compatibility reasons.
+            self.mqtt_options.broker_address = broker_address
 
         self._protocol_handler = POINTER(CProtocolHandler)()
         self._facade = POINTER(CDialogueFacade)()
@@ -33,7 +46,9 @@ class Hermes(object):
         self._thread_terminate = False
 
     def connect(self):
-        hermes_protocol_handler_new_mqtt(byref(self._protocol_handler), self.mqtt_server_address)
+        c_mqtt_options = CMqttOptions.from_repr(self.mqtt_options)
+
+        hermes_protocol_handler_new_mqtt_with_options(byref(self._protocol_handler), byref(c_mqtt_options))
         hermes_protocol_handler_dialogue_facade(self._protocol_handler, byref(self._facade))
 
         if self.rust_logs_enabled:

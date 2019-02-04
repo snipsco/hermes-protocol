@@ -3,6 +3,7 @@ import mock
 import pytest
 
 from hermes_python.hermes import Hermes
+from hermes_python.ffi.utils import MqttOptions
 
 HOST = "localhost"
 DUMMY_INTENT_NAME = "INTENT"
@@ -11,9 +12,13 @@ def test_initialization():
     h = Hermes(HOST)
     assert 0 == len(h._c_callback_subscribe_intent)
 
+def test_initialization_with_options():
+    mqtt_opts = MqttOptions()
+    h = Hermes(mqtt_options=mqtt_opts)
+    assert h.mqtt_options.broker_address == "localhost:1883"
 
 @mock.patch("hermes_python.hermes.hermes_protocol_handler_dialogue_facade")
-@mock.patch("hermes_python.hermes.hermes_protocol_handler_new_mqtt")
+@mock.patch("hermes_python.hermes.hermes_protocol_handler_new_mqtt_with_options")
 def test_context_manager_enter(hermes_protocol_handler_new_mqtt, hermes_protocol_handler_dialogue_facade):
     with Hermes(HOST) as h:
         pass
@@ -23,7 +28,7 @@ def test_context_manager_enter(hermes_protocol_handler_new_mqtt, hermes_protocol
 
 @mock.patch("hermes_python.hermes.hermes_protocol_handler_dialogue_facade")
 @mock.patch("hermes_python.hermes.hermes_drop_dialogue_facade")
-@mock.patch("hermes_python.hermes.hermes_protocol_handler_new_mqtt")
+@mock.patch("hermes_python.hermes.hermes_protocol_handler_new_mqtt_with_options")
 def test_context_manager_exit(hermes_protocol_handler_new_mqtt, hermes_drop_dialogue_facade, hermes_protocol_handler_dialogue_facade):
     with Hermes(HOST) as h:
         pass
@@ -32,7 +37,7 @@ def test_context_manager_exit(hermes_protocol_handler_new_mqtt, hermes_drop_dial
 
 @mock.patch("hermes_python.hermes.hermes_protocol_handler_dialogue_facade")
 @mock.patch("hermes_python.hermes.hermes_drop_dialogue_facade")
-@mock.patch("hermes_python.hermes.hermes_protocol_handler_new_mqtt")
+@mock.patch("hermes_python.hermes.hermes_protocol_handler_new_mqtt_with_options")
 def test_context_manager_catches_exceptions(hermes_protocol_handler_new_mqtt, mocked_hermes_drop_dialogue_facade, hermes_protocol_handler_dialogue_facade):
     hermes_protocol_handler_dialogue_facade.side_effect = Exception("An exception occured!")
 
@@ -44,7 +49,7 @@ def test_context_manager_catches_exceptions(hermes_protocol_handler_new_mqtt, mo
 @mock.patch("hermes_python.hermes.hermes_dialogue_subscribe_intent")
 @mock.patch("hermes_python.hermes.hermes_protocol_handler_dialogue_facade")
 @mock.patch("hermes_python.hermes.hermes_drop_dialogue_facade")
-@mock.patch("hermes_python.hermes.hermes_protocol_handler_new_mqtt")
+@mock.patch("hermes_python.hermes.hermes_protocol_handler_new_mqtt_with_options")
 def test_subscribe_intent_correctly_registers_callback(hermes_protocol_handler_new_mqtt, hermes_drop_dialogue_facade, hermes_protocol_handler_dialogue_facade, hermes_dialogue_subscribe_intent):
     def user_callback(hermes, intentMessage):
         pass
@@ -61,7 +66,7 @@ def test_subscribe_intent_correctly_registers_callback(hermes_protocol_handler_n
 @mock.patch("hermes_python.hermes.hermes_dialogue_subscribe_intent")
 @mock.patch("hermes_python.hermes.hermes_protocol_handler_dialogue_facade")
 @mock.patch("hermes_python.hermes.hermes_drop_dialogue_facade")
-@mock.patch("hermes_python.hermes.hermes_protocol_handler_new_mqtt")
+@mock.patch("hermes_python.hermes.hermes_protocol_handler_new_mqtt_with_options")
 def test_subscribe_intent_correctly_registers_two_callbacks_for_same_intent(hermes_protocol_handler_new_mqtt, hermes_drop_dialogue_facade, hermes_protocol_handler_dialogue_facade, hermes_dialogue_subscribe_intent):
     hermes_protocol_handler_new_mqtt.assert_not_called()
     def user_callback_1(hermes, intentMessage):
@@ -83,7 +88,7 @@ def test_subscribe_intent_correctly_registers_two_callbacks_for_same_intent(herm
 @mock.patch("hermes_python.hermes.hermes_dialogue_subscribe_intents")
 @mock.patch("hermes_python.hermes.hermes_protocol_handler_dialogue_facade")
 @mock.patch("hermes_python.hermes.hermes_drop_dialogue_facade")
-@mock.patch("hermes_python.hermes.hermes_protocol_handler_new_mqtt")
+@mock.patch("hermes_python.hermes.hermes_protocol_handler_new_mqtt_with_options")
 def test_subscribe_intents_correctly_registers_callback(hermes_protocol_handler_new_mqtt, hermes_drop_dialogue_facade, hermes_protocol_handler_dialogue_facade, hermes_dialogue_subscribe_intents):
 
     def user_callback(hermes, intentMessage):
@@ -99,7 +104,7 @@ def test_subscribe_intents_correctly_registers_callback(hermes_protocol_handler_
 @mock.patch("hermes_python.hermes.hermes_dialogue_publish_continue_session")
 @mock.patch("hermes_python.hermes.hermes_protocol_handler_dialogue_facade")
 @mock.patch("hermes_python.hermes.hermes_drop_dialogue_facade")
-@mock.patch("hermes_python.hermes.hermes_protocol_handler_new_mqtt")
+@mock.patch("hermes_python.hermes.hermes_protocol_handler_new_mqtt_with_options")
 def test_publish_continue_session(hermes_protocol_handler_new_mqtt, hermes_drop_dialogue_facade, hermes_protocol_handler_dialogue_facade, hermes_dialogue_publish_continue_session):
     with Hermes(HOST) as h:
         h.publish_continue_session("session_id", "text", [])
