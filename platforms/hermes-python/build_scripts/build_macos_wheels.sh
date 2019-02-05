@@ -2,7 +2,6 @@
 # This script should be ran from the root of the repository
 set -e -x
 
-
 # Build the .so file
 if ! [[ -z "$(ls -A platforms/hermes-python/hermes_python/dylib)" ]]; then
    echo "hermes_python/dylib should be empty. Aborting!" && exit 1
@@ -15,12 +14,15 @@ mv platforms/hermes-python/target/release/libhermes_mqtt_ffi.dylib platforms/her
 # Build wheel
 cd platforms/hermes-python/
 # Build wheel
-PYTHON_INTERPRETERS=( 'python2.7' 'python3.6' 'python3.7')
+## This part uses pyenv to build against different distributions of python. 
 
-for PYINTERPRETER in "${PYTHON_INTERPRETERS[@]}";
+PYTHON_INTERPRETERS_VERSION=( '2.7.15' '3.5.6' '3.6.5' '3.7.1')
+
+for PY_VERSIO in "${PYTHON_INTERPRETERS_VERSION[@]}";
 do
-	echo $PYINTERPRETER
-	virtualenv --python=$PYINTERPRETER env
+	echo "Building wheel for python version : " 
+	echo $PY_VERSIO
+	virtualenv --python="$(PYENV_VERSION=$PY_VERSIO pyenv which python)" env
 	source env/bin/activate
 	python setup.py bdist_wheel 
 	rm -rf env
