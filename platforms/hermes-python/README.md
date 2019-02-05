@@ -126,7 +126,7 @@ Everytime you need to perform a release, do the following steps :
 - [ ] Upload to PyPI
 
 ## Building from sources
-### Creating MacOS wheels
+### Creating macOS wheels
 The build script : `build_scripts/build_macos_wheels.sh` uses pyenv to generate `hermes-python` wheels for different versions of python. 
 
 To be able to run it, you need to : 
@@ -136,9 +136,3 @@ To be able to run it, you need to :
 
 You should be good to go ! 
 
-
-
-
-
-
- 
