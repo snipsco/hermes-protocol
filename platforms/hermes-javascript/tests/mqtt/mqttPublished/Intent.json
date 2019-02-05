@@ -12,8 +12,8 @@
             {
                 "value": "moi",
                 "confidence": 0.5,
-                "range_start": 0,
-                "range_end": 3,
+                "rangeStart": 0,
+                "rangeEnd": 3,
                 "time": {
                     "start": 0.5,
                     "end": 1
@@ -22,8 +22,8 @@
             {
                 "value": "du",
                 "confidence": 0.5,
-                "range_start": 4,
-                "range_end": 6,
+                "rangeStart": 4,
+                "rangeEnd": 6,
                 "time": {
                     "start": 1,
                     "end": 1.5
@@ -32,8 +32,8 @@
             {
                 "value": "vert",
                 "confidence": 0.5,
-                "range_start": 7,
-                "range_end": 11,
+                "rangeStart": 7,
+                "rangeEnd": 11,
                 "time": {
                     "start": 1.5,
                     "end": 2.5
