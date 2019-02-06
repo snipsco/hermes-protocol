@@ -20,7 +20,7 @@ class IntentMessage extends Casteable {
     forge() {
         return super.forge(this.type, {
             intent: intent => {
-                const intentRef = new Casteable(intent).forge(types.CIntentClassifierResult).ref()
+                const intentRef = new Casteable(intent).forge(types.CNluIntentClassifierResult).ref()
                 ref._attach(intentRef, this)
                 return intentRef
             },

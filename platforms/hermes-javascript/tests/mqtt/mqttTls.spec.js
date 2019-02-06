@@ -47,13 +47,15 @@ afterAll(done => {
 it('should connect to a secure TLS mosquitto server', done => {
     const message = {
         siteId: 'default',
-        sessionId: 'session id'
+        sessionId: 'session id',
+        confidenceScore: 0.5
     }
     const expectedMessage = {
         custom_data: null,
         input: null,
         session_id: 'session id',
-        site_id: 'default'
+        site_id: 'default',
+        confidence_score: 0.5
     }
     const client = mqtt.connect('mqtts://localhost:18886', {
         username: 'foo',

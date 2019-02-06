@@ -224,11 +224,9 @@ class CNluSlot(p: Pointer?) : Structure(p), Structure.ByReference {
         @JvmStatic
         fun fromSlot(slot: Slot) = CNluSlot(null).apply {
             nlu_slot = null
-            confidence = slot.confidence ?: (-1.0).toFloat()
         }
     }
 
-    @JvmField var confidence: Float = (-1.0).toFloat()
     @JvmField var nlu_slot: CSlot? = null
 
     // be careful this block must be below the field definition if you don't want the native values read by JNA
@@ -237,7 +235,7 @@ class CNluSlot(p: Pointer?) : Structure(p), Structure.ByReference {
         read()
     }
 
-    override fun getFieldOrder() = listOf("confidence", "nlu_slot")
+    override fun getFieldOrder() = listOf("nlu_slot")
 
     fun toSlot() = Slot(
             rawValue = nlu_slot!!.raw_value.readString(),
@@ -245,7 +243,7 @@ class CNluSlot(p: Pointer?) : Structure(p), Structure.ByReference {
             range = nlu_slot!!.range_start.readRangeTo(nlu_slot!!.range_end),
             entity = nlu_slot!!.entity.readString(),
             slotName = nlu_slot!!.slot_name.readString(),
-            confidence = confidence
+            confidenceScore = nlu_slot!!.confidence_score
     )
 }
 
@@ -282,6 +280,16 @@ class CNluSlotArray(p: Pointer?) : Structure(p), Structure.ByReference {
     } else listOf()
 }
 
+class CNluIntentClassifierResult : Structure(), Structure.ByReference {
+    @JvmField var intent_name: Pointer? = null
+    @JvmField var confidence_score: Float? = null
+
+    override fun getFieldOrder() = listOf("intent_name", "confidence_score")
+
+    fun toIntentClassifierResult() = IntentClassifierResult(intentName = intent_name?.readString(),
+                                                            confidenceScore = confidence_score!!)
+}
+
 class CIntentMessage(p: Pointer) : Structure(p), Structure.ByReference {
     @JvmField
     var session_id: Pointer? = null
@@ -292,7 +300,7 @@ class CIntentMessage(p: Pointer) : Structure(p), Structure.ByReference {
     @JvmField
     var input: Pointer? = null
     @JvmField
-    var intent: CIntentClassifierResult? = null
+    var intent: CNluIntentClassifierResult? = null
     @JvmField
     var slots: CNluSlotArray? = null
 
@@ -321,6 +329,7 @@ class CIntentNotRecognizedMessage(p: Pointer?) : Structure(p), Structure.ByRefer
             session_id = message.sessionId.toPointer()
             input = message.input?.toPointer()
             custom_data = message.customData?.toPointer()
+            confidence_score = message.confidenceScore
         }
     }
 
@@ -332,6 +341,8 @@ class CIntentNotRecognizedMessage(p: Pointer?) : Structure(p), Structure.ByRefer
     var input: Pointer? = null
     @JvmField
     var custom_data: Pointer? = null
+    @JvmField
+    var confidence_score: Float? = null
 
     // be careful this block must be below the field definition if you don't want the native values read by JNA
     // overridden by the default ones
@@ -339,13 +350,14 @@ class CIntentNotRecognizedMessage(p: Pointer?) : Structure(p), Structure.ByRefer
         read()
     }
 
-    override fun getFieldOrder() = listOf("site_id", "session_id", "input", "custom_data")
+    override fun getFieldOrder() = listOf("site_id", "session_id", "input", "custom_data", "confidence_score")
 
     fun toIntentNotRecognizedMessage() = IntentNotRecognizedMessage(
             siteId = site_id.readString(),
             sessionId = session_id.readString(),
             input = input?.readString(),
-            customData = custom_data?.readString())
+            customData = custom_data?.readString(),
+            confidenceScore = confidence_score!!)
 }
 
 class CSessionStartedMessage(p: Pointer) : Structure(p), Structure.ByReference {

@@ -64,7 +64,8 @@ class FfiTest {
                 input = "smdlfk",
                 sessionId = "qsmd3711EAED",
                 siteId = "msdklfj",
-                customData = "fslksk"
+                customData = "fslksk",
+                confidenceScore = 0.5f
         )
         assertThat(HermesTest().roundTripIntentNotRecognized(input)).isEqualTo(input)
 
@@ -72,7 +73,8 @@ class FfiTest {
                 input = null,
                 sessionId = "qsmd3711EAED",
                 siteId = "msdklfj",
-                customData = null
+                customData = null,
+                confidenceScore = 0.5f
         )
         assertThat(HermesTest().roundTripIntentNotRecognized(input2)).isEqualTo(input2)
     }

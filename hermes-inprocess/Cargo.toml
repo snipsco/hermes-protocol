@@ -13,4 +13,4 @@ log = "0.4"
 
 [dev-dependencies]
 semver = "0.9"
-snips-nlu-ontology = { git = "https://github.com/snipsco/snips-nlu-ontology", tag = "0.61.3" }
+snips-nlu-ontology = { git = "https://github.com/snipsco/snips-nlu-ontology", tag = "0.63.1" }

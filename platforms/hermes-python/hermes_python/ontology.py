@@ -43,21 +43,21 @@ class IntentMessage(object):
 
 
 class IntentClassifierResult(object):
-    def __init__(self, intent_name, probability):
+    def __init__(self, intent_name, confidence_score):
         """
         Structured description of the intent classification.
 
         :param intent_name: name of the intent.
-        :param probability: probability that the parsed sentence is the `intent_name` intent.
+        :param confidence_score: confidence_score that the parsed sentence is the `intent_name` intent.
         """
         self.intent_name = intent_name
-        self.probability = probability
+        self.confidence_score = confidence_score
 
     @classmethod
     def from_c_repr(cls, c_repr):
         intent_name = c_repr.intent_name.decode('utf-8')
-        probability = c_repr.probability
-        return cls(intent_name, probability)
+        confidence_score = c_repr.confidence_score
+        return cls(intent_name, confidence_score)
 
 
 class SlotMap(DotMap):
@@ -98,8 +98,8 @@ class SlotsList(list):  # An extension to make things easier to reach slot_value
 
 
 class NluSlot(object):
-    def __init__(self, confidence, slot_value, raw_value, entity, slot_name, range_start, range_end):
-        self.confidence = confidence
+    def __init__(self, confidence_score, slot_value, raw_value, entity, slot_name, range_start, range_end):
+        self.confidence_score = confidence_score
         self.slot_value = slot_value
         self.raw_value = raw_value
         self.entity = entity
@@ -109,7 +109,6 @@ class NluSlot(object):
 
     @classmethod
     def from_c_repr(cls, c_repr):
-        confidence = c_repr.confidence
         slot = Slot.from_c_repr(c_repr.nlu_slot[0])
 
         slot_value = slot.slot_value  # To ensure compatibility, we flatten the data structure ...
@@ -118,11 +117,12 @@ class NluSlot(object):
         slot_name = slot.slot_name
         range_start = slot.range_start
         range_end = slot.range_end
-        return cls(confidence, slot_value, raw_value, entity, slot_name, range_start, range_end)
+        confidence_score = slot.confidence_score
+        return cls(confidence_score, slot_value, raw_value, entity, slot_name, range_start, range_end)
 
 
 class Slot(object):
-    def __init__(self, slot_value, raw_value, entity, slot_name, range_start, range_end):
+    def __init__(self, slot_value, raw_value, entity, slot_name, range_start, range_end, confidence_score):
         """
         Deprecated.
 
@@ -135,6 +135,7 @@ class Slot(object):
         :param slot_name: name of the slot.
         :param range_start: index at which the slot begins.
         :param range_end: index at which the slot ends.
+        :param confidence_score: between 0 and 1.
         """
         self.slot_value = slot_value
         self.raw_value = raw_value
@@ -142,6 +143,7 @@ class Slot(object):
         self.slot_name = slot_name
         self.range_start = range_start
         self.range_end = range_end
+        self.confidence_score = confidence_score
 
     @classmethod
     def from_c_repr(cls, c_repr):
@@ -151,8 +153,9 @@ class Slot(object):
         slot_name = c_repr.slot_name.decode('utf-8')
         range_start = c_repr.range_start
         range_end = c_repr.range_end
+        confidence_score = c_repr.confidence_score
 
-        return cls(slot_value, raw_value, entity, slot_name, range_start, range_end)
+        return cls(slot_value, raw_value, entity, slot_name, range_start, range_end, confidence_score)
 
 
 class SlotValue(object):
@@ -351,7 +354,7 @@ class ContinueSessionMessage(object):
 
 
 class IntentNotRecognizedMessage(object):
-    def __init__(self, site_id, session_id, input, custom_data):
+    def __init__(self, site_id, session_id, input, custom_data, confidence_score):
         """
         A message that the handler receives from the Dialogue manager when an intent is not recognized and that the
         session was initialized with the intent_not_recognized flag turned on.
@@ -360,11 +363,13 @@ class IntentNotRecognizedMessage(object):
         :param session_id: Session identifier that was started.
         :param input: The user input that has generated this intent. This parameter is nullable
         :param custom_data: Custom data passed by the Dialogue Manager in the current dialogue session. This parameter is nullable
+        :param confidence_score: Between 0 and 1
         """
         self.site_id = site_id
         self.session_id = session_id
         self.input = input
         self.custom_data = custom_data
+        self.confidence_score = confidence_score
 
     @classmethod
     def from_c_repr(cls, c_repr):
@@ -372,8 +377,9 @@ class IntentNotRecognizedMessage(object):
         session_id = c_repr.session_id.decode('utf-8')
         input = c_repr.input.decode('utf-8') if c_repr.input else None
         custom_data = c_repr.custom_data.decode('utf-8') if c_repr.custom_data else None
+        confidence_score = float(c_repr.confidence_score)
 
-        return cls(site_id, session_id, input, custom_data)
+        return cls(site_id, session_id, input, custom_data, confidence_score)
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__

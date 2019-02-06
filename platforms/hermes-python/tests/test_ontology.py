@@ -35,6 +35,6 @@ def test_confidence_access():
 
     slots = hermes_python.ontology.SlotMap(slot_map)
     intent_message = hermes_python.ontology.IntentMessage("session_id", "", "site_id", "input", "testIntent", slots)
-    assert intent_message.slots.test_slot[0].confidence == 0.8
+    assert intent_message.slots.test_slot[0].confidence_score == 0.8
 
 

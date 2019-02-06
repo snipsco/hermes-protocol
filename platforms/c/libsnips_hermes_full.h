@@ -253,8 +253,8 @@ typedef struct {
   /*
    * Between 0 and 1
    */
-  float probability;
-} CIntentClassifierResult;
+  float confidence_score;
+} CNluIntentClassifierResult;
 
 /*
  * A slot value
@@ -300,10 +300,13 @@ typedef struct {
    * End index of raw value in input text
    */
   int32_t range_end;
+  /*
+   * Between 0 and 1
+   */
+  float confidence_score;
 } CSlot;
 
 typedef struct {
-  float confidence;
   const CSlot *nlu_slot;
 } CNluSlot;
 
@@ -325,7 +328,7 @@ typedef struct {
   const char *custom_data;
   const char *site_id;
   const char *input;
-  const CIntentClassifierResult *intent;
+  const CNluIntentClassifierResult *intent;
   /*
    * Nullable
    */
@@ -347,6 +350,7 @@ typedef struct {
    * Nullable
    */
   const char *custom_data;
+  float confidence_score;
 } CIntentNotRecognizedMessage;
 
 typedef struct {
@@ -529,7 +533,7 @@ typedef struct {
    */
   const char *id;
   const char *input;
-  const CIntentClassifierResult *intent;
+  const CNluIntentClassifierResult *intent;
   /*
    * Nullable
    */
@@ -550,6 +554,7 @@ typedef struct {
    * Nullable
    */
   const char *session_id;
+  float confidence_score;
 } CNluIntentNotRecognizedMessage;
 
 typedef struct {

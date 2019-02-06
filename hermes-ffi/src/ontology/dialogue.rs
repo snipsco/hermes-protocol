@@ -5,9 +5,9 @@ use failure::format_err;
 use failure::Fallible;
 use failure::ResultExt;
 use ffi_utils::*;
-use snips_nlu_ontology_ffi_macros::CIntentClassifierResult;
 
-use super::{CAsrTokenDoubleArray, CNluSlotArray};
+use crate::asr::CAsrTokenDoubleArray;
+use crate::nlu::{CNluIntentClassifierResult, CNluSlotArray};
 
 #[repr(C)]
 #[derive(Debug)]
@@ -17,7 +17,7 @@ pub struct CIntentMessage {
     pub custom_data: *const libc::c_char,
     pub site_id: *const libc::c_char,
     pub input: *const libc::c_char,
-    pub intent: *const CIntentClassifierResult,
+    pub intent: *const CNluIntentClassifierResult,
     /// Nullable
     pub slots: *const CNluSlotArray,
     /// Nullable, the first array level represents the asr invocation, the second one the tokens
@@ -39,9 +39,9 @@ impl CReprOf<hermes::IntentMessage> for CIntentMessage {
             custom_data: convert_to_nullable_c_string!(input.custom_data),
             site_id: convert_to_c_string!(input.site_id),
             input: convert_to_c_string!(input.input),
-            intent: Box::into_raw(Box::new(CIntentClassifierResult::from(input.intent))),
-            slots: if let Some(slots) = input.slots {
-                CNluSlotArray::c_repr_of(slots)?.into_raw_pointer()
+            intent: CNluIntentClassifierResult::c_repr_of(input.intent)?.into_raw_pointer(),
+            slots: if !input.slots.is_empty() {
+                CNluSlotArray::c_repr_of(input.slots)?.into_raw_pointer()
             } else {
                 null()
             },
@@ -56,15 +56,7 @@ impl CReprOf<hermes::IntentMessage> for CIntentMessage {
 
 impl AsRust<hermes::IntentMessage> for CIntentMessage {
     fn as_rust(&self) -> Fallible<hermes::IntentMessage> {
-        /*Ok(hermes::IntentMessage {
-            session_id: create_rust_string_from!(self.session_id),
-            custom_data: create_optional_rust_string_from!(self.custom_data),
-            site_id: create_rust_string_from!(self.site_id),
-            input: create_rust_string_from!(self.input),
-            intent: unsafe {CIntentClassifierResult::raw_borrow(self.intent) }?.as_rust()?, // TODO impl in snips-nlu-ontology
-            slots: if self.slots.is_null() { None }  else { unsafe {CSlotList::raw_borrow(self.slots)}?.as_rust()? }, // TODO impl in snips-nlu-ontology
-        })*/
-        bail!("Missing converter for CIntentClassifierResult and CSlotList, if you need this feature, please tell us !")
+        bail!("Missing converter for CSlotList, if you need this feature, please tell us !")
     }
 }
 
@@ -74,7 +66,7 @@ impl Drop for CIntentMessage {
         take_back_nullable_c_string!(self.custom_data);
         take_back_c_string!(self.site_id);
         take_back_c_string!(self.input);
-        let _ = unsafe { Box::from_raw(self.intent as *mut CIntentClassifierResult) };
+        let _ = unsafe { CNluIntentClassifierResult::drop_raw_pointer(self.intent) };
         if !self.slots.is_null() {
             let _ = unsafe { CNluSlotArray::drop_raw_pointer(self.slots) };
         }
@@ -93,6 +85,7 @@ pub struct CIntentNotRecognizedMessage {
     pub input: *const libc::c_char,
     /// Nullable
     pub custom_data: *const libc::c_char,
+    pub confidence_score: libc::c_float,
 }
 
 unsafe impl Sync for CIntentNotRecognizedMessage {}
@@ -104,6 +97,7 @@ impl CReprOf<hermes::IntentNotRecognizedMessage> for CIntentNotRecognizedMessage
             session_id: convert_to_c_string!(input.session_id),
             input: convert_to_nullable_c_string!(input.input),
             custom_data: convert_to_nullable_c_string!(input.custom_data),
+            confidence_score: input.confidence_score,
         })
     }
 }
@@ -115,6 +109,7 @@ impl AsRust<hermes::IntentNotRecognizedMessage> for CIntentNotRecognizedMessage 
             session_id: create_rust_string_from!(self.session_id),
             input: create_optional_rust_string_from!(self.input),
             custom_data: create_optional_rust_string_from!(self.custom_data),
+            confidence_score: self.confidence_score,
         })
     }
 }
@@ -643,6 +638,7 @@ mod tests {
             custom_data: Some("custom".into()),
             session_id: "session id".into(),
             input: Some("some text".into()),
+            confidence_score: 0.5,
         });
 
         round_trip_test::<_, CIntentNotRecognizedMessage>(hermes::IntentNotRecognizedMessage {
@@ -650,6 +646,7 @@ mod tests {
             custom_data: None,
             session_id: "session id".into(),
             input: None,
+            confidence_score: 0.5,
         });
     }
 
