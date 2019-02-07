@@ -2,7 +2,6 @@ package ai.snips.hermes
 
 import ai.snips.hermes.SessionInit.Type.ACTION
 import ai.snips.hermes.SessionInit.Type.NOTIFICATION
-import ai.snips.nlu.ontology.IntentClassifierResult
 import ai.snips.nlu.ontology.Range
 import ai.snips.nlu.ontology.SlotValue
 import org.parceler.Parcel
@@ -56,7 +55,12 @@ data class Slot @ParcelConstructor constructor(
         @ParcelProperty("range") val range: Range?,
         @ParcelProperty("entity") val entity: String,
         @ParcelProperty("slotName") val slotName: String,
-        @ParcelProperty("confidence") val confidence: Float?)
+        @ParcelProperty("confidenceScore") val confidenceScore: Float?)
+
+@Parcel(BEAN)
+data class IntentClassifierResult @ParcelConstructor constructor(
+        @ParcelProperty("intentName") val intentName: String?,
+        @ParcelProperty("confidenceScore") val confidenceScore: Float)
 
 @Parcel(BEAN)
 data class IntentMessage @ParcelConstructor constructor(
@@ -72,7 +76,8 @@ data class IntentNotRecognizedMessage @ParcelConstructor constructor(
         @ParcelProperty("sessionId") val sessionId: String,
         @ParcelProperty("customData") val customData: String?,
         @ParcelProperty("siteId") val siteId: String,
-        @ParcelProperty("input") val input: String?)
+        @ParcelProperty("input") val input: String?,
+        @ParcelProperty("confidenceScore") val confidenceScore: Float)
 
 @Parcel(BEAN)
 data class SessionStartedMessage @ParcelConstructor constructor(

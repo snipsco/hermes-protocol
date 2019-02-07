@@ -116,4 +116,3 @@ class HermesTest {
         fun hermes_drop_injection_request_message(ptr: Pointer): Int
     }
 }
-

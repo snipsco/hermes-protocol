@@ -14,12 +14,14 @@ pub struct AsrStartListeningMessage {
 impl<'de> HermesMessage<'de> for AsrStartListeningMessage {}
 
 #[derive(Debug, Clone, Default, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AsrDecodingDuration {
     pub start: f32,
     pub end: f32,
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AsrToken {
     /// The value of the token
     pub value: String,

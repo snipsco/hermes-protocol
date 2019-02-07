@@ -5,9 +5,9 @@ use failure::bail;
 use failure::Fallible;
 use failure::ResultExt;
 use ffi_utils::*;
-use snips_nlu_ontology_ffi_macros::{CIntentClassifierResult, CSlot};
+use snips_nlu_ontology_ffi_macros::CSlot;
 
-use super::CAsrTokenArray;
+use crate::asr::CAsrTokenArray;
 
 #[repr(C)]
 #[derive(Debug)]
@@ -207,6 +207,7 @@ pub struct CNluIntentNotRecognizedMessage {
     pub id: *const libc::c_char,
     /// Nullable
     pub session_id: *const libc::c_char,
+    pub confidence_score: libc::c_float,
 }
 
 unsafe impl Sync for CNluIntentNotRecognizedMessage {}
@@ -223,6 +224,7 @@ impl CReprOf<hermes::NluIntentNotRecognizedMessage> for CNluIntentNotRecognizedM
             input: convert_to_c_string!(input.input),
             id: convert_to_nullable_c_string!(input.id),
             session_id: convert_to_nullable_c_string!(input.session_id),
+            confidence_score: input.confidence_score,
         })
     }
 }
@@ -233,6 +235,7 @@ impl AsRust<hermes::NluIntentNotRecognizedMessage> for CNluIntentNotRecognizedMe
             input: create_rust_string_from!(self.input),
             id: create_optional_rust_string_from!(self.id),
             session_id: create_optional_rust_string_from!(self.session_id),
+            confidence_score: self.confidence_score,
         })
     }
 }
@@ -248,14 +251,12 @@ impl Drop for CNluIntentNotRecognizedMessage {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CNluSlot {
-    pub confidence: f32,
     pub nlu_slot: *const CSlot,
 }
 
 impl CReprOf<hermes::NluSlot> for CNluSlot {
     fn c_repr_of(input: hermes::NluSlot) -> Fallible<Self> {
         Ok(Self {
-            confidence: input.confidence.unwrap_or(-1.),
             nlu_slot: CSlot::from(input.nlu_slot).into_raw_pointer(),
         })
     }
@@ -333,7 +334,7 @@ pub struct CNluIntentMessage {
     /// Nullable
     pub id: *const libc::c_char,
     pub input: *const libc::c_char,
-    pub intent: *const CIntentClassifierResult,
+    pub intent: *const CNluIntentClassifierResult,
     /// Nullable
     pub slots: *const CNluSlotArray,
     /// Nullable
@@ -353,9 +354,9 @@ impl CReprOf<hermes::NluIntentMessage> for CNluIntentMessage {
         Ok(Self {
             id: convert_to_nullable_c_string!(input.id),
             input: convert_to_c_string!(input.input),
-            intent: CIntentClassifierResult::from(input.intent).into_raw_pointer(),
-            slots: if let Some(slots) = input.slots {
-                CNluSlotArray::c_repr_of(slots)?.into_raw_pointer()
+            intent: CNluIntentClassifierResult::c_repr_of(input.intent)?.into_raw_pointer(),
+            slots: if !input.slots.is_empty() {
+                CNluSlotArray::c_repr_of(input.slots)?.into_raw_pointer()
             } else {
                 null()
             },
@@ -366,14 +367,7 @@ impl CReprOf<hermes::NluIntentMessage> for CNluIntentMessage {
 
 impl AsRust<hermes::NluIntentMessage> for CNluIntentMessage {
     fn as_rust(&self) -> Fallible<hermes::NluIntentMessage> {
-        /*Ok(hermes::NluIntentMessage {
-            id: create_optional_rust_string_from!(self.id),
-            input: create_rust_string_from!(self.input),
-            intent: unsafe {CIntentClassifierResult::raw_borrow(self.intent) }?.as_rust()?, // TODO impl in snips-nlu-ontology
-            slots: if self.slots.is_null() { None }  else { unsafe {CSlotList::raw_borrow(self.slots)}?.as_rust()? }, // TODO impl in snips-nlu-ontology
-            session_id: create_optional_rust_string_from!(self.session_id),
-        })*/
-        bail!("Missing converter for CIntentClassifierResult and CSlotList, if you need this feature, please tell us !")
+        bail!("Missing converter for CSlotList, if you need this feature, please tell us !")
     }
 }
 
@@ -381,8 +375,60 @@ impl Drop for CNluIntentMessage {
     fn drop(&mut self) {
         take_back_nullable_c_string!(self.id);
         take_back_c_string!(self.input);
-        let _ = unsafe { CIntentClassifierResult::from_raw_pointer(self.intent) };
+        let _ = unsafe { CNluIntentClassifierResult::drop_raw_pointer(self.intent) };
         let _ = unsafe { CNluSlotArray::drop_raw_pointer(self.slots) };
         take_back_nullable_c_string!(self.session_id);
+    }
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct CNluIntentClassifierResult {
+    /// Name of the intent detected
+    pub intent_name: *const libc::c_char,
+    /// Between 0 and 1
+    pub confidence_score: libc::c_float,
+}
+
+impl CReprOf<hermes::NluIntentClassifierResult> for CNluIntentClassifierResult {
+    fn c_repr_of(input: hermes::NluIntentClassifierResult) -> Fallible<Self> {
+        Ok(Self {
+            intent_name: convert_to_c_string!(input.intent_name),
+            confidence_score: input.confidence_score,
+        })
+    }
+}
+
+impl AsRust<hermes::NluIntentClassifierResult> for CNluIntentClassifierResult {
+    fn as_rust(&self) -> Fallible<hermes::NluIntentClassifierResult> {
+        Ok(hermes::NluIntentClassifierResult {
+            intent_name: create_rust_string_from!(self.intent_name),
+            confidence_score: self.confidence_score,
+        })
+    }
+}
+
+impl Drop for CNluIntentClassifierResult {
+    fn drop(&mut self) {
+        take_back_nullable_c_string!(self.intent_name);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::super::tests::round_trip_test;
+    use super::*;
+
+    #[test]
+    fn round_trip_intent_classifier_result() {
+        round_trip_test::<_, CNluIntentClassifierResult>(hermes::NluIntentClassifierResult {
+            intent_name: "MakeCoffee".into(),
+            confidence_score: 0.5,
+        });
+
+        round_trip_test::<_, CNluIntentClassifierResult>(hermes::NluIntentClassifierResult {
+            intent_name: "MakeCoffee".into(),
+            confidence_score: 0.5,
+        });
     }
 }

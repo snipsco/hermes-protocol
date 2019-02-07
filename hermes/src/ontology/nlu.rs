@@ -63,6 +63,8 @@ pub struct NluIntentNotRecognizedMessage {
     pub id: Option<String>,
     /// The text that didn't match any intent
     pub input: String,
+    /// Expresses the confidence that no intent was found
+    pub confidence_score: f32,
     /// An optional session id if there is a related session
     pub session_id: Option<String>,
 }
@@ -72,10 +74,17 @@ impl<'de> HermesMessage<'de> for NluIntentNotRecognizedMessage {}
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NluSlot {
-    /// The slot confidence
-    pub confidence: Option<f32>,
     #[serde(flatten)]
     pub nlu_slot: snips_nlu_ontology::Slot,
+}
+
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NluIntentClassifierResult {
+    /// Name of the intent that was found
+    pub intent_name: String,
+    /// The confidence score
+    pub confidence_score: f32,
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
@@ -86,9 +95,9 @@ pub struct NluIntentMessage {
     /// The input that was processed
     pub input: String,
     /// The result of the intent classification
-    pub intent: snips_nlu_ontology::IntentClassifierResult,
+    pub intent: NluIntentClassifierResult,
     /// The detected slots, if any
-    pub slots: Option<Vec<NluSlot>>,
+    pub slots: Vec<NluSlot>,
     /// An optional session id if there is a related session
     pub session_id: Option<String>,
 }

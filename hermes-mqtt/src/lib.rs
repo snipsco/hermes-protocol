@@ -801,7 +801,7 @@ mod tests {
 
         // wait 'till mosquitto is accessible.
         let server_is_live = || {
-            for _ in 0..50 {
+            for _ in 0..100 {
                 if TcpStream::connect(&server_address).is_ok() {
                     return true;
                 } else {
@@ -830,5 +830,5 @@ mod tests {
 
     // sleep 50ms between registering the callback and sending the message to be "sure" the event
     // arrive in the right order to the mosquitto server
-    hermes_test_suite::test_suite!(WAIT_DURATION = 50);
+    hermes_test_suite::test_suite!(WAIT_DURATION = 200);
 }

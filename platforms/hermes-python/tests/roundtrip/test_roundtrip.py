@@ -101,7 +101,7 @@ def test_hermes_ffi_test_round_trip_session_ended(): # TODO : Move Termination t
 
 
 def test_hermes_ffi_test_round_trip_intent_not_recognized():
-    intent_not_recognized_message = hermes_python.ontology.IntentNotRecognizedMessage("site_id", "session_id", "input", "custom_data")
+    intent_not_recognized_message = hermes_python.ontology.IntentNotRecognizedMessage("site_id", "session_id", "input", "custom_data", 0.5)
     round_trip_intent_not_recognized_message = get_round_trip_data_structure(
         intent_not_recognized_message,
         hermes_python.ffi.ontology.CIntentNotRecognizedMessage,

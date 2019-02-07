@@ -146,19 +146,19 @@ class CStartSessionMessageNotification(Structure):
         return cls(init, custom_data, site_id)
 
 
-class CIntentClassifierResult(Structure):
+class CNluIntentClassifierResult(Structure):
     _fields_ = [("intent_name", c_char_p),
-                ("probability", c_float)]
+                ("confidence_score", c_float)]
 
     @classmethod
-    def build(cls, intent_name, probability):
+    def build(cls, intent_name, confidence_score):
         intent_name = intent_name.encode('utf-8')
-        probability = float(probability)
-        return cls(intent_name, probability)
+        confidence_score = float(confidence_score)
+        return cls(intent_name, confidence_score)
 
     @classmethod
     def from_repr(cls, repr):
-        return cls.build(repr.intent_name, repr.probability)
+        return cls.build(repr.intent_name, repr.confidence_score)
 
 
 class CSlotValue(Structure):
@@ -174,6 +174,7 @@ class CSlotValue(Structure):
     def from_repr(cls, repr):
         return cls(pointer(repr.value), repr.value_type)
 
+
 class CSlot(Structure):
     _fields_ = [
         ("value", CSlotValue),
@@ -181,34 +182,34 @@ class CSlot(Structure):
         ("entity", c_char_p),
         ("slot_name", c_char_p),
         ("range_start", c_int32),
-        ("range_end", c_int32)
+        ("range_end", c_int32),
+        ("confidence_score", c_float)
     ]
 
     @classmethod
-    def build(cls, c_slot_value, raw_value, entity, slot_name, range_start, range_end):
+    def build(cls, c_slot_value, raw_value, entity, slot_name, range_start, range_end, confidence_score):
         raw_value = raw_value.encode('utf-8') if raw_value else None
         entity = entity.encode('utf-8') if entity else None
         slot_name = slot_name.encode('utf-8') if slot_name else None
         range_start = range_start
         range_end = range_end
-        return cls(c_slot_value, raw_value, entity, slot_name, range_start, range_end)
+        confidence_score = float(confidence_score) if confidence_score else float(-1)
+        return cls(c_slot_value, raw_value, entity, slot_name, range_start, range_end, confidence_score)
 
 
 class CNluSlot(Structure):
     _fields_ = [
-        ("confidence", c_float),
         ("nlu_slot", POINTER(CSlot))
     ]
 
     @classmethod
     def from_repr(cls, repr):
-        return cls(repr.confidence, repr.slot)
+        return cls(repr.slot)
 
     @classmethod
-    def build(cls, confidence, nlu_slot):
-        confidence = c_float(float(confidence))
+    def build(cls, nlu_slot):
         slot_p = POINTER(CSlot)(nlu_slot)
-        return cls(confidence, slot_p)
+        return cls(slot_p)
 
 
 class CSlotList(Structure):
@@ -228,7 +229,7 @@ class CIntentMessage(Structure):
                 ("custom_data", c_char_p),
                 ("site_id", c_char_p),
                 ("input", c_char_p),
-                ("intent", POINTER(CIntentClassifierResult)),
+                ("intent", POINTER(CNluIntentClassifierResult)),
                 ("slots", POINTER(CNluSlotArray))]
 
     @classmethod
@@ -242,7 +243,7 @@ class CIntentMessage(Structure):
 
     @classmethod
     def from_repr(cls, repr):
-        c_intent_classifier_result = POINTER(CIntentClassifierResult)(CIntentClassifierResult.from_repr(repr.intent))
+        c_intent_classifier_result = POINTER(CNluIntentClassifierResult)(CNluIntentClassifierResult.from_repr(repr.intent))
         c_slots = POINTER(CNluSlotArray)(CNluSlotArray.from_repr(repr.slots))
         return cls.build(repr.session_id, repr.custom_data, repr.site_id, repr.input, c_intent_classifier_result, c_slots)
 
@@ -282,6 +283,7 @@ class CSessionQueuedMessage(Structure):
     _fields_ = [("session_id", c_char_p),
                 ("custom_data", c_char_p),
                 ("site_id", c_char_p)]
+
     @classmethod
     def build(cls, session_id, custom_data, site_id):
         session_id = session_id.encode('utf-8')
@@ -317,20 +319,22 @@ class CIntentNotRecognizedMessage(Structure):
     _fields_ = [("site_id", c_char_p),
                 ("session_id", c_char_p),
                 ("input", c_char_p),  # Nullable
-                ("custom_data", c_char_p)]  # Nullable
+                ("custom_data", c_char_p),  # Nullable
+                ("confidence_score", c_float)]
 
     @classmethod
-    def build(cls, site_id, session_id, input, custom_data):
+    def build(cls, site_id, session_id, input, custom_data, confidence_score):
         site_id = site_id.encode('utf-8')
         session_id = session_id.encode('utf-8')
         input = input.encode('utf-8') if input else None
         custom_data = custom_data.encode('utf-8') if custom_data else None
+        confidence_score = float(confidence_score)
 
-        return cls(site_id, session_id, input, custom_data)
+        return cls(site_id, session_id, input, custom_data, confidence_score)
 
     @classmethod
     def from_repr(cls, repr):
-        return cls.build(repr.site_id, repr.session_id, repr.input, repr.custom_data)
+        return cls.build(repr.site_id, repr.session_id, repr.input, repr.custom_data, repr.confidence_score)
 
 
 # Slot Types Structs
