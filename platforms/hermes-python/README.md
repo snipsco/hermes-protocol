@@ -124,4 +124,15 @@ Everytime you need to perform a release, do the following steps :
 - [ ] Run tests
 - [ ] Bump the version and commit it
 - [ ] Upload to PyPI
- 
+
+## Building from sources
+### Creating macOS wheels
+The build script : `build_scripts/build_macos_wheels.sh` uses pyenv to generate `hermes-python` wheels for different versions of python. 
+
+To be able to run it, you need to : 
+- install pyenv : brew install pyenv. Then follow the additional steps (detailled [here](https://github.com/pyenv/pyenv#basic-github-checkout)). 
+- you then have to install python at different versions:  `pyenv install --list` to list the available version to install.
+- Before installing and building the different python version from sources, install the required dependencies : https://github.com/pyenv/pyenv/wiki. (This was told in the first step). 
+
+You should be good to go ! 
+
