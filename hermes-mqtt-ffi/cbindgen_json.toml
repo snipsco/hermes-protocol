@@ -1,0 +1,16 @@
+language = "c"
+
+include_guard = "LIB_HERMES_JSON_H_"
+
+[parse]
+parse_deps=true
+include = [
+    "hermes_mqtt_ffi",
+    "hermes_ffi",
+    "ffi_utils",
+]
+
+[parse.expand]
+crates = ["hermes-mqtt-ffi"]
+default_features = false
+features = ["json"]
