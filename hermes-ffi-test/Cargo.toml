@@ -9,7 +9,8 @@ crate-type = ["rlib", "staticlib", "cdylib"]
 
 [features]
 full_bindings = []
-default = ["full_bindings"]
+json = ["hermes-ffi/json"]
+default = ["full_bindings", "json"]
 
 [dependencies]
 failure = "0.1"

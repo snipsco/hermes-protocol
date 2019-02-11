@@ -9,6 +9,7 @@ crate-type = ["rlib", "staticlib", "cdylib"]
 
 [features]
 full_bindings = []
+json = ["hermes-ffi/json"]
 default = ["full_bindings"]
 
 [dependencies]
