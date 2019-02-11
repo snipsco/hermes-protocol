@@ -5,7 +5,10 @@ authors = ["Thibaut Lorrain <thibaut.lorrain@snips.ai>"]
 edition = "2018"
 
 [features]
+full_bindings = []
+structures = []
 json = ["serde_json"]
+default = ["structures", "full_bindings"]
 
 [dependencies]
 chrono = "0.4"

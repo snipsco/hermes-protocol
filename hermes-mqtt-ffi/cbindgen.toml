@@ -15,6 +15,7 @@ include = [
 [parse.expand]
 crates = ["hermes-mqtt-ffi"]
 default_features = false
+features = ["structures"]
 
 [export]
 # These types are hidden behind a void pointer, let's include them

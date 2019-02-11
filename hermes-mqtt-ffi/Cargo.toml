@@ -8,9 +8,10 @@ edition = "2018"
 crate-type = ["rlib", "staticlib", "cdylib"]
 
 [features]
-full_bindings = []
+full_bindings = ["hermes-ffi/full_bindings"]
+structures = ["hermes-ffi/structures"]
 json = ["hermes-ffi/json"]
-default = ["full_bindings"]
+default = ["structures", "full_bindings"]
 
 [dependencies]
 failure = "0.1"
