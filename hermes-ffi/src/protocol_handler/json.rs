@@ -95,6 +95,7 @@ macro_rules! generate_facade_subscribe_json {
 #[macro_export]
 macro_rules! generate_json_c_symbols {
     () => {
+        #[rustfmt::skip]
         pub mod json {
             use super::facades::*;
             use super::LAST_ERROR;
