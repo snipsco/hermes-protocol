@@ -8,7 +8,7 @@ edition = "2018"
 full_bindings = []
 structures = []
 json = ["serde_json"]
-default = ["structures", "full_bindings"]
+default = ["structures", "json", "full_bindings"]
 
 [dependencies]
 chrono = "0.4"
