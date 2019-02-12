@@ -419,6 +419,10 @@ typedef struct {
    * Nullable
    */
   const char *custom_data;
+  /*
+   * Nullable
+   */
+  const char *slot;
   unsigned char send_intent_not_recognized;
 } CContinueSessionMessage;
 

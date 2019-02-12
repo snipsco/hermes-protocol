@@ -394,6 +394,8 @@ pub struct CContinueSessionMessage {
     pub intent_filter: *const CStringArray,
     /// Nullable
     pub custom_data: *const libc::c_char,
+    /// Nullable
+    pub slot: *const libc::c_char,
     pub send_intent_not_recognized: libc::c_uchar,
 }
 
@@ -416,6 +418,7 @@ impl CReprOf<hermes::ContinueSessionMessage> for CContinueSessionMessage {
             text: convert_to_c_string!(input.text),
             intent_filter: convert_to_nullable_c_string_array!(input.intent_filter),
             custom_data: convert_to_nullable_c_string!(input.custom_data),
+            slot: convert_to_nullable_c_string!(input.slot),
             send_intent_not_recognized: if input.send_intent_not_recognized { 1 } else { 0 },
         })
     }
@@ -431,6 +434,7 @@ impl AsRust<hermes::ContinueSessionMessage> for CContinueSessionMessage {
                 None => None,
             },
             custom_data: create_optional_rust_string_from!(self.custom_data),
+            slot: create_optional_rust_string_from!(self.slot),
             send_intent_not_recognized: self.send_intent_not_recognized == 1,
         })
     }
@@ -442,6 +446,7 @@ impl Drop for CContinueSessionMessage {
         take_back_c_string!(self.text);
         take_back_nullable_c_string_array!(self.intent_filter);
         take_back_nullable_c_string!(self.custom_data);
+        take_back_nullable_c_string!(self.slot);
     }
 }
 
@@ -739,6 +744,7 @@ mod tests {
             text: "some text".into(),
             intent_filter: Some(vec!["filter1".into(), "filter2".into()]),
             custom_data: Some("foo bar".into()),
+            slot: Some("some slot".into()),
             send_intent_not_recognized: true,
         });
 
@@ -747,6 +753,7 @@ mod tests {
             text: "some text".into(),
             intent_filter: None,
             custom_data: None,
+            slot: None,
             send_intent_not_recognized: false,
         });
 
@@ -755,6 +762,7 @@ mod tests {
             text: "some text".into(),
             intent_filter: Some(vec![]),
             custom_data: Some("".into()),
+            slot: Some("".into()),
             send_intent_not_recognized: true,
         });
     }

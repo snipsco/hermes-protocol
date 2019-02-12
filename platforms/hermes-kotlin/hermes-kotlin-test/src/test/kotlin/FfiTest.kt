@@ -44,7 +44,8 @@ class FfiTest {
                 intentFilter = listOf("an intent filter", "another intent filter"),
                 sessionId = "qsmd3711EAED",
                 sendIntentNotRecognized = true,
-                customData = "this is a test custom data"
+                customData = "this is a test custom data",
+                slot = "some slot"
         )
         assertThat(HermesTest().roundTripContinueSession(input)).isEqualTo(input)
     }
