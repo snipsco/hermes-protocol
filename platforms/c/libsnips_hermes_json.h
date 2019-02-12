@@ -1,5 +1,5 @@
-#ifndef LIB_HERMES_JSON_H_
-#define LIB_HERMES_JSON_H_
+#ifndef LIB_HERMES_H_
+#define LIB_HERMES_H_
 
 #include <stdarg.h>
 #include <stdbool.h>
@@ -158,4 +158,4 @@ SNIPS_RESULT hermes_sound_feedback_publish_toggle_off_json(const CSoundFeedbackF
 SNIPS_RESULT hermes_sound_feedback_publish_toggle_on_json(const CSoundFeedbackFacade *facade,
                                                           const char *message);
 
-#endif /* LIB_HERMES_JSON_H_ */
+#endif /* LIB_HERMES_H_ */

@@ -1,6 +1,6 @@
 language = "c"
 
-include_guard = "LIB_HERMES_FULL_H_"
+include_guard = "LIB_HERMES_H_"
 
 [parse]
 parse_deps=true
