@@ -5,12 +5,9 @@ use crate::UserData;
 
 pub type CJsonCallback = unsafe extern "C" fn(*const libc::c_char, *mut libc::c_void);
 
-pub fn json_ptr_to_callback<'de, T>(
-    ptr: Option<CJsonCallback>,
-    user_data: UserData,
-) -> Fallible<hermes::Callback<T>>
-    where
-        T: HermesMessage<'de>,
+pub fn json_ptr_to_callback<'de, T>(ptr: Option<CJsonCallback>, user_data: UserData) -> Fallible<hermes::Callback<T>>
+where
+    T: HermesMessage<'de>,
 {
     match ptr {
         Some(ptr) => Ok(hermes::Callback::new(move |payload: &T| {
@@ -22,7 +19,10 @@ pub fn json_ptr_to_callback<'de, T>(
     }
 }
 
-pub fn json_from_slice<'a, T>(v: &'a [u8]) -> Fallible<T> where T: HermesMessage<'a> {
+pub fn json_from_slice<'a, T>(v: &'a [u8]) -> Fallible<T>
+where
+    T: HermesMessage<'a>,
+{
     Ok(serde_json::from_slice(v)?)
 }
 
@@ -96,8 +96,8 @@ macro_rules! generate_facade_subscribe_json {
 macro_rules! generate_json_c_symbols {
     () => {
         pub mod json {
-            use super::LAST_ERROR;
             use super::facades::*;
+            use super::LAST_ERROR;
 
             $crate::generate_facade_publish_json!(hermes_sound_feedback_publish_toggle_on_json = CSoundFeedbackFacade: publish_toggle_on());
             $crate::generate_facade_publish_json!(hermes_sound_feedback_publish_toggle_off_json = CSoundFeedbackFacade: publish_toggle_off());
@@ -118,8 +118,8 @@ macro_rules! generate_json_c_symbols {
 
             #[cfg(feature = "full_bindings")]
             pub mod full_bindings {
-                use super::super::LAST_ERROR;
                 use super::super::facades::full_bindings::*;
+                use super::super::LAST_ERROR;
 
                 $crate::generate_facade_subscribe_json!(hermes_hotword_subscribe_detected_json = CHotwordFacade: subscribe_detected(hotword_id));
                 $crate::generate_facade_subscribe_json!(hermes_hotword_subscribe_all_detected_json = CHotwordFacade: subscribe_all_detected());

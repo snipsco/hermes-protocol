@@ -1,5 +1,5 @@
-mod protocol_handler;
 pub mod ontology;
+mod protocol_handler;
 
 pub use crate::ontology::*;
 pub use crate::protocol_handler::*;

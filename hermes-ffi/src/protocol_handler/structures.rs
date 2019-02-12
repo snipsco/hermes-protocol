@@ -5,10 +5,12 @@ use crate::protocol_handler::UserData;
 
 pub fn structure_ptr_to_callback<T, U>(
     ptr: Option<unsafe extern "C" fn(*const U, *mut libc::c_void)>,
-    user_data: UserData) -> Fallible<hermes::Callback<T>>
-    where
-        T: Clone + Sync,
-        U: CReprOf<T> + Sync + 'static {
+    user_data: UserData,
+) -> Fallible<hermes::Callback<T>>
+where
+    T: Clone + Sync,
+    U: CReprOf<T> + Sync + 'static,
+{
     if let Some(ptr) = ptr {
         Ok(hermes::Callback::new(move |payload: &T| {
             let param = Box::into_raw(Box::new(U::c_repr_of(payload.clone()).unwrap()));

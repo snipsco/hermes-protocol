@@ -1,14 +1,14 @@
 pub mod facades;
-#[cfg(feature = "structures")]
-pub mod structures;
 #[cfg(feature = "json")]
 pub mod json;
+#[cfg(feature = "structures")]
+pub mod structures;
 
 pub use facades::{CProtocolHandler, UserData};
+#[cfg(feature = "json")]
+pub use json::{json_from_slice, json_ptr_to_callback, CJsonCallback};
 #[cfg(feature = "structures")]
 pub use structures::structure_ptr_to_callback;
-#[cfg(feature = "json")]
-pub use json::{json_ptr_to_callback, json_from_slice, CJsonCallback};
 
 #[macro_export]
 macro_rules! generate_hermes_c_symbols {
