@@ -14,3 +14,6 @@ include = [
 crates = ["hermes-mqtt-ffi"]
 default_features = false
 features = ["json"]
+
+[export]
+exclude = ["CStringArray"]
