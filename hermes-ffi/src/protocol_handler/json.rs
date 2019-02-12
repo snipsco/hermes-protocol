@@ -30,7 +30,7 @@ where
 macro_rules! generate_facade_publish_json {
     ($c_symbol:ident = $facade:ty:$method:ident) => {
         #[no_mangle]
-        pub extern "C" fn $c_symbol(facade: *const $facade) -> ffi_utils::SNIPS_RESULT {
+        pub unsafe extern "C" fn $c_symbol(facade: *const $facade) -> ffi_utils::SNIPS_RESULT {
             ffi_utils::wrap!(unsafe { (*facade).extract() }.$method())
         }
     };
