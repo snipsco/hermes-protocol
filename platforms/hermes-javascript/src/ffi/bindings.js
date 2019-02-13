@@ -37,20 +37,29 @@ module.exports.library = libraryPath => ffi.Library(libraryPath, {
 
     // Resumes the current session
     hermes_dialogue_publish_continue_session: [ 'int', [ 'void *', 'void *' ]],
+    hermes_dialogue_publish_continue_session_json: [ 'int', [ 'void *', 'char *' ]],
     // Ends the current session
     hermes_dialogue_publish_end_session: [ 'int', [ 'void *', 'void *' ]],
+    hermes_dialogue_publish_end_session_json: [ 'int', [ 'void *', 'char *' ]],
     // Programmatically start a new session
     hermes_dialogue_publish_start_session: [ 'int', [ 'void *', 'void *' ]],
+    hermes_dialogue_publish_start_session_json: [ 'int', [ 'void *', 'char *' ]],
     // Callback - Subscribe to intents detected
     hermes_dialogue_subscribe_intent: [ 'int', [ 'void *', 'char *', 'void *' ]],
+    hermes_dialogue_subscribe_intent_json: [ 'int', [ 'void *', 'char *', 'void *' ]],
     hermes_dialogue_subscribe_intents: [ 'int', [ 'void *', 'void *' ]],
+    hermes_dialogue_subscribe_intents_json: [ 'int', [ 'void *', 'void *' ]],
     hermes_dialogue_subscribe_intent_not_recognized: [ 'int', [ 'void *', 'void *' ]],
+    hermes_dialogue_subscribe_intent_not_recognized_json: [ 'int', [ 'void *', 'void *' ]],
     // Callback - session ended
     hermes_dialogue_subscribe_session_ended: [ 'int', [ 'void *', 'void *' ]],
+    hermes_dialogue_subscribe_session_ended_json: [ 'int', [ 'void *', 'void *' ]],
     // Callback - triggered when the current session in put in the queue
     hermes_dialogue_subscribe_session_queued: [ 'int', [ 'void *', 'void *' ]],
+    hermes_dialogue_subscribe_session_queued_json: [ 'int', [ 'void *', 'void *' ]],
     // Callback - hotword or custom message
     hermes_dialogue_subscribe_session_started: [ 'int', [ 'void *', 'void *' ]],
+    hermes_dialogue_subscribe_session_started_json: [ 'int', [ 'void *', 'void *' ]],
 
     /* Injection */
 
@@ -61,10 +70,13 @@ module.exports.library = libraryPath => ffi.Library(libraryPath, {
 
     // Requests an injection
     hermes_injection_publish_injection_request: [ 'int', [ 'void *', 'void * ']],
+    hermes_injection_publish_injection_request_json: [ 'int', [ 'void *', 'char * ']],
     // Request an injection status message to be sent
     hermes_injection_publish_injection_status_request: [ 'int', [ 'void *' ]],
+    hermes_injection_publish_injection_status_request_json: [ 'int', [ 'void *' ]],
     // Subscribe to injection status
     hermes_injection_subscribe_injection_status: [ 'int', [ 'void *', 'void *' ]],
+    hermes_injection_subscribe_injection_status_json: [ 'int', [ 'void *', 'void *' ]],
 
     /* Feedback */
 
@@ -74,7 +86,9 @@ module.exports.library = libraryPath => ffi.Library(libraryPath, {
 
     // Turn on / off notification sounds
     hermes_sound_feedback_publish_toggle_on: [ 'int', [ 'void *', 'void *' ]],
+    hermes_sound_feedback_publish_toggle_on_json: [ 'int', [ 'void *', 'char *' ]],
     hermes_sound_feedback_publish_toggle_off: [ 'int', [ 'void *', 'void *' ]],
+    hermes_sound_feedback_publish_toggle_off_json: [ 'int', [ 'void *', 'char *' ]],
 
     /* Audio */
 
@@ -85,15 +99,13 @@ module.exports.library = libraryPath => ffi.Library(libraryPath, {
 
     // Play sound
     hermes_audio_server_publish_play_bytes: [ 'int', [ 'void *', 'void *' ] ],
+    hermes_audio_server_publish_play_bytes_json: [ 'int', [ 'void *', 'char *' ] ],
     // Playback finished on a specific site id
     hermes_audio_server_subscribe_play_finished: [ 'int', [ 'void *', 'char *', 'void *' ] ],
+    hermes_audio_server_subscribe_play_finished_json: [ 'int', [ 'void *', 'char *', 'void *' ] ],
     // Playback finished on any site id
     hermes_audio_server_subscribe_all_play_finished: [ 'int', [ 'void *', 'void *' ] ],
-
-    /* Others */
-
-    // hermes_protocol_handler_tts_backend_facade: [ 'int', [ 'void *', 'void **' ]],
-    // hermes_tts_backend_subscribe_say: [ 'int', [ 'void *', 'void *' ]]
+    hermes_audio_server_subscribe_all_play_finished_json: [ 'int', [ 'void *', 'void *' ] ]
 })
 
 /**

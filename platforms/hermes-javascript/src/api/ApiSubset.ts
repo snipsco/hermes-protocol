@@ -5,7 +5,8 @@ import {
     SubscribeEventDescriptor,
     PublishEventDescriptor,
     MessageListener,
-    FFIFunctionCall
+    FFIFunctionCall,
+    HermesOptions
 } from './types'
 
 /* Tools */
@@ -35,17 +36,54 @@ export default class ApiSubset {
     public call: FFIFunctionCall
     public destroy() {}
     private listeners = new Map()
+    protected options: HermesOptions
     protected facade: Buffer
     protected subscribeEvents: { [key: string]: SubscribeEventDescriptor }
     protected publishEvents: { [key: string]: PublishEventDescriptor}
 
-    constructor(protocolHandler: Buffer, call: FFIFunctionCall, facadeName: string) {
+    constructor(protocolHandler: Buffer, call: FFIFunctionCall, options: HermesOptions, facadeName: string) {
         this.call = call
+        this.options = options
         this.listeners = new Map()
         if(facadeName && protocolHandler) {
             const facadeRef = ref.alloc('void **')
             this.call(facadeName, protocolHandler, facadeRef)
             this.facade = facadeRef.deref()
+        }
+    }
+
+    private makeSubscriptionCallback(eventName: string) {
+        const {
+            messageStruct,
+            messageClass,
+            dropEventName
+        } = getMetadata(this.subscribeEvents, eventName)
+
+        if(this.options.useJsonApi) {
+            return ffi.Callback('void', [ ref.coerceType('string') ], (stringifiedJson: string) => {
+                try {
+                    const message = JSON.parse(stringifiedJson)
+                    const actions = this.listeners.get(eventName)
+                    actions.forEach(action => action(message))
+                } catch (err) {
+                    // eslint-disable-next-line
+                    console.error(err)
+                    throw err
+                }
+            })
+        } else {
+            return ffi.Callback('void', [ ref.refType(messageStruct) ], data => {
+                try {
+                    const message = new (messageClass || Casteable)(data)
+                    const actions = this.listeners.get(eventName)
+                    actions.forEach(action => action(message))
+                    this.call(dropEventName, data)
+                } catch (err) {
+                    // eslint-disable-next-line
+                    console.error(err)
+                    throw err
+                }
+            })
         }
     }
 
@@ -57,9 +95,6 @@ export default class ApiSubset {
      */
     on(eventName: string, listener: MessageListener) {
         const {
-            messageStruct,
-            messageClass,
-            dropEventName,
             fullEventName,
             additionalArguments
         } = getMetadata(this.subscribeEvents, eventName)
@@ -68,27 +103,14 @@ export default class ApiSubset {
         if(!listeners) {
             listeners = []
             this.listeners.set(eventName, listeners)
-            const callback = ffi.Callback('void', [ ref.refType(messageStruct) ], data => {
-                try {
-                    const message = new (messageClass || Casteable)(data)
-                    const actions = this.listeners.get(eventName)
-                    actions.forEach(action => action(message))
-                    this.call(dropEventName, data)
-                } catch (err) {
-                    // console.error('Error while executing callback for event: ' + fullEventName)
-                    // console.error('message:', err.message)
-                    // eslint-disable-next-line
-                    console.error(err)
-                    throw err
-                }
-            })
+            const callback = this.makeSubscriptionCallback(eventName)
             const args = [
                 ...(additionalArguments && additionalArguments(eventName) || []),
                 callback
             ]
             // Prevent GC
             process.on('exit', function() { callback })
-            this.call(fullEventName, this.facade, ...args)
+            this.call(fullEventName + (this.options.useJsonApi ? '_json' : ''), this.facade, ...args)
         }
         listeners.push(listener)
         return listener
@@ -139,8 +161,13 @@ export default class ApiSubset {
         } = getMetadata(this.publishEvents, eventName)
 
         if(message) {
-            const cDataRef = new (messageClass || Casteable)(message).forge(forgedStruct, forgeOptions).ref()
-            this.call(fullEventName, this.facade, cDataRef)
+            if(this.options.useJsonApi) {
+                const cStringRef = ref.allocCString(JSON.stringify(message))
+                this.call(fullEventName + '_json', this.facade, cStringRef)
+            } else {
+                const cDataRef = new (messageClass || Casteable)(message).forge(forgedStruct, forgeOptions).ref()
+                this.call(fullEventName, this.facade, cDataRef)
+            }
         } else {
             this.call(fullEventName, this.facade)
         }

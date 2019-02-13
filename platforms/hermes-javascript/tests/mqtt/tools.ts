@@ -36,6 +36,8 @@ export const camelize = item => {
     return item
 }
 
+/* Publish */
+
 type PublisherTestArgs = {
     client: any,
     facade: ApiSubset,
@@ -76,6 +78,45 @@ export const setupPublisherTest = ({
     })
 }
 
+type PublisherJsonTestArgs = {
+    client: any,
+    facade: ApiSubset,
+    json: any,
+    hermesTopic: string,
+    facadePublication: string
+}
+export const setupPublisherJsonTest = ({
+    client,
+    facade,
+    json,
+    hermesTopic,
+    facadePublication
+} : PublisherJsonTestArgs) => {
+    json = json && { ...json }
+    return new Promise(resolve => {
+        client.subscribe(hermesTopic, function() {
+            facade.publish(facadePublication, json)
+        })
+        client.on('message', (topic, messageBuffer) => {
+            let message
+            try {
+                message = JSON.parse(messageBuffer.toString())
+            } catch (e) {
+                message = null
+            }
+            if(message) {
+                expect(message).toMatchObject(json)
+            } else {
+                expect(message).toEqual(null)
+            }
+            client.unsubscribe(hermesTopic)
+            resolve()
+        })
+    })
+}
+
+/* Subscribe */
+
 type SubscriberTestArgs = {
     client: any,
     facade: ApiSubset,
@@ -102,5 +143,29 @@ export const setupSubscriberTest = ({
         })
         await wait(5)
         client.publish(hermesTopic, JSON.stringify(mqttJson))
+    })
+}
+
+type SubscriberJsonTestArgs = {
+    client: any,
+    facade: ApiSubset,
+    json: any,
+    hermesTopic: string,
+    facadeSubscription: string
+}
+export const setupSubscriberJsonTest = ({
+    client,
+    facade,
+    json,
+    hermesTopic,
+    facadeSubscription
+} : SubscriberJsonTestArgs) => {
+    return new Promise(async resolve => {
+        facade.once(facadeSubscription, message => {
+            expect(message).toMatchObject(json)
+            resolve()
+        })
+        await wait(5)
+        client.publish(hermesTopic, JSON.stringify(json))
     })
 }

@@ -3,8 +3,8 @@ import { CSiteMessage } from '../../ffi/typedefs'
 
 export default class Feedback extends ApiSubset {
 
-    constructor(protocolHandler, call) {
-        super(protocolHandler, call, 'hermes_protocol_handler_sound_feedback_facade')
+    constructor(protocolHandler, call, options) {
+        super(protocolHandler, call, options, 'hermes_protocol_handler_sound_feedback_facade')
     }
 
     publishEvents = {

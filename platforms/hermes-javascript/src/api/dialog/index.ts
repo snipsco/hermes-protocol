@@ -19,8 +19,8 @@ import {
 
 export default class Dialog extends ApiSubset {
 
-    constructor(protocolHandler, call) {
-        super(protocolHandler, call, 'hermes_protocol_handler_dialogue_facade')
+    constructor(protocolHandler, call, options) {
+        super(protocolHandler, call, options, 'hermes_protocol_handler_dialogue_facade')
     }
 
     private activeSessions = new Set()
@@ -100,13 +100,13 @@ export default class Dialog extends ApiSubset {
     flows(intents: { intent: string, action: FlowAction }[]) {
         intents.forEach(({ intent, action }) => {
             this.on(`intent/${intent}`, message => {
-                const sessionId = message.session_id
+                const sessionId = this.options.useJsonApi ? message.sessionId : message.session_id
                 // If this particular session is already in progress - prevent
                 if(this.activeSessions.has(sessionId))
                     return
                 const flow = new DialogFlow(this, sessionId, () => {
                     this.activeSessions.delete(sessionId)
-                })
+                }, { useJsonApi: this.options.useJsonApi })
                 this.activeSessions.add(sessionId)
                 return flow.start(action, message)
             })
@@ -117,18 +117,22 @@ export default class Dialog extends ApiSubset {
      * Creates a dialog flow that will trigger when the target session starts.
      * Useful when initiating a session programmatically.
      *
-     * @param id : An id that should match the custom_data field of the started session.
+     * @param id : An id that should match the customData field of the started session.
      * @param action : The action to execute on session startup.
      */
     sessionFlow(id: string, action: FlowAction) {
         const listener = message => {
-            if(message.custom_data !== id)
+            const { useJsonApi } = this.options
+            const customData = useJsonApi ? message.customData : message.custom_data
+            const sessionId = useJsonApi ? message.sessionId : message.session_id
+
+            if(customData !== id)
                 return
             this.off('session_started', listener)
-            const flow = new DialogFlow(this, message.session_id, () => {
-                this.activeSessions.delete(message.session_id)
-            })
-            this.activeSessions.add(message.session_id)
+            const flow = new DialogFlow(this, sessionId, () => {
+                this.activeSessions.delete(sessionId)
+            }, { useJsonApi })
+            this.activeSessions.add(sessionId)
             return flow.start(action, message)
         }
         this.on('session_started', listener)
@@ -136,44 +140,86 @@ export default class Dialog extends ApiSubset {
 
     static enums = {
         grain: {
-            year: 0,
-            quarter: 1,
-            month: 2,
-            week: 3,
-            day: 4,
-            hour: 5,
-            minute: 6,
-            second: 7
+            year: 'Year',
+            quarter: 'Quarter',
+            month: 'Month',
+            week: 'Week',
+            day: 'Day',
+            hour: 'Hour',
+            minute: 'Minute',
+            second: 'Second'
         },
         precision: {
-            approximate: 0,
-            exact: 1
+            approximate: 'Approximate',
+            exact: 'Exact'
         },
         initType: {
-            action: 1,
-            notification: 2
+            action: 'action',
+            notification: 'notification'
         },
         terminationType: {
-            nominal: 1,
-            unavailable: 2,
-            abortedByUser: 3,
-            intentNotRecognized: 4,
-            timeout: 5,
-            error: 6
+            nominal: 'nominal',
+            unavailable: 'siteUnavailable',
+            abortedByUser: 'abortedByUser',
+            intentNotRecognized: 'intentNotRecognized',
+            timeout: 'timeout',
+            error: 'error'
         },
         slotType: {
-            custom: 1,
-            number: 2,
-            ordinal: 3,
-            instantTime: 4,
-            timeInterval: 5,
-            amountOfMoney: 6,
-            temperature: 7,
-            duration: 8,
-            percentage: 9,
-            musicAlbum: 10,
-            musicArtist: 11,
-            musicTrack: 12
+            custom: 'Custom',
+            number: 'Number',
+            ordinal: 'Ordinal',
+            instantTime: 'InstantTime',
+            timeInterval: 'TimeInterval',
+            amountOfMoney: 'AmountOfMoney',
+            temperature: 'Temperature',
+            duration: 'Duration',
+            percentage: 'Percentage',
+            musicAlbum: 'MusicAlbum',
+            musicArtist: 'MusicArtist',
+            musicTrack: 'MusicTrack'
+        },
+        legacy: {
+            grain: {
+                year: 0,
+                quarter: 1,
+                month: 2,
+                week: 3,
+                day: 4,
+                hour: 5,
+                minute: 6,
+                second: 7
+            },
+            precision: {
+                approximate: 0,
+                exact: 1
+            },
+            initType: {
+                action: 1,
+                notification: 2
+            },
+            terminationType: {
+                nominal: 1,
+                unavailable: 2,
+                abortedByUser: 3,
+                intentNotRecognized: 4,
+                timeout: 5,
+                error: 6
+            },
+            slotType: {
+                custom: 1,
+                number: 2,
+                ordinal: 3,
+                instantTime: 4,
+                timeInterval: 5,
+                amountOfMoney: 6,
+                temperature: 7,
+                duration: 8,
+                percentage: 9,
+                musicAlbum: 10,
+                musicArtist: 11,
+                musicTrack: 12
+            }
         }
     }
 }

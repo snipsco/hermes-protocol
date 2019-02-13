@@ -64,7 +64,7 @@ describe('It should perform casting round-trips on messages', () => {
         roundTrip({
             data: {
                 session_init: {
-                    init_type: Dialog.enums.initType.action,
+                    init_type: Dialog.enums.legacy.initType.action,
                     value: {
                         text: 'toto',
                         intent_filter: ['intent', 'filter'],
@@ -82,7 +82,7 @@ describe('It should perform casting round-trips on messages', () => {
          roundTrip({
             data: {
                 session_init: {
-                    init_type: Dialog.enums.initType.notification,
+                    init_type: Dialog.enums.legacy.initType.notification,
                     value: 'notification'
                 },
                 custom_data: 'customThing',
@@ -166,7 +166,7 @@ describe('It should perform casting round-trips on messages', () => {
                     confidence_score: 0.5,
                     raw_value: 'vert',
                     value: {
-                        value_type: Dialog.enums.slotType.custom,
+                        value_type: Dialog.enums.legacy.slotType.custom,
                         value: 'vert'
                     },
                     range_start: 7,
@@ -195,7 +195,7 @@ describe('It should perform casting round-trips on messages', () => {
                         raw_value: 'un',
                         value: {
                             value: 1.2,
-                            value_type: Dialog.enums.slotType.number
+                            value_type: Dialog.enums.legacy.slotType.number
                         },
                         range_start: 11,
                         range_end: 13,
@@ -207,7 +207,7 @@ describe('It should perform casting round-trips on messages', () => {
                         raw_value: 'un',
                         value: {
                             value: 1.5,
-                            value_type: Dialog.enums.slotType.number
+                            value_type: Dialog.enums.legacy.slotType.number
                         },
                         range_start: 19,
                         range_end: 21,
@@ -219,7 +219,7 @@ describe('It should perform casting round-trips on messages', () => {
                         raw_value: 'un',
                         value: {
                             value: new Int64(101),
-                            value_type: Dialog.enums.slotType.ordinal
+                            value_type: Dialog.enums.legacy.slotType.ordinal
                         },
                         range_start: 19,
                         range_end: 21,
@@ -246,7 +246,7 @@ describe('It should perform casting round-trips on messages', () => {
                     confidence_score: 1.0,
                     raw_value: 'this sunday',
                     value: {
-                        value_type: Dialog.enums.slotType.instantTime,
+                        value_type: Dialog.enums.legacy.slotType.instantTime,
                         value: {
                             value: '2019-01-06 00:00:00 +01:00',
                             grain: 4,
@@ -305,7 +305,7 @@ describe('It should perform casting round-trips on messages', () => {
                 session_id: 'Session id',
                 custom_data: 'Custom data',
                 termination: {
-                    termination_type: Dialog.enums.terminationType.error,
+                    termination_type: Dialog.enums.legacy.terminationType.error,
                     data: 'Error message'
                 },
                 site_id: 'Site id'
@@ -331,7 +331,7 @@ describe('It should perform casting round-trips on messages', () => {
                 },
                 operations: [
                     {
-                        kind: Injection.enums.injectionKind.add,
+                        kind: Injection.enums.legacy.injectionKind.add,
                         values: {
                             films : [
                                 'The Wolf of Wall Street',

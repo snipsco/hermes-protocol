@@ -11,11 +11,13 @@ export default class DialogFlow {
     private notRecognizedAction = null
     private notRecognizedListener = null
     private ended = false
+    private useJsonApi = true
 
-    constructor(private dialog: Dialog, public sessionId: string, done: () => void) {
+    constructor(private dialog: Dialog, public sessionId: string, done: () => void, { useJsonApi }) {
         // Sets up a subscriber to clean up in case the session is ended programatically.
         const onSessionEnded = msg => {
-            if(msg.session_id === this.sessionId) {
+            const sessionId = this.useJsonApi ? msg.sessionId : msg.session_id
+            if(sessionId === this.sessionId) {
                 this.cleanUpListeners()
                 this.reset()
                 this.sessionId = null
@@ -23,6 +25,7 @@ export default class DialogFlow {
             }
         }
         this.dialog.once('session_ended', onSessionEnded)
+        this.useJsonApi = useJsonApi
     }
 
     private reset() {
@@ -48,18 +51,22 @@ export default class DialogFlow {
             options = { text: options }
         }
         if(this.ended) {
+            const endSessionProperties = this.useJsonApi ?
+                { sessionId: this.sessionId } :
+                { session_id: this.sessionId }
+
             // End the session.
             return this.dialog.publish('end_session', {
                 text: '',
                 ...options,
-                session_id: this.sessionId
+                ...endSessionProperties
             })
         }
-        let intent_filter = []
+        let intentFilter = []
         if(this.continuations.size > 0) {
             // If continue calls have been registered.
             this.continuations.forEach((action, intentName) => {
-                intent_filter.push(intentName)
+                intentFilter.push(intentName)
                 const listener = this.createListener(action)
                 const wrappedListener = this.dialog.once(`intent/${intentName}`, listener)
                 this.continuationsListeners.set(intentName, wrappedListener)
@@ -70,21 +77,31 @@ export default class DialogFlow {
             const listener = this.createListener(this.notRecognizedAction)
             const wrappedListener = this.dialog.once('intent_not_recognized', listener)
             this.notRecognizedListener = wrappedListener
-            options.send_intent_not_recognized = 1
+            options[this.useJsonApi ? 'sendIntentNotRecognized' : 'send_intent_not_recognized'] = 1
         }
         // Publish a continue session message
+        const continueSessionProperties =
+            this.useJsonApi ?
+                {
+                    sessionId: this.sessionId,
+                    intentFilter
+                } :
+                {
+                    session_id: this.sessionId,
+                    intent_filter: intentFilter
+                }
+
         this.dialog.publish('continue_session', {
             text: '',
             ...options,
-            session_id: this.sessionId,
-            intent_filter
+            ...continueSessionProperties
         })
     }
 
     private createListener(action) {
         return message => {
             // Checks the session id
-            if(message.session_id !== this.sessionId)
+            if((this.useJsonApi ? message.sessionId : message.session_id) !== this.sessionId)
                 return
             // Cleans up other listeners that could have been registered using .continue
             this.cleanUpListeners()

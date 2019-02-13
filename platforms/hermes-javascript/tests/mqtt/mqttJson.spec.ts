@@ -4,9 +4,8 @@ import mqtt from 'mqtt'
 import { Hermes, Dialog, Injection, Feedback, Audio } from '../../dist'
 import {
   getFreePort,
-  camelize,
-  setupSubscriberTest,
-  setupPublisherTest,
+  setupSubscriberJsonTest,
+  setupPublisherJsonTest,
   wait
 } from './tools'
 import {
@@ -43,7 +42,7 @@ beforeAll(async () => {
       libraryPath: path.join(__dirname, `../../../../target/${LIB_ENV_FOLDER}/libhermes_mqtt_ffi`),
       logs: true,
       address: `localhost:${mosquittoPort}`,
-      useJsonApi: false
+      useJsonApi: true
     })
     dialog = hermes.dialog()
     injection = hermes.injection()
@@ -80,56 +79,32 @@ afterAll(done => {
   }, 500)
 })
 
-/* Tools */
-
-it('[tools] should camelize stuff properly', () => {
-  const uncamelized = {
-    snake_case_int: 1,
-    snake_case_string: 'toto_titi',
-    snake_case_object: {
-      nested_snake_case_array: [
-        1, 2, { in_array_item: 'test_test' }
-      ]
-    }
-  }
-  const camelized = camelize(uncamelized)
-  expect(camelized).toEqual({
-    snakeCaseInt: 1,
-    snakeCaseString: 'toto_titi',
-    snakeCaseObject: {
-      nestedSnakeCaseArray: [
-        1, 2, { inArrayItem: 'test_test' }
-      ]
-    }
-  })
-})
 
 /* Publish */
 
 it('[dialog] should publish a start session event', () => {
-  return setupPublisherTest({
+  return setupPublisherJsonTest({
     client,
     facade: dialog,
-    publishedJson: require('./hermesPublished/StartSession.json'),
-    expectedJson: require('./mqttPublished/StartSession.json'),
+    json: require('./mqttPublished/StartSession.json'),
     hermesTopic: 'hermes/dialogueManager/startSession',
     facadePublication: 'start_session'
   })
 })
 it('[dialog] should publish a continue session event', () => {
-  return setupPublisherTest({
+  return setupPublisherJsonTest({
     client,
     facade: dialog,
-    publishedJson: require('./hermesPublished/ContinueSession.json'),
+    json: require('./mqttPublished/ContinueSession.json'),
     hermesTopic: 'hermes/dialogueManager/continueSession',
     facadePublication: 'continue_session'
   })
 })
 it('[dialog] should publish an end session event', () => {
-  return setupPublisherTest({
+  return setupPublisherJsonTest({
     client,
     facade: dialog,
-    publishedJson: require('./hermesPublished/EndSession.json'),
+    json: require('./mqttPublished/EndSession.json'),
     hermesTopic: 'hermes/dialogueManager/endSession',
     facadePublication: 'end_session'
   })
@@ -138,21 +113,20 @@ it('[dialog] should publish an end session event', () => {
 // Injection
 
 it('[injection] should publish an injection request event', () => {
-  return setupPublisherTest({
+  return setupPublisherJsonTest({
     client,
     facade: injection,
-    publishedJson: require('./hermesPublished/InjectionRequest.json'),
-    expectedJson: require('./mqttPublished/InjectionRequest.json'),
+    json: require('./mqttPublished/InjectionRequest.json'),
     hermesTopic: 'hermes/injection/perform',
     facadePublication: 'injection_request'
   })
 })
 
 it('[injection] should publish an injection status request event', () => {
-  return setupPublisherTest({
+  return setupPublisherJsonTest({
     client,
     facade: injection,
-    publishedJson: null,
+    json: null,
     hermesTopic: 'hermes/injection/statusRequest',
     facadePublication: 'injection_status_request'
   })
@@ -161,20 +135,20 @@ it('[injection] should publish an injection status request event', () => {
 // Feedback
 
 it('[feedback] should publish an notification sound on event', () => {
-  return setupPublisherTest({
+  return setupPublisherJsonTest({
     client,
     facade: feedback,
-    publishedJson: require('./hermesPublished/SiteMessage.json'),
+    json: require('./mqttPublished/SiteMessage.json'),
     hermesTopic: 'hermes/feedback/sound/toggleOn',
     facadePublication: 'notification_on'
   })
 })
 
 it('[feedback] should publish an notification sound off event', () => {
-  return setupPublisherTest({
+  return setupPublisherJsonTest({
     client,
     facade: feedback,
-    publishedJson: require('./hermesPublished/SiteMessage.json'),
+    json: require('./mqttPublished/SiteMessage.json'),
     hermesTopic: 'hermes/feedback/sound/toggleOff',
     facadePublication: 'notification_off'
   })
@@ -189,10 +163,10 @@ it('[audio] should publish an audio playback event', () => {
   return new Promise(resolve => {
     const message = {
       id: '8ewnjksdf093jb42',
-      site_id: 'default',
-      wav_bytes: wavBuffer,
-      wav_bytes_len:  wavBuffer.length,
-  }
+      siteId: 'default',
+      wavBytes: wavBuffer.toString('base64'),
+      wavBytesLen: wavBuffer.length,
+    }
     client.subscribe(hermesTopic, function() {
         audio.publish('play_audio', message)
     })
@@ -207,63 +181,60 @@ it('[audio] should publish an audio playback event', () => {
 /* Subscribe */
 
 it('[dialog] should receive and parse a session started event', () => {
-  return setupSubscriberTest({
+  return setupSubscriberJsonTest({
     client,
     facade: dialog,
-    mqttJson: require('./mqttPublished/SessionStarted.json'),
+    json: require('./mqttPublished/SessionStarted.json'),
     hermesTopic: 'hermes/dialogueManager/sessionStarted',
     facadeSubscription: 'session_started'
   })
 })
 
 it('[dialog] should receive and parse a session queued event', () => {
-  return setupSubscriberTest({
+  return setupSubscriberJsonTest({
     client,
     facade: dialog,
-    mqttJson: require('./mqttPublished/SessionQueued.json'),
+    json: require('./mqttPublished/SessionQueued.json'),
     hermesTopic: 'hermes/dialogueManager/sessionQueued',
     facadeSubscription: 'session_queued'
   })
 })
 
 it('[dialog] should receive and parse a session ended event', () => {
-  return setupSubscriberTest({
+  return setupSubscriberJsonTest({
     client,
     facade: dialog,
-    mqttJson: require('./mqttPublished/SessionEnded.json'),
-    expectedJson: require('./hermesPublished/SessionEnded.json'),
+    json: require('./mqttPublished/SessionEnded.json'),
     hermesTopic: 'hermes/dialogueManager/sessionEnded',
     facadeSubscription: 'session_ended'
   })
 })
 
 it('[dialog] should receive and parse an intent not recognized event', () => {
-  return setupSubscriberTest({
+  return setupSubscriberJsonTest({
     client,
     facade: dialog,
-    mqttJson: require('./mqttPublished/IntentNotRecognized.json'),
+    json: require('./mqttPublished/IntentNotRecognized.json'),
     hermesTopic: 'hermes/dialogueManager/intentNotRecognized',
     facadeSubscription: 'intent_not_recognized'
   })
 })
 
-it('[dialog] should receive events related to any intent', () => {
-  return setupSubscriberTest({
+it.only('[dialog] should receive events related to any intent', () => {
+  return setupSubscriberJsonTest({
     client,
     facade: dialog,
-    mqttJson: require('./mqttPublished/Intent.json'),
-    expectedJson: require('./hermesPublished/Intent.json'),
+    json: require('./mqttPublished/Intent.json'),
     hermesTopic: 'hermes/intent/intentA',
     facadeSubscription: 'intents'
   })
 })
 
 it('[dialog] should receive events related to a specific intent', () => {
-  return setupSubscriberTest({
+  return setupSubscriberJsonTest({
     client,
     facade: dialog,
-    mqttJson: require('./mqttPublished/Intent.json'),
-    expectedJson: require('./hermesPublished/Intent.json'),
+    json: require('./mqttPublished/Intent.json'),
     hermesTopic: 'hermes/intent/anIntent',
     facadeSubscription: 'intent/anIntent'
   })
@@ -272,11 +243,10 @@ it('[dialog] should receive events related to a specific intent', () => {
 // Injection
 
 it('[injection] should receive events related to an injection status', () => {
-  return setupSubscriberTest({
+  return setupSubscriberJsonTest({
     client,
     facade: injection,
-    mqttJson: require('./mqttPublished/InjectionStatus.json'),
-    expectedJson: require('./hermesPublished/InjectionStatus.json'),
+    json: require('./mqttPublished/InjectionStatus.json'),
     hermesTopic: 'hermes/injection/status',
     facadeSubscription: 'injection_status'
   })
@@ -285,20 +255,20 @@ it('[injection] should receive events related to an injection status', () => {
 // Audio
 
 it('[audio] should receive events when a sound playback finished', async () => {
-  await setupSubscriberTest({
+  await setupSubscriberJsonTest({
     client,
     facade: audio,
-    mqttJson: require('./mqttPublished/PlayFinished.json'),
+    json: require('./mqttPublished/PlayFinished.json'),
     hermesTopic: 'hermes/audioServer/default/playFinished',
     facadeSubscription: 'play_finished/default'
   })
 })
 
 it('[audio] should receive events when a sound playback finished', async () => {
-  await setupSubscriberTest({
+  await setupSubscriberJsonTest({
     client,
     facade: audio,
-    mqttJson: require('./mqttPublished/PlayFinished.json'),
+    json: require('./mqttPublished/PlayFinished.json'),
     hermesTopic: 'hermes/audioServer/default/playFinished',
     facadeSubscription: 'play_finished_all'
   })
@@ -306,14 +276,12 @@ it('[audio] should receive events when a sound playback finished', async () => {
 
 /* Robustness tests */
 
-// Skipped because CActionSessionInit fields text and intent_filter are sometimes empty.
-it.skip(`[dialog] should should publish a start session message at least ${robustnessIterations} times`, () => {
-  const publishedJson = { ...require('./hermesPublished/StartSession.json') }
-  const expected = require('./mqttPublished/StartSession.json')
+it(`[dialog] should should publish a start session message at least ${robustnessIterations} times`, () => {
+  const json = require('./mqttPublished/StartSession.json')
   let counter = 0
   return new Promise(resolve => {
       client.subscribe('hermes/dialogueManager/startSession', function() {
-        dialog.publish('start_session', publishedJson)
+        dialog.publish('start_session', json)
       })
       client.on('message', (_, messageBuffer) => {
         let message
@@ -323,7 +291,7 @@ it.skip(`[dialog] should should publish a start session message at least ${robus
             message = null
         }
         if(message) {
-            expect(expected).toMatchObject(message)
+            expect(json).toMatchObject(message)
         } else {
             expect(null).toEqual(message)
         }
@@ -331,19 +299,18 @@ it.skip(`[dialog] should should publish a start session message at least ${robus
           client.unsubscribe('hermes/dialogueManager/startSession')
           resolve()
         } else {
-          wait(robustnessDelay).then(() => dialog.publish('start_session', publishedJson))
+          wait(robustnessDelay).then(() => dialog.publish('start_session', json))
         }
       })
   })
 }, robustnessTestsTimeout)
 
 it(`[dialog] should should publish an end session message at least ${robustnessIterations} times`, () => {
-  const publishedJson = { ...require('./hermesPublished/EndSession.json') }
-  const expected = require('./mqttPublished/EndSession.json')
+  const json = require('./mqttPublished/EndSession.json')
   let counter = 0
   return new Promise(resolve => {
       client.subscribe('hermes/dialogueManager/endSession', function() {
-        dialog.publish('end_session', publishedJson)
+        dialog.publish('end_session', json)
       })
       client.on('message', (topic, messageBuffer) => {
         let message
@@ -353,7 +320,7 @@ it(`[dialog] should should publish an end session message at least ${robustnessI
             message = null
         }
         if(message) {
-            expect(expected).toMatchObject(message)
+            expect(json).toMatchObject(message)
         } else {
             expect(null).toEqual(message)
         }
@@ -361,7 +328,7 @@ it(`[dialog] should should publish an end session message at least ${robustnessI
           client.unsubscribe('hermes/dialogueManager/endSession')
           resolve()
         } else {
-          wait(robustnessDelay).then(() => dialog.publish('end_session', publishedJson))
+          wait(robustnessDelay).then(() => dialog.publish('end_session', json))
         }
       })
   })
@@ -369,10 +336,10 @@ it(`[dialog] should should publish an end session message at least ${robustnessI
 
 it(`[dialog] should receive a session started message at least ${robustnessIterations} times`, async () => {
   for (let i = 0; i < robustnessIterations; i++) {
-    await setupSubscriberTest({
+    await setupSubscriberJsonTest({
       client,
       facade: dialog,
-      mqttJson: require('./mqttPublished/SessionStarted.json'),
+      json: require('./mqttPublished/SessionStarted.json'),
       hermesTopic: 'hermes/dialogueManager/sessionStarted',
       facadeSubscription: 'session_started'
     })
@@ -382,11 +349,10 @@ it(`[dialog] should receive a session started message at least ${robustnessItera
 
 it(`[dialog] should receive a session ended message at least ${robustnessIterations} times`, async () => {
   for (let i = 0; i < robustnessIterations; i++) {
-    await setupSubscriberTest({
+    await setupSubscriberJsonTest({
       client,
       facade: dialog,
-      mqttJson: require('./mqttPublished/SessionEnded.json'),
-      expectedJson: require('./hermesPublished/SessionEnded.json'),
+      json: require('./mqttPublished/SessionEnded.json'),
       hermesTopic: 'hermes/dialogueManager/sessionEnded',
       facadeSubscription: 'session_ended'
     })
@@ -397,42 +363,40 @@ it(`[dialog] should receive a session ended message at least ${robustnessIterati
 it(`[dialog] should receive an intent message at least ${robustnessIterations} times`, () => {
   return new Promise(resolve => {
     let counter = 0
-    const mqttIntentMessageString = JSON.stringify(require('./mqttPublished/Intent.json'))
-    const hermesIntentMessage = require('./hermesPublished/Intent.json')
+    const json = require('./mqttPublished/Intent.json')
 
     dialog.on('intent/anIntent', msg => {
-      expect(msg).toMatchObject(hermesIntentMessage)
+      expect(msg).toMatchObject(json)
       if(++counter >= robustnessDelay)
           return resolve()
-      client.publish('hermes/intent/anIntent', mqttIntentMessageString)
+      client.publish('hermes/intent/anIntent', JSON.stringify(json))
     })
-    client.publish('hermes/intent/anIntent', mqttIntentMessageString)
+    client.publish('hermes/intent/anIntent', JSON.stringify(json))
   })
 }, robustnessTestsTimeout)
 
 it(`[dialog] should perform one round of dialog flow at least ${robustnessIterations} times`, () => {
   return new Promise(resolve => {
     let counter = 0
-    const mqttIntentMessageString = JSON.stringify(require('./mqttPublished/Intent.json'))
-    const hermesIntentMessage = require('./hermesPublished/Intent.json')
-    const mqttSessionEndedMessageString = JSON.stringify(require('./mqttPublished/SessionEnded.json'))
+    const intentJson = require('./mqttPublished/Intent.json')
+    const sessionEndedJson = require('./mqttPublished/SessionEnded.json')
 
     dialog.flow('anIntent', (msg, flow) => {
-      expect(msg).toMatchObject(hermesIntentMessage)
+      expect(msg).toMatchObject(intentJson)
       flow.end()
     })
 
     client.subscribe('hermes/dialogueManager/continueSession', () => {
       client.subscribe('hermes/dialogueManager/endSession', () => {
-        client.publish('hermes/intent/anIntent', mqttIntentMessageString)
+        client.publish('hermes/intent/anIntent', JSON.stringify(intentJson))
       })
     })
     client.on('message', topic => {
       if(topic === 'hermes/dialogueManager/endSession') {
-        client.publish('hermes/dialogueManager/sessionEnded', mqttSessionEndedMessageString)
+        client.publish('hermes/dialogueManager/sessionEnded', JSON.stringify(sessionEndedJson))
         if(++counter >= robustnessIterations)
           return resolve()
-        client.publish('hermes/intent/anIntent', mqttIntentMessageString)
+        client.publish('hermes/intent/anIntent', JSON.stringify(intentJson))
       }
     })
   })
@@ -441,12 +405,11 @@ it(`[dialog] should perform one round of dialog flow at least ${robustnessIterat
 it(`[dialog] should perform at least ${robustnessIterations} rounds of dialog flow`, () => {
   return new Promise(resolve => {
     let counter = 0
-    const mqttIntentMessageString = JSON.stringify(require('./mqttPublished/Intent.json'))
-    const mqttSessionEndedMessageString = JSON.stringify(require('./mqttPublished/SessionEnded.json'))
-    const hermesIntentMessage = require('./hermesPublished/Intent.json')
+    const intentJson = require('./mqttPublished/Intent.json')
+    const sessionEndedJson = require('./mqttPublished/SessionEnded.json')
 
     const loop = (msg, flow) => {
-      expect(msg).toMatchObject(hermesIntentMessage)
+      expect(msg).toMatchObject(intentJson)
       if(++counter >= robustnessIterations) {
         flow.end()
       } else {
@@ -457,17 +420,17 @@ it(`[dialog] should perform at least ${robustnessIterations} rounds of dialog fl
 
     client.subscribe('hermes/dialogueManager/continueSession', () => {
       client.subscribe('hermes/dialogueManager/endSession', () => {
-        client.publish('hermes/intent/anIntent', mqttIntentMessageString)
+        client.publish('hermes/intent/anIntent', JSON.stringify(intentJson))
       })
     })
     client.on('message', (topic) => {
       if(topic === 'hermes/dialogueManager/continueSession') {
-        return client.publish('hermes/intent/anIntent', mqttIntentMessageString)
+        return client.publish('hermes/intent/anIntent', JSON.stringify(intentJson))
       }
       if(topic === 'hermes/dialogueManager/endSession') {
         client.unsubscribe('hermes/dialogueManager/continueSession')
         client.unsubscribe('hermes/dialogueManager/endSession')
-        client.publish('hermes/dialogueManager/sessionEnded', mqttSessionEndedMessageString)
+        client.publish('hermes/dialogueManager/sessionEnded', JSON.stringify(sessionEndedJson))
         return resolve()
       }
     })

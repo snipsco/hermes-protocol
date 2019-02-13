@@ -15,8 +15,8 @@ import {
  */
 export default class Audio extends ApiSubset {
 
-    constructor(protocolHandler, call) {
-        super(protocolHandler, call, 'hermes_protocol_handler_audio_server_facade')
+    constructor(protocolHandler, call, options) {
+        super(protocolHandler, call, options, 'hermes_protocol_handler_audio_server_facade')
     }
 
     publishEvents = {

@@ -9,8 +9,8 @@ import {
 
 export default class Injection extends ApiSubset {
 
-    constructor(protocolHandler, call) {
-        super(protocolHandler, call, 'hermes_protocol_handler_injection_facade')
+    constructor(protocolHandler, call, options) {
+        super(protocolHandler, call, options, 'hermes_protocol_handler_injection_facade')
     }
 
     publishEvents = {
@@ -39,8 +39,15 @@ export default class Injection extends ApiSubset {
 
     static enums = {
         injectionKind: {
-            add: 1,
-            addFromVanilla: 2
+            add: 'add',
+            addFromVanilla: 'addFromVanilla'
+        },
+        legacy: {
+            injectionKind: {
+                add: 1,
+                addFromVanilla: 2
+            }
         }
     }
+
 }

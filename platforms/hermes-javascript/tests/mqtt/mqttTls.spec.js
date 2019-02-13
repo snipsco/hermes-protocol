@@ -48,14 +48,9 @@ it('should connect to a secure TLS mosquitto server', done => {
     const message = {
         siteId: 'default',
         sessionId: 'session id',
-        confidenceScore: 0.5
-    }
-    const expectedMessage = {
-        custom_data: null,
-        input: null,
-        session_id: 'session id',
-        site_id: 'default',
-        confidence_score: 0.5
+        confidenceScore: 0.5,
+        customData: null,
+        input: null
     }
     const client = mqtt.connect('mqtts://localhost:18886', {
         username: 'foo',
@@ -75,7 +70,7 @@ it('should connect to a secure TLS mosquitto server', done => {
     })
 
     const callback = function(msg) {
-        expect(expectedMessage).toEqual(msg)
+        expect(msg).toEqual(message)
         client.end()
         done()
     }

@@ -1,3 +1,5 @@
+import { HermesOptions } from './HermesOptions'
+
 export type SubscribeEventDescriptor = {
     fullEventName: string,
     dropEventName: string,
@@ -15,4 +17,8 @@ export type PublishEventDescriptor = {
 
 export type MessageListener = (message?: { [key: string]: any }) => void
 export type FFIFunctionCall = (functionName: string, ...args: any[]) => void
-export type SubsetConstructor<Subset> = new (protocolHandler: Buffer, call: FFIFunctionCall) => Subset
+export type SubsetConstructor<Subset> = new (
+    protocolHandler: Buffer,
+    call: FFIFunctionCall,
+    options: HermesOptions
+) => Subset

@@ -4,4 +4,4 @@
     "intent_filter": ["intentA", "intentB"],
     "customData": null,
     "send_intent_not_recognized": true
-  }
+}

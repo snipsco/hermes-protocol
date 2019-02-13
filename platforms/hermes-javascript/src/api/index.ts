@@ -22,9 +22,10 @@ export class Hermes {
 
     /**
      * Create a new Hermes instance that connects to the underlying event bus.
+     * @param {*} options The Hermes options object. *(default: {})*
      * @param {*} options.address The bus address *(default localhost:1883)*
      * @param {*} options.logs Enables or Disables stdout logs *(default false)*
-     * @param {*} options.libraryPath A custom path for the dynamic hermes ffi library
+     * @param {*} options.libraryPath A custom path for the dynamic Hermes ffi library
      * @param {*} options.username Username used when connecting to the broker.
      * @param {*} options.password Password used when connecting to the broker.
      * @param {*} options.tls_hostname Hostname to use for the TLS configuration. If set, enables TLS.
@@ -33,6 +34,7 @@ export class Hermes {
      * @param {*} options.tls_client_key Client key to use if TLS is enabled.
      * @param {*} options.tls_client_cert Client cert to use if TLS is enabled.
      * @param {*} options.tls_disable_root_store Boolean indicating if the root store should be disabled if TLS is enabled.
+     * @param {*} options.useJsonApi If false, uses the legacy messages format. *(default: true)*
      */
     constructor(options: HermesOptions = {}) {
 
@@ -119,14 +121,15 @@ export class Hermes {
 
     private _getOrCreateSubset<T extends ApiSubset>(key: string, Class: SubsetConstructor<T>): T {
         if(!this.activeSubsets.has(key)) {
-            this.activeSubsets.set(key, new Class(this.protocolHandler, this.call))
+            this.activeSubsets.set(key, new Class(this.protocolHandler, this.call, this.options))
         }
         return this.activeSubsets.get(key)
     }
 
     private static defaultOptions = {
         address: 'localhost:1883',
-        logs: false
+        logs: false,
+        useJsonApi: true
     }
 
     private options : HermesOptions

@@ -86,24 +86,24 @@ withHermes((hermes, done) => {
         // The 'message' argument contain all the data you need to perform an action based on what the user said.
 
         // For instance, you can grab a slot and its value like this.
-        const mySlot = msg.slots.find(slot => slot.slot_name === 'slotName')
+        const mySlot = msg.slots.find(slot => slot.slotName === 'slotName')
         const slotValue = mySlot.value.value
         // And here is how to grab the intent name.
-        console.log('Received intent', message.intent.intent_name)
+        console.log('Received intent', message.intent.intentName)
 
         // Then, you can either:
         if(continueSession) {
             // 1 - Continue the dialog session if you expect another intent to be detected.
             dialog.publish('continue_session', {
-                session_id: message.session_id,
+                sessionId: message.sessionId,
                 text: 'Session continued',
                 // In this case, if you already set up a subscription for 'intent/nextIntent' then it will be triggered if the user speaks that intent.
-                intent_filter: ['nextIntent']
+                intentFilter: ['nextIntent']
             })
         } else {
             // 2 - Or end the dialog session.
             dialog.publish('end_session', {
-                session_id: message.session_id,
+                sessionId: message.sessionId,
                 text: 'Session ended'
             })
         }
@@ -261,7 +261,10 @@ new Hermes({
     // Client cert to use if TLS is enabled.
     tls_client_cert: 'client-cert.cert',
     // Boolean indicating if the root store should be disabled if TLS is enabled.
-    tls_disable_root_store: false
+    tls_disable_root_store: false,
+    // If false, hermes-javascript will use the legacy format for published / subscribed messages.
+    // ⚠️ Notice: Setting this to false is strongly discouraged, and the support for the old format will eventually be removed in the future.
+    useJsonApi: true
 })
 ```
 
@@ -355,16 +358,16 @@ dialog.off('intent/myIntent', handler)
 Publish an event programatically.
 
 ```js
-import { Dialog } from 'hermes-javascript'
+const { Dialog } = require('hermes-javascript')
 
 const hermes = new Hermes()
 const dialog = hermes.dialog()
 
 dialog.publish('start_session', {
-    custom_data: 'some data',
-    site_id: 'site Id',
-    session_init: {
-        init_type:  Dialog.enums.initType.notification,
+    customData: 'some data',
+    siteId: 'site Id',
+    sessionInit: {
+        initType:  Dialog.enums.initType.notification,
         value: 'notification'
     }
 })
@@ -381,24 +384,32 @@ The dialog manager.
 Start a new dialog session.
 
 ```js
-import { Dialog } from 'hermes-javascript'
+const { Dialog } = require('hermes-javascript')
+
+// Start a 'notification type' session
 
 dialog.publish('start_session', {
-    custom_data: /* string */,
-    site_id: /* string */,
-    session_init: {
+    customData: /* string */,
+    siteId: /* string */,
+    init: {
         // An enumeration, either 'action' or 'notification'
-        init_type: Dialog.enums.initType.['action' || 'notification'],
-        value:
-            // If init_type is notification then:
-            /* string */
-            // If init_type is 'action' then:
-            {
-                text: /* string */,
-                intent_filter: /* string[] */,
-                can_be_enqueued: /* boolean */,
-                send_intent_not_recognized: /* boolean */
-            }
+        type: Dialog.enums.initType.notification,
+        text: /* string */
+    }
+})
+
+// Start an 'action type' session
+
+dialog.publish('start_session', {
+    customData: /* string */,
+    siteId: /* string */,
+    init: {
+        // An enumeration, either 'action' or 'notification'
+        type: Dialog.enums.initType.action,
+        text: /* string */,
+        intentFilter: /* string[] */,
+        canBeEnqueued: /* boolean */,
+        sendIntentNotRecognized: /* boolean */
     }
 })
 ```
@@ -409,11 +420,11 @@ Continue a dialog session.
 
 ```js
 dialog.publish('continue_session', {
-    session_id: /* string */,
+    sessionId: /* string */,
     text: /* string */,
-    intent_filter: /* string[] */,
-    custom_data: /* string */,
-    send_intent_not_recognized: /* boolean */
+    intentFilter: /* string[] */,
+    customData: /* string */,
+    sendIntentNotRecognized: /* boolean */
 })
 ```
 
@@ -423,7 +434,7 @@ Finish a dialog session.
 
 ```js
 dialog.publish('end_session', {
-    session_id: /* string */,
+    sessionId: /* string */,
     text: /* string */
 })
 ```
@@ -450,7 +461,7 @@ A dialog session has started.
 
 No intents were recognized.
 
-*Note that the dialog session must have been started or continued with the `send_intent_not_recognized` flag in order for this to work.*
+*Note that the dialog session must have been started or continued with the `sendIntentNotRecognized` flag in order for this to work.*
 
 ### DialogFlow
 
@@ -526,7 +537,7 @@ Creates a dialog flow that will trigger when the target session starts.
 Useful when initiating a session programmatically.
 
 ```js
-// The id should match the custom_data session string.
+// The id should match the customData value specified on the start_session message.
 dialog.sessionFlow('a_unique_id', (msg, flow) => {
     // ... //
 })
@@ -590,11 +601,11 @@ Vocabulary injection for the speech recognition.
 Requests custom payload to be injected.
 
 ```js
-import { Injection } from 'hermes-javascript'
+const { Injection } = require('hermes-javascript')
 
 injection.publish('injection_request', {
     id: /* string */,
-    cross_language: /* string */,
+    crossLanguage: /* string */,
     // An object having string keys mapped with an array of string entries
     lexicon: {
         films : [
@@ -604,18 +615,19 @@ injection.publish('injection_request', {
     },
     // An array of operations objects
     operations: [
-        {
+        // Each operation is a tuple (an array containing two elements)
+        [
             // Enumeration: add or addFromVanilla
             // see documentation here: https://docs.snips.ai/guides/advanced-configuration/dynamic-vocabulary#3-inject-entity-values
-            kind: Injection.enums.injectionKind.add,
-            // An object having string keys mapped with an array of string entries
-            values: {
+            Injection.enums.injectionKind.add,
+            // An object, with entities as the key mapped with an array of string entries to inject.
+            {
                 films : [
                     'The Wolf of Wall Street',
                     'The Lord of the Rings'
                 ]
             }
-        }
+        ]
     ]
 })
 ```
@@ -647,8 +659,8 @@ Turn the notification sound on.
 
 ```js
 feedback.publish('notification_on', {
-    "site_id": /* string */,
-    "session_id": /* string */
+    "siteId": /* string */,
+    "sessionId": /* string */
 })
 ```
 
@@ -658,8 +670,8 @@ Turn the notification sound off.
 
 ```js
 feedback.publish('notification_off', {
-    "site_id": /* string */,
-    "session_id": /* string */
+    "siteId": /* string */,
+    "sessionId": /* string */
 })
 ```
 
