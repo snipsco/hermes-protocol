@@ -37,15 +37,19 @@ export namespace InjectionTypes {
             }
         }
     }
-    export type InjectionStatusRequestMessage = {
+
+    export type InjectionStatusMessage = {
         lastInjectionDate: string
-    } | {
+    } & {
         last_injection_date: string
     }
 
     export type publishMessagesList = {
-        lastInjectionDate: InjectionRequestMessage,
-        injection_status_request: InjectionStatusRequestMessage
+        injection_request: InjectionRequestMessage,
+        injection_status_request: null
     }
 
+    export type subscribeMessagesList = {
+        injection_status: InjectionStatusMessage
+    }
 }

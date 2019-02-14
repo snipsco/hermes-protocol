@@ -43,6 +43,7 @@ export default class ApiSubset {
     protected subscribeEvents: { [key: string]: SubscribeEventDescriptor }
     public publishEvents: { [key: string]: PublishEventDescriptor}
     public publishMessagesList: {[key: string]: any}
+    public subscribeMessagesList: {[key: string]: any}
 
     constructor(protocolHandler: Buffer, call: FFIFunctionCall, options: HermesOptions, facadeName: string) {
         this.call = call
@@ -55,7 +56,7 @@ export default class ApiSubset {
         }
     }
 
-    private makeSubscriptionCallback(eventName: string) {
+    private makeSubscriptionCallback<T extends keyof this['subscribeMessagesList']>(eventName: T) {
         const {
             messageStruct,
             messageClass,
@@ -96,19 +97,18 @@ export default class ApiSubset {
      * @param {*} eventName The event name to subscribe to.
      * @param {*} listener  A callback triggered when receiving a message.
      */
-    on(eventName: string, listener: MessageListener) {
+    on<T extends keyof this['subscribeMessagesList']>(eventName: T, listener: MessageListener<this['subscribeMessagesList'][T]>) {
         const {
             fullEventName,
             additionalArguments
         } = getMetadata(this.subscribeEvents, eventName)
-
         let listeners = this.listeners.get(eventName)
         if(!listeners) {
             listeners = []
             this.listeners.set(eventName, listeners)
             const callback = this.makeSubscriptionCallback(eventName)
             const args = [
-                ...(additionalArguments && additionalArguments(eventName) || []),
+                ...(additionalArguments && additionalArguments(eventName as string) || []),
                 callback
             ]
             // Prevent GC
@@ -126,7 +126,7 @@ export default class ApiSubset {
      * @returns {*} The reference to the wrapped listener.
      */
 
-    once(eventName: string, listener: MessageListener) {
+    once<T extends keyof this['subscribeMessagesList']>(eventName: T, listener: MessageListener<this['subscribeMessagesList'][T]>) {
         const listenerWrapper = (...args) => {
             this.off(eventName, listenerWrapper)
             listener(...args)
@@ -141,7 +141,7 @@ export default class ApiSubset {
      * @param {*} eventName The event name that was subscribed to.
      * @param {*} listener The reference to the listener callback to remove.
      */
-    off(eventName: string, listener: MessageListener) {
+    off<T extends keyof this['subscribeMessagesList']>(eventName: T, listener: MessageListener<this['subscribeMessagesList'][T]>) {
         const listeners = this.listeners.get(eventName)
         if(!listeners)
             return false

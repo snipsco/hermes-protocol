@@ -15,7 +15,7 @@ export type PublishEventDescriptor = {
     forgeOptions?: { [key: string]: (property: string) => any }
 }
 
-export type MessageListener = (message?: { [key: string]: any }) => void
+export type MessageListener<T = {[key: string]: any}> = (message?: T) => void
 export type FFIFunctionCall = (functionName: string, ...args: any[]) => void
 export type SubsetConstructor<Subset> = new (
     protocolHandler: Buffer,

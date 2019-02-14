@@ -142,9 +142,143 @@ export namespace DialogTypes {
         text?: string
     }
 
+    export type SessionStartedMessage = {
+        sessionId: string,
+        siteId: string
+        customData?: string
+    } & {
+        session_id: string,
+        site_id: string
+        custom_data?: string
+    }
+
+    export type SessionEndedMessage = {
+        sessionId: string,
+        siteId: string,
+        customData?: string,
+        termination: {
+            reason: DialogTypes.terminationType,
+            error?: string
+        }
+    } & {
+        session_id: string,
+        site_id: string,
+        custom_data?: string,
+        termination: {
+            termination_type: DialogTypes.terminationType_legacy,
+            data?: string
+        }
+    }
+
+    export type SessionQueuedMessage = {
+        sessionId: string,
+        siteId: string,
+        customData?: string
+    } & {
+        session_id: string,
+        site_id: string,
+        custom_data?: string
+    }
+
+    export type IntentNotRecognizedMessage = {
+        sessionId: string,
+        siteId: string,
+        input: string,
+        confidence_score: number
+        customData?: string,
+    } & {
+        session_id: string,
+        site_id: string,
+        input: string,
+        confidence_score: number
+        custom_data?: string,
+    }
+
+    export type IntentMessage = {
+        sessionId: string,
+        siteId: string,
+        input: string,
+        customData?: string,
+        intent: {
+            intentName: string,
+            confidenceScore: number
+        },
+        asrTokens: [
+            {
+                value: string,
+                confidence: number,
+                rangeStart: number,
+                rangeEnd: number,
+                time: {
+                    start: number,
+                    end: number
+                }
+            }[]
+        ],
+        slots: {
+            confidenceScore: number,
+            rawValue: string,
+            range: {
+                start: number,
+                end: number
+            },
+            entity: string,
+            slotName: string,
+            value: {
+                kind: DialogTypes.slotType,
+                // Wildcard
+                value: any
+            }
+        }[]
+    } & {
+        session_id: string,
+        custom_data?: string,
+        site_id: string,
+        input: string,
+        intent: {
+            intent_name: string,
+            confidence_score: number
+        },
+        asr_tokens: [
+            {
+                value: string,
+                confidence: number,
+                range_start: number,
+                range_end: number,
+                time: {
+                    start: number,
+                    end: number
+                }
+            }[]
+        ],
+        slots: {
+            confidence_score: number,
+            raw_value: string,
+            range_start: number,
+            range_end: number
+            entity: string,
+            slot_name: string,
+            value: {
+                value_type: DialogTypes.slotType_legacy,
+                // Wildcard
+                value: any
+            }
+        }[]
+    }
+
     export type publishMessagesList = {
         start_session: StartSessionMessage,
         continue_session: ContinueSessionMessage,
         end_session: EndSessionMessage
+    }
+    export type subscribeMessagesList = {
+        intents: IntentMessage,
+        intent_not_recognized: IntentNotRecognizedMessage,
+        session_ended: SessionEndedMessage,
+        session_queued: SessionQueuedMessage,
+        session_started: SessionStartedMessage
+    } & {
+        // Workaround for intents that have a dynamic key
+        [key: string]: IntentMessage
     }
 }

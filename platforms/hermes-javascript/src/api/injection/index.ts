@@ -36,6 +36,7 @@ export default class Injection extends ApiSubset {
             messageStruct: CInjectionStatusMessage
         }
     }
+    subscribeMessagesList: InjectionTypes.subscribeMessagesList
 
     destroy () {
         this.call('hermes_drop_injection_facade', this.facade)

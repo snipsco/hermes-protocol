@@ -81,6 +81,7 @@ export default class Dialog extends ApiSubset {
             messageStruct: CSessionStartedMessage
         }
     }
+    subscribeMessagesList: DialogTypes.subscribeMessagesList
 
     destroy() {
         this.call('hermes_drop_dialogue_facade', this.facade)

@@ -46,6 +46,7 @@ export default class Audio extends ApiSubset {
             messageStruct: CPlayFinishedMessage
         },
     }
+    subscribeMessagesList: AudioTypes.subscribeMessagesList
 
     destroy () {
         this.call('hermes_drop_audio_server_facade', this.facade)
