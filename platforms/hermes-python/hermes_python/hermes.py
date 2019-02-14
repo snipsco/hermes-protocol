@@ -45,6 +45,15 @@ class Hermes(object):
         self._thread = None
         self._thread_terminate = False
 
+    def __enter__(self):
+        return self.connect()
+
+    def __exit__(self, exception_type, exception_val, trace):
+        if not exception_type:
+            self.acomplished = True
+            return self.disconnect()
+        return False
+
     def connect(self):
         c_mqtt_options = CMqttOptions.from_repr(self.mqtt_options)
 
@@ -64,12 +73,6 @@ class Hermes(object):
         self._facade = POINTER(CDialogueFacade)()
 
         return self
-
-    def __enter__(self):
-        return self.connect()
-
-    def __exit__(self, exception_type, exception_val, trace):
-        return self.disconnect()
 
     def _wraps(self, user_callback, callback_argtype, callback_restype, argtype):
         def params_converter(func):
