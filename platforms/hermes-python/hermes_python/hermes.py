@@ -74,16 +74,6 @@ class Hermes(object):
 
         return self
 
-    def _wraps(self, user_callback, callback_argtype, callback_restype, argtype):
-        def params_converter(func):
-            def called_with_good_params(*args, **kwargs):
-                parsed_args = (argtype.from_c_repr(arg.contents) for arg in (args))
-                return func(self, *parsed_args)
-
-            return called_with_good_params
-
-        return CFUNCTYPE(callback_restype, POINTER(callback_argtype))(params_converter(user_callback))
-
     def subscribe_intent(self, intent_name, user_callback_subscribe_intent):
         """
         Registers a callback to be triggered when the intent intent_name is recognized.
@@ -96,11 +86,19 @@ class Hermes(object):
         :param user_callback_subscribe_intent: the callback that will be executed when intent_name is recognized.
         :return: the current instance of Hermes to allow chaining.
         """
-        self._c_callback_subscribe_intent.append(self._wraps(user_callback_subscribe_intent, CIntentMessage, c_void_p,
-                                                        IntentMessage))
+
+        c_intent_handler_callback = ffi_function_callback_wrapper(
+            hermes_client=self,
+            handler_function=user_callback_subscribe_intent,
+            handler_argument_type=IntentMessage,
+            target_handler_return_type=c_void_p,
+            target_handler_argument_type=CIntentMessage,
+        )
+
+        self._c_callback_subscribe_intent.append(c_intent_handler_callback)
 
         number_of_callbacks = len(self._c_callback_subscribe_intent)
-        hermes_dialogue_subscribe_intent(self._facade, c_char_p(intent_name.encode('utf-8')), self._c_callback_subscribe_intent[number_of_callbacks - 1]) # We retrieve the last callback we
+        hermes_dialogue_subscribe_intent(self._facade, c_char_p(intent_name.encode('utf-8')), self._c_callback_subscribe_intent[number_of_callbacks - 1]) # We retrieve the last callback we registered
         return self
 
     def subscribe_intents(self, user_callback_subscribe_intents):
@@ -115,8 +113,14 @@ class Hermes(object):
         :param user_callback_subscribe_intents: The callback to be executed when any intent is parsed by the platform.
         :return: the current instance of Hermes to allow chaining.
         """
-        self._c_callback_subscribe_intents = self._wraps(user_callback_subscribe_intents, CIntentMessage, c_void_p,
-                                                         IntentMessage)
+        self._c_callback_subscribe_intents = ffi_function_callback_wrapper(
+            hermes_client=self,
+            handler_function=user_callback_subscribe_intent,
+            handler_argument_type=IntentMessage,
+            target_handler_return_type=c_void_p,
+            target_handler_argument_type=CIntentMessage,
+        )
+
         hermes_dialogue_subscribe_intents(self._facade, self._c_callback_subscribe_intents)
         return self
 
@@ -131,9 +135,14 @@ class Hermes(object):
         :param user_callback_subscribe_session_started: the callback to be executed when a new dialogue session is started.
         :return: the current instance of Hermes to allow chaining.
         """
-        self._c_callback_subscribe_session_started = self._wraps(user_callback_subscribe_session_started,
-                                                                 CSessionStartedMessage, c_void_p,
-                                                                 SessionStartedMessage)
+        self._c_callback_subscribe_session_started = ffi_function_callback_wrapper(
+            hermes_client=self,
+            handler_function=user_callback_subscribe_session_started,
+            handler_argument_type=SessionStartedMessage,
+            target_handler_return_type=c_void_p,
+            target_handler_argument_type=CSessionStartedMessage,
+        )
+
         hermes_dialogue_subscribe_session_started(self._facade, self._c_callback_subscribe_session_started)
         return self
 
@@ -148,8 +157,14 @@ class Hermes(object):
         :param user_callback_subscribe_session_queued: the callback to be executed when a new dialogue session is queued.
         :return: the current instance of Hermes to allow chaining.
         """
-        self._c_callback_subscribe_session_queued = self._wraps(user_callback_subscribe_session_queued,
-                                                                CSessionQueuedMessage, c_void_p, SessionQueuedMessage)
+        self._c_callback_subscribe_session_queued = ffi_function_callback_wrapper(
+            hermes_client=self,
+            handler_function=user_callback_subscribe_session_queued,
+            handler_argument_type=SessionQueuedMessage,
+            target_handler_return_type=c_void_p,
+            target_handler_argument_type=CSessionQueuedMessage,
+        )
+
         hermes_dialogue_subscribe_session_queued(self._facade, self._c_callback_subscribe_session_queued)
         return self
 
@@ -164,8 +179,14 @@ class Hermes(object):
         :param user_callback_subscribe_session_ended: the callback to be executed when a new dialogue session is ended.
         :return: the current instance of Hermes to allow chaining.
         """
-        self._c_callback_subscribe_session_ended = self._wraps(user_callback_subscribe_session_ended,
-                                                               CSessionEndedMessage, c_void_p, SessionEndedMessage)
+        self._c_callback_subscribe_session_ended = ffi_function_callback_wrapper(
+            hermes_client=self,
+            handler_function=user_callback_subscribe_session_ended,
+            handler_argument_type=SessionEndedMessage,
+            target_handler_return_type=c_void_p,
+            target_handler_argument_type=CSessionEndedMessage,
+        )
+
         hermes_dialogue_subscribe_session_ended(self._facade, self._c_callback_subscribe_session_ended)
         return self
 
@@ -184,7 +205,13 @@ class Hermes(object):
         :param user_callback_subscribe_intent_not_recognized: the callback executed when an intent is not recognized.
         :return: the current instance of Hermes to allow chaining.
         """
-        self._c_callback_subscribe_intent_not_recognized = self._wraps(user_callback_subscribe_intent_not_recognized, CIntentNotRecognizedMessage, c_void_p, IntentNotRecognizedMessage)
+        self._c_callback_subscribe_intent_not_recognized = ffi_function_callback_wrapper(
+            hermes_client=self,
+            handler_function=user_callback_subscribe_intent_not_recognized,
+            handler_argument_type=IntentNotRecognizedMessage,
+            target_handler_return_type=c_void_p,
+            target_handler_argument_type=CIntentNotRecognizedMessage,
+        )
 
         hermes_dialogue_subscribe_intent_not_recognized(self._facade, self._c_callback_subscribe_intent_not_recognized)
         return self

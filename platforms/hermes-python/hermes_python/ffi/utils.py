@@ -86,6 +86,9 @@ class LibException(Exception):
 
 
 def wrap_library_call(lib_func):
+    """
+    This helper function wrap ffi functions so that they raise an Exception when the error code is different than 0.
+    """
     def wrapped_library_call(*args, **kwargs):
         return_code = lib_func(*args, **kwargs)
         if return_code > 0:  # An error occured
@@ -94,39 +97,22 @@ def wrap_library_call(lib_func):
             lib.hermes_get_last_error(error_p) # Retrieve the last error and put it in the memory location error_p points to
             error_cause = string_at(error_p.contents).decode('utf-8')
             raise LibException(error_cause)
-            return return_code
         return return_code
 
     return wrapped_library_call
 
 
-def hermes_wrap(func):
-    def wrapper(self, *args, **kwargs):
-        return func(self, *args, **kwargs)
+def ffi_function_callback_wrapper(hermes_client, handler_function, handler_argument_type, target_handler_return_type, target_handler_argument_type):
+    def convert_function_arguments(func):
+        def convert_arguments_when_invoking_function(*args, **kwargs):
+            parsed_args = (handler_argument_type.from_c_repr(arg.contents) for arg in (args))
+            return func(hermes_client, *parsed_args)
 
-    return wrapper
-
-
-def user_callback(argument_type):
-    def callback(user_callback):
-        def sanitized(self, *args):
-            parsed_args = (argument_type.from_c_repr(arg.contents) for arg in (args))
-            result = user_callback(self, *parsed_args)
-            return result
-
-        return sanitized
-
-    return callback
+        return convert_arguments_when_invoking_function
+    return CFUNCTYPE(target_handler_return_type, POINTER(target_handler_argument_type))(convert_function_arguments(handler_function))
 
 
-def subscribe_callback(argument_type):
-    def decorate(func):
-        return CFUNCTYPE(c_void_p, POINTER(argument_type))(func)
-
-    return decorate
-
-# Shortcuts
-
+# re-exports
 
 hermes_dialogue_publish_continue_session = wrap_library_call(lib.hermes_dialogue_publish_continue_session)
 hermes_dialogue_publish_end_session = wrap_library_call(lib.hermes_dialogue_publish_end_session)
