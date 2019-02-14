@@ -6,6 +6,9 @@ import {
     CInjectionRequestMessage,
     CInjectionStatusMessage
 } from '../../ffi/typedefs'
+import {
+    InjectionTypes
+} from '../types'
 
 export default class Injection extends ApiSubset {
 
@@ -24,6 +27,7 @@ export default class Injection extends ApiSubset {
             forgedStruct: null
         }
     }
+    publishMessagesList: InjectionTypes.publishMessagesList
 
     subscribeEvents = {
         injection_status: {
@@ -38,16 +42,9 @@ export default class Injection extends ApiSubset {
     }
 
     static enums = {
-        injectionKind: {
-            add: 'add',
-            addFromVanilla: 'addFromVanilla'
-        },
+        injectionKind: InjectionTypes.injectionKind,
         legacy: {
-            injectionKind: {
-                add: 1,
-                addFromVanilla: 2
-            }
+            injectionKind: InjectionTypes.injectionKind_legacy
         }
     }
-
 }

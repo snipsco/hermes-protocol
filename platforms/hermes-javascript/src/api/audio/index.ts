@@ -7,6 +7,9 @@ import {
     CPlayBytesMessage,
     CPlayFinishedMessage
 } from '../../ffi/typedefs'
+import {
+    AudioTypes
+} from '../types'
 
 /**
  * @experimental
@@ -26,6 +29,7 @@ export default class Audio extends ApiSubset {
             forgedStruct: CPlayBytesMessage
         }
     }
+    publishMessagesList: AudioTypes.publishMessagesList
 
     subscribeEvents = {
         'play_finished/': {

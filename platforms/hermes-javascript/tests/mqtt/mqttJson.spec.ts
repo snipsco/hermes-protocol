@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 import { spawn } from 'child_process'
 import path from 'path'
 import mqtt from 'mqtt'
@@ -165,7 +167,7 @@ it('[audio] should publish an audio playback event', () => {
       id: '8ewnjksdf093jb42',
       siteId: 'default',
       wavBytes: wavBuffer.toString('base64'),
-      wavBytesLen: wavBuffer.length,
+      wavBytesLen: wavBuffer.length
     }
     client.subscribe(hermesTopic, function() {
         audio.publish('play_audio', message)
@@ -220,7 +222,7 @@ it('[dialog] should receive and parse an intent not recognized event', () => {
   })
 })
 
-it.only('[dialog] should receive events related to any intent', () => {
+it('[dialog] should receive events related to any intent', () => {
   return setupSubscriberJsonTest({
     client,
     facade: dialog,

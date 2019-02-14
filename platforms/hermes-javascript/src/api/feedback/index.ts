@@ -1,6 +1,6 @@
 import ApiSubset from '../ApiSubset'
 import { CSiteMessage } from '../../ffi/typedefs'
-
+import { FeedbackTypes } from '../types'
 export default class Feedback extends ApiSubset {
 
     constructor(protocolHandler, call, options) {
@@ -17,6 +17,7 @@ export default class Feedback extends ApiSubset {
             forgedStruct: CSiteMessage
         }
     }
+    publishMessagesList: FeedbackTypes.publishMessagesList
 
     destroy () {
         this.call('hermes_drop_sound_feedback_facade', this.facade)

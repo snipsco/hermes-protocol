@@ -1,7 +1,7 @@
 import ref from 'ref'
 import ApiSubset from '../ApiSubset'
 import DialogFlow from './DialogFlow'
-import { FlowAction } from '../types'
+import { FlowAction, DialogTypes } from '../types'
 import {
     StringArray,
     StartSessionMessage,
@@ -41,6 +41,8 @@ export default class Dialog extends ApiSubset {
             forgedStruct: CEndSessionMessage
         }
     }
+    publishMessagesList: DialogTypes.publishMessagesList
+
     subscribeEvents = {
         'intent/': {
             fullEventName: 'hermes_dialogue_subscribe_intent',
@@ -139,87 +141,17 @@ export default class Dialog extends ApiSubset {
     }
 
     static enums = {
-        grain: {
-            year: 'Year',
-            quarter: 'Quarter',
-            month: 'Month',
-            week: 'Week',
-            day: 'Day',
-            hour: 'Hour',
-            minute: 'Minute',
-            second: 'Second'
-        },
-        precision: {
-            approximate: 'Approximate',
-            exact: 'Exact'
-        },
-        initType: {
-            action: 'action',
-            notification: 'notification'
-        },
-        terminationType: {
-            nominal: 'nominal',
-            unavailable: 'siteUnavailable',
-            abortedByUser: 'abortedByUser',
-            intentNotRecognized: 'intentNotRecognized',
-            timeout: 'timeout',
-            error: 'error'
-        },
-        slotType: {
-            custom: 'Custom',
-            number: 'Number',
-            ordinal: 'Ordinal',
-            instantTime: 'InstantTime',
-            timeInterval: 'TimeInterval',
-            amountOfMoney: 'AmountOfMoney',
-            temperature: 'Temperature',
-            duration: 'Duration',
-            percentage: 'Percentage',
-            musicAlbum: 'MusicAlbum',
-            musicArtist: 'MusicArtist',
-            musicTrack: 'MusicTrack'
-        },
+        grain: DialogTypes.grain,
+        precision: DialogTypes.precision,
+        initType: DialogTypes.initType,
+        terminationType: DialogTypes.terminationType,
+        slotType: DialogTypes.slotType,
         legacy: {
-            grain: {
-                year: 0,
-                quarter: 1,
-                month: 2,
-                week: 3,
-                day: 4,
-                hour: 5,
-                minute: 6,
-                second: 7
-            },
-            precision: {
-                approximate: 0,
-                exact: 1
-            },
-            initType: {
-                action: 1,
-                notification: 2
-            },
-            terminationType: {
-                nominal: 1,
-                unavailable: 2,
-                abortedByUser: 3,
-                intentNotRecognized: 4,
-                timeout: 5,
-                error: 6
-            },
-            slotType: {
-                custom: 1,
-                number: 2,
-                ordinal: 3,
-                instantTime: 4,
-                timeInterval: 5,
-                amountOfMoney: 6,
-                temperature: 7,
-                duration: 8,
-                percentage: 9,
-                musicAlbum: 10,
-                musicArtist: 11,
-                musicTrack: 12
-            }
+            grain: DialogTypes.grain_legacy,
+            precision: DialogTypes.precision_legacy,
+            initType: DialogTypes.initType_legacy,
+            terminationType: DialogTypes.terminationType_legacy,
+            slotType: DialogTypes.slotType_legacy
         }
     }
 }

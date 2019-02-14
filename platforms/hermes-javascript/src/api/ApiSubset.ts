@@ -13,13 +13,15 @@ import {
 
 const getMetadata = function<T = (SubscribeEventDescriptor | PublishEventDescriptor)>(
     obj: { [key: string]: T },
-    eventName: string
+    eventName: string | number | symbol
 ) : T {
+    if(typeof eventName === 'symbol')
+        throw new Error('Symbol not expected')
     let metadata = obj[eventName]
     if(!metadata) {
         const matchingEntry = Object
             .entries(obj)
-            .find(([key]) => eventName.startsWith(key))
+            .find(([key]) => typeof eventName === 'string' && eventName.startsWith(key))
         if(matchingEntry) {
             metadata = matchingEntry[1]
         } else {
@@ -36,10 +38,11 @@ export default class ApiSubset {
     public call: FFIFunctionCall
     public destroy() {}
     private listeners = new Map()
-    protected options: HermesOptions
+    public options: HermesOptions
     protected facade: Buffer
     protected subscribeEvents: { [key: string]: SubscribeEventDescriptor }
-    protected publishEvents: { [key: string]: PublishEventDescriptor}
+    public publishEvents: { [key: string]: PublishEventDescriptor}
+    public publishMessagesList: {[key: string]: any}
 
     constructor(protocolHandler: Buffer, call: FFIFunctionCall, options: HermesOptions, facadeName: string) {
         this.call = call
@@ -152,7 +155,7 @@ export default class ApiSubset {
     /**
      * Publish a message.
      */
-    publish(eventName: string, message?: {[key: string]: any}) {
+    publish<T extends keyof this['publishEvents']>(eventName: T, message?: this['publishMessagesList'][T]) {
         const {
             messageClass,
             fullEventName,
