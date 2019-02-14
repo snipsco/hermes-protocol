@@ -383,6 +383,7 @@ impl Drop for CNluIntentMessage {
 
 #[repr(C)]
 #[derive(Debug)]
+/// Result of the intent classifier
 pub struct CNluIntentClassifierResult {
     /// Name of the intent detected
     pub intent_name: *const libc::c_char,
