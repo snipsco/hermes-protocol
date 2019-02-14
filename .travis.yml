@@ -16,6 +16,7 @@ before_script:
   - if [ "$TRAVIS_RUST_VERSION" == "stable" ]; then
       rustup component add rustfmt;
       rustup component add clippy;
+      cargo install --force cbindgen
     fi
 
 rust:
@@ -33,6 +34,16 @@ script:
   - cargo build --all
   - cargo test --all
   - pwd
+  - if [ "$TRAVIS_RUST_VERSION" == "stable" ]; then
+      (cd hermes-mqtt-ffi && cbindgen -v cbindgen.toml -o ../platform/c/libsnips_hermes.check.h);
+      (cd hermes-mqtt-ffi && cbindgen -v cbindgen_full.toml -o ../platform/c/libsnips_hermes_full.check.h);
+      (cd hermes-mqtt-ffi && cbindgen -v cbindgen_json.toml -o ../platform/c/libsnips_hermes_json.check.h);
+
+      (cd platforms/c/ &&
+        diff libsnips_hermes.h libsnips_hermes.check.h; \
+        diff libsnips_hermes_full.h libsnips_hermes_full.check.h; \
+        diff libsnips_hermes_json.h libsnips_hermes_json.check.h);
+    fi
   - (cd platforms/hermes-kotlin && ./gradlew --console plain jar -Pdebug)
   - (cd platforms/hermes-kotlin && ./gradlew --console plain test -Pdebug)
   - (cd platforms/hermes-python && ./run-tests-travis.sh)
