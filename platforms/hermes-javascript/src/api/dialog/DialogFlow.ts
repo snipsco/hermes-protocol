@@ -1,8 +1,10 @@
 import Dialog from './index'
 import {
     FlowContinuation,
-    FlowAction
+    FlowIntentAction,
+    FlowNotRecognizedAction
 } from '../types'
+import { IntentMessage, IntentMessageLegacy } from '../types/messages'
 
 export default class DialogFlow<API> {
 
@@ -120,8 +122,8 @@ export default class DialogFlow<API> {
     }
 
     // Starts a dialog flow.
-    start(action: FlowAction, message: { [key: string]: any }) {
-        const flow : FlowContinuation = {
+    start(action: FlowIntentAction<API>, message: API extends 'json' ? IntentMessage : IntentMessageLegacy) {
+        const flow : FlowContinuation<API> = {
             continue: this.continue.bind(this),
             notRecognized: this.notRecognized.bind(this),
             end: this.end.bind(this)
@@ -131,12 +133,12 @@ export default class DialogFlow<API> {
     }
 
     // Registers an intent filter and continue the current dialog session.
-    continue(intentName: string, action: FlowAction) {
+    continue(intentName: string, action: FlowIntentAction<API>) {
         this.continuations.set(intentName, action)
     }
 
     // Registers a listener that will be called if no intents have been recognized.
-    notRecognized(action: FlowAction) {
+    notRecognized(action: FlowNotRecognizedAction<API>) {
         this.notRecognizedAction = action
     }
 

@@ -38,22 +38,22 @@ export const camelize = item => {
 
 /* Publish */
 
-type PublisherTestArgs = {
+type PublisherTestArgs<API = 'legacy'> = {
     client: any,
-    facade: ApiSubset,
+    facade: ApiSubset<API>,
     publishedJson: any,
     expectedJson?: any,
     hermesTopic: string,
     facadePublication: string
 }
-export const setupPublisherTest = ({
+export const setupPublisherTest = <API = 'legacy'>({
     client,
     facade,
     publishedJson,
     expectedJson,
     hermesTopic,
     facadePublication
-} : PublisherTestArgs) => {
+} : PublisherTestArgs<API>) => {
     publishedJson = publishedJson && { ...publishedJson }
     return new Promise(resolve => {
         client.subscribe(hermesTopic, function() {
@@ -78,20 +78,20 @@ export const setupPublisherTest = ({
     })
 }
 
-type PublisherJsonTestArgs = {
+type PublisherJsonTestArgs<API = 'json'> = {
     client: any,
-    facade: ApiSubset,
+    facade: ApiSubset<API>,
     json: any,
     hermesTopic: string,
     facadePublication: string
 }
-export const setupPublisherJsonTest = ({
+export const setupPublisherJsonTest = <API = 'json'>({
     client,
     facade,
     json,
     hermesTopic,
     facadePublication
-} : PublisherJsonTestArgs) => {
+} : PublisherJsonTestArgs<API>) => {
     json = json && { ...json }
     return new Promise(resolve => {
         client.subscribe(hermesTopic, function() {
@@ -117,22 +117,22 @@ export const setupPublisherJsonTest = ({
 
 /* Subscribe */
 
-type SubscriberTestArgs = {
+type SubscriberTestArgs<API = 'legacy'> = {
     client: any,
-    facade: ApiSubset,
+    facade: ApiSubset<API>,
     mqttJson: any,
     expectedJson?: any,
     hermesTopic: string,
     facadeSubscription: string
 }
-export const setupSubscriberTest = ({
+export const setupSubscriberTest = <API = 'legacy'>({
     client,
     facade,
     mqttJson,
     expectedJson = null,
     hermesTopic,
     facadeSubscription
-} : SubscriberTestArgs) => {
+} : SubscriberTestArgs<API>) => {
     mqttJson = { ...mqttJson }
     return new Promise(async resolve => {
         facade.once(facadeSubscription, message => {
@@ -146,20 +146,20 @@ export const setupSubscriberTest = ({
     })
 }
 
-type SubscriberJsonTestArgs = {
+type SubscriberJsonTestArgs<API = 'json'> = {
     client: any,
-    facade: ApiSubset,
+    facade: ApiSubset<API>,
     json: any,
     hermesTopic: string,
     facadeSubscription: string
 }
-export const setupSubscriberJsonTest = ({
+export const setupSubscriberJsonTest = <API = 'json'>({
     client,
     facade,
     json,
     hermesTopic,
     facadeSubscription
-} : SubscriberJsonTestArgs) => {
+} : SubscriberJsonTestArgs<API>) => {
     return new Promise(async resolve => {
         facade.once(facadeSubscription, message => {
             expect(message).toMatchObject(json)

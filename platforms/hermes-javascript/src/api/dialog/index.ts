@@ -1,7 +1,7 @@
 import ref from 'ref'
 import ApiSubset from '../ApiSubset'
 import DialogFlow from './DialogFlow'
-import { FlowAction, DialogTypes } from '../types'
+import { FlowIntentAction, DialogTypes } from '../types'
 import * as enums from '../types/enums'
 import {
     StringArray,
@@ -93,7 +93,7 @@ export default class Dialog<API> extends ApiSubset<API> {
      * @param {*} intent Starting intent name.
      * @param {*} action Action to perform when the starting intent is triggered.
      */
-    flow(intent: string, action: FlowAction) {
+    flow(intent: string, action: FlowIntentAction<API>) {
         return this.flows([{ intent, action }])
     }
 
@@ -101,14 +101,14 @@ export default class Dialog<API> extends ApiSubset<API> {
      * Sets up a dialog flow with multiple starting intents.
      * @param {*} intents An array of { intent, action } objects.
      */
-    flows(intents: { intent: string, action: FlowAction }[]) {
+    flows(intents: { intent: string, action: FlowIntentAction<API> }[]) {
         intents.forEach(({ intent, action }) => {
             this.on(`intent/${intent}`, (message: any) => {
                 const sessionId = this.options.useJsonApi ? message.sessionId : message.session_id
                 // If this particular session is already in progress - prevent
                 if(this.activeSessions.has(sessionId))
                     return
-                const flow = new DialogFlow(this, sessionId, () => {
+                const flow = new DialogFlow<API>(this, sessionId, () => {
                     this.activeSessions.delete(sessionId)
                 }, { useJsonApi: this.options.useJsonApi })
                 this.activeSessions.add(sessionId)
@@ -124,7 +124,7 @@ export default class Dialog<API> extends ApiSubset<API> {
      * @param id : An id that should match the customData field of the started session.
      * @param action : The action to execute on session startup.
      */
-    sessionFlow(id: string, action: FlowAction) {
+    sessionFlow(id: string, action: FlowIntentAction<API>) {
         const listener = message => {
             const { useJsonApi } = this.options
             const customData = useJsonApi ? message.customData : message.custom_data
@@ -133,7 +133,7 @@ export default class Dialog<API> extends ApiSubset<API> {
             if(customData !== id)
                 return
             this.off('session_started', listener)
-            const flow = new DialogFlow(this, sessionId, () => {
+            const flow = new DialogFlow<API>(this, sessionId, () => {
                 this.activeSessions.delete(sessionId)
             }, { useJsonApi })
             this.activeSessions.add(sessionId)
