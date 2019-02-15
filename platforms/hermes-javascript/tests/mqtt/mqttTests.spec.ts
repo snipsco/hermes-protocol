@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 import { spawn } from 'child_process'
 import path from 'path'
 import mqtt from 'mqtt'
@@ -19,11 +21,11 @@ let
   mosquitto,
   mosquittoPort,
   client,
-  hermes: Hermes,
-  dialog: Dialog,
-  injection: Injection,
-  feedback: Feedback,
-  audio: Audio
+  hermes: Hermes<'legacy'>,
+  dialog: Dialog<'legacy'>,
+  injection: Injection<'legacy'>,
+  feedback: Feedback<'legacy'>,
+  audio: Audio<'legacy'>
 
 const robustnessTestsTimeout = 60000
 const robustnessIterations = 500
@@ -39,7 +41,7 @@ beforeAll(async () => {
   mosquitto = spawn('mosquitto', ['-p', mosquittoPort, '-v'], { stdio: 'ignore' })
   console.log('Mosquitto ready!')
   try {
-    hermes = new Hermes({
+    hermes = new Hermes<'legacy'>({
       libraryPath: path.join(__dirname, `../../../../target/${LIB_ENV_FOLDER}/libhermes_mqtt_ffi`),
       logs: true,
       address: `localhost:${mosquittoPort}`,

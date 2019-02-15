@@ -20,11 +20,11 @@ let
   mosquitto,
   mosquittoPort,
   client,
-  hermes: Hermes,
-  dialog: Dialog,
-  injection: Injection,
-  feedback: Feedback,
-  audio: Audio
+  hermes: Hermes<'json'>,
+  dialog: Dialog<'json'>,
+  injection: Injection<'json'>,
+  feedback: Feedback<'json'>,
+  audio: Audio<'json'>
 
 const robustnessTestsTimeout = 60000
 const robustnessIterations = 500

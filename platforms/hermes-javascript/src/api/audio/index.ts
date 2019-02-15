@@ -16,7 +16,7 @@ import {
  *
  * Warning: Experimental, use at your own risk!
  */
-export default class Audio extends ApiSubset {
+export default class Audio<API> extends ApiSubset<API> {
 
     constructor(protocolHandler, call, options) {
         super(protocolHandler, call, options, 'hermes_protocol_handler_audio_server_facade')
@@ -29,7 +29,7 @@ export default class Audio extends ApiSubset {
             forgedStruct: CPlayBytesMessage
         }
     }
-    publishMessagesList: AudioTypes.publishMessagesList
+    publishMessagesList: AudioTypes.publishMessagesList<API>
 
     subscribeEvents = {
         'play_finished/': {
@@ -46,7 +46,7 @@ export default class Audio extends ApiSubset {
             messageStruct: CPlayFinishedMessage
         },
     }
-    subscribeMessagesList: AudioTypes.subscribeMessagesList
+    subscribeMessagesList: AudioTypes.subscribeMessagesList<API>
 
     destroy () {
         this.call('hermes_drop_audio_server_facade', this.facade)

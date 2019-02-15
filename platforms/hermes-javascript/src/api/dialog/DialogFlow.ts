@@ -4,7 +4,7 @@ import {
     FlowAction
 } from '../types'
 
-export default class DialogFlow {
+export default class DialogFlow<API> {
 
     private continuations = new Map()
     private continuationsListeners = new Map()
@@ -13,7 +13,7 @@ export default class DialogFlow {
     private ended = false
     private useJsonApi = true
 
-    constructor(private dialog: Dialog, public sessionId: string, done: () => void, { useJsonApi }) {
+    constructor(private dialog: Dialog<API>, public sessionId: string, done: () => void, { useJsonApi }) {
         // Sets up a subscriber to clean up in case the session is ended programatically.
         const onSessionEnded = msg => {
             const sessionId = this.useJsonApi ? msg.sessionId : msg.session_id
@@ -51,7 +51,7 @@ export default class DialogFlow {
             options = { text: options }
         }
         if(this.ended) {
-            const endSessionProperties = this.useJsonApi ?
+            const endSessionProperties: any = this.useJsonApi ?
                 { sessionId: this.sessionId } :
                 { session_id: this.sessionId }
 
@@ -80,7 +80,7 @@ export default class DialogFlow {
             options[this.useJsonApi ? 'sendIntentNotRecognized' : 'send_intent_not_recognized'] = 1
         }
         // Publish a continue session message
-        const continueSessionProperties =
+        const continueSessionProperties: any =
             this.useJsonApi ?
                 {
                     sessionId: this.sessionId,

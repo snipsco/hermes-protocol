@@ -12,13 +12,14 @@ import { HermesOptions, FFIFunctionCall, SubsetConstructor } from './types'
 
 export { Dialog, Injection, Feedback, Audio }
 export { ApiSubset }
+export type HermesAPI = 'json' | 'legacy'
 export * from './types'
 
 /**
  * Hermes javascript is an high level API that allows you to
  * subscribe and send Snips messages using the Hermes protocol.
  */
-export class Hermes {
+export class Hermes<API extends HermesAPI> {
 
     /**
      * Create a new Hermes instance that connects to the underlying event bus.
@@ -80,19 +81,19 @@ export class Hermes {
      * Return a Dialog instance used to interact with the dialog API.
      */
     dialog() {
-        return this._getOrCreateSubset('dialog', Dialog)
+        return this._getOrCreateSubset<Dialog<API>>('dialog', Dialog)
     }
     /**
      * Return an Injection instance used to interact with the vocabulary injection API.
      */
     injection() {
-        return this._getOrCreateSubset('injection', Injection)
+        return this._getOrCreateSubset<Injection<API>>('injection', Injection)
     }
     /**
      * Return a Feedback object instance used to interact with the audio feedback API.
      */
     feedback() {
-        return this._getOrCreateSubset('feedback', Feedback)
+        return this._getOrCreateSubset<Feedback<API>>('feedback', Feedback)
     }
 
     /**
@@ -103,7 +104,7 @@ export class Hermes {
      * Returns an Audio object instance used to interact with the audio playback API.
      */
     audio() {
-        return this._getOrCreateSubset('audio', Audio)
+        return this._getOrCreateSubset<Audio<API>>('audio', Audio)
     }
 
     /**
@@ -119,7 +120,7 @@ export class Hermes {
 
     // Private //
 
-    private _getOrCreateSubset<T extends ApiSubset>(key: string, Class: SubsetConstructor<T>): T {
+    private _getOrCreateSubset<T extends ApiSubset<API>>(key: string, Class: SubsetConstructor<T>): T {
         if(!this.activeSubsets.has(key)) {
             this.activeSubsets.set(key, new Class(this.protocolHandler, this.call, this.options))
         }

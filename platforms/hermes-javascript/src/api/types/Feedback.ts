@@ -1,8 +1,8 @@
 import { NotificationMessage, NotificationMessageLegacy } from './messages'
 
 export namespace FeedbackTypes {
-    export type publishMessagesList = {
-        notification_on: NotificationMessage | NotificationMessageLegacy,
-        notification_off: NotificationMessage | NotificationMessageLegacy
+    export type publishMessagesList<API> = {
+        notification_on: API extends 'json' ? NotificationMessage : NotificationMessageLegacy,
+        notification_off: API extends 'json' ? NotificationMessage : NotificationMessageLegacy
     }
 }

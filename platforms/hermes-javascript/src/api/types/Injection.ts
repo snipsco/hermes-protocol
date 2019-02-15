@@ -6,12 +6,12 @@ import {
 } from './messages'
 
 export namespace InjectionTypes {
-    export type publishMessagesList = {
-        injection_request: InjectionRequestMessage | InjectionRequestMessageLegacy,
+    export type publishMessagesList<API> = {
+        injection_request: API extends 'json' ? InjectionRequestMessage : InjectionRequestMessageLegacy,
         injection_status_request: null
     }
 
-    export type subscribeMessagesList = {
-        injection_status: InjectionStatusMessage & InjectionStatusMessageLegacy
+    export type subscribeMessagesList<API> = {
+        injection_status: API extends 'json' ? InjectionStatusMessage : InjectionStatusMessageLegacy
     }
 }

@@ -18,7 +18,7 @@ import {
     CSessionStartedMessage
 } from '../../ffi/typedefs'
 
-export default class Dialog extends ApiSubset {
+export default class Dialog<API> extends ApiSubset<API> {
 
     constructor(protocolHandler, call, options) {
         super(protocolHandler, call, options, 'hermes_protocol_handler_dialogue_facade')
@@ -42,7 +42,7 @@ export default class Dialog extends ApiSubset {
             forgedStruct: CEndSessionMessage
         }
     }
-    publishMessagesList: DialogTypes.publishMessagesList
+    publishMessagesList: DialogTypes.publishMessagesList<API>
 
     subscribeEvents = {
         'intent/': {
@@ -82,7 +82,7 @@ export default class Dialog extends ApiSubset {
             messageStruct: CSessionStartedMessage
         }
     }
-    subscribeMessagesList: DialogTypes.subscribeMessagesList
+    subscribeMessagesList: DialogTypes.subscribeMessagesList<API>
 
     destroy() {
         this.call('hermes_drop_dialogue_facade', this.facade)
@@ -103,7 +103,7 @@ export default class Dialog extends ApiSubset {
      */
     flows(intents: { intent: string, action: FlowAction }[]) {
         intents.forEach(({ intent, action }) => {
-            this.on(`intent/${intent}`, message => {
+            this.on(`intent/${intent}`, (message: any) => {
                 const sessionId = this.options.useJsonApi ? message.sessionId : message.session_id
                 // If this particular session is already in progress - prevent
                 if(this.activeSessions.has(sessionId))

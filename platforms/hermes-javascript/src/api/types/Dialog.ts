@@ -18,19 +18,19 @@ import {
 } from './messages'
 
 export namespace DialogTypes {
-    export type publishMessagesList = {
-        start_session: StartSessionMessage | StartSessionMessageLegacy,
-        continue_session: ContinueSessionMessage | ContinueSessionMessageLegacy,
-        end_session: EndSessionMessage | EndSessionMessageLegacy
+    export type publishMessagesList<API> = {
+        start_session: API extends 'json' ? StartSessionMessage : StartSessionMessageLegacy,
+        continue_session: API extends 'json' ? ContinueSessionMessage : ContinueSessionMessageLegacy,
+        end_session: API extends 'json' ? EndSessionMessage : EndSessionMessageLegacy
     }
-    export type subscribeMessagesList = {
-        intents: IntentMessage & IntentMessageLegacy,
-        intent_not_recognized: IntentNotRecognizedMessage & IntentNotRecognizedMessageLegacy,
-        session_ended: SessionEndedMessage & SessionEndedMessageLegacy,
-        session_queued: SessionQueuedMessage & SessionQueuedMessageLegacy,
-        session_started: SessionStartedMessage & SessionStartedMessageLegacy
+    export type subscribeMessagesList<API> = {
+        intents: API extends 'json' ? IntentMessage : IntentMessageLegacy,
+        intent_not_recognized: API extends 'json' ? IntentNotRecognizedMessage : IntentNotRecognizedMessageLegacy,
+        session_ended: API extends 'json' ? SessionEndedMessage : SessionEndedMessageLegacy,
+        session_queued: API extends 'json' ? SessionQueuedMessage : SessionQueuedMessageLegacy,
+        session_started: API extends 'json' ? SessionStartedMessage : SessionStartedMessageLegacy
     } & {
         // Workaround for intents that have a dynamic key
-        [key: string]: IntentMessage & IntentMessageLegacy
+        [key: string]: API extends 'json' ? IntentMessage : IntentMessageLegacy
     }
 }

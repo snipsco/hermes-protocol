@@ -6,13 +6,13 @@ import {
 } from './messages'
 
 export namespace AudioTypes {
-    export type publishMessagesList = {
-        play_audio: PlayAudioMessage | PlayAudioMessageLegacy
+    export type publishMessagesList<API> = {
+        play_audio: API extends 'json' ? PlayAudioMessage : PlayAudioMessageLegacy
     }
-    export type subscribeMessagesList = {
-        play_finished_all: PlayFinishedMessage & PlayFinishedMessageLegacy
+    export type subscribeMessagesList<API> = {
+        play_finished_all: API extends 'json' ? PlayFinishedMessage : PlayFinishedMessageLegacy
     } & {
         // Workaround for dynamic key
-        [key: string]: PlayFinishedMessage & PlayFinishedMessageLegacy
+        [key: string]: API extends 'json' ? PlayFinishedMessage : PlayFinishedMessageLegacy
     }
 }

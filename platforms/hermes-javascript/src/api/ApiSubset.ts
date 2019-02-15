@@ -33,7 +33,7 @@ const getMetadata = function<T = (SubscribeEventDescriptor | PublishEventDescrip
 
 /* Class */
 
-export default class ApiSubset {
+export default class ApiSubset<API> {
 
     public call: FFIFunctionCall
     public destroy() {}

@@ -11,7 +11,7 @@ import {
 } from '../types'
 import * as enums from '../types/enums'
 
-export default class Injection extends ApiSubset {
+export default class Injection<API> extends ApiSubset<API> {
 
     constructor(protocolHandler, call, options) {
         super(protocolHandler, call, options, 'hermes_protocol_handler_injection_facade')
@@ -28,7 +28,7 @@ export default class Injection extends ApiSubset {
             forgedStruct: null
         }
     }
-    publishMessagesList: InjectionTypes.publishMessagesList
+    publishMessagesList: InjectionTypes.publishMessagesList<API>
 
     subscribeEvents = {
         injection_status: {
@@ -37,7 +37,7 @@ export default class Injection extends ApiSubset {
             messageStruct: CInjectionStatusMessage
         }
     }
-    subscribeMessagesList: InjectionTypes.subscribeMessagesList
+    subscribeMessagesList: InjectionTypes.subscribeMessagesList<API>
 
     destroy () {
         this.call('hermes_drop_injection_facade', this.facade)
