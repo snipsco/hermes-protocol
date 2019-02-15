@@ -102,14 +102,25 @@ def wrap_library_call(lib_func):
     return wrapped_library_call
 
 
-def ffi_function_callback_wrapper(hermes_client, handler_function, handler_argument_type, target_handler_return_type, target_handler_argument_type):
+def ffi_function_callback_wrapper(use_json_api, hermes_client, handler_function, handler_argument_type, target_handler_return_type, target_handler_argument_type):
     def convert_function_arguments(func):
-        def convert_arguments_when_invoking_function(*args, **kwargs):
-            parsed_args = (handler_argument_type.from_c_repr(arg.contents) for arg in (args))
-            return func(hermes_client, *parsed_args)
+        if use_json_api:
+            def convert_arguments_when_invoking_function(*args, **kwargs):
+                parsed_args = (string_at(arg).decode('utf-8') for arg in (args))
+                return func(hermes_client, *parsed_args)
+        else:
+            def convert_arguments_when_invoking_function(*args, **kwargs):
+                parsed_args = (handler_argument_type.from_c_repr(arg.contents) for arg in (args))
+                return func(hermes_client, *parsed_args)
 
         return convert_arguments_when_invoking_function
-    return CFUNCTYPE(target_handler_return_type, POINTER(target_handler_argument_type))(convert_function_arguments(handler_function))
+
+    if use_json_api:
+        return CFUNCTYPE(target_handler_return_type, target_handler_argument_type)(
+            convert_function_arguments(handler_function))
+    else:
+        return CFUNCTYPE(target_handler_return_type, POINTER(target_handler_argument_type))(
+            convert_function_arguments(handler_function))
 
 
 # re-exports
@@ -144,3 +155,12 @@ hermes_protocol_handler_new_mqtt = wrap_library_call(lib.hermes_protocol_handler
 hermes_protocol_handler_new_mqtt_with_options = wrap_library_call(lib.hermes_protocol_handler_new_mqtt_with_options)
 hermes_protocol_handler_dialogue_facade = wrap_library_call(lib.hermes_protocol_handler_dialogue_facade)
 
+hermes_dialogue_publish_continue_session_json = wrap_library_call(lib.hermes_dialogue_publish_continue_session_json)
+hermes_dialogue_publish_end_session_json = wrap_library_call(lib.hermes_dialogue_publish_end_session_json)
+hermes_dialogue_publish_start_session_json = wrap_library_call(lib.hermes_dialogue_publish_start_session_json)
+hermes_dialogue_subscribe_intent_json = wrap_library_call(lib.hermes_dialogue_subscribe_intent_json)
+hermes_dialogue_subscribe_intent_not_recognized_json = wrap_library_call(lib.hermes_dialogue_subscribe_intent_not_recognized_json)
+hermes_dialogue_subscribe_intents_json = wrap_library_call(lib.hermes_dialogue_subscribe_intents_json)
+hermes_dialogue_subscribe_session_ended_json = wrap_library_call(lib.hermes_dialogue_subscribe_session_ended_json)
+hermes_dialogue_subscribe_session_queued_json = wrap_library_call(lib.hermes_dialogue_subscribe_session_queued_json)
+hermes_dialogue_subscribe_session_started_json = wrap_library_call(lib.hermes_dialogue_subscribe_session_started_json)

@@ -7,9 +7,20 @@ from builtins import object
 from collections import defaultdict
 from six.moves import range
 from dotmap import DotMap
+import json
 
 from ctypes import string_at, c_double
 from .ffi.ontology import CAmountOfMoneyValue, CTemperatureValue, CInstantTimeValue, CTimeIntervalValue, CDurationValue
+
+class JsonIntentMessage(object):
+    def __init__(self, rawjson):
+        self.json = rawjson
+
+
+    @classmethod
+    def from_c_repr(cls, c_repr):
+        raw_json = json.loads(c_repr)
+        return cls(rawjson=raw_json)
 
 
 class IntentMessage(object):

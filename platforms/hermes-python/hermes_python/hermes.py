@@ -7,25 +7,33 @@ from ctypes import *
 from .ffi.ontology import CProtocolHandler, CDialogueFacade, CContinueSessionMessage, CEndSessionMessage, \
     CStartSessionMessageAction, CStartSessionMessageNotification, CStringArray, CIntentMessage, CSessionStartedMessage, CSessionQueuedMessage, \
     CSessionEndedMessage, CSessionInitNotification, CSessionInitAction, CActionSessionInit, CIntentNotRecognizedMessage
-from .ffi.utils import *
+from .ffi import utils as ffi_utils
+from .ffi.utils import MqttOptions, CMqttOptions, hermes_protocol_handler_new_mqtt, \
+    hermes_protocol_handler_new_mqtt_with_options, hermes_protocol_handler_dialogue_facade, hermes_drop_dialogue_facade, \
+    lib, ffi_function_callback_wrapper
+
+from .ontology import JsonIntentMessage, IntentMessage, SessionStartedMessage, SessionQueuedMessage, SessionEndedMessage, IntentNotRecognizedMessage
+
 import threading
 from time import sleep
-
 
 
 class Hermes(object):
     def __init__(self,
                  broker_address=None,
                  rust_logs_enabled=False,
-                 mqtt_options=MqttOptions()):
-
+                 mqtt_options=MqttOptions(),
+                 use_json_api=True):
         """
         :param broker_address: Address of the MQTT broker in the form 'ip:port'
         :param rust_logs_enabled: Enables or Disables stdout logs *(default false)*
         :param mqtt_options: Options to connect to the mqtt broker.
+        :param use_json_api: If set to False, hermes-python will use the legacy format for published/subscribed messages.
+        Notice: Setting this to false is strongly discouraged, and the support for the old format will eventually be removed in the future.
         """
 
         self.rust_logs_enabled = rust_logs_enabled
+        self.use_json_api = use_json_api
 
         self.mqtt_options = mqtt_options
         if broker_address:  # This test is kept for API compatibility reasons.
@@ -80,7 +88,9 @@ class Hermes(object):
 
         The callback will be called with the following parameters :
             - hermes : the current instance of the Hermes object
-            - intentMessage : A python representation of the intent parsed by the NLU engine.
+            - intentMessage :
+                - A python representation of the intent parsed by the NLU engine (for json_repr set to False)
+                - A json representation of the intent parsed by the NLU engine. (for json_repr set to True)
 
         :param intent_name: the name of the intent to subscribe to.
         :param user_callback_subscribe_intent: the callback that will be executed when intent_name is recognized.
@@ -88,17 +98,24 @@ class Hermes(object):
         """
 
         c_intent_handler_callback = ffi_function_callback_wrapper(
+            use_json_api=True,
             hermes_client=self,
             handler_function=user_callback_subscribe_intent,
-            handler_argument_type=IntentMessage,
+            handler_argument_type=JsonIntentMessage if self.use_json_api else IntentMessage,
             target_handler_return_type=c_void_p,
-            target_handler_argument_type=CIntentMessage,
+            target_handler_argument_type=c_char_p if self.use_json_api else CIntentMessage,
         )
 
-        self._c_callback_subscribe_intent.append(c_intent_handler_callback)
-
+        self._c_callback_subscribe_intent.append(c_intent_handler_callback)  # Register callback
         number_of_callbacks = len(self._c_callback_subscribe_intent)
-        hermes_dialogue_subscribe_intent(self._facade, c_char_p(intent_name.encode('utf-8')), self._c_callback_subscribe_intent[number_of_callbacks - 1]) # We retrieve the last callback we registered
+
+        getattr(ffi_utils, 'hermes_dialogue_subscribe_intent_json'
+        if self.use_json_api else 'hermes_dialogue_subscribe_intent')(
+            self._facade,
+            c_char_p(intent_name.encode('utf-8')),
+            self._c_callback_subscribe_intent[number_of_callbacks - 1])  # We retrieve the last callback we registered
+
+
         return self
 
     def subscribe_intents(self, user_callback_subscribe_intents):
@@ -115,10 +132,10 @@ class Hermes(object):
         """
         self._c_callback_subscribe_intents = ffi_function_callback_wrapper(
             hermes_client=self,
-            handler_function=user_callback_subscribe_intent,
-            handler_argument_type=IntentMessage,
+            handler_function=user_callback_subscribe_intents,
+            handler_argument_type=IntentMessage if self.use_json_api else IntentMessage,
             target_handler_return_type=c_void_p,
-            target_handler_argument_type=CIntentMessage,
+            target_handler_argument_type=CIntentMessage if self.use_json_api else CIntentMessage,
         )
 
         hermes_dialogue_subscribe_intents(self._facade, self._c_callback_subscribe_intents)
@@ -138,9 +155,9 @@ class Hermes(object):
         self._c_callback_subscribe_session_started = ffi_function_callback_wrapper(
             hermes_client=self,
             handler_function=user_callback_subscribe_session_started,
-            handler_argument_type=SessionStartedMessage,
+            handler_argument_type=SessionStartedMessage if self.use_json_api else SessionStartedMessage,
             target_handler_return_type=c_void_p,
-            target_handler_argument_type=CSessionStartedMessage,
+            target_handler_argument_type=CSessionStartedMessage if self.use_json_api else CSessionStartedMessage,
         )
 
         hermes_dialogue_subscribe_session_started(self._facade, self._c_callback_subscribe_session_started)
@@ -160,9 +177,9 @@ class Hermes(object):
         self._c_callback_subscribe_session_queued = ffi_function_callback_wrapper(
             hermes_client=self,
             handler_function=user_callback_subscribe_session_queued,
-            handler_argument_type=SessionQueuedMessage,
+            handler_argument_type=SessionQueuedMessage if self.use_json_api else SessionQueuedMessage,
             target_handler_return_type=c_void_p,
-            target_handler_argument_type=CSessionQueuedMessage,
+            target_handler_argument_type=CSessionQueuedMessage if self.use_json_api else CSessionQueuedMessage,
         )
 
         hermes_dialogue_subscribe_session_queued(self._facade, self._c_callback_subscribe_session_queued)
@@ -182,9 +199,9 @@ class Hermes(object):
         self._c_callback_subscribe_session_ended = ffi_function_callback_wrapper(
             hermes_client=self,
             handler_function=user_callback_subscribe_session_ended,
-            handler_argument_type=SessionEndedMessage,
+            handler_argument_type=SessionEndedMessage if self.use_json_api else SessionEndedMessage,
             target_handler_return_type=c_void_p,
-            target_handler_argument_type=CSessionEndedMessage,
+            target_handler_argument_type=CSessionEndedMessage if self.use_json_api else CSessionEndedMessage,
         )
 
         hermes_dialogue_subscribe_session_ended(self._facade, self._c_callback_subscribe_session_ended)
@@ -208,9 +225,9 @@ class Hermes(object):
         self._c_callback_subscribe_intent_not_recognized = ffi_function_callback_wrapper(
             hermes_client=self,
             handler_function=user_callback_subscribe_intent_not_recognized,
-            handler_argument_type=IntentNotRecognizedMessage,
+            handler_argument_type=IntentNotRecognizedMessage if self.use_json_api else IntentNotRecognizedMessage,
             target_handler_return_type=c_void_p,
-            target_handler_argument_type=CIntentNotRecognizedMessage,
+            target_handler_argument_type=CIntentNotRecognizedMessage if self.use_json_api else CIntentNotRecognizedMessage,
         )
 
         hermes_dialogue_subscribe_intent_not_recognized(self._facade, self._c_callback_subscribe_intent_not_recognized)
