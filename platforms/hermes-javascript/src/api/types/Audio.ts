@@ -1,32 +1,18 @@
+import {
+    PlayAudioMessageLegacy,
+    PlayAudioMessage,
+    PlayFinishedMessage,
+    PlayFinishedMessageLegacy
+} from './messages'
+
 export namespace AudioTypes {
-
-    export type PlayAudioMessage = {
-        id: string,
-        siteId: string,
-        wavBytes: string,
-        wavBytesLen: number
-    } | {
-        id: string,
-        site_id: string,
-        wav_bytes: Buffer,
-        wav_bytes_len: number
-    }
-
-    export type PlayFinishedMessage = {
-        id: string,
-        siteId: string
-    } & {
-        id: string,
-        site_id: string
-    }
-
     export type publishMessagesList = {
-        play_audio: PlayAudioMessage
+        play_audio: PlayAudioMessage | PlayAudioMessageLegacy
     }
     export type subscribeMessagesList = {
-        play_finished_all: PlayFinishedMessage
+        play_finished_all: PlayFinishedMessage & PlayFinishedMessageLegacy
     } & {
         // Workaround for dynamic key
-        [key: string]: PlayFinishedMessage
+        [key: string]: PlayFinishedMessage & PlayFinishedMessageLegacy
     }
 }

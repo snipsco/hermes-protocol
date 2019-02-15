@@ -2,6 +2,7 @@ import ref from 'ref'
 import ApiSubset from '../ApiSubset'
 import DialogFlow from './DialogFlow'
 import { FlowAction, DialogTypes } from '../types'
+import * as enums from '../types/enums'
 import {
     StringArray,
     StartSessionMessage,
@@ -142,17 +143,17 @@ export default class Dialog extends ApiSubset {
     }
 
     static enums = {
-        grain: DialogTypes.grain,
-        precision: DialogTypes.precision,
-        initType: DialogTypes.initType,
-        terminationType: DialogTypes.terminationType,
-        slotType: DialogTypes.slotType,
+        grain: enums.grain,
+        precision: enums.precision,
+        initType: enums.initType,
+        terminationType: enums.terminationType,
+        slotType: enums.slotType,
         legacy: {
-            grain: DialogTypes.grain_legacy,
-            precision: DialogTypes.precision_legacy,
-            initType: DialogTypes.initType_legacy,
-            terminationType: DialogTypes.terminationType_legacy,
-            slotType: DialogTypes.slotType_legacy
+            grain: enums.grain_legacy,
+            precision: enums.precision_legacy,
+            initType: enums.initType_legacy,
+            terminationType: enums.terminationType_legacy,
+            slotType: enums.slotType_legacy
         }
     }
 }

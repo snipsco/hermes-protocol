@@ -9,6 +9,7 @@ import {
 import {
     InjectionTypes
 } from '../types'
+import * as enums from '../types/enums'
 
 export default class Injection extends ApiSubset {
 
@@ -43,9 +44,9 @@ export default class Injection extends ApiSubset {
     }
 
     static enums = {
-        injectionKind: InjectionTypes.injectionKind,
+        injectionKind: enums.injectionKind,
         legacy: {
-            injectionKind: InjectionTypes.injectionKind_legacy
+            injectionKind: enums.injectionKind_legacy
         }
     }
 }
