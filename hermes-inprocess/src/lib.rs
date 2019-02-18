@@ -677,7 +677,7 @@ impl TtsFacade for InProcessComponent<Tts> {
     }
 
     fn publish_register_sound(&self, sound: RegisterSoundMessage) -> Fallible<()> {
-        self.publish(TtsRegisterSound { sound } )
+        self.publish(TtsRegisterSound { sound })
     }
 }
 

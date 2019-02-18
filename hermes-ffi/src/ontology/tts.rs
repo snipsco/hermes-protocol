@@ -155,8 +155,8 @@ impl Drop for CRegisterSoundMessage {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::super::tests::round_trip_test;
+    use super::*;
 
     #[test]
     fn round_trip_register_sound() {

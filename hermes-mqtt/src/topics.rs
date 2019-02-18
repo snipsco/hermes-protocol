@@ -643,7 +643,10 @@ mod tests {
             ),
             (HermesTopic::Tts(TtsCommand::Say), "hermes/tts/say"),
             (HermesTopic::Tts(TtsCommand::SayFinished), "hermes/tts/sayFinished"),
-            (HermesTopic::Tts(TtsCommand::RegisterSound("foobar".into())), "hermes/tts/registerSound/foobar"),
+            (
+                HermesTopic::Tts(TtsCommand::RegisterSound("foobar".into())),
+                "hermes/tts/registerSound/foobar",
+            ),
             (
                 HermesTopic::Component(None, Component::Tts, ComponentCommand::VersionRequest),
                 "hermes/tts/versionRequest",
