@@ -366,9 +366,9 @@ const dialog = hermes.dialog()
 dialog.publish('start_session', {
     customData: 'some data',
     siteId: 'site Id',
-    sessionInit: {
-        initType:  Dialog.enums.initType.notification,
-        value: 'notification'
+    init: {
+        type:  Dialog.enums.initType.notification,
+        value: 'hello world'
     }
 })
 ```
