@@ -662,6 +662,11 @@ struct TtsSayFinished {
     status: SayFinishedMessage,
 }
 
+#[derive(Debug)]
+struct TtsRegisterSound {
+    sound: RegisterSoundMessage,
+}
+
 impl TtsFacade for InProcessComponent<Tts> {
     fn publish_say(&self, to_say: SayMessage) -> Fallible<()> {
         self.publish(TtsSay { to_say })
@@ -669,6 +674,10 @@ impl TtsFacade for InProcessComponent<Tts> {
 
     fn subscribe_say_finished(&self, handler: Callback<SayFinishedMessage>) -> Fallible<()> {
         subscribe!(self, TtsSayFinished { status }, handler)
+    }
+
+    fn publish_register_sound(&self, sound: RegisterSoundMessage) -> Fallible<()> {
+        self.publish(TtsRegisterSound { sound } )
     }
 }
 
@@ -679,6 +688,10 @@ impl TtsBackendFacade for InProcessComponent<Tts> {
 
     fn subscribe_say(&self, handler: Callback<SayMessage>) -> Fallible<()> {
         subscribe!(self, TtsSay { to_say }, handler)
+    }
+
+    fn subscribe_register_sound(&self, handler: Callback<RegisterSoundMessage>) -> Fallible<()> {
+        subscribe!(self, TtsRegisterSound { sound }, handler)
     }
 }
 

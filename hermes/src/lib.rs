@@ -169,12 +169,14 @@ pub trait AsrBackendFacade: ComponentBackendFacade + ToggleableBackendFacade {
 pub trait TtsFacade: ComponentFacade {
     fn publish_say(&self, to_say: SayMessage) -> Fallible<()>;
     fn subscribe_say_finished(&self, handler: Callback<SayFinishedMessage>) -> Fallible<()>;
+    fn publish_register_sound(&self, sound: RegisterSoundMessage) -> Fallible<()>;
 }
 
 /// The facade the text to speech must use to receive its orders and advertise when it has finished
 pub trait TtsBackendFacade: ComponentBackendFacade {
     fn publish_say_finished(&self, status: SayFinishedMessage) -> Fallible<()>;
     fn subscribe_say(&self, handler: Callback<SayMessage>) -> Fallible<()>;
+    fn subscribe_register_sound(&self, handler: Callback<RegisterSoundMessage>) -> Fallible<()>;
 }
 
 /// The facade to interact with the natural language understanding component

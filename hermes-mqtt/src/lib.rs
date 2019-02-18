@@ -498,11 +498,24 @@ impl AsrBackendFacade for MqttToggleableComponentFacade {
 impl TtsFacade for MqttComponentFacade {
     p!(publish_say<SayMessage> &HermesTopic::Tts(TtsCommand::Say););
     s!(subscribe_say_finished<SayFinishedMessage> &HermesTopic::Tts(TtsCommand::SayFinished););
+    p_bin!(publish_register_sound(sound: RegisterSoundMessage)
+        { &HermesTopic::Tts(TtsCommand::RegisterSound(sound.sound_id)) }
+        { sound.wav_sound }
+    );
 }
 
 impl TtsBackendFacade for MqttComponentFacade {
     s!(subscribe_say<SayMessage> &HermesTopic::Tts(TtsCommand::Say););
     p!(publish_say_finished<SayFinishedMessage> &HermesTopic::Tts(TtsCommand::SayFinished););
+    s_bin!(subscribe_register_sound<RegisterSoundMessage> { &HermesTopic::Tts(TtsCommand::RegisterSound("#".into())) }
+        |topic, bytes| {
+            if let HermesTopic::Tts(TtsCommand::RegisterSound(ref sound_id)) = *topic {
+                RegisterSoundMessage { sound_id: sound_id.to_owned(), wav_sound: bytes.into() }
+            } else {
+                unreachable!();
+            }
+        }
+    );
 }
 
 impl NluFacade for MqttComponentFacade {

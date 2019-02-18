@@ -27,3 +27,15 @@ pub struct SayFinishedMessage {
 }
 
 impl<'de> HermesMessage<'de> for SayFinishedMessage {}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct  RegisterSoundMessage {
+    /// The sound to register encoded as a wav.
+    #[serde(serialize_with = "super::as_base64", deserialize_with = "super::from_base64")]
+    pub wav_sound: Vec<u8>,
+    /// The id this sound should be registered under
+    pub sound_id: String,
+}
+
+impl<'de> HermesMessage<'de> for RegisterSoundMessage {}

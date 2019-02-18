@@ -367,6 +367,10 @@ macro_rules! test_suite {
                     tts.subscribe_say_finished <= SayFinishedMessage | tts_backend.publish_say_finished
                     with SayFinishedMessage { id: Some("my id".into()), session_id: Some("abc".into()) };
             );
+        t!(tts_register_sound_works:
+                    tts_backend.subscribe_register_sound <= RegisterSoundMessage | tts.publish_register_sound
+                    with RegisterSoundMessage { sound_id: "foobar".into(), wav_sound: vec![0; 10000] };
+            );
 
         t_component!(nlu_component: nlu_backend | nlu);
         t!(nlu_query_works:
