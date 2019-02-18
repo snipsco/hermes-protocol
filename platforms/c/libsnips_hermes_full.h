@@ -243,8 +243,8 @@ typedef struct {
   void *user_data;
 } CDialogueBackendFacade;
 
-/*
- * Results of the intent classifier
+/**
+ * Result of the intent classifier
  */
 typedef struct {
   /**
@@ -613,6 +613,12 @@ typedef struct {
    */
   const char *session_id;
 } CNluSlotQueryMessage;
+
+typedef struct {
+  const char *sound_id;
+  const uint8_t *wav_sound;
+  int wav_sound_len;
+} CRegisterSoundMessage;
 
 typedef struct {
   /**
@@ -1004,6 +1010,8 @@ SNIPS_RESULT hermes_drop_play_bytes_message(const CPlayBytesMessage *cstruct);
 
 SNIPS_RESULT hermes_drop_play_finished_message(const CPlayFinishedMessage *cstruct);
 
+SNIPS_RESULT hermes_drop_register_sound_message(const CRegisterSoundMessage *cstruct);
+
 SNIPS_RESULT hermes_drop_say_finished_message(const CSayFinishedMessage *cstruct);
 
 SNIPS_RESULT hermes_drop_say_message(const CSayMessage *cstruct);
@@ -1148,8 +1156,14 @@ SNIPS_RESULT hermes_sound_feedback_publish_toggle_on(const CSoundFeedbackFacade 
 SNIPS_RESULT hermes_tts_backend_publish_say_finished(const CTtsBackendFacade *facade,
                                                      const CSayFinishedMessage *message);
 
+SNIPS_RESULT hermes_tts_backend_subscribe_register_sound(const CTtsBackendFacade *facade,
+                                                         void (*handler)(const CRegisterSoundMessage*, void*));
+
 SNIPS_RESULT hermes_tts_backend_subscribe_say(const CTtsBackendFacade *facade,
                                               void (*handler)(const CSayMessage*, void*));
+
+SNIPS_RESULT hermes_tts_publish_register_sound(const CTtsFacade *facade,
+                                               const CRegisterSoundMessage *message);
 
 SNIPS_RESULT hermes_tts_publish_say(const CTtsFacade *facade, const CSayMessage *message);
 

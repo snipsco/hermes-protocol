@@ -119,17 +119,18 @@ macro_rules! generate_facade_c_symbols {
             $crate::generate_facade_wrapper!(CSoundFeedbackFacade for hermes::SoundFeedbackFacade, hermes_drop_sound_feedback_facade, hermes_protocol_handler_sound_feedback_facade = handler.sound_feedback);
             $crate::generate_facade_wrapper!(CDialogueFacade for hermes::DialogueFacade, hermes_drop_dialogue_facade, hermes_protocol_handler_dialogue_facade = handler.dialogue);
             $crate::generate_facade_wrapper!(CInjectionFacade for hermes::InjectionFacade, hermes_drop_injection_facade, hermes_protocol_handler_injection_facade = handler.injection);
+            $crate::generate_facade_wrapper!(CTtsFacade for hermes::TtsFacade, hermes_drop_tts_facade, hermes_protocol_handler_tts_facade = handler.tts);
 
             #[cfg(feature = "full_bindings")]
             pub mod full_bindings {
                 use super::super::LAST_ERROR;
+                pub use super::*;
 
                 $crate::generate_facade_wrapper!(CHotwordFacade for hermes::HotwordFacade, hermes_drop_hotword_facade, hermes_protocol_handler_hotword_facade = handler.hotword);
                 $crate::generate_facade_wrapper!(CHotwordBackendFacade for hermes::HotwordBackendFacade, hermes_drop_hotword_backend_facade, hermes_protocol_handler_hotword_backend_facade = handler.hotword_backend);
                 $crate::generate_facade_wrapper!(CSoundFeedbackBackendFacade for hermes::SoundFeedbackBackendFacade, hermes_drop_sound_feedback_backend_facade, hermes_protocol_handler_sound_feedback_backend_facade = handler.sound_feedback_backend);
                 $crate::generate_facade_wrapper!(CAsrFacade for hermes::AsrFacade, hermes_drop_asr_facade, hermes_protocol_handler_asr_facade = handler.asr);
                 $crate::generate_facade_wrapper!(CAsrBackendFacade for hermes::AsrBackendFacade, hermes_drop_asr_backend_facade, hermes_protocol_handler_asr_backend_facade = handler.asr_backend);
-                $crate::generate_facade_wrapper!(CTtsFacade for hermes::TtsFacade, hermes_drop_tts_facade, hermes_protocol_handler_tts_facade = handler.tts);
                 $crate::generate_facade_wrapper!(CTtsBackendFacade for hermes::TtsBackendFacade, hermes_drop_tts_backend_facade, hermes_protocol_handler_tts_backend_facade = handler.tts_backend);
                 $crate::generate_facade_wrapper!(CNluFacade for hermes::NluFacade, hermes_drop_nlu_facade, hermes_protocol_handler_nlu_facade = handler.nlu);
                 $crate::generate_facade_wrapper!(CNluBackendFacade for hermes::NluBackendFacade, hermes_drop_nlu_backend_facade, hermes_protocol_handler_nlu_backend_facade = handler.nlu_backend);

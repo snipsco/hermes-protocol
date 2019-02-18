@@ -110,6 +110,14 @@ pub extern "C" fn hermes_ffi_test_round_trip_map_string_to_string_array(
 }
 
 #[no_mangle]
+pub extern "C" fn hermes_ffi_test_round_trip_register_sound(
+    input: *const hermes_ffi::CRegisterSoundMessage,
+    output: *mut *const hermes_ffi::CRegisterSoundMessage,
+) -> ffi_utils::SNIPS_RESULT {
+    wrap!(round_trip(input, output))
+}
+
+#[no_mangle]
 pub unsafe extern "C" fn hermes_ffi_test_destroy_string(string: *mut libc::c_char) -> SNIPS_RESULT {
     wrap!(std::ffi::CString::from_raw_pointer(string))
 }
