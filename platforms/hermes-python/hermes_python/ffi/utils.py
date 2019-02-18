@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 from glob import glob
+import json
 import os
 from builtins import bytes
 
@@ -102,25 +103,47 @@ def wrap_library_call(lib_func):
     return wrapped_library_call
 
 
-def ffi_function_callback_wrapper(use_json_api, hermes_client, handler_function, handler_argument_type, target_handler_return_type, target_handler_argument_type):
-    def convert_function_arguments(func):
-        if use_json_api:
+def parse_json_string(ptr_to_utf_8_encoded_string):
+    return json.loads(string_at(ptr_to_utf_8_encoded_string).decode('utf-8'))
+
+
+def ffi_function_callback_wrapper(use_json_api, hermes_client, target_handler_return_type, handler_function,
+                                  handler_argument_type=None, target_handler_argument_type=None):
+    """
+    We need to provide the C library a handler function that will be called
+    when the event the handler should handle is triggered.
+    This handler has `target_handler_return_type`, and has arguments with type `target_handler_argument_type`.
+
+    The goal of this function is to convert a handler written in python (`handler_function`)
+    to a C handler with appropriate types.
+
+    Let's go through the arguments:
+    :param use_json_api: A flag, if activated, all arguments of handler callback will be python dictionaries.
+    :param hermes_client:
+    :param target_handler_return_type: The type to which the python handler return type will be converted to.
+    :param target_handler_argument_type: Optional (not used if use_json_api is activated). The type to which the python handler arguments will be converted to.
+    :param handler_function: a python function
+    :param handler_argument_type: Optional (not used if use_json_api is activated). The type of the arguments the handler will be called with.
+    :return: A C handler function that will be called when events it is registered to happens.
+
+    """
+    if use_json_api:
+        def convert_function_arguments(func):
             def convert_arguments_when_invoking_function(*args, **kwargs):
-                parsed_args = (string_at(arg).decode('utf-8') for arg in (args))
-                return func(hermes_client, *parsed_args)
-        else:
+                    parsed_args = (parse_json_string(arg) for arg in (args))
+                    return func(hermes_client, *parsed_args)
+            return convert_arguments_when_invoking_function
+        return CFUNCTYPE(target_handler_return_type, c_char_p)(
+            convert_function_arguments(handler_function))
+    else:
+        def convert_function_arguments(func):
             def convert_arguments_when_invoking_function(*args, **kwargs):
                 parsed_args = (handler_argument_type.from_c_repr(arg.contents) for arg in (args))
                 return func(hermes_client, *parsed_args)
 
-        return convert_arguments_when_invoking_function
-
-    if use_json_api:
-        return CFUNCTYPE(target_handler_return_type, target_handler_argument_type)(
-            convert_function_arguments(handler_function))
-    else:
+            return convert_arguments_when_invoking_function
         return CFUNCTYPE(target_handler_return_type, POINTER(target_handler_argument_type))(
-            convert_function_arguments(handler_function))
+                convert_function_arguments(handler_function))
 
 
 # re-exports

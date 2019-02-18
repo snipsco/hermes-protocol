@@ -10,15 +10,25 @@ DUMMY_INTENT_NAME = "INTENT"
 
 def test_initialization():
     h = Hermes(HOST)
-    assert 0 == len(h._c_callback_subscribe_intent)
+    assert 0 == len(h.ffi._c_callback_subscribe_intent)
 
 def test_initialization_with_options():
     mqtt_opts = MqttOptions()
     h = Hermes(mqtt_options=mqtt_opts)
     assert h.mqtt_options.broker_address == "localhost:1883"
 
-@mock.patch("hermes_python.hermes.hermes_protocol_handler_dialogue_facade")
-@mock.patch("hermes_python.hermes.hermes_protocol_handler_new_mqtt_with_options")
+def test_context_manager_enter_calls_ffi_api():
+    h = Hermes(HOST)
+    h.ffi = mock.MagicMock()
+
+    h.__enter__()
+    h.__exit__(None, None, None)
+
+    h.ffi.establish_connection.assert_called_once()
+    h.ffi.release_connection.assert_called_once()
+
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_dialogue_facade")
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
 def test_context_manager_enter(hermes_protocol_handler_new_mqtt, hermes_protocol_handler_dialogue_facade):
     with Hermes(HOST) as h:
         pass
@@ -26,18 +36,20 @@ def test_context_manager_enter(hermes_protocol_handler_new_mqtt, hermes_protocol
     hermes_protocol_handler_new_mqtt.assert_called_once()
     hermes_protocol_handler_dialogue_facade.assert_called_once()
 
-@mock.patch("hermes_python.hermes.hermes_protocol_handler_dialogue_facade")
-@mock.patch("hermes_python.hermes.hermes_drop_dialogue_facade")
-@mock.patch("hermes_python.hermes.hermes_protocol_handler_new_mqtt_with_options")
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_dialogue_facade")
+@mock.patch("hermes_python.api.ffi.hermes_drop_dialogue_facade")
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
 def test_context_manager_exit(hermes_protocol_handler_new_mqtt, hermes_drop_dialogue_facade, hermes_protocol_handler_dialogue_facade):
     with Hermes(HOST) as h:
         pass
+    hermes_protocol_handler_new_mqtt.assert_called_once()
+    hermes_protocol_handler_dialogue_facade.assert_called_once()
     hermes_drop_dialogue_facade.assert_called_once()
 
 
-@mock.patch("hermes_python.hermes.hermes_protocol_handler_dialogue_facade")
-@mock.patch("hermes_python.hermes.hermes_drop_dialogue_facade")
-@mock.patch("hermes_python.hermes.hermes_protocol_handler_new_mqtt_with_options")
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_dialogue_facade")
+@mock.patch("hermes_python.api.ffi.hermes_drop_dialogue_facade")
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
 def test_context_manager_catches_exceptions(hermes_protocol_handler_new_mqtt, mocked_hermes_drop_dialogue_facade, hermes_protocol_handler_dialogue_facade):
     hermes_protocol_handler_dialogue_facade.side_effect = Exception("An exception occured!")
 
@@ -46,68 +58,84 @@ def test_context_manager_catches_exceptions(hermes_protocol_handler_new_mqtt, mo
             pass
 
 
-@mock.patch("hermes_python.hermes.hermes_dialogue_subscribe_intent")
-@mock.patch("hermes_python.hermes.hermes_protocol_handler_dialogue_facade")
-@mock.patch("hermes_python.hermes.hermes_drop_dialogue_facade")
-@mock.patch("hermes_python.hermes.hermes_protocol_handler_new_mqtt_with_options")
-def test_subscribe_intent_correctly_registers_callback(hermes_protocol_handler_new_mqtt, hermes_drop_dialogue_facade, hermes_protocol_handler_dialogue_facade, hermes_dialogue_subscribe_intent):
+def test_subscribe_intent_correctly_registers_callback():
     def user_callback(hermes, intentMessage):
         pass
 
-    with Hermes(HOST) as h:
-        h.subscribe_intent(DUMMY_INTENT_NAME, user_callback)
-        assert len(h._c_callback_subscribe_intent) == 1
+    h = Hermes(HOST)
+    h.ffi = mock.MagicMock()
+    h.__enter__()
+    h.subscribe_intent(DUMMY_INTENT_NAME, user_callback)
+    h.__exit__(None, None, None)
+    h.ffi.register_subscribe_intent_handler.assert_called_once_with(DUMMY_INTENT_NAME, user_callback)
 
-    hermes_protocol_handler_new_mqtt.assert_called_once()
-    hermes_dialogue_subscribe_intent.assert_called_once()
-
-
-
-@mock.patch("hermes_python.hermes.hermes_dialogue_subscribe_intent")
-@mock.patch("hermes_python.hermes.hermes_protocol_handler_dialogue_facade")
-@mock.patch("hermes_python.hermes.hermes_drop_dialogue_facade")
-@mock.patch("hermes_python.hermes.hermes_protocol_handler_new_mqtt_with_options")
-def test_subscribe_intent_correctly_registers_two_callbacks_for_same_intent(hermes_protocol_handler_new_mqtt, hermes_drop_dialogue_facade, hermes_protocol_handler_dialogue_facade, hermes_dialogue_subscribe_intent):
-    hermes_protocol_handler_new_mqtt.assert_not_called()
-    def user_callback_1(hermes, intentMessage):
-        pass
-
-    def user_callback_2(hermes, intentMessage):
-        pass
-
-    with Hermes(HOST) as h:
-        h.subscribe_intent(DUMMY_INTENT_NAME, user_callback_1)
-        hermes_protocol_handler_new_mqtt.assert_called_once()
-        h.subscribe_intent(DUMMY_INTENT_NAME, user_callback_2)
-        hermes_protocol_handler_new_mqtt.assert_called_once()
-        assert len(h._c_callback_subscribe_intent) == 2
-
-    hermes_protocol_handler_new_mqtt.assert_called_once()
-
-
-@mock.patch("hermes_python.hermes.hermes_dialogue_subscribe_intents")
-@mock.patch("hermes_python.hermes.hermes_protocol_handler_dialogue_facade")
-@mock.patch("hermes_python.hermes.hermes_drop_dialogue_facade")
-@mock.patch("hermes_python.hermes.hermes_protocol_handler_new_mqtt_with_options")
-def test_subscribe_intents_correctly_registers_callback(hermes_protocol_handler_new_mqtt, hermes_drop_dialogue_facade, hermes_protocol_handler_dialogue_facade, hermes_dialogue_subscribe_intents):
+def test_subscribe_intents_correctly_registers_callback():
 
     def user_callback(hermes, intentMessage):
         pass
 
-    with Hermes(HOST) as h:
-        h.subscribe_intents(user_callback)
-        assert h._c_callback_subscribe_intents is not None
+    h = Hermes(HOST)
+    h.ffi = mock.MagicMock()
+    h.__enter__()
+    h.subscribe_intents(user_callback)
+    h.__exit__(None, None, None)
 
-    hermes_protocol_handler_new_mqtt.assert_called_once()
-    hermes_dialogue_subscribe_intents.assert_called_once()
+    h.ffi.establish_connection.assert_called_once()
+    h.ffi.register_subscribe_intents_handler.assert_called_once_with(user_callback)
 
-@mock.patch("hermes_python.hermes.hermes_dialogue_publish_continue_session")
-@mock.patch("hermes_python.hermes.hermes_protocol_handler_dialogue_facade")
-@mock.patch("hermes_python.hermes.hermes_drop_dialogue_facade")
-@mock.patch("hermes_python.hermes.hermes_protocol_handler_new_mqtt_with_options")
-def test_publish_continue_session(hermes_protocol_handler_new_mqtt, hermes_drop_dialogue_facade, hermes_protocol_handler_dialogue_facade, hermes_dialogue_publish_continue_session):
-    with Hermes(HOST) as h:
-        h.publish_continue_session("session_id", "text", [])
 
-    hermes_protocol_handler_new_mqtt.assert_called_once()
-    hermes_dialogue_publish_continue_session.assert_called_once()
+def test_subscribe_session_started_correctly_registers_callback():
+    def user_callback(hermes, intentMessage):
+        pass
+
+    h = Hermes(HOST)
+    h.ffi = mock.MagicMock()
+    h.__enter__()
+    h.subscribe_session_started(user_callback)
+    h.__exit__(None, None, None)
+
+    h.ffi.establish_connection.assert_called_once()
+    h.ffi.register_session_started_handler.assert_called_once_with(user_callback)
+
+
+def test_subscribe_session_queued_correctly_registers_callback():
+    def user_callback(hermes, intentMessage):
+        pass
+
+    h = Hermes(HOST)
+    h.ffi = mock.MagicMock()
+    h.__enter__()
+    h.subscribe_session_queued(user_callback)
+    h.__exit__(None, None, None)
+
+    h.ffi.establish_connection.assert_called_once()
+    h.ffi.register_session_queued_handler.assert_called_once_with(user_callback)
+
+
+def test_subscribe_session_ended_correctly_registers_callback():
+    def user_callback(hermes, intentMessage):
+        pass
+
+    h = Hermes(HOST)
+    h.ffi = mock.MagicMock()
+    h.__enter__()
+    h.subscribe_session_ended(user_callback)
+    h.__exit__(None, None, None)
+
+    h.ffi.establish_connection.assert_called_once()
+    h.ffi.register_session_ended_handler.assert_called_once_with(user_callback)
+
+
+def test_subscribe_intent_not_recognized_correctly_registers_callback():
+    def user_callback(hermes, intentMessage):
+        pass
+
+    h = Hermes(HOST)
+    h.ffi = mock.MagicMock()
+    h.__enter__()
+    h.subscribe_intent_not_recognized(user_callback)
+    h.__exit__(None, None, None)
+
+    h.ffi.establish_connection.assert_called_once()
+    h.ffi.register_intent_not_recognized_handler.assert_called_once_with(user_callback)
+
