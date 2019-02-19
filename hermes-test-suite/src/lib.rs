@@ -452,7 +452,7 @@ macro_rules! test_suite {
                     with StartSessionMessage { init: SessionInit::Action { text: None, intent_filter: None, can_be_enqueued: false, send_intent_not_recognized: true }, custom_data: None, site_id: None };);
         t!(dialogue_continue_session_works:
                     dialogue_backend.subscribe_continue_session <= ContinueSessionMessage | dialogue.publish_continue_session
-                    with ContinueSessionMessage { session_id: "some id".into(), text: "some text".into(), intent_filter: None, send_intent_not_recognized: true, custom_data: Some("custom data".into())  };);
+                    with ContinueSessionMessage { session_id: "some id".into(), text: "some text".into(), intent_filter: None, send_intent_not_recognized: true, custom_data: Some("custom data".into()), slot: Some("some slot".to_string()) };);
         t!(dialogue_end_session_works:
                     dialogue_backend.subscribe_end_session <= EndSessionMessage | dialogue.publish_end_session
                     with EndSessionMessage { session_id: "some id".into(), text: None };);

@@ -41,10 +41,11 @@ class CContinueSessionMessage(Structure):
                 ("text", c_char_p),
                 ("intent_filter", POINTER(CStringArray)),
                 ("custom_data", c_char_p),
+                ("slot", c_char_p),
                 ("send_intent_not_recognized", c_uint8)]
 
     @classmethod
-    def build(cls, session_id, text, intent_filter, custom_data, send_intent_not_recognized=False):
+    def build(cls, session_id, text, intent_filter, custom_data, slot=None, send_intent_not_recognized=False):
         session_id = session_id.encode('utf-8')
         text = text.encode('utf-8') if text else None
         intent_filter = [intent_filter_item.encode('utf-8') for intent_filter_item in intent_filter]
@@ -54,9 +55,10 @@ class CContinueSessionMessage(Structure):
         c_intent_filter.data = (c_char_p * len(intent_filter))(*intent_filter)
 
         custom_data = custom_data.encode('utf-8') if custom_data else None
+        slot = slot.encode('utf-8') if slot else None
         send_intent_not_recognized = 1 if send_intent_not_recognized else 0  # send_intent_not_recognized is a boolean
 
-        cContinueSessionMessage = cls(session_id, text, pointer(c_intent_filter), custom_data, send_intent_not_recognized)
+        cContinueSessionMessage = cls(session_id, text, pointer(c_intent_filter), custom_data, slot, send_intent_not_recognized)
         return cContinueSessionMessage
 
     @classmethod
@@ -65,9 +67,10 @@ class CContinueSessionMessage(Structure):
         text = repr.text
         intent_filter = repr.intent_filter
         custom_data = repr.custom_data
+        slot = repr.slot
         send_intent_not_recognized = repr.send_intent_not_recognized
 
-        return cls.build(session_id, text, intent_filter, custom_data, send_intent_not_recognized)
+        return cls.build(session_id, text, intent_filter, custom_data, slot, send_intent_not_recognized)
 
 
 class CEndSessionMessage(Structure):

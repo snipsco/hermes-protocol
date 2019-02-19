@@ -207,6 +207,7 @@ const CContinueSessionMessage = Struct({
   text: coerce('char *'),
   intent_filter: pointer(CStringArray),
   custom_data: coerce('char *'),
+  slot: coerce('char *'),
   send_intent_not_recognized: coerce('uchar')
 })
 
