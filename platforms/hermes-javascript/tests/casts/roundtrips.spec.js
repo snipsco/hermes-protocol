@@ -194,7 +194,7 @@ describe('It should perform casting round-trips on messages', () => {
                         confidence_score: 0.5,
                         raw_value: 'un',
                         value: {
-                            value: 1.2,
+                            value: 1,
                             value_type: Dialog.enums.legacy.slotType.number
                         },
                         range_start: 11,
@@ -206,7 +206,7 @@ describe('It should perform casting round-trips on messages', () => {
                         confidence_score: 0.5,
                         raw_value: 'un',
                         value: {
-                            value: 1.5,
+                            value: 1,
                             value_type: Dialog.enums.legacy.slotType.number
                         },
                         range_start: 19,
