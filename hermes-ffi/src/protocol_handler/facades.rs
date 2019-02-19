@@ -124,7 +124,7 @@ macro_rules! generate_facade_c_symbols {
             #[cfg(feature = "full_bindings")]
             pub mod full_bindings {
                 use super::super::LAST_ERROR;
-                pub use super::*;
+                pub use super::CTtsFacade;
 
                 $crate::generate_facade_wrapper!(CHotwordFacade for hermes::HotwordFacade, hermes_drop_hotword_facade, hermes_protocol_handler_hotword_facade = handler.hotword);
                 $crate::generate_facade_wrapper!(CHotwordBackendFacade for hermes::HotwordBackendFacade, hermes_drop_hotword_backend_facade, hermes_protocol_handler_hotword_backend_facade = handler.hotword_backend);
