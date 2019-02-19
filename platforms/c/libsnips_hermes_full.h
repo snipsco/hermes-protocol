@@ -419,7 +419,7 @@ typedef struct {
    * Nullable
    */
   const char *custom_data;
-  /*
+  /**
    * Nullable
    */
   const char *slot;

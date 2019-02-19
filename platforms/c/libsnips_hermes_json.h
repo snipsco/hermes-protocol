@@ -168,4 +168,6 @@ SNIPS_RESULT hermes_sound_feedback_publish_toggle_off_json(const CSoundFeedbackF
 SNIPS_RESULT hermes_sound_feedback_publish_toggle_on_json(const CSoundFeedbackFacade *facade,
                                                           const char *message);
 
+SNIPS_RESULT hermes_tts_publish_register_sound_json(const CTtsFacade *facade, const char *message);
+
 #endif /* LIB_HERMES_H_ */
