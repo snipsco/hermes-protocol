@@ -1,7 +1,7 @@
 import ref from 'ref'
 import ApiSubset from '../ApiSubset'
 import DialogFlow from './DialogFlow'
-import { FlowIntentAction, DialogTypes } from '../types'
+import { FlowIntentAction, FlowSessionAction, DialogTypes } from '../types'
 import * as enums from '../types/enums'
 import {
     StringArray,
@@ -124,7 +124,7 @@ export default class Dialog<API> extends ApiSubset<API> {
      * @param id : An id that should match the customData field of the started session.
      * @param action : The action to execute on session startup.
      */
-    sessionFlow(id: string, action: FlowIntentAction<API>) {
+    sessionFlow(id: string, action: FlowSessionAction<API>) {
         const listener = message => {
             const { useJsonApi } = this.options
             const customData = useJsonApi ? message.customData : message.custom_data

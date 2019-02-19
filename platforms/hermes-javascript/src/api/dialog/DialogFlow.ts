@@ -2,9 +2,10 @@ import Dialog from './index'
 import {
     FlowContinuation,
     FlowIntentAction,
-    FlowNotRecognizedAction
+    FlowNotRecognizedAction,
+    FlowSessionAction
 } from '../types'
-import { IntentMessage, IntentMessageLegacy } from '../types/messages'
+import { IntentMessage, IntentMessageLegacy, SessionStartedMessage, SessionStartedMessageLegacy } from '../types/messages'
 
 export default class DialogFlow<API> {
 
@@ -122,28 +123,28 @@ export default class DialogFlow<API> {
     }
 
     // Starts a dialog flow.
-    start(action: FlowIntentAction<API>, message: API extends 'json' ? IntentMessage : IntentMessageLegacy) {
+    start(action: FlowIntentAction<API> | FlowSessionAction<API>, message: API extends 'json' ? (IntentMessage | SessionStartedMessage) : (IntentMessageLegacy | SessionStartedMessageLegacy)) {
         const flow : FlowContinuation<API> = {
             continue: this.continue.bind(this),
             notRecognized: this.notRecognized.bind(this),
             end: this.end.bind(this)
         }
-        return Promise.resolve(action(message, flow))
+        return Promise.resolve(action(message as any, flow))
             .then(this.continuation.bind(this))
     }
 
     // Registers an intent filter and continue the current dialog session.
-    continue(intentName: string, action: FlowIntentAction<API>) {
+    continue<API>(intentName: string, action: FlowIntentAction<API>) {
         this.continuations.set(intentName, action)
     }
 
     // Registers a listener that will be called if no intents have been recognized.
-    notRecognized(action: FlowNotRecognizedAction<API>) {
+    notRecognized<API>(action: FlowNotRecognizedAction<API>) {
         this.notRecognizedAction = action
     }
 
     // Terminates the dialog session.
-    end() {
+    end<API>() {
         this.ended = true
     }
 }
