@@ -8,6 +8,8 @@ const wretch = require('wretch').default
 const { logger, osIsRaspbian, LIB_EXTENSION, LIB_DIST } = require('./utils')
 const hermesMqttVersion = require('../package.json')['hermes-mqtt-version']
 
+const skipOnSelfInstall = process.cwd() === process.env.INIT_CWD
+
 const request = wretch(`http://s3.amazonaws.com/snips/hermes-mqtt/${hermesMqttVersion}`).polyfills({
     fetch: require('node-fetch')
 })
@@ -89,6 +91,8 @@ const platformName = getPlatformName()
 
 if(process.env.HERMES_BUILD_FROM_SOURCES || !platformName) {
     require('./make')
+} else if(skipOnSelfInstall) {
+    logger.success('Skipping post-install on hermes-javascript self install.')
 } else {
     logger.cmd('- Downloading the hermes mqtt dynamic library file…')
     logger.cmd('Target: ' + LIB_DIST)
