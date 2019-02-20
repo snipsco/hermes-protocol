@@ -1,6 +1,6 @@
 [package]
 name = "hermes-test-suite"
-version = "0.63.0"
+version = "0.64.0-SNAPSHOT"
 authors = ["Thibaut Lorrain <thibaut.lorrain@snips.ai>"]
 edition = "2018"
 
