@@ -1,6 +1,8 @@
 from ctypes import POINTER, c_void_p, c_char_p, byref
 from ..ffi.ontology import CProtocolHandler, CDialogueFacade, CIntentMessage, CSessionStartedMessage, \
-    CSessionQueuedMessage, CSessionEndedMessage, CIntentNotRecognizedMessage
+    CSessionQueuedMessage, CSessionEndedMessage, CIntentNotRecognizedMessage, CContinueSessionMessage, \
+    CEndSessionMessage, CSessionInitNotification, CStartSessionMessageNotification, CSessionInitAction, \
+    CStartSessionMessageAction
 from ..ffi.utils import ffi_function_callback_wrapper, hermes_protocol_handler_new_mqtt_with_options, \
     hermes_protocol_handler_dialogue_facade, lib, hermes_drop_dialogue_facade, CMqttOptions
 from ..ffi import utils
@@ -135,6 +137,27 @@ class FFI(object):
         )
         return self
 
+    def publish_continue_session(self, message):
+        self._call_foreign_function(
+            'hermes_dialogue_publish_continue_session',
+            message
+        )
+        return self
+
+    def publish_end_session(self, message):
+        self._call_foreign_function(
+            'hermes_dialogue_publish_end_session',
+            message
+        )
+        return self
+
+    def publish_start_session(self, message):
+        self._call_foreign_function(
+            'hermes_dialogue_publish_start_session',
+            message
+        )
+        return self
+
     def _register_c_handler(self, ffi_function_name, c_handler):
         if self.use_json_api:
             ffi_function_name = ffi_function_name + "_json"
@@ -155,3 +178,17 @@ class FFI(object):
             c_handler
         )
         return self
+
+    def _call_foreign_function(self, foreign_function_name, function_argument):
+        if self.use_json_api:
+            foreign_function_name = foreign_function_name + "_json"
+            a_json_string = str(function_argument)  # function_argument should be a dict.
+            ptr_to_foreign_function_argument = c_char_p(a_json_string.encode('utf-8'))
+        else:
+            function_argument = function_argument.into_c_repr()
+            ptr_to_foreign_function_argument = byref(function_argument)
+
+        getattr(utils, foreign_function_name)(
+            self._facade,
+            ptr_to_foreign_function_argument
+        )

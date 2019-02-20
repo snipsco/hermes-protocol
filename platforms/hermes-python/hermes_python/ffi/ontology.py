@@ -80,12 +80,21 @@ class CEndSessionMessage(Structure):
     @classmethod
     def build(cls, session_id, text):
         b_text = text.encode('utf-8') if text else None
-        return cls(session_id.encode('utf-8'), b_text)
+        b_session_id = session_id.encode('utf-8') if session_id else None
+        return cls(b_session_id, b_text)
 
+    @classmethod
+    def from_repr(cls, py_repr):
+        return py_repr.into_c_repr()
+
+
+SNIPS_SESSION_INIT_TYPE_ACTION = 1
+SNIPS_SESSION_INIT_TYPE_NOTIFICATION = 2
 
 
 class CSessionInit(Structure):
     _fields_ = [("init_type", c_int32)]  # 1 : Action, 2: Notification
+
 
 class CActionSessionInit(Structure):
     _fields_ = [("text", c_char_p),  # Nullable
@@ -114,7 +123,7 @@ class CSessionInitAction(CSessionInit):
     @classmethod
     def build(cls, text, intent_filter, can_be_enqueued_boolean, send_intent_not_recognized):
         cActionSessionInit = CActionSessionInit.build(text, intent_filter, can_be_enqueued_boolean, send_intent_not_recognized)
-        return cls(c_int(1), pointer(cActionSessionInit))
+        return cls(c_int(SNIPS_SESSION_INIT_TYPE_ACTION), pointer(cActionSessionInit))
 
 
 class CSessionInitNotification(CSessionInit):
@@ -122,8 +131,8 @@ class CSessionInitNotification(CSessionInit):
 
     @classmethod
     def build(cls, value):
-        encoded_value = value.encode('utf-8') if value else None
-        return cls(c_int(0), encoded_value)
+        encoded_value = value.encode('utf-8')
+        return cls(c_int(SNIPS_SESSION_INIT_TYPE_NOTIFICATION), encoded_value)
 
 
 class CStartSessionMessageAction(Structure):
@@ -134,8 +143,12 @@ class CStartSessionMessageAction(Structure):
     @classmethod
     def build(cls, init, custom_data, site_id):
         custom_data = custom_data.encode('utf-8') if custom_data else None
-        site_id = site_id.encode('utf-8')
+        site_id = site_id.encode('utf-8') if site_id else None
         return cls(init, custom_data, site_id)
+
+    @classmethod
+    def from_repr(cls, repr):
+        return repr.into_c_repr()
 
 class CStartSessionMessageNotification(Structure):
     _fields_ = [("init", CSessionInitNotification),
@@ -145,9 +158,12 @@ class CStartSessionMessageNotification(Structure):
     @classmethod
     def build(cls, init, custom_data, site_id):
         custom_data = custom_data.encode('utf-8') if custom_data else None
-        site_id = site_id.encode('utf-8')
+        site_id = site_id.encode('utf-8') if site_id else None
         return cls(init, custom_data, site_id)
 
+    @classmethod
+    def from_repr(cls, repr):
+        return repr.into_c_repr()
 
 class CNluIntentClassifierResult(Structure):
     _fields_ = [("intent_name", c_char_p),

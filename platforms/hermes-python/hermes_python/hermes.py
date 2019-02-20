@@ -12,7 +12,7 @@ from .ffi.utils import MqttOptions, CMqttOptions, hermes_protocol_handler_new_mq
     hermes_protocol_handler_new_mqtt_with_options, hermes_drop_dialogue_facade, \
     lib, ffi_function_callback_wrapper
 
-from .ontology import JsonIntentMessage, IntentMessage, SessionStartedMessage, SessionQueuedMessage, SessionEndedMessage, IntentNotRecognizedMessage
+from .ontology import IntentMessage, SessionStartedMessage, SessionQueuedMessage, SessionEndedMessage, IntentNotRecognizedMessage
 from .api.ffi import FFI
 
 import threading
@@ -193,6 +193,7 @@ class Hermes(object):
         Publishes a StartSession message to the Dialogue Manager to initiate a new session.
 
         This message can be sent by the handler code to programmatically initiate a new session.
+        Use this type when you only want to inform the user of something without expecting a response.
 
         :param site_id: Site where the user started the interaction.
         :param session_init_value: Text the TTS should say.
@@ -209,6 +210,7 @@ class Hermes(object):
         Publishes a StartSession message to the Dialogue Manager to initiate a new session.
 
         This message can be sent by the handler code to programmatically initiate a new session.
+        Use this type when you need the end user to respond.
         The Dialogue Manager will start the session by asking the TTS to say the text (if any)
         and wait for the answer of the end user.
 

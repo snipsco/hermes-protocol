@@ -7,21 +7,11 @@ from builtins import object
 from collections import defaultdict
 from six.moves import range
 from dotmap import DotMap
-import json
 
 from ctypes import string_at, c_double
-from .ffi.ontology import CAmountOfMoneyValue, CTemperatureValue, CInstantTimeValue, CTimeIntervalValue, CDurationValue
-
-class JsonIntentMessage(object):
-    def __init__(self, rawjson):
-        self.json = rawjson
-
-
-    @classmethod
-    def from_c_repr(cls, c_repr):
-        raw_json = json.loads(c_repr)
-        return cls(rawjson=raw_json)
-
+from .ffi.ontology import CAmountOfMoneyValue, CTemperatureValue, CInstantTimeValue, CTimeIntervalValue, CDurationValue, \
+    CStartSessionMessageAction, CStartSessionMessageNotification, CSessionInitAction, CSessionInitNotification, \
+    CEndSessionMessage, CContinueSessionMessage
 
 class IntentMessage(object):
     def __init__(self, session_id, custom_data, site_id, input, intent, slots):
@@ -229,6 +219,112 @@ class SlotValue(object):
         return cls(value_type, value)
 
 
+class SessionInit(object):
+    pass
+
+
+class SessionInitAction(SessionInit):
+    def __init__(self, text=None, intent_filter=list(), can_be_enqueued=True, send_intent_not_recognized=False):
+        """
+        :param text: A text to say to the user
+        :param intent_filter: An optional list of intent name to restrict the parsing of the user response to
+        :param can_be_enqueued: An optional boolean to indicate if the session can be enqueued if it can't be started
+        immediately (ie there is another running session on the site). The default value is true
+        :param send_intent_not_recognized: An optional boolean to indicate whether the dialogue manager should handle non
+        recognized intents by itself or sent them as an `IntentNotRecognizedMessage` for the
+        client to handle. This setting applies only to the next conversation turn. The default
+        value is false (and the dialogue manager will handle non recognized intents by itself)
+        """
+        self.text = text
+        self.intent_filter = intent_filter
+        self.can_be_enqueued = can_be_enqueued
+        self.send_intent_not_recognized = send_intent_not_recognized
+
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
+
+    def into_c_repr(self):
+        return CSessionInitAction.build(self.text,
+                                        self.intent_filter,
+                                        self.can_be_enqueued,
+                                        self.send_intent_not_recognized)
+
+    @classmethod
+    def from_c_repr(cls, c_repr):
+        c_action_session_init = c_repr.value.contents
+
+        intent_filter = []
+        intent_filter_length = c_action_session_init.intent_filter.contents.size
+        for i in range(intent_filter_length):
+            intent_name = c_action_session_init.intent_filter.contents.data[i].decode('utf-8')
+            intent_filter.append(intent_name)
+
+        return cls(
+            c_action_session_init.text.decode('utf-8') if c_action_session_init.text else None,
+            intent_filter,
+            True if c_action_session_init.can_be_enqueued > 0 else False,
+            True if c_action_session_init.send_intent_not_recognized > 0 else False
+        )
+
+
+class SessionInitNotification(SessionInit):
+    def __init__(self, text=""):
+        """
+        The session doesn't expect a response from the user.
+        If the session cannot be started, it will enqueued.
+        :param text:
+        """
+        self.text = text
+
+    def into_c_repr(self):
+        return CSessionInitNotification.build(self.text)
+
+    @classmethod
+    def from_c_repr(cls, c_repr):
+        text = c_repr.value.decode('utf-8')
+        return cls(text)
+
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
+
+
+class StartSessionMessage(object):
+    def __init__(self, session_init, custom_data=None, site_id=None):
+        """
+        :param session_init: The way this session was created
+        :param custom_data: An optional piece of data that will be given back in `IntentMessage`,
+        `IntentNotRecognizedMessage`, `SessionQueuedMessage`, `SessionStartedMessage` and `SessionEndedMessage`
+        that are related to this session
+        :param site_id: The site where the session should be started, a value of `None` will be interpreted as the
+        default one
+        """
+        self.init = session_init
+        self.custom_data = custom_data
+        self.site_id = site_id
+
+    def into_c_repr(self):
+        c_init = self.init.into_c_repr()
+        if type(self.init) is SessionInitAction:
+            return CStartSessionMessageAction.build(c_init, self.custom_data, self.site_id)
+        else:
+            return CStartSessionMessageNotification.build(c_init, self.custom_data, self.site_id)
+
+    @classmethod
+    def from_c_repr(cls, c_repr):
+        if type(c_repr) is CStartSessionMessageNotification:
+            session_init = SessionInitNotification.from_c_repr(c_repr.init)
+        else:
+            session_init = SessionInitAction.from_c_repr(c_repr.init)
+
+        custom_data = c_repr.custom_data.decode('utf-8') if c_repr.custom_data else None
+        site_id = c_repr.site_id.decode('utf-8') if c_repr.site_id else None
+
+        return cls(session_init, custom_data, site_id)
+
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
+
+
 class SessionStartedMessage(object):
     def __init__(self, session_id, custom_data, site_id, reactivated_from_session_id):
         """
@@ -256,6 +352,28 @@ class SessionStartedMessage(object):
         return self.__dict__ == other.__dict__
 
 
+class EndSessionMessage(object):
+    def __init__(self, session_id, text=None):
+        """
+        :param session_id: The id of the session to end
+        :param text: An optional text to say to the user before ending the session
+        """
+        self.session_id = session_id
+        self.text = text
+
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
+
+    @classmethod
+    def from_c_repr(cls, c_repr):
+        session_id = c_repr.session_id.decode('utf-8') if c_repr.session_id else None
+        text = c_repr.text.decode('utf-8') if c_repr.text else None
+        return cls(session_id, text)
+
+    def into_c_repr(self):
+        return CEndSessionMessage.build(self.session_id, self.text)
+
+
 class SessionEndedMessage(object):
     def __init__(self, session_id, custom_data, site_id, termination):
         """
@@ -271,6 +389,7 @@ class SessionEndedMessage(object):
         self.site_id = site_id
         self.termination = termination
 
+
     @classmethod
     def from_c_repr(cls, c_repr):
         session_id = c_repr.session_id.decode('utf-8') if c_repr.session_id else None
@@ -279,8 +398,6 @@ class SessionEndedMessage(object):
         termination = SessionTermination.from_c_repr(c_repr.termination)
         return cls(session_id, custom_data, site_id, termination)
 
-    def __eq__(self, other):
-        return self.__dict__ == other.__dict__
 
 
 class SessionQueuedMessage(object):
@@ -369,6 +486,9 @@ class ContinueSessionMessage(object):
         send_intent_not_recognized = True if c_repr.send_intent_not_recognized > 0 else False
 
         return cls(session_id, text, intent_filter, custom_data, send_intent_not_recognized, slot)
+
+    def into_c_repr(self):
+        return CContinueSessionMessage.build(self.session_id, self.text, self.intent_filter, self.custom_data, self.send_intent_not_recognized)
 
 
 class IntentNotRecognizedMessage(object):

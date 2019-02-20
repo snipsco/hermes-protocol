@@ -4,6 +4,8 @@ import pytest
 
 from hermes_python.api.ffi import FFI
 from hermes_python.ffi.utils import MqttOptions
+from hermes_python.ontology import StartSessionMessage, SessionInitAction, SessionInitNotification, \
+    ContinueSessionMessage, EndSessionMessage
 
 HOST = "localhost"
 DUMMY_INTENT_NAME = "INTENT"
@@ -197,4 +199,118 @@ def test_subscribe_intent_not_recognized_correctly_registers_callback(ffi_utils,
     hermes_protocol_handler_new_mqtt.assert_called_once()  # connection is established
     hermes_protocol_handler_dialogue_facade.assert_called_once()  # connection is established
     ffi_utils.hermes_dialogue_subscribe_intent_not_recognized_json.assert_called_once()
+
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_dialogue_facade")
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
+@mock.patch("hermes_python.api.ffi.utils")
+def test_publish_start_session_with_action_success(ffi_utils, hermes_protocol_handler_new_mqtt, hermes_protocol_handler_dialogue_facade):
+    ffi = FFI(use_json_api=False)
+    mqtt_opts = MqttOptions()
+    ffi.establish_connection(mqtt_opts)
+
+    session_init = SessionInitAction()
+    start_session_message_with_action = StartSessionMessage(session_init, custom_data=None, site_id=None)
+
+    ffi.publish_start_session(start_session_message_with_action)
+    ffi_utils.hermes_dialogue_publish_start_session.assert_called_once()
+
+
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_dialogue_facade")
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
+@mock.patch("hermes_python.api.ffi.utils")
+def test_publish_start_session_with_action_success_json(ffi_utils, hermes_protocol_handler_new_mqtt, hermes_protocol_handler_dialogue_facade):
+    ffi = FFI()
+    mqtt_opts = MqttOptions()
+    ffi.establish_connection(mqtt_opts)
+
+    start_session_message_with_action = {"test": "test"}
+    ffi.publish_start_session(start_session_message_with_action)
+    ffi_utils.hermes_dialogue_publish_start_session_json.assert_called_once()
+
+
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_dialogue_facade")
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
+@mock.patch("hermes_python.api.ffi.utils")
+def test_publish_start_session_with_notification_success(ffi_utils, hermes_protocol_handler_new_mqtt, hermes_protocol_handler_dialogue_facade):
+    ffi = FFI(use_json_api=False)
+    mqtt_opts = MqttOptions()
+    ffi.establish_connection(mqtt_opts)
+
+    session_init = SessionInitNotification("hello world!")
+    start_session_message_with_notification = StartSessionMessage(session_init, custom_data=None, site_id=None)
+
+    ffi.publish_start_session(start_session_message_with_notification)
+    ffi_utils.hermes_dialogue_publish_start_session.assert_called_once()
+
+
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_dialogue_facade")
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
+@mock.patch("hermes_python.api.ffi.utils")
+def test_publish_start_session_with_notification_success_json(ffi_utils, hermes_protocol_handler_new_mqtt, hermes_protocol_handler_dialogue_facade):
+    ffi = FFI()
+    mqtt_opts = MqttOptions()
+    ffi.establish_connection(mqtt_opts)
+
+    start_session_message_with_notification = {"test": "test"}
+    ffi.publish_start_session(start_session_message_with_notification)
+    ffi_utils.hermes_dialogue_publish_start_session_json.assert_called_once()
+
+
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_dialogue_facade")
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
+@mock.patch("hermes_python.api.ffi.utils")
+def test_publish_continue_session_success(ffi_utils, hermes_protocol_handler_new_mqtt, hermes_protocol_handler_dialogue_facade):
+    ffi = FFI(use_json_api=False)
+    mqtt_opts = MqttOptions()
+    ffi.establish_connection(mqtt_opts)
+
+    continue_session_message = ContinueSessionMessage("session_id",
+                                                      "text",
+                                                      "intent_filter",
+                                                      "custom_data",
+                                                      False)
+
+    ffi.publish_continue_session(continue_session_message)
+    ffi_utils.hermes_dialogue_publish_continue_session.assert_called_once()
+
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_dialogue_facade")
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
+@mock.patch("hermes_python.api.ffi.utils")
+def test_publish_continue_session_success_json(ffi_utils, hermes_protocol_handler_new_mqtt, hermes_protocol_handler_dialogue_facade):
+    ffi = FFI()
+    mqtt_opts = MqttOptions()
+    ffi.establish_connection(mqtt_opts)
+
+    continue_session_message = {"test": "test"}
+    ffi.publish_continue_session(continue_session_message)
+
+    ffi_utils.hermes_dialogue_publish_continue_session_json.assert_called_once()
+
+
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_dialogue_facade")
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
+@mock.patch("hermes_python.api.ffi.utils")
+def test_publish_end_session_success(ffi_utils, hermes_protocol_handler_new_mqtt, hermes_protocol_handler_dialogue_facade):
+    ffi = FFI(use_json_api=False)
+    mqtt_opts = MqttOptions()
+    ffi.establish_connection(mqtt_opts)
+
+    end_session_message = EndSessionMessage("session_id", "I end the session with this text")
+    ffi.publish_end_session(end_session_message)
+
+    ffi_utils.hermes_dialogue_publish_end_session.assert_called_once()
+
+
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_dialogue_facade")
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
+@mock.patch("hermes_python.api.ffi.utils")
+def test_publish_end_session_success_json(ffi_utils, hermes_protocol_handler_new_mqtt, hermes_protocol_handler_dialogue_facade):
+    ffi = FFI()
+    mqtt_opts = MqttOptions()
+    ffi.establish_connection(mqtt_opts)
+
+    end_session_message = {"session_id": "session_id", "text": "ok"}
+    ffi.publish_end_session(end_session_message)
+
+    ffi_utils.hermes_dialogue_publish_end_session_json.assert_called_once()
 
