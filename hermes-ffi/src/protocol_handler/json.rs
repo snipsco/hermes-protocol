@@ -144,6 +144,7 @@ macro_rules! generate_json_c_symbols {
 
                 $crate::generate_facade_subscribe_json!(hermes_tts_backend_subscribe_say_json = CTtsBackendFacade: subscribe_say());
                 $crate::generate_facade_publish_json!(hermes_tts_backend_publish_say_finished_json = CTtsBackendFacade: publish_say_finished());
+                $crate::generate_facade_subscribe_json!(hermes_tts_backend_subscribe_register_sound_json = CTtsBackendFacade: subscribe_register_sound());
 
                 $crate::generate_facade_publish_json!(hermes_nlu_publish_query_json = CNluFacade: publish_query());
                 $crate::generate_facade_publish_json!(hermes_nlu_publish_partial_query_json = CNluFacade: publish_partial_query());
