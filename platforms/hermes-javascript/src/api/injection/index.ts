@@ -7,11 +7,11 @@ import {
     CInjectionStatusMessage
 } from '../../ffi/typedefs'
 import {
-    InjectionTypes
+    InjectionTypes, HermesAPI
 } from '../types'
 import * as enums from '../types/enums'
 
-export default class Injection<API> extends ApiSubset<API> {
+export default class Injection<API extends HermesAPI = 'json'> extends ApiSubset<API> {
 
     constructor(protocolHandler, call, options) {
         super(protocolHandler, call, options, 'hermes_protocol_handler_injection_facade')

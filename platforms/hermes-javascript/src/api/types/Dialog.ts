@@ -16,14 +16,15 @@ import {
     SessionQueuedMessageLegacy,
     SessionStartedMessageLegacy
 } from './messages'
+import { HermesAPI } from '.'
 
 export namespace DialogTypes {
-    export type publishMessagesList<API> = {
+    export type publishMessagesList<API extends HermesAPI = 'json'> = {
         start_session: API extends 'json' ? StartSessionMessage : StartSessionMessageLegacy,
         continue_session: API extends 'json' ? ContinueSessionMessage : ContinueSessionMessageLegacy,
         end_session: API extends 'json' ? EndSessionMessage : EndSessionMessageLegacy
     }
-    export type subscribeMessagesList<API> = {
+    export type subscribeMessagesList<API extends HermesAPI = 'json'> = {
         intents: API extends 'json' ? IntentMessage : IntentMessageLegacy,
         intent_not_recognized: API extends 'json' ? IntentNotRecognizedMessage : IntentNotRecognizedMessageLegacy,
         session_ended: API extends 'json' ? SessionEndedMessage : SessionEndedMessageLegacy,

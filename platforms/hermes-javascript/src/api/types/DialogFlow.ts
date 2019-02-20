@@ -7,12 +7,12 @@ import {
     SessionStartedMessageLegacy
 } from './messages'
 
-export type FlowContinuation<API> = {
+export type FlowContinuation<API = 'json'> = {
     continue: (intentName: string, action: FlowIntentAction<API>) => FlowActionReturn<API>,
     notRecognized: (action: FlowNotRecognizedAction<API>) => FlowActionReturn<API>,
     end: () => FlowActionReturn<API>
 }
-export type FlowActionReturnData<API> =
+export type FlowActionReturnData<API = 'json'> =
     API extends 'json' ? {
         text?: string,
         customData?: string
@@ -20,22 +20,22 @@ export type FlowActionReturnData<API> =
         text?: string,
         custom_data?: string
     }
-export type FlowActionReturn<API> =
+export type FlowActionReturn<API = 'json'> =
     FlowActionReturnData<API> |
     Promise<FlowActionReturnData<API> | void | string> |
     void
 
-export type FlowIntentAction<API> = (
+export type FlowIntentAction<API = 'json'> = (
     message: API extends 'json' ? IntentMessage : IntentMessageLegacy,
     flow: FlowContinuation<API>
 ) => FlowActionReturn<API>
 
-export type FlowNotRecognizedAction<API> = (
+export type FlowNotRecognizedAction<API = 'json'> = (
     message: API extends 'json' ? IntentNotRecognizedMessage : IntentNotRecognizedMessageLegacy,
     flow: FlowContinuation<API>
 ) => FlowActionReturn<API>
 
-export type FlowSessionAction<API> = (
+export type FlowSessionAction<API = 'json'> = (
     message: API extends 'json' ? SessionStartedMessage : SessionStartedMessageLegacy,
     flow: FlowContinuation<API>
 ) => FlowActionReturn<API>

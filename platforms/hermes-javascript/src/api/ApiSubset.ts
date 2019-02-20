@@ -6,7 +6,8 @@ import {
     PublishEventDescriptor,
     MessageListener,
     FFIFunctionCall,
-    HermesOptions
+    HermesOptions,
+    HermesAPI
 } from './types'
 
 /* Tools */
@@ -33,7 +34,7 @@ const getMetadata = function<T = (SubscribeEventDescriptor | PublishEventDescrip
 
 /* Class */
 
-export default class ApiSubset<API> {
+export default class ApiSubset<API extends HermesAPI = 'json'> {
 
     public call: FFIFunctionCall
     public destroy() {}

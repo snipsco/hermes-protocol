@@ -1,7 +1,7 @@
 import ApiSubset from '../ApiSubset'
 import { CSiteMessage } from '../../ffi/typedefs'
-import { FeedbackTypes } from '../types'
-export default class Feedback<API> extends ApiSubset<API> {
+import { FeedbackTypes, HermesAPI } from '../types'
+export default class Feedback<API extends HermesAPI = 'json'> extends ApiSubset<API> {
 
     constructor(protocolHandler, call, options) {
         super(protocolHandler, call, options, 'hermes_protocol_handler_sound_feedback_facade')

@@ -8,7 +8,7 @@ import {
     CPlayFinishedMessage
 } from '../../ffi/typedefs'
 import {
-    AudioTypes
+    AudioTypes, HermesAPI
 } from '../types'
 
 /**
@@ -16,7 +16,7 @@ import {
  *
  * Warning: Experimental, use at your own risk!
  */
-export default class Audio<API> extends ApiSubset<API> {
+export default class Audio<API extends HermesAPI = 'json'> extends ApiSubset<API> {
 
     constructor(protocolHandler, call, options) {
         super(protocolHandler, call, options, 'hermes_protocol_handler_audio_server_facade')

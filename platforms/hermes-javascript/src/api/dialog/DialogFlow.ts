@@ -3,11 +3,17 @@ import {
     FlowContinuation,
     FlowIntentAction,
     FlowNotRecognizedAction,
-    FlowSessionAction
+    FlowSessionAction,
+    HermesAPI
 } from '../types'
-import { IntentMessage, IntentMessageLegacy, SessionStartedMessage, SessionStartedMessageLegacy } from '../types/messages'
+import {
+    IntentMessage,
+    IntentMessageLegacy,
+    SessionStartedMessage,
+    SessionStartedMessageLegacy
+} from '../types/messages'
 
-export default class DialogFlow<API> {
+export default class DialogFlow<API extends HermesAPI = 'json'> {
 
     private continuations = new Map()
     private continuationsListeners = new Map()

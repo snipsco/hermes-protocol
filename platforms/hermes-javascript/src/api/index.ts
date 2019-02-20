@@ -6,20 +6,19 @@ import Audio from './audio'
 import { MqttOptions } from '../casts'
 import { call } from '../ffi/bindings'
 import ApiSubset from './ApiSubset'
-import { HermesOptions, FFIFunctionCall, SubsetConstructor } from './types'
+import { HermesOptions, FFIFunctionCall, SubsetConstructor, HermesAPI } from './types'
 
 /* Types */
 
 export { Dialog, Injection, Feedback, Audio }
 export { ApiSubset }
-export type HermesAPI = 'json' | 'legacy'
 export * from './types'
 
 /**
  * Hermes javascript is an high level API that allows you to
  * subscribe and send Snips messages using the Hermes protocol.
  */
-export class Hermes<API extends HermesAPI> {
+export class Hermes<API extends HermesAPI = 'json'> {
 
     /**
      * Create a new Hermes instance that connects to the underlying event bus.

@@ -1,7 +1,7 @@
 import ref from 'ref'
 import ApiSubset from '../ApiSubset'
 import DialogFlow from './DialogFlow'
-import { FlowIntentAction, FlowSessionAction, DialogTypes } from '../types'
+import { FlowIntentAction, FlowSessionAction, DialogTypes, HermesAPI } from '../types'
 import * as enums from '../types/enums'
 import {
     StringArray,
@@ -18,7 +18,7 @@ import {
     CSessionStartedMessage
 } from '../../ffi/typedefs'
 
-export default class Dialog<API> extends ApiSubset<API> {
+export default class Dialog<API extends HermesAPI = 'json'> extends ApiSubset<API> {
 
     constructor(protocolHandler, call, options) {
         super(protocolHandler, call, options, 'hermes_protocol_handler_dialogue_facade')
