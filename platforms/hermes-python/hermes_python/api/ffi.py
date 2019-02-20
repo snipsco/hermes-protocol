@@ -210,3 +210,9 @@ class DialogueFFI(object):
             self._facade,
             ptr_to_foreign_function_argument
         )
+
+class InjectionFFI(object):
+    pass
+
+class AudioFFI(object):
+    pass
