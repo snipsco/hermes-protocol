@@ -2,17 +2,10 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
-from builtins import object, bytes
-from ctypes import *
-from .ffi.ontology import CProtocolHandler, CDialogueFacade, CContinueSessionMessage, CEndSessionMessage, \
-    CStartSessionMessageAction, CStartSessionMessageNotification, CStringArray, CIntentMessage, CSessionStartedMessage, CSessionQueuedMessage, \
-    CSessionEndedMessage, CSessionInitNotification, CSessionInitAction, CActionSessionInit, CIntentNotRecognizedMessage
-from .ffi import utils as ffi_utils
-from .ffi.utils import MqttOptions, CMqttOptions, hermes_protocol_handler_new_mqtt, \
-    hermes_protocol_handler_new_mqtt_with_options, hermes_drop_dialogue_facade, \
-    lib, ffi_function_callback_wrapper
-
-from .ontology import IntentMessage, SessionStartedMessage, SessionQueuedMessage, SessionEndedMessage, IntentNotRecognizedMessage
+from builtins import object
+from .ffi.utils import MqttOptions
+from .ontology import ContinueSessionMessage, EndSessionMessage, StartSessionMessage, SessionInitNotification, \
+    SessionInitAction
 from .api.ffi import FFI
 
 import threading
@@ -29,8 +22,10 @@ class Hermes(object):
         :param broker_address: Address of the MQTT broker in the form 'ip:port'
         :param rust_logs_enabled: Enables or Disables stdout logs *(default false)*
         :param mqtt_options: Options to connect to the mqtt broker.
-        :param use_json_api: If set to False, hermes-python will use the legacy format for published/subscribed messages.
-        Notice: Setting this to false is strongly discouraged, and the support for the old format will eventually be removed in the future.
+        :param use_json_api: If set to False, hermes-python will use the legacy format for published/subscribed
+        messages.
+        Notice: Setting this to false is strongly discouraged,
+        and the support for the old format will eventually be removed in the future.
         """
 
         self.rust_logs_enabled = rust_logs_enabled
@@ -103,9 +98,11 @@ class Hermes(object):
 
         The callback will be called with the following parameters :
             - hermes : the current instance of the Hermes object
-            - sessionStartedMessage : message that the handler receives from the Dialogue Manager when a session is started.
+            - sessionStartedMessage : message that the handler receives from the Dialogue Manager when a session is
+            started.
 
-        :param user_callback_subscribe_session_started: the callback to be executed when a new dialogue session is started.
+        :param user_callback_subscribe_session_started: the callback to be executed when a new dialogue session is
+        started.
         :return: the current instance of Hermes to allow chaining.
         """
         self.ffi.register_session_started_handler(user_callback_subscribe_session_started)
@@ -117,7 +114,8 @@ class Hermes(object):
 
         The callback will be called with the following parameters :
             - hermes : the current instance of the Hermes object
-            - sessionQueuedMessage : message that the handler receives from the Dialogue Manager when a session is queued.
+            - sessionQueuedMessage : message that the handler receives from the Dialogue Manager when a session is
+            queued.
 
         :param user_callback_subscribe_session_queued: the callback to be executed when a new dialogue session is queued.
         :return: the current instance of Hermes to allow chaining.
@@ -143,13 +141,15 @@ class Hermes(object):
         """
         Register a callback when the Dialogue Manager doesn't recognize an intent.
 
-        Note that you need to have initialized a session, (or call publish_continue_session method on an existing session) with the intent_not_recognized field set to true.
-        Otherwise, the DialogueManager will take care itself of not recognized intent and the callback you registered will
-        never be called.
+        Note that you need to have initialized a session, (or call publish_continue_session method on an existing
+        session) with the intent_not_recognized field set to true.
+        Otherwise, the DialogueManager will take care itself of not recognized intent and the callback you registered
+        will never be called.
 
         The callback will be called with the following parameters :
             - hermes: the current instance of the Hermes object
-            - intentNotRecognizedMessage : message that the handler receives from the Dialogue Manager when an intent is not recognized.
+            - intentNotRecognizedMessage : message that the handler receives from the Dialogue Manager when an intent
+            is not recognized.
 
         :param user_callback_subscribe_intent_not_recognized: the callback executed when an intent is not recognized.
         :return: the current instance of Hermes to allow chaining.
@@ -157,20 +157,23 @@ class Hermes(object):
         self.ffi.register_intent_not_recognized_handler(user_callback_subscribe_intent_not_recognized)
         return self
 
-    def publish_continue_session(self, session_id, text, intent_filter, custom_data=None, send_intent_not_recognized=False):
+    def publish_continue_session(self, session_id, text, intent_filter, custom_data=None,
+                                 send_intent_not_recognized=False):
         """
         Publishes a ContinueSession message to the Dialogue Manage to continue a dialogue session.
 
         :param session_id: The identifier of the session to be continued.
         :param text: the text the TTS should say to start this additional request of the session.
         :param intent_filter: A list of intents names to restrict the NLU resolution on the answer of this query.
-        :param send_intent_not_recognized: An optional boolean to indicate whether the dialogue manager should handle non
-        recognized intents by itself or sent them as an `IntentNotRecognizedMessage` for the client to handle. This setting applies only to the next conversation turn. The default
-        value is false (and the dialogue manager will handle non recognized intents by itself)
+        :param send_intent_not_recognized: An optional boolean to indicate whether the dialogue manager should handle
+        non recognized intents by itself or sent them as an `IntentNotRecognizedMessage` for the client to handle.
+        This setting applies only to the next conversation turn. The default value is false
+        (and the dialogue manager will handle non recognized intents by itself)
         :return: the current instance of Hermes to allow chaining.
         """
-        cContinueSessionMessage = CContinueSessionMessage.build(session_id, text, intent_filter, custom_data, send_intent_not_recognized)
-        hermes_dialogue_publish_continue_session(self._facade, byref(cContinueSessionMessage))
+        continue_session_msg = ContinueSessionMessage(session_id, text, intent_filter, custom_data,
+                                                      send_intent_not_recognized)
+        self.ffi.publish_continue_session(continue_session_msg)
         return self
 
     def publish_end_session(self, session_id, text):
@@ -184,11 +187,11 @@ class Hermes(object):
         :param text: The text the TTS should say to end the session.
         :return: the current instance of Hermes to allow chaining.
         """
-        cEndSessionMessage = CEndSessionMessage.build(session_id, text)
-        hermes_dialogue_publish_end_session(self._facade, byref(cEndSessionMessage))
+        end_session_message = EndSessionMessage(session_id, text)
+        self.ffi.publish_end_session(end_session_message)
         return self
 
-    def publish_start_session_notification(self, site_id, session_init_value, custom_data):
+    def publish_start_session_notification(self, site_id, session_init_value, custom_data, text=""):
         """
         Publishes a StartSession message to the Dialogue Manager to initiate a new session.
 
@@ -197,15 +200,19 @@ class Hermes(object):
 
         :param site_id: Site where the user started the interaction.
         :param session_init_value: Text the TTS should say.
-        :param custom_data: Additional information that can be provided by the handler. Each message related to the new session - sent by the Dialogue Manager - will contain this data.
+        :param custom_data: Additional information that can be provided by the handler. Each message related to
+        the new session - sent by the Dialogue Manager - will contain this data.
         :return: the current instance of Hermes to allow chaining.
         """
-        init = CSessionInitNotification.build(session_init_value)
-        cStartSessionMessage = CStartSessionMessageNotification.build(init, custom_data, site_id)
-        hermes_dialogue_publish_start_session(self._facade, byref(cStartSessionMessage))
+        session_init_message = SessionInitNotification(text)
+        start_session_notification_message = StartSessionMessage(session_init_message, custom_data, site_id)
+
+        self.ffi.publish_start_session(start_session_notification_message)
         return self
 
-    def publish_start_session_action(self, site_id, session_init_text, session_init_intent_filter, session_init_can_be_enqueued, session_init_send_intent_not_recognized, custom_data):
+    def publish_start_session_action(self, site_id, session_init_text, session_init_intent_filter,
+                                     session_init_can_be_enqueued, session_init_send_intent_not_recognized,
+                                     custom_data):
         """
         Publishes a StartSession message to the Dialogue Manager to initiate a new session.
 
@@ -218,16 +225,19 @@ class Hermes(object):
         :param site_id: Site where the user started the interaction.
         :param session_init_text: Text that the TTS should say at the beginning of the session.
         :param session_init_intent_filter: A list of intents names to restrict the NLU resolution on the first query.
-        :param session_init_can_be_enqueued: if true, the session will start when there is no pending one on this siteId, if false, the session is just dropped if there is running one.
-        :param custom_data: Additional information that can be provided by the handler. Each message related to the new session - sent by the Dialogue Manager - will contain this data.
+        :param session_init_can_be_enqueued: if true, the session will start when there is no pending one
+        on this siteId, if false, the session is just dropped if there is running one.
+        :param custom_data: Additional information that can be provided by the handler. Each message related
+        to the new session - sent by the Dialogue Manager - will contain this data.
         :return: the current instance of Hermes to allow chaining.
         """
-        init = CSessionInitAction.build(session_init_text,
-                                        session_init_intent_filter,
-                                        session_init_can_be_enqueued,
-                                        session_init_send_intent_not_recognized)
-        cStartSessionMessage = CStartSessionMessageAction.build(init, custom_data, site_id)
-        hermes_dialogue_publish_start_session(self._facade, byref(cStartSessionMessage))
+        session_init_message = SessionInitAction(
+            session_init_text,
+            session_init_intent_filter,
+            session_init_can_be_enqueued,
+            session_init_send_intent_not_recognized)
+        start_session_action_message = StartSessionMessage(session_init_message, custom_data, site_id)
+        self.ffi.publish_start_session(start_session_action_message)
         return self
 
     def start(self):
@@ -243,7 +253,7 @@ class Hermes(object):
         :return: None
         """
         while 1:
-            if (self._thread_terminate):
+            if self._thread_terminate:
                 break
             sleep(.1)
 
@@ -257,7 +267,7 @@ class Hermes(object):
         self._thread.daemon = True
         self._thread.start()
 
-    def loop_stop(self, force=False):
+    def loop_stop(self):
         if self._thread is None:
             return
 

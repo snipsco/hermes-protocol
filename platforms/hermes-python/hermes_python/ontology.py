@@ -9,7 +9,7 @@ from six.moves import range
 from dotmap import DotMap
 
 from ctypes import string_at, c_double
-from .ffi.ontology import CAmountOfMoneyValue, CTemperatureValue, CInstantTimeValue, CTimeIntervalValue, CDurationValue, \
+from .ffi.ontology import CAmountOfMoneyValue, CTemperatureValue, CInstantTimeValue, CTimeIntervalValue, CDurationValue,\
     CStartSessionMessageAction, CStartSessionMessageNotification, CSessionInitAction, CSessionInitNotification, \
     CEndSessionMessage, CContinueSessionMessage
 

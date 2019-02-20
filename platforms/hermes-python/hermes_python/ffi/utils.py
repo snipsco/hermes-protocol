@@ -4,9 +4,8 @@ from __future__ import unicode_literals
 from glob import glob
 import json
 import os
-from builtins import bytes
 
-from ctypes import cdll, CFUNCTYPE, c_void_p, c_char_p, POINTER, Structure, c_uint8
+from ctypes import cdll, CFUNCTYPE, c_char_p, POINTER, Structure, c_uint8
 from .ontology import CStringArray
 from ..ontology import *
 
@@ -17,6 +16,7 @@ DYLIB_PATH = glob(os.path.join(DYLIB_DIR, DYLIB_NAME))[0]
 lib = cdll.LoadLibrary(DYLIB_PATH)
 
 # Mqtt options
+
 
 class CMqttOptions(Structure):
     _fields_ = [("broker_address", c_char_p),
@@ -95,7 +95,8 @@ def wrap_library_call(lib_func):
         if return_code > 0:  # An error occured
             empty_string = "".encode('utf-8')
             error_p = POINTER(c_char_p)(c_char_p(empty_string))
-            lib.hermes_get_last_error(error_p) # Retrieve the last error and put it in the memory location error_p points to
+            # Retrieve the last error and put it in the memory location error_p points to
+            lib.hermes_get_last_error(error_p)
             error_cause = string_at(error_p.contents).decode('utf-8')
             raise LibException(error_cause)
         return return_code
@@ -182,7 +183,8 @@ hermes_dialogue_publish_continue_session_json = wrap_library_call(lib.hermes_dia
 hermes_dialogue_publish_end_session_json = wrap_library_call(lib.hermes_dialogue_publish_end_session_json)
 hermes_dialogue_publish_start_session_json = wrap_library_call(lib.hermes_dialogue_publish_start_session_json)
 hermes_dialogue_subscribe_intent_json = wrap_library_call(lib.hermes_dialogue_subscribe_intent_json)
-hermes_dialogue_subscribe_intent_not_recognized_json = wrap_library_call(lib.hermes_dialogue_subscribe_intent_not_recognized_json)
+hermes_dialogue_subscribe_intent_not_recognized_json = \
+    wrap_library_call(lib.hermes_dialogue_subscribe_intent_not_recognized_json)
 hermes_dialogue_subscribe_intents_json = wrap_library_call(lib.hermes_dialogue_subscribe_intents_json)
 hermes_dialogue_subscribe_session_ended_json = wrap_library_call(lib.hermes_dialogue_subscribe_session_ended_json)
 hermes_dialogue_subscribe_session_queued_json = wrap_library_call(lib.hermes_dialogue_subscribe_session_queued_json)
