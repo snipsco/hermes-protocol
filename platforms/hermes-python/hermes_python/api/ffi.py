@@ -13,7 +13,32 @@ class FFI(object):
         self.use_json_api = use_json_api
         self.rust_logs_enabled = rust_logs_enabled
 
+        self.dialogue = DialogueFFI(use_json_api)
         self._protocol_handler = POINTER(CProtocolHandler)()
+
+    def establish_connection(self, mqtt_options):
+        c_mqtt_options = CMqttOptions.from_repr(mqtt_options)
+
+        hermes_protocol_handler_new_mqtt_with_options(byref(self._protocol_handler), byref(c_mqtt_options))
+        self.initialize_facades()
+
+        if self.rust_logs_enabled:
+            lib.hermes_enable_debug_logs()
+
+    def initialize_facades(self):
+        self.dialogue.initialize_facade(self._protocol_handler)
+
+    def release_facades(self):
+        self.dialogue.release_facade()
+
+    def release_connection(self):
+        self._protocol_handler = POINTER(CProtocolHandler)()
+        self.release_facades()
+
+
+class DialogueFFI(object):
+    def __init__(self, use_json_api=True):
+        self.use_json_api = use_json_api
         self._facade = POINTER(CDialogueFacade)()
 
         # References to callbacks called from C
@@ -24,16 +49,10 @@ class FFI(object):
         self._c_callback_subscribe_session_ended = None
         self._c_callback_subscribe_intent_not_recognized = None
 
-    def establish_connection(self, mqtt_options):
-        c_mqtt_options = CMqttOptions.from_repr(mqtt_options)
+    def initialize_facade(self, protocol_handler):
+        hermes_protocol_handler_dialogue_facade(protocol_handler, byref(self._facade))
 
-        hermes_protocol_handler_new_mqtt_with_options(byref(self._protocol_handler), byref(c_mqtt_options))
-        hermes_protocol_handler_dialogue_facade(self._protocol_handler, byref(self._facade))
-
-        if self.rust_logs_enabled:
-            lib.hermes_enable_debug_logs()
-
-    def release_connection(self):
+    def release_facade(self):
         hermes_drop_dialogue_facade(self._facade)
         self._facade = POINTER(CDialogueFacade)()
 

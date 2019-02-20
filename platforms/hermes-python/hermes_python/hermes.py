@@ -74,7 +74,7 @@ class Hermes(object):
         :return: the current instance of Hermes to allow chaining.
         """
 
-        self.ffi.register_subscribe_intent_handler(intent_name, user_callback_subscribe_intent)
+        self.ffi.dialogue.register_subscribe_intent_handler(intent_name, user_callback_subscribe_intent)
         return self
 
     def subscribe_intents(self, user_callback_subscribe_intents):
@@ -89,7 +89,7 @@ class Hermes(object):
         :param user_callback_subscribe_intents: The callback to be executed when any intent is parsed by the platform.
         :return: the current instance of Hermes to allow chaining.
         """
-        self.ffi.register_subscribe_intents_handler(user_callback_subscribe_intents)
+        self.ffi.dialogue.register_subscribe_intents_handler(user_callback_subscribe_intents)
         return self
 
     def subscribe_session_started(self, user_callback_subscribe_session_started):
@@ -105,7 +105,7 @@ class Hermes(object):
         started.
         :return: the current instance of Hermes to allow chaining.
         """
-        self.ffi.register_session_started_handler(user_callback_subscribe_session_started)
+        self.ffi.dialogue.register_session_started_handler(user_callback_subscribe_session_started)
         return self
 
     def subscribe_session_queued(self, user_callback_subscribe_session_queued):
@@ -120,7 +120,7 @@ class Hermes(object):
         :param user_callback_subscribe_session_queued: the callback to be executed when a new dialogue session is queued.
         :return: the current instance of Hermes to allow chaining.
         """
-        self.ffi.register_session_queued_handler(user_callback_subscribe_session_queued)
+        self.ffi.dialogue.register_session_queued_handler(user_callback_subscribe_session_queued)
         return self
 
     def subscribe_session_ended(self, user_callback_subscribe_session_ended):
@@ -134,7 +134,7 @@ class Hermes(object):
         :param user_callback_subscribe_session_ended: the callback to be executed when a new dialogue session is ended.
         :return: the current instance of Hermes to allow chaining.
         """
-        self.ffi.register_session_ended_handler(user_callback_subscribe_session_ended)
+        self.ffi.dialogue.register_session_ended_handler(user_callback_subscribe_session_ended)
         return self
 
     def subscribe_intent_not_recognized(self, user_callback_subscribe_intent_not_recognized):
@@ -154,7 +154,7 @@ class Hermes(object):
         :param user_callback_subscribe_intent_not_recognized: the callback executed when an intent is not recognized.
         :return: the current instance of Hermes to allow chaining.
         """
-        self.ffi.register_intent_not_recognized_handler(user_callback_subscribe_intent_not_recognized)
+        self.ffi.dialogue.register_intent_not_recognized_handler(user_callback_subscribe_intent_not_recognized)
         return self
 
     def publish_continue_session(self, session_id, text, intent_filter, custom_data=None,
@@ -173,7 +173,7 @@ class Hermes(object):
         """
         continue_session_msg = ContinueSessionMessage(session_id, text, intent_filter, custom_data,
                                                       send_intent_not_recognized)
-        self.ffi.publish_continue_session(continue_session_msg)
+        self.ffi.dialogue.publish_continue_session(continue_session_msg)
         return self
 
     def publish_end_session(self, session_id, text):
@@ -188,7 +188,7 @@ class Hermes(object):
         :return: the current instance of Hermes to allow chaining.
         """
         end_session_message = EndSessionMessage(session_id, text)
-        self.ffi.publish_end_session(end_session_message)
+        self.ffi.dialogue.publish_end_session(end_session_message)
         return self
 
     def publish_start_session_notification(self, site_id, session_init_value, custom_data, text=""):
@@ -207,7 +207,7 @@ class Hermes(object):
         session_init_message = SessionInitNotification(text)
         start_session_notification_message = StartSessionMessage(session_init_message, custom_data, site_id)
 
-        self.ffi.publish_start_session(start_session_notification_message)
+        self.ffi.dialogue.publish_start_session(start_session_notification_message)
         return self
 
     def publish_start_session_action(self, site_id, session_init_text, session_init_intent_filter,
@@ -237,7 +237,7 @@ class Hermes(object):
             session_init_can_be_enqueued,
             session_init_send_intent_not_recognized)
         start_session_action_message = StartSessionMessage(session_init_message, custom_data, site_id)
-        self.ffi.publish_start_session(start_session_action_message)
+        self.ffi.dialogue.publish_start_session(start_session_action_message)
         return self
 
     def start(self):

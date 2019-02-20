@@ -389,6 +389,8 @@ class SessionEndedMessage(object):
         self.site_id = site_id
         self.termination = termination
 
+    def __eq__(self, other):
+            return self.__dict__ == other.__dict__
 
     @classmethod
     def from_c_repr(cls, c_repr):

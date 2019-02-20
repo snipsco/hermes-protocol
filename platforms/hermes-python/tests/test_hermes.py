@@ -8,14 +8,17 @@ from hermes_python.ffi.utils import MqttOptions
 HOST = "localhost"
 DUMMY_INTENT_NAME = "INTENT"
 
+
 def test_initialization():
     h = Hermes(HOST)
-    assert 0 == len(h.ffi._c_callback_subscribe_intent)
+    assert 0 == len(h.ffi.dialogue._c_callback_subscribe_intent)
+
 
 def test_initialization_with_options():
     mqtt_opts = MqttOptions()
     h = Hermes(mqtt_options=mqtt_opts)
     assert h.mqtt_options.broker_address == "localhost:1883"
+
 
 def test_context_manager_enter_calls_ffi_api():
     h = Hermes(HOST)
@@ -27,6 +30,7 @@ def test_context_manager_enter_calls_ffi_api():
     h.ffi.establish_connection.assert_called_once()
     h.ffi.release_connection.assert_called_once()
 
+
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_dialogue_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
 def test_context_manager_enter(hermes_protocol_handler_new_mqtt, hermes_protocol_handler_dialogue_facade):
@@ -35,6 +39,7 @@ def test_context_manager_enter(hermes_protocol_handler_new_mqtt, hermes_protocol
 
     hermes_protocol_handler_new_mqtt.assert_called_once()
     hermes_protocol_handler_dialogue_facade.assert_called_once()
+
 
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_dialogue_facade")
 @mock.patch("hermes_python.api.ffi.hermes_drop_dialogue_facade")
@@ -67,7 +72,7 @@ def test_subscribe_intent_correctly_registers_callback():
     h.__enter__()
     h.subscribe_intent(DUMMY_INTENT_NAME, user_callback)
     h.__exit__(None, None, None)
-    h.ffi.register_subscribe_intent_handler.assert_called_once_with(DUMMY_INTENT_NAME, user_callback)
+    h.ffi.dialogue.register_subscribe_intent_handler.assert_called_once_with(DUMMY_INTENT_NAME, user_callback)
 
 def test_subscribe_intents_correctly_registers_callback():
 
@@ -81,7 +86,7 @@ def test_subscribe_intents_correctly_registers_callback():
     h.__exit__(None, None, None)
 
     h.ffi.establish_connection.assert_called_once()
-    h.ffi.register_subscribe_intents_handler.assert_called_once_with(user_callback)
+    h.ffi.dialogue.register_subscribe_intents_handler.assert_called_once_with(user_callback)
 
 
 def test_subscribe_session_started_correctly_registers_callback():
@@ -95,7 +100,7 @@ def test_subscribe_session_started_correctly_registers_callback():
     h.__exit__(None, None, None)
 
     h.ffi.establish_connection.assert_called_once()
-    h.ffi.register_session_started_handler.assert_called_once_with(user_callback)
+    h.ffi.dialogue.register_session_started_handler.assert_called_once_with(user_callback)
 
 
 def test_subscribe_session_queued_correctly_registers_callback():
@@ -109,7 +114,7 @@ def test_subscribe_session_queued_correctly_registers_callback():
     h.__exit__(None, None, None)
 
     h.ffi.establish_connection.assert_called_once()
-    h.ffi.register_session_queued_handler.assert_called_once_with(user_callback)
+    h.ffi.dialogue.register_session_queued_handler.assert_called_once_with(user_callback)
 
 
 def test_subscribe_session_ended_correctly_registers_callback():
@@ -123,7 +128,7 @@ def test_subscribe_session_ended_correctly_registers_callback():
     h.__exit__(None, None, None)
 
     h.ffi.establish_connection.assert_called_once()
-    h.ffi.register_session_ended_handler.assert_called_once_with(user_callback)
+    h.ffi.dialogue.register_session_ended_handler.assert_called_once_with(user_callback)
 
 
 def test_subscribe_intent_not_recognized_correctly_registers_callback():
@@ -137,5 +142,5 @@ def test_subscribe_intent_not_recognized_correctly_registers_callback():
     h.__exit__(None, None, None)
 
     h.ffi.establish_connection.assert_called_once()
-    h.ffi.register_intent_not_recognized_handler.assert_called_once_with(user_callback)
+    h.ffi.dialogue.register_intent_not_recognized_handler.assert_called_once_with(user_callback)
 
