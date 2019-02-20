@@ -180,7 +180,7 @@ typedef struct {
    * Nullable
    */
   const char *custom_data;
-  /*
+  /**
    * Nullable
    */
   const char *slot;
@@ -209,8 +209,8 @@ typedef struct {
   const char *site_id;
 } CStartSessionMessage;
 
-/*
- * Results of the intent classifier
+/**
+ * Result of the intent classifier
  */
 typedef struct {
   /**
@@ -405,6 +405,11 @@ typedef struct {
 } CSoundFeedbackFacade;
 
 typedef struct {
+  const void *facade;
+  void *user_data;
+} CTtsFacade;
+
+typedef struct {
   uint64_t major;
   uint64_t minor;
   uint64_t patch;
@@ -493,6 +498,12 @@ typedef struct {
    */
   const char *session_id;
 } CSiteMessage;
+
+typedef struct {
+  const char *sound_id;
+  const uint8_t *wav_sound;
+  int wav_sound_len;
+} CRegisterSoundMessage;
 
 typedef struct {
   /**
@@ -678,6 +689,8 @@ SNIPS_RESULT hermes_drop_session_started_message(const CSessionStartedMessage *c
 
 SNIPS_RESULT hermes_drop_sound_feedback_facade(const CSoundFeedbackFacade *cstruct);
 
+SNIPS_RESULT hermes_drop_tts_facade(const CTtsFacade *cstruct);
+
 SNIPS_RESULT hermes_drop_version_message(const CVersionMessage *cstruct);
 
 SNIPS_RESULT hermes_enable_debug_logs(void);
@@ -713,10 +726,16 @@ SNIPS_RESULT hermes_protocol_handler_new_mqtt_with_options(const CProtocolHandle
 SNIPS_RESULT hermes_protocol_handler_sound_feedback_facade(const CProtocolHandler *handler,
                                                            const CSoundFeedbackFacade **facade);
 
+SNIPS_RESULT hermes_protocol_handler_tts_facade(const CProtocolHandler *handler,
+                                                const CTtsFacade **facade);
+
 SNIPS_RESULT hermes_sound_feedback_publish_toggle_off(const CSoundFeedbackFacade *facade,
                                                       const CSiteMessage *message);
 
 SNIPS_RESULT hermes_sound_feedback_publish_toggle_on(const CSoundFeedbackFacade *facade,
                                                      const CSiteMessage *message);
+
+SNIPS_RESULT hermes_tts_publish_register_sound(const CTtsFacade *facade,
+                                               const CRegisterSoundMessage *message);
 
 #endif /* LIB_HERMES_H_ */

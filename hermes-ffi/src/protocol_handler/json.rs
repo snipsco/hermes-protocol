@@ -113,6 +113,8 @@ macro_rules! generate_json_c_symbols {
             $crate::generate_facade_publish_json!(hermes_dialogue_publish_continue_session_json = CDialogueFacade: publish_continue_session());
             $crate::generate_facade_publish_json!(hermes_dialogue_publish_end_session_json = CDialogueFacade: publish_end_session());
 
+            $crate::generate_facade_publish_json!(hermes_tts_publish_register_sound_json = CTtsFacade: publish_register_sound());
+
             $crate::generate_facade_publish_json!(hermes_injection_publish_injection_request_json = CInjectionFacade: publish_injection_request());
             $crate::generate_facade_publish_json!(hermes_injection_publish_injection_status_request_json = CInjectionFacade: publish_injection_status_request);
             $crate::generate_facade_subscribe_json!(hermes_injection_subscribe_injection_status_json = CInjectionFacade: subscribe_injection_status());
@@ -142,6 +144,7 @@ macro_rules! generate_json_c_symbols {
 
                 $crate::generate_facade_subscribe_json!(hermes_tts_backend_subscribe_say_json = CTtsBackendFacade: subscribe_say());
                 $crate::generate_facade_publish_json!(hermes_tts_backend_publish_say_finished_json = CTtsBackendFacade: publish_say_finished());
+                $crate::generate_facade_subscribe_json!(hermes_tts_backend_subscribe_register_sound_json = CTtsBackendFacade: subscribe_register_sound());
 
                 $crate::generate_facade_publish_json!(hermes_nlu_publish_query_json = CNluFacade: publish_query());
                 $crate::generate_facade_publish_json!(hermes_nlu_publish_partial_query_json = CNluFacade: publish_partial_query());

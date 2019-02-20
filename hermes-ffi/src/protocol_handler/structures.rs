@@ -106,6 +106,8 @@ macro_rules! generate_structures_c_symbols {
             $crate::generate_facade_publish!(hermes_injection_publish_injection_status_request = CInjectionFacade: publish_injection_status_request());
             $crate::generate_facade_subscribe!(hermes_injection_subscribe_injection_status = CInjectionFacade: subscribe_injection_status(|CInjectionStatusMessage|));
 
+            $crate::generate_facade_publish!(hermes_tts_publish_register_sound = CTtsFacade: publish_register_sound(CRegisterSoundMessage));
+
             $crate::generate_destroy!(hermes_drop_intent_message for CIntentMessage);
             $crate::generate_destroy!(hermes_drop_intent_not_recognized_message for CIntentNotRecognizedMessage);
             $crate::generate_destroy!(hermes_drop_session_started_message for CSessionStartedMessage);
@@ -141,6 +143,7 @@ macro_rules! generate_structures_c_symbols {
 
                 $crate::generate_facade_subscribe!(hermes_tts_backend_subscribe_say = CTtsBackendFacade: subscribe_say(|CSayMessage|));
                 $crate::generate_facade_publish!(hermes_tts_backend_publish_say_finished = CTtsBackendFacade: publish_say_finished(CSayFinishedMessage));
+                $crate::generate_facade_subscribe!(hermes_tts_backend_subscribe_register_sound = CTtsBackendFacade: subscribe_register_sound(|CRegisterSoundMessage|));
 
                 $crate::generate_facade_publish!(hermes_nlu_publish_query = CNluFacade: publish_query(CNluQueryMessage));
                 $crate::generate_facade_publish!(hermes_nlu_publish_partial_query = CNluFacade: publish_partial_query(CNluSlotQueryMessage));
@@ -190,6 +193,7 @@ macro_rules! generate_structures_c_symbols {
                 $crate::generate_destroy!(hermes_drop_continue_session_message for CContinueSessionMessage);
                 $crate::generate_destroy!(hermes_drop_end_session_message for CEndSessionMessage);
                 $crate::generate_destroy!(hermes_drop_injection_request_message for CInjectionRequestMessage);
+                $crate::generate_destroy!(hermes_drop_register_sound_message for CRegisterSoundMessage);
             }
         }
     };
