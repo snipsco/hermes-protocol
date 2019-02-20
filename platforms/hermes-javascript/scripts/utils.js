@@ -4,6 +4,7 @@ const fs = require('fs')
 
 const REPO_URL = 'https://github.com/snipsco/hermes-protocol'
 const REPO_NAME = 'hermes-protocol'
+const hermesMqttVersion = require('../package.json')['hermes-mqtt-version']
 
 const LIB_EXTENSION = {
     linux:  '.so',
@@ -46,6 +47,7 @@ module.exports = {
     LIB_EXTENSION,
     REPO_URL,
     REPO_NAME,
+    hermesMqttVersion,
     osIsRaspbian,
     logger: {
         error: logError,

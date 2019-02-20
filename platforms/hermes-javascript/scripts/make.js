@@ -10,6 +10,7 @@ const {
     LIB_DIST,
     REPO_URL,
     REPO_NAME,
+    hermesMqttVersion,
     logger
 } = require('./utils')
 
@@ -55,11 +56,18 @@ try {
     cmd(`git clone ${REPO_URL}`, {
         cwd: tmpDir.name
     })
+
     const repoFolder = path.resolve(tmpDir.name, REPO_NAME)
     logger.cmd('Repository cloned @ ' + repoFolder + '\n')
-    cmd('git submodule update --init --recursive', {
+
+    logger.cmd('- Checkout tag ' + hermesMqttVersion)
+    cmd(`git checkout tags/${hermesMqttVersion}`, {
         cwd: repoFolder
     })
+
+    // cmd('git submodule update --init --recursive', {
+    //     cwd: repoFolder
+    // })
 
     logger.cmd('- Building the dynamic library from sources.\n')
     cmd('cargo build -p hermes-mqtt-ffi --release', {

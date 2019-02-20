@@ -5,8 +5,7 @@ const fs = require('fs')
 const readline = require('readline')
 const wretch = require('wretch').default
 
-const { logger, osIsRaspbian, LIB_EXTENSION, LIB_DIST } = require('./utils')
-const hermesMqttVersion = require('../package.json')['hermes-mqtt-version']
+const { logger, osIsRaspbian, hermesMqttVersion, LIB_EXTENSION, LIB_DIST } = require('./utils')
 
 const skipOnSelfInstall = process.cwd() === process.env.INIT_CWD
 
