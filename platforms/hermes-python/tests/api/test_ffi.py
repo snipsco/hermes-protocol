@@ -3,7 +3,7 @@ import mock
 import pytest
 
 from hermes_python.api.ffi import FFI
-from hermes_python.ffi.utils import MqttOptions
+from hermes_python.ontology import MqttOptions
 from hermes_python.ontology.dialogue import StartSessionMessage, SessionInitAction, SessionInitNotification, \
     ContinueSessionMessage, EndSessionMessage
 

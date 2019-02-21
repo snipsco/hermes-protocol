@@ -1,10 +1,10 @@
 from ctypes import POINTER, c_void_p, c_char_p, byref
-from ..ffi.ontology import CProtocolHandler
+from ..ffi.ontology import CProtocolHandler, CMqttOptions
 from ..ffi.ontology.facades import CDialogueFacade
 from ..ffi.ontology.dialogue import CIntentMessage, CSessionStartedMessage, \
     CSessionQueuedMessage, CSessionEndedMessage, CIntentNotRecognizedMessage
 from ..ffi.utils import ffi_function_callback_wrapper, hermes_protocol_handler_new_mqtt_with_options, \
-    hermes_protocol_handler_dialogue_facade, lib, hermes_drop_dialogue_facade, CMqttOptions
+    hermes_protocol_handler_dialogue_facade, lib, hermes_drop_dialogue_facade
 from ..ffi import utils
 from ..ontology.dialogue import IntentMessage, SessionStartedMessage, SessionQueuedMessage, SessionEndedMessage, \
     IntentNotRecognizedMessage

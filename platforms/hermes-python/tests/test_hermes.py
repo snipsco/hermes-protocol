@@ -3,7 +3,7 @@ import mock
 import pytest
 
 from hermes_python.hermes import Hermes
-from hermes_python.ffi.utils import MqttOptions
+from hermes_python.ontology import MqttOptions
 
 HOST = "localhost"
 DUMMY_INTENT_NAME = "INTENT"
