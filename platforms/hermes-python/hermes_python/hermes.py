@@ -4,7 +4,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 from builtins import object
 from .ffi.utils import MqttOptions
-from .ontology import ContinueSessionMessage, EndSessionMessage, StartSessionMessage, SessionInitNotification, \
+from .ontology.dialogue import ContinueSessionMessage, EndSessionMessage, StartSessionMessage, SessionInitNotification, \
     SessionInitAction
 from .api.ffi import FFI
 

@@ -5,9 +5,9 @@ from glob import glob
 import json
 import os
 
-from ctypes import cdll, CFUNCTYPE, c_char_p, POINTER, Structure, c_uint8
+from ctypes import cdll, CFUNCTYPE, c_char_p, POINTER, Structure, c_uint8, string_at
 from .ontology import CStringArray
-from ..ontology import *
+
 
 DYLIB_NAME = "libhermes_mqtt_ffi.*"
 DYLIB_DIR = os.path.join(os.path.dirname(__file__), "../dylib")

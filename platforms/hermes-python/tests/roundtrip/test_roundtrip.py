@@ -44,12 +44,12 @@ def get_round_trip_data_structure(py_ontology_object_instance, C_Ontology_Type, 
 
 def test_hermes_ffi_test_round_trip_session_queued():
     # Initialize deserialized python object
-    session_queued_message = hermes_python.ontology.SessionQueuedMessage("session_id", "custom_daté", "site_id")
+    session_queued_message = hermes_python.ontology.dialogue.SessionQueuedMessage("session_id", "custom_daté", "site_id")
 
     round_trip_session_queued_message = get_round_trip_data_structure(
         session_queued_message,
-        hermes_python.ffi.ontology.CSessionQueuedMessage,
-        hermes_python.ontology.SessionQueuedMessage,
+        hermes_python.ffi.ontology.dialogue.CSessionQueuedMessage,
+        hermes_python.ontology.dialogue.SessionQueuedMessage,
         lib.hermes_ffi_test_round_trip_session_queued
     )
 
@@ -57,11 +57,11 @@ def test_hermes_ffi_test_round_trip_session_queued():
 
 
 def test_hermes_ffi_test_round_trip_session_started():
-    session_started_message = hermes_python.ontology.SessionStartedMessage("session_id", "custom_data", "site_id", "reactivated")
+    session_started_message = hermes_python.ontology.dialogue.SessionStartedMessage("session_id", "custom_data", "site_id", "reactivated")
     round_trip_session_started_message = get_round_trip_data_structure(
         session_started_message,
-        hermes_python.ffi.ontology.CSessionStartedMessage,
-        hermes_python.ontology.SessionStartedMessage,
+        hermes_python.ffi.ontology.dialogue.CSessionStartedMessage,
+        hermes_python.ontology.dialogue.SessionStartedMessage,
         lib.hermes_ffi_test_round_trip_session_started
     )
 
@@ -70,12 +70,12 @@ def test_hermes_ffi_test_round_trip_session_started():
 
 def test_hermes_ffi_test_round_trip_session_ended_for_error(): # TODO : Move Termination type to dedicated enum
     SNIPS_SESSION_TERMINATION_TYPE_ERROR = 6
-    session_termination = hermes_python.ontology.SessionTermination(SNIPS_SESSION_TERMINATION_TYPE_ERROR, "dataé")
-    session_ended_message = hermes_python.ontology.SessionEndedMessage("session_id", "custom_data", "site_id", session_termination)
+    session_termination = hermes_python.ontology.dialogue.SessionTermination(SNIPS_SESSION_TERMINATION_TYPE_ERROR, "dataé")
+    session_ended_message = hermes_python.ontology.dialogue.SessionEndedMessage("session_id", "custom_data", "site_id", session_termination)
     round_trip_session_ended_message = get_round_trip_data_structure(
         session_ended_message,
-        hermes_python.ffi.ontology.CSessionEndedMessage,
-        hermes_python.ontology.SessionEndedMessage,
+        hermes_python.ffi.ontology.dialogue.CSessionEndedMessage,
+        hermes_python.ontology.dialogue.SessionEndedMessage,
         lib.hermes_ffi_test_round_trip_session_ended
     )
 
@@ -86,12 +86,12 @@ def test_hermes_ffi_test_round_trip_session_ended_for_error(): # TODO : Move Ter
 
 def test_hermes_ffi_test_round_trip_session_ended(): # TODO : Move Termination type to dedicated enum
     SNIPS_SESSION_TERMINATION_TYPE_NOMINAL = 1
-    session_termination = hermes_python.ontology.SessionTermination(SNIPS_SESSION_TERMINATION_TYPE_NOMINAL, None)
-    session_ended_message = hermes_python.ontology.SessionEndedMessage("session_id", "custom_data", "site_id", session_termination)
+    session_termination = hermes_python.ontology.dialogue.SessionTermination(SNIPS_SESSION_TERMINATION_TYPE_NOMINAL, None)
+    session_ended_message = hermes_python.ontology.dialogue.SessionEndedMessage("session_id", "custom_data", "site_id", session_termination)
     round_trip_session_ended_message = get_round_trip_data_structure(
         session_ended_message,
-        hermes_python.ffi.ontology.CSessionEndedMessage,
-        hermes_python.ontology.SessionEndedMessage,
+        hermes_python.ffi.ontology.dialogue.CSessionEndedMessage,
+        hermes_python.ontology.dialogue.SessionEndedMessage,
         lib.hermes_ffi_test_round_trip_session_ended
     )
 
@@ -101,11 +101,11 @@ def test_hermes_ffi_test_round_trip_session_ended(): # TODO : Move Termination t
 
 
 def test_hermes_ffi_test_round_trip_intent_not_recognized():
-    intent_not_recognized_message = hermes_python.ontology.IntentNotRecognizedMessage("site_id", "session_id", "input", "custom_data", 0.5)
+    intent_not_recognized_message = hermes_python.ontology.dialogue.IntentNotRecognizedMessage("site_id", "session_id", "input", "custom_data", 0.5)
     round_trip_intent_not_recognized_message = get_round_trip_data_structure(
         intent_not_recognized_message,
-        hermes_python.ffi.ontology.CIntentNotRecognizedMessage,
-        hermes_python.ontology.IntentNotRecognizedMessage,
+        hermes_python.ffi.ontology.dialogue.CIntentNotRecognizedMessage,
+        hermes_python.ontology.dialogue.IntentNotRecognizedMessage,
         lib.hermes_ffi_test_round_trip_intent_not_recognized
     )
 
@@ -113,11 +113,11 @@ def test_hermes_ffi_test_round_trip_intent_not_recognized():
 
 
 def test_hermes_ffi_test_round_trip_continue_session():
-    continue_session_message = hermes_python.ontology.ContinueSessionMessage("session_id", "this is a text", ["test"], "custom_data", True)
+    continue_session_message = hermes_python.ontology.dialogue.ContinueSessionMessage("session_id", "this is a text", ["test"], "custom_data", True)
     round_trip_continue_session_message = get_round_trip_data_structure(
         continue_session_message,
-        hermes_python.ffi.ontology.CContinueSessionMessage,
-        hermes_python.ontology.ContinueSessionMessage,
+        hermes_python.ffi.ontology.dialogue.CContinueSessionMessage,
+        hermes_python.ontology.dialogue.ContinueSessionMessage,
         lib.hermes_ffi_test_round_trip_continue_session
     )
 
@@ -125,7 +125,7 @@ def test_hermes_ffi_test_round_trip_continue_session():
 
 
 def test_hermes_ffi_test_round_trip_continue_session_2():
-    continue_session_message = hermes_python.ontology.ContinueSessionMessage(
+    continue_session_message = hermes_python.ontology.dialogue.ContinueSessionMessage(
         "session_id",
         "The text that will be said out loud",
         [],
@@ -134,8 +134,8 @@ def test_hermes_ffi_test_round_trip_continue_session_2():
 
     round_trip_continue_session_message = get_round_trip_data_structure(
         continue_session_message,
-        hermes_python.ffi.ontology.CContinueSessionMessage,
-        hermes_python.ontology.ContinueSessionMessage,
+        hermes_python.ffi.ontology.dialogue.CContinueSessionMessage,
+        hermes_python.ontology.dialogue.ContinueSessionMessage,
         lib.hermes_ffi_test_round_trip_continue_session
     )
 
@@ -144,43 +144,43 @@ def test_hermes_ffi_test_round_trip_continue_session_2():
 
 
 def test_hermes_ffi_test_round_trip_start_session_notification_1():
-    session_init = hermes_python.ontology.SessionInitNotification("testing")
+    session_init = hermes_python.ontology.dialogue.SessionInitNotification("testing")
 
-    start_session_message = hermes_python.ontology.StartSessionMessage(session_init, None, None)
+    start_session_message = hermes_python.ontology.dialogue.StartSessionMessage(session_init, None, None)
 
     round_trip_start_session_message = get_round_trip_data_structure(
         start_session_message,
-        hermes_python.ffi.ontology.CStartSessionMessageNotification,
-        hermes_python.ontology.StartSessionMessage,
+        hermes_python.ffi.ontology.dialogue.CStartSessionMessageNotification,
+        hermes_python.ontology.dialogue.StartSessionMessage,
         lib.hermes_ffi_test_round_trip_start_session
     )
 
     assert start_session_message == round_trip_start_session_message
 
 def test_hermes_ffi_test_round_trip_start_session_notification_2():
-    session_init = hermes_python.ontology.SessionInitNotification()
+    session_init = hermes_python.ontology.dialogue.SessionInitNotification()
 
-    start_session_message = hermes_python.ontology.StartSessionMessage(session_init, None, None)
+    start_session_message = hermes_python.ontology.dialogue.StartSessionMessage(session_init, None, None)
 
     round_trip_start_session_message = get_round_trip_data_structure(
         start_session_message,
-        hermes_python.ffi.ontology.CStartSessionMessageNotification,
-        hermes_python.ontology.StartSessionMessage,
+        hermes_python.ffi.ontology.dialogue.CStartSessionMessageNotification,
+        hermes_python.ontology.dialogue.StartSessionMessage,
         lib.hermes_ffi_test_round_trip_start_session
     )
 
     assert start_session_message == round_trip_start_session_message
 
 def test_hermes_ffi_test_round_trip_start_session_notification_3():
-    session_init = hermes_python.ontology.SessionInitNotification()
+    session_init = hermes_python.ontology.dialogue.SessionInitNotification()
     custom_data = "blabla"
 
-    start_session_message = hermes_python.ontology.StartSessionMessage(session_init, custom_data, None)
+    start_session_message = hermes_python.ontology.dialogue.StartSessionMessage(session_init, custom_data, None)
 
     round_trip_start_session_message = get_round_trip_data_structure(
         start_session_message,
-        hermes_python.ffi.ontology.CStartSessionMessageNotification,
-        hermes_python.ontology.StartSessionMessage,
+        hermes_python.ffi.ontology.dialogue.CStartSessionMessageNotification,
+        hermes_python.ontology.dialogue.StartSessionMessage,
         lib.hermes_ffi_test_round_trip_start_session
     )
 
@@ -190,15 +190,15 @@ def test_hermes_ffi_test_round_trip_start_session_notification_3():
 
 
 def test_hermes_ffi_test_round_trip_start_session_notification_4():
-    session_init = hermes_python.ontology.SessionInitNotification()
+    session_init = hermes_python.ontology.dialogue.SessionInitNotification()
     site_id = "room"
 
-    start_session_message = hermes_python.ontology.StartSessionMessage(session_init, None, site_id)
+    start_session_message = hermes_python.ontology.dialogue.StartSessionMessage(session_init, None, site_id)
 
     round_trip_start_session_message = get_round_trip_data_structure(
         start_session_message,
-        hermes_python.ffi.ontology.CStartSessionMessageNotification,
-        hermes_python.ontology.StartSessionMessage,
+        hermes_python.ffi.ontology.dialogue.CStartSessionMessageNotification,
+        hermes_python.ontology.dialogue.StartSessionMessage,
         lib.hermes_ffi_test_round_trip_start_session
     )
 
@@ -206,13 +206,13 @@ def test_hermes_ffi_test_round_trip_start_session_notification_4():
 
 
 def test_hermes_ffi_test_round_trip_start_session_action_1():
-    session_init = hermes_python.ontology.SessionInitAction("testing")
-    start_session_message = hermes_python.ontology.StartSessionMessage(session_init, None, None)
+    session_init = hermes_python.ontology.dialogue.SessionInitAction("testing")
+    start_session_message = hermes_python.ontology.dialogue.StartSessionMessage(session_init, None, None)
 
     round_trip_start_session_message = get_round_trip_data_structure(
         start_session_message,
-        hermes_python.ffi.ontology.CStartSessionMessageAction,
-        hermes_python.ontology.StartSessionMessage,
+        hermes_python.ffi.ontology.dialogue.CStartSessionMessageAction,
+        hermes_python.ontology.dialogue.StartSessionMessage,
         lib.hermes_ffi_test_round_trip_start_session
     )
 
@@ -220,13 +220,13 @@ def test_hermes_ffi_test_round_trip_start_session_action_1():
 
 
 def test_hermes_ffi_test_round_trip_start_session_action_2():
-    session_init = hermes_python.ontology.SessionInitAction(intent_filter=["intent1"])
-    start_session_message = hermes_python.ontology.StartSessionMessage(session_init, None, None)
+    session_init = hermes_python.ontology.dialogue.SessionInitAction(intent_filter=["intent1"])
+    start_session_message = hermes_python.ontology.dialogue.StartSessionMessage(session_init, None, None)
 
     round_trip_start_session_message = get_round_trip_data_structure(
         start_session_message,
-        hermes_python.ffi.ontology.CStartSessionMessageAction,
-        hermes_python.ontology.StartSessionMessage,
+        hermes_python.ffi.ontology.dialogue.CStartSessionMessageAction,
+        hermes_python.ontology.dialogue.StartSessionMessage,
         lib.hermes_ffi_test_round_trip_start_session
     )
 
@@ -234,26 +234,26 @@ def test_hermes_ffi_test_round_trip_start_session_action_2():
 
 
 def test_hermes_ffi_test_round_trip_start_session_action_3():
-    session_init = hermes_python.ontology.SessionInitAction(can_be_enqueued=False)
-    start_session_message = hermes_python.ontology.StartSessionMessage(session_init, None, None)
+    session_init = hermes_python.ontology.dialogue.SessionInitAction(can_be_enqueued=False)
+    start_session_message = hermes_python.ontology.dialogue.StartSessionMessage(session_init, None, None)
 
     round_trip_start_session_message = get_round_trip_data_structure(
         start_session_message,
-        hermes_python.ffi.ontology.CStartSessionMessageAction,
-        hermes_python.ontology.StartSessionMessage,
+        hermes_python.ffi.ontology.dialogue.CStartSessionMessageAction,
+        hermes_python.ontology.dialogue.StartSessionMessage,
         lib.hermes_ffi_test_round_trip_start_session
     )
 
     assert start_session_message == round_trip_start_session_message
 
 def test_hermes_ffi_test_round_trip_start_session_action_4():
-    session_init = hermes_python.ontology.SessionInitAction(send_intent_not_recognized=True)
-    start_session_message = hermes_python.ontology.StartSessionMessage(session_init, None, None)
+    session_init = hermes_python.ontology.dialogue.SessionInitAction(send_intent_not_recognized=True)
+    start_session_message = hermes_python.ontology.dialogue.StartSessionMessage(session_init, None, None)
 
     round_trip_start_session_message = get_round_trip_data_structure(
         start_session_message,
-        hermes_python.ffi.ontology.CStartSessionMessageAction,
-        hermes_python.ontology.StartSessionMessage,
+        hermes_python.ffi.ontology.dialogue.CStartSessionMessageAction,
+        hermes_python.ontology.dialogue.StartSessionMessage,
         lib.hermes_ffi_test_round_trip_start_session
     )
 
@@ -261,11 +261,11 @@ def test_hermes_ffi_test_round_trip_start_session_action_4():
     assert start_session_message.init.send_intent_not_recognized == round_trip_start_session_message.init.send_intent_not_recognized
 
 def test_hermes_ffi_test_round_trip_end_session_1():
-    end_session_message = hermes_python.ontology.EndSessionMessage("session_id")
+    end_session_message = hermes_python.ontology.dialogue.EndSessionMessage("session_id")
     round_trip_end_session_message = get_round_trip_data_structure(
         end_session_message,
-        hermes_python.ffi.ontology.CEndSessionMessage,
-        hermes_python.ontology.EndSessionMessage,
+        hermes_python.ffi.ontology.dialogue.CEndSessionMessage,
+        hermes_python.ontology.dialogue.EndSessionMessage,
         lib.hermes_ffi_test_round_trip_end_session
     )
 
@@ -273,49 +273,21 @@ def test_hermes_ffi_test_round_trip_end_session_1():
 
 
 def test_hermes_ffi_test_round_trip_end_session_2():
-    end_session_message = hermes_python.ontology.EndSessionMessage("session_id", "hello there 🤗")
+    end_session_message = hermes_python.ontology.dialogue.EndSessionMessage("session_id", "hello there 🤗")
     round_trip_end_session_message = get_round_trip_data_structure(
         end_session_message,
-        hermes_python.ffi.ontology.CEndSessionMessage,
-        hermes_python.ontology.EndSessionMessage,
+        hermes_python.ffi.ontology.dialogue.CEndSessionMessage,
+        hermes_python.ontology.dialogue.EndSessionMessage,
         lib.hermes_ffi_test_round_trip_end_session
     )
 
     assert end_session_message == round_trip_end_session_message
 
-
-
+# TODO : Missing tests.
 """
 def test_hermes_ffi_test_round_trip_intent():
-    intent_message = hermes_python.ontology.IntentMessage(
-        "session_id",
-        "custom_data",
-        "site_id",
-        "input",
-        hermes_python.ontology.IntentClassifierResult("intent_name", float(0.1)),
-        hermes_python.ontology.SlotMap())
-    
-    
-    round_trip_intent_message = get_round_trip_data_structure(
-        intent_message,
-        hermes_python.ffi.ontology.CIntentMessage,
-        hermes_python.ontology.IntentMessage,
-        lib.hermes_ffi_test_round_trip_intent
-    )
-
-    assert intent_message.session_id == round_trip_intent_message.session_id
-    assert intent_message.intent.intent_name == round_trip_intent_message.intent.intent_name
-    assert intent_message == round_trip_intent_message
-
+    pass
 
 def test_hermes_ffi_test_round_trip_intent_not_recognized():
-    intent_not_recognized_message = hermes_python.ontology.Intent
-    round_trip__ = get_round_trip_data_structure(
-        _,
-        __,
-        ___,
-        lib.hermes_ffi_test_round_trip_intent_not_recognized
-    )
-
-    assert
+    pass
 """

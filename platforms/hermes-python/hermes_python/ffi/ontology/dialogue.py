@@ -1,26 +1,5 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 from ctypes import c_char_p, c_int32, c_int64, c_int, c_float, c_uint8, c_void_p, POINTER, pointer, Structure
-
-
-class CStringArray(Structure):
-    _fields_ = [
-        ("data", POINTER(c_char_p)),
-        ("size", c_int32)
-    ]
-
-
-class CProtocolHandler(Structure):
-    _fields_ = [("handler", c_void_p)]
-
-
-class CTtsFacade(Structure):
-    _fields_ = [("facade", c_void_p)]
-
-
-class CDialogueFacade(Structure):
-    _fields_ = [("facade", c_void_p)]
+from ..ontology import CStringArray
 
 
 class CSayMessage(Structure):
@@ -150,6 +129,7 @@ class CStartSessionMessageAction(Structure):
     def from_repr(cls, repr):
         return repr.into_c_repr()
 
+
 class CStartSessionMessageNotification(Structure):
     _fields_ = [("init", CSessionInitNotification),
                 ("custom_data", c_char_p),
@@ -164,6 +144,7 @@ class CStartSessionMessageNotification(Structure):
     @classmethod
     def from_repr(cls, repr):
         return repr.into_c_repr()
+
 
 class CNluIntentClassifierResult(Structure):
     _fields_ = [("intent_name", c_char_p),
@@ -237,11 +218,13 @@ class CSlotList(Structure):
         ("size", c_int32)
     ]
 
+
 class CNluSlotArray(Structure):
     _fields_ = [
         ("entries", POINTER(POINTER(CNluSlot))), # *const *const CNluSlot,
         ("count", c_int)
     ]
+
 
 class CIntentMessage(Structure):
     _fields_ = [("session_id", c_char_p),
@@ -266,6 +249,7 @@ class CIntentMessage(Structure):
         c_slots = POINTER(CNluSlotArray)(CNluSlotArray.from_repr(repr.slots))
         return cls.build(repr.session_id, repr.custom_data, repr.site_id, repr.input, c_intent_classifier_result, c_slots)
 
+
 class CSessionTermination(Structure):
     _fields_ = [("termination_type", c_int),
                 ("data", c_char_p)]
@@ -278,6 +262,7 @@ class CSessionTermination(Structure):
     @classmethod
     def from_repr(cls, repr):
         return cls.build(repr.termination_type, repr.data)
+
 
 class CSessionEndedMessage(Structure):
     _fields_ = [("session_id", c_char_p),
@@ -369,7 +354,6 @@ class CTemperatureValue(Structure):
                 ("value", c_float)]
 
 
-
 class CInstantTimeValue(Structure):
     _fields_ = [("value", c_char_p),
                ("grain", c_int), # TODO : CGrain is an enum ...
@@ -379,6 +363,7 @@ class CInstantTimeValue(Structure):
 class CTimeIntervalValue(Structure):
     _fields_ = [("from_date", c_char_p),
                 ("to_date", c_char_p)]
+
 
 class CDurationValue(Structure):
     _fields_ = [("years", c_int64),
@@ -390,4 +375,3 @@ class CDurationValue(Structure):
                 ("minutes", c_int64),
                 ("seconds", c_int64),
                 ("precision", c_int)]
-
