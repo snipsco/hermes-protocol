@@ -1,7 +1,8 @@
 from __future__ import unicode_literals
 import ctypes
 import pytest
-from hermes_python.ffi.utils import wrap_library_call, ffi_function_callback_wrapper, parse_json_string
+from hermes_python.ffi.utils import wrap_library_call
+from hermes_python.ffi.wrappers import parse_json_string
 
 SUCCESS_EXIT_CODE = 0
 ERROR_EXIT_CODE = 1
