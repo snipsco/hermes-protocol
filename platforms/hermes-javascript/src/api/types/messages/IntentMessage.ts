@@ -1,4 +1,78 @@
-import { slotType, slotType_legacy } from '../enums'
+import { slotType, slotType_legacy, grain } from '../enums'
+
+export type NluSlot<T extends slotType = slotType> = {
+    confidenceScore: number,
+    rawValue: string,
+    range: {
+        start: number,
+        end: number
+    },
+    entity: string,
+    slotName: string,
+    value: {
+        kind: T,
+        value?:
+            T extends (slotType.custom | slotType.instantTime | slotType.musicAlbum | slotType.musicArtist | slotType.musicTrack) ?
+                string :
+            T extends (slotType.number | slotType.ordinal | slotType.amountOfMoney | slotType.temperature | slotType.percentage) ?
+                number :
+            T extends (slotType.timeInterval | slotType.duration) ?
+                never :
+            any,
+        grain?:
+            T extends slotType.instantTime ?
+                grain :
+            never,
+        precision?:
+            T extends (slotType.instantTime | slotType.amountOfMoney | slotType.duration) ?
+                'Exact' | 'Approximate' :
+            never,
+        from?:
+            T extends slotType.timeInterval ?
+                string :
+            never,
+        to?:
+            T extends slotType.timeInterval ?
+                string :
+            never,
+        unit?:
+            T extends (slotType.amountOfMoney | slotType.temperature) ?
+                string :
+            never,
+        years?:
+            T extends slotType.duration ?
+                number :
+            never,
+        quarters?:
+            T extends slotType.duration ?
+                number :
+            never,
+        months?:
+            T extends slotType.duration ?
+                number :
+            never,
+        weeks?:
+            T extends slotType.duration ?
+                number :
+            never,
+        days?:
+            T extends slotType.duration ?
+                number :
+            never,
+        hours?:
+            T extends slotType.duration ?
+                number :
+            never,
+        minutes?:
+            T extends slotType.duration ?
+                number :
+            never,
+        seconds?:
+            T extends slotType.duration ?
+                number :
+            never
+    }
+}
 
 export type IntentMessage = {
     sessionId: string,
@@ -19,23 +93,9 @@ export type IntentMessage = {
                 start: number,
                 end: number
             }
-        }[]
+        }[]?
     ],
-    slots: {
-        confidenceScore: number,
-        rawValue: string,
-        range: {
-            start: number,
-            end: number
-        },
-        entity: string,
-        slotName: string,
-        value: {
-            kind: slotType,
-            // Wildcard
-            value: any
-        }
-    }[]
+    slots: NluSlot[]
 }
 
 export type IntentMessageLegacy = {
@@ -57,7 +117,7 @@ export type IntentMessageLegacy = {
                 start: number,
                 end: number
             }
-        }[]
+        }[]?
     ],
     slots: {
         confidence_score: number,

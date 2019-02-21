@@ -13,9 +13,9 @@ export type Done = () => void
  * @param {*} opts Hermes options.
  */
 export const withHermes = function<API extends HermesAPI = 'json'>(
-    context: (hermes: Hermes<API>,
-    done: Done
-) => void, opts?: HermesOptions) {
+    context: (hermes: Hermes<API>, done: Done) => void,
+    opts?: HermesOptions
+) {
     const hermes = new Hermes<API>(opts)
     const keepAliveRef = tools.keepAlive(60000)
     const done: Done = () => {
