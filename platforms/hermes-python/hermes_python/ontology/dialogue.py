@@ -15,6 +15,7 @@ from ..ffi.ontology.dialogue import CAmountOfMoneyValue, CTemperatureValue, CIns
 
 class IntentMessage(object):
     def __init__(self, session_id, custom_data, site_id, input, intent, slots):
+        # type: (str, str, str, str, IntentClassifierResult, SlotMap) -> None
         """
         A python representation of the intent parsed by the NLU engine.
 
@@ -45,6 +46,7 @@ class IntentMessage(object):
 
 class IntentClassifierResult(object):
     def __init__(self, intent_name, confidence_score):
+        # type: (str, float) -> None
         """
         Structured description of the intent classification.
 
@@ -100,6 +102,7 @@ class SlotsList(list):  # An extension to make things easier to reach slot_value
 
 class NluSlot(object):
     def __init__(self, confidence_score, slot_value, raw_value, entity, slot_name, range_start, range_end):
+        # type: (float, SlotValue, str, str, str, int, int) -> None
         self.confidence_score = confidence_score
         self.slot_value = slot_value
         self.raw_value = raw_value
@@ -124,6 +127,7 @@ class NluSlot(object):
 
 class Slot(object):
     def __init__(self, slot_value, raw_value, entity, slot_name, range_start, range_end, confidence_score):
+        # type: (SlotValue, str, str, str, int, int, float) -> None
         """
         Deprecated.
 
@@ -161,6 +165,7 @@ class Slot(object):
 
 class SlotValue(object):
     def __init__(self, value_type, value):
+        # type: (int, Any) -> None
         """
         A structured representation of values a slot can take.
 
@@ -290,6 +295,7 @@ class SessionInitNotification(SessionInit):
 
 class StartSessionMessage(object):
     def __init__(self, session_init, custom_data=None, site_id=None):
+        # type: (SessionInit, str, str) -> None
         """
         :param session_init: The way this session was created
         :param custom_data: An optional piece of data that will be given back in `IntentMessage`,
@@ -354,6 +360,7 @@ class SessionStartedMessage(object):
 
 class EndSessionMessage(object):
     def __init__(self, session_id, text=None):
+        # type: (str, str) -> None
         """
         :param session_id: The id of the session to end
         :param text: An optional text to say to the user before ending the session
