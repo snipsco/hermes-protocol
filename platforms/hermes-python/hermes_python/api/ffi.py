@@ -6,7 +6,7 @@ from ..ffi.ontology.dialogue import CIntentMessage, CSessionStartedMessage, \
 from ..ffi.utils import hermes_protocol_handler_new_mqtt_with_options, \
     hermes_protocol_handler_dialogue_facade, hermes_drop_dialogue_facade
 from ..ffi.wrappers import ffi_function_callback_wrapper
-from ..ffi import utils
+from ..ffi import utils, lib
 from ..ontology.dialogue import IntentMessage, SessionStartedMessage, SessionQueuedMessage, SessionEndedMessage, \
     IntentNotRecognizedMessage
 
