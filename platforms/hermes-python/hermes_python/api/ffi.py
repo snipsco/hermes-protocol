@@ -13,7 +13,11 @@ class FFI(object):
         self.use_json_api = use_json_api
         self.rust_logs_enabled = rust_logs_enabled
 
+        # API Subsets
         self.dialogue = DialogueFFI(use_json_api)
+        self.audio = AudioFFI(use_json_api)
+        self.injection = InjectionFFI(use_json_api)
+
         self._protocol_handler = POINTER(CProtocolHandler)()
 
     def establish_connection(self, mqtt_options):
@@ -197,22 +201,15 @@ class DialogueFFI(object):
         )
         return self
 
-    def _call_foreign_function(self, foreign_function_name, function_argument):
-        if self.use_json_api:
-            foreign_function_name = foreign_function_name + "_json"
-            a_json_string = str(function_argument)  # function_argument should be a dict.
-            ptr_to_foreign_function_argument = c_char_p(a_json_string.encode('utf-8'))
-        else:
-            function_argument = function_argument.into_c_repr()
-            ptr_to_foreign_function_argument = byref(function_argument)
 
-        getattr(utils, foreign_function_name)(
-            self._facade,
-            ptr_to_foreign_function_argument
-        )
+# API subset stubs
+
 
 class InjectionFFI(object):
-    pass
+    def __init__(self, use_json_api=True):
+        pass
+
 
 class AudioFFI(object):
-    pass
+    def __init__(self, use_json_api=True):
+        pass
