@@ -8,8 +8,9 @@ import os
 from glob import glob
 
 import hermes_python
+from hermes_python.ontology.dialogue import IntentMessage, IntentClassifierResult, SlotMap, NluSlot, SlotValue, CustomValue
 
-DYLIB_NAME = "libhermes_ffi_test.so"
+DYLIB_NAME = "libhermes_ffi_test.dylib"
 DYLIB_DIR = os.path.join(os.path.dirname(__file__), "./debug")
 DYLIB_PATH = glob(os.path.join(DYLIB_DIR, DYLIB_NAME))[0]
 
@@ -283,10 +284,25 @@ def test_hermes_ffi_test_round_trip_end_session_2():
 
     assert end_session_message == round_trip_end_session_message
 
-# TODO : Missing tests.
 """
+
 def test_hermes_ffi_test_round_trip_intent():
-    pass
+    slot_value = SlotValue(1, CustomValue("hello :) 🎁"))
+    search_weather_nlu = NluSlot(0.2, slot_value, "hello", "proutEntity", "searchWeather", 0, 2)
+    slotMap = SlotMap({"searchWeather": [search_weather_nlu]})
+    intent_classifier_result = IntentClassifierResult("searchWeather", 0.2)
+    intent_message = IntentMessage("session_id", "custom_data", "site_id", "input", intent_classifier_result, slotMap)
+    round_trip_intent_message = get_round_trip_data_structure(
+        intent_message,
+        hermes_python.ffi.ontology.dialogue.CIntentMessage,
+        hermes_python.ontology.dialogue.IntentMessage,
+        lib.hermes_ffi_test_round_trip_intent
+    )
+
+    assert intent_message == round_trip_intent_message
+
+
+# TODO : Missing tests.
 
 def test_hermes_ffi_test_round_trip_intent_not_recognized():
     pass
