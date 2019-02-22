@@ -1,4 +1,5 @@
-from ctypes import c_char_p, c_int32, c_int64, c_int, c_float, c_uint8, c_void_p, POINTER, pointer, Structure
+from ctypes import c_char_p, c_int32, c_int64, c_int, c_float, c_uint8, c_void_p, POINTER, pointer, Structure, c_double,\
+    byref, cast
 from ..ontology import CStringArray
 
 
@@ -172,7 +173,39 @@ class CSlotValue(Structure):
 
     @classmethod
     def from_repr(cls, repr):
-        return cls(pointer(repr.value), repr.value_type)
+        if 1 == repr.value_type:  # CUSTOM
+            c_repr_custom_value = repr.value.value.encode('utf-8')
+            c_repr_value = cast(c_char_p(c_repr_custom_value), c_void_p)
+            return cls(c_repr_value, c_int32(repr.value_type))
+
+        elif 2 == repr.value_type:  # NUMBER
+            c_repr_number = c_double(repr.value.value)
+            cls(byref(c_repr_number), c_int32(repr.value_type))
+
+        elif 4 == repr.value_type:  # INSTANTTIME
+            c_repr_instant_time_value = CInstantTimeValue.from_repr(repr.value)
+            cls(byref(c_repr_instant_time_value), c_int32(repr.value_type))
+
+        elif 5 == repr.value_type:  # TIMEINTERVAL TODO
+            cls(c_void_p, c_int32(repr.value_type))
+        elif 6 == repr.value_type:  # AMOUNTOFMONEY TODO
+            cls(c_void_p, c_int32(repr.value_type))
+        elif 7 == repr.value_type:  # TEMPERATURE TODO
+            cls(c_void_p, c_int32(repr.value_type))
+        elif 8 == repr.value_type:  # DURATION TODO
+            cls(c_void_p, c_int32(repr.value_type))
+        elif 9 == repr.value_type:  # PERCENTAGE TODO
+            cls(c_void_p, c_int32(repr.value_type))
+        elif 10 == repr.value_type:  # MUSICARTIST TODO
+            cls(c_void_p, c_int32(repr.value_type))
+        elif 11 == repr.value_type:  # MUSICALBUM TODO
+            cls(c_void_p, c_int32(repr.value_type))
+        elif 12 == repr.value_type:  # MUSICTRACK TODO
+            cls(c_void_p, c_int32(repr.value_type))
+
+        else:
+            raise Exception("Bad value type. Got : {}".format(repr.value_type))
+
 
 
 class CSlot(Structure):
@@ -188,6 +221,7 @@ class CSlot(Structure):
 
     @classmethod
     def build(cls, c_slot_value, raw_value, entity, slot_name, range_start, range_end, confidence_score):
+        # type: (CSlotValue, str, str, str, int, int, float) -> CSlot
         raw_value = raw_value.encode('utf-8') if raw_value else None
         entity = entity.encode('utf-8') if entity else None
         slot_name = slot_name.encode('utf-8') if slot_name else None
@@ -204,7 +238,17 @@ class CNluSlot(Structure):
 
     @classmethod
     def from_repr(cls, repr):
-        return cls(repr.slot)
+        # type: NluSlot -> CNluSlot
+        c_slot_value = CSlotValue.from_repr(repr.slot_value)
+        c_slot = CSlot.build(c_slot_value,
+                             repr.raw_value,
+                             repr.entity,
+                             repr.slot_name,
+                             repr.range_start,
+                             repr.range_end,
+                             repr.confidence_score)
+
+        return cls(POINTER(CSlot)(c_slot))
 
     @classmethod
     def build(cls, nlu_slot):
@@ -224,6 +268,41 @@ class CNluSlotArray(Structure):
         ("entries", POINTER(POINTER(CNluSlot))), # *const *const CNluSlot,
         ("count", c_int)
     ]
+
+    @classmethod
+    def from_repr(cls, repr):
+        # type: (SlotMap)
+        """
+        impl CReprOf<Vec<hermes::NluSlot>> for CNluSlotArray {
+            fn c_repr_of(input: Vec<hermes::NluSlot>) -> Fallible<Self> {
+                let array = Self {
+                    count: input.len() as _,
+                    entries: Box::into_raw(
+                        input
+                            .into_iter()
+                            .map(|e| CNluSlot::c_repr_of(e).map(|c| c.into_raw_pointer()))
+                            .collect::<Fallible<Vec<_>>>()
+                            .context("Could not convert map to C Repr")?
+                            .into_boxed_slice(),
+                    ) as *const *const _,
+                };
+                Ok(array)
+            }
+        }
+        :param repr:
+        :return:
+        """
+
+        # We flatten all the slots into a list
+        nlu_slots = [nlu_slot for slot_name, nlu_slot_array in repr.items() for nlu_slot in nlu_slot_array]
+        count = len(nlu_slots)
+
+        c_nlu_slots = [CNluSlot.from_repr(nlu_slot) for nlu_slot in nlu_slots]
+        entries = (CNluSlot * count)(*c_nlu_slots)
+        entries = cast(entries, POINTER(POINTER(CNluSlot)))
+
+        return cls(entries, c_int(count))
+
 
 
 class CIntentMessage(Structure):
