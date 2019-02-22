@@ -7,6 +7,7 @@ The `hermes-python` library provides python bindings for the Hermes protocol tha
 
 `hermes-python` abstracts away the connection to the MQTT bus and the parsing of incoming and outcoming messages from and to the components of the snips platform. 
 
+`hermes-python` supports the `snips-platform` at version `1.1.0 - 0.61.1`. 
 ## Installation 
 The library is packaged as a pre-compiled platform wheel, available on [PyPi](https://pypi.org/project/hermes-python/).
 It can be installed with : 

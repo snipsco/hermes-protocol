@@ -1,4 +1,8 @@
 ## History
+### 0.3.0 (2019-02-27)
+* `IntentClassifierResult`'s `probability` field has been renamed to `confidence_score`.
+* Introduces support for snips-platform `1.1.0 - 0.61.1`.
+
 ### 0.2.0 (2019-02-04)
 * Introduces options to connect to the MQTT broker (auth + TLS are now supported).
 
