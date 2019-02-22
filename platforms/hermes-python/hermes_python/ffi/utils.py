@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 from ..ffi import lib
 from .wrappers import wrap_library_call
 
-
+from ..ontology import MqttOptions
 
 # re-exports
 

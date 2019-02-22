@@ -17,15 +17,13 @@ class Hermes(object):
                  broker_address=None,
                  rust_logs_enabled=False,
                  mqtt_options=MqttOptions(),
-                 use_json_api=True):
+                 use_json_api=False):
         """
         :param broker_address: Address of the MQTT broker in the form 'ip:port'
         :param rust_logs_enabled: Enables or Disables stdout logs *(default false)*
         :param mqtt_options: Options to connect to the mqtt broker.
         :param use_json_api: If set to False, hermes-python will use the legacy format for published/subscribed
-        messages.
-        Notice: Setting this to false is strongly discouraged,
-        and the support for the old format will eventually be removed in the future.
+        messages. This is an upcoming feature.
         """
 
         self.rust_logs_enabled = rust_logs_enabled

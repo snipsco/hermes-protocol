@@ -1,5 +1,8 @@
 ## History
-### 0.3.0 (2019-02-27)
+### 0.3.1 (2019-02-25)
+* Fixes import bug with templates, the `hermes_python.ffi.utils` module now re-exports `MqttOptions`
+
+### 0.3.0 (2019-02-25)
 * `IntentClassifierResult`'s `probability` field has been renamed to `confidence_score`.
 * Introduces support for snips-platform `1.1.0 - 0.61.1`.
 
