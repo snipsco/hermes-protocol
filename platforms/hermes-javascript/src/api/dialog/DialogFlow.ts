@@ -86,7 +86,7 @@ export default class DialogFlow<API extends HermesAPI = 'json'> {
             const listener = this.createListener(this.notRecognizedAction)
             const wrappedListener = this.dialog.once('intent_not_recognized', listener)
             this.notRecognizedListener = wrappedListener
-            options[this.useJsonApi ? 'sendIntentNotRecognized' : 'send_intent_not_recognized'] = 1
+            options[this.useJsonApi ? 'sendIntentNotRecognized' : 'send_intent_not_recognized'] = true
         }
         // Publish a continue session message
         const continueSessionProperties: any =
