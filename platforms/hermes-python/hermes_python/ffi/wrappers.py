@@ -1,5 +1,5 @@
 from ..ffi import lib, LibException
-from ctypes import POINTER, c_char_p, string_at, CFUNCTYPE
+from ctypes import POINTER, c_char_p, string_at, CFUNCTYPE, c_void_p
 import json
 
 
@@ -27,6 +27,7 @@ def parse_json_string(ptr_to_utf_8_encoded_string):
 
 def ffi_function_callback_wrapper(use_json_api, hermes_client, target_handler_return_type, handler_function,
                                   handler_argument_type=None, target_handler_argument_type=None):
+    # type: (bool, Hermes, Any, Any, Any, Any) -> CFUNCTYPE
     """
     We need to provide the C library a handler function that will be called
     when the event the handler should handle is triggered.

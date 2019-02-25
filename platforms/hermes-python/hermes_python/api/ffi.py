@@ -77,9 +77,9 @@ class DialogueFFI(object):
         hermes_drop_dialogue_facade(self._facade)
         self._facade = POINTER(CDialogueFacade)()
 
-    def register_subscribe_intent_handler(self, intent_name, user_defined_callback):
+    def register_subscribe_intent_handler(self, intent_name, user_defined_callback, hermes_client):
         c_intent_handler_callback = ffi_function_callback_wrapper(use_json_api=self.use_json_api,
-                                                                  hermes_client=self,
+                                                                  hermes_client=hermes_client,
                                                                   target_handler_return_type=c_void_p,
                                                                   handler_function=user_defined_callback,
                                                                   handler_argument_type=IntentMessage,
@@ -94,10 +94,10 @@ class DialogueFFI(object):
 
         return self
 
-    def register_subscribe_intents_handler(self, user_defined_callback):
+    def register_subscribe_intents_handler(self, user_defined_callback, hermes_client):
         c_handler_callback = ffi_function_callback_wrapper(
             use_json_api=self.use_json_api,
-            hermes_client=self,
+            hermes_client=hermes_client,
             target_handler_return_type=c_void_p,
             handler_function=user_defined_callback,
             handler_argument_type=IntentMessage,
@@ -112,10 +112,10 @@ class DialogueFFI(object):
 
         return self
 
-    def register_session_started_handler(self, user_defined_callback):
+    def register_session_started_handler(self, user_defined_callback, hermes_client):
         c_handler_callback = ffi_function_callback_wrapper(
             use_json_api=self.use_json_api,
-            hermes_client=self,
+            hermes_client=hermes_client,
             target_handler_return_type=c_void_p,
             handler_function=user_defined_callback,
             handler_argument_type=SessionStartedMessage,
@@ -128,10 +128,10 @@ class DialogueFFI(object):
         )
         return self
 
-    def register_session_queued_handler(self, user_defined_callback):
+    def register_session_queued_handler(self, user_defined_callback, hermes_client):
         c_handler_callback = ffi_function_callback_wrapper(
             use_json_api=self.use_json_api,
-            hermes_client=self,
+            hermes_client=hermes_client,
             target_handler_return_type=c_void_p,
             handler_function=user_defined_callback,
             handler_argument_type=SessionQueuedMessage,
@@ -144,10 +144,10 @@ class DialogueFFI(object):
         )
         return self
 
-    def register_session_ended_handler(self, user_defined_callback):
+    def register_session_ended_handler(self, user_defined_callback, hermes_client):
         c_handler_callback = ffi_function_callback_wrapper(
             use_json_api=self.use_json_api,
-            hermes_client=self,
+            hermes_client=hermes_client,
             target_handler_return_type=c_void_p,
             handler_function=user_defined_callback,
             handler_argument_type=SessionEndedMessage,
@@ -160,10 +160,10 @@ class DialogueFFI(object):
         )
         return self
 
-    def register_intent_not_recognized_handler(self, user_defined_callback):
+    def register_intent_not_recognized_handler(self, user_defined_callback, hermes_client):
         c_handler_callback = ffi_function_callback_wrapper(
             use_json_api=self.use_json_api,
-            hermes_client=self,
+            hermes_client=hermes_client,
             target_handler_return_type=c_void_p,
             handler_function=user_defined_callback,
             handler_argument_type=IntentNotRecognizedMessage,

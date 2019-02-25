@@ -72,7 +72,7 @@ def test_subscribe_intent_correctly_registers_callback():
     h.__enter__()
     h.subscribe_intent(DUMMY_INTENT_NAME, user_callback)
     h.__exit__(None, None, None)
-    h.ffi.dialogue.register_subscribe_intent_handler.assert_called_once_with(DUMMY_INTENT_NAME, user_callback)
+    h.ffi.dialogue.register_subscribe_intent_handler.assert_called_once_with(DUMMY_INTENT_NAME, user_callback, h)
 
 def test_subscribe_intents_correctly_registers_callback():
 
@@ -86,7 +86,7 @@ def test_subscribe_intents_correctly_registers_callback():
     h.__exit__(None, None, None)
 
     h.ffi.establish_connection.assert_called_once()
-    h.ffi.dialogue.register_subscribe_intents_handler.assert_called_once_with(user_callback)
+    h.ffi.dialogue.register_subscribe_intents_handler.assert_called_once_with(user_callback, h)
 
 
 def test_subscribe_session_started_correctly_registers_callback():
@@ -100,7 +100,7 @@ def test_subscribe_session_started_correctly_registers_callback():
     h.__exit__(None, None, None)
 
     h.ffi.establish_connection.assert_called_once()
-    h.ffi.dialogue.register_session_started_handler.assert_called_once_with(user_callback)
+    h.ffi.dialogue.register_session_started_handler.assert_called_once_with(user_callback, h)
 
 
 def test_subscribe_session_queued_correctly_registers_callback():
@@ -114,7 +114,7 @@ def test_subscribe_session_queued_correctly_registers_callback():
     h.__exit__(None, None, None)
 
     h.ffi.establish_connection.assert_called_once()
-    h.ffi.dialogue.register_session_queued_handler.assert_called_once_with(user_callback)
+    h.ffi.dialogue.register_session_queued_handler.assert_called_once_with(user_callback, h)
 
 
 def test_subscribe_session_ended_correctly_registers_callback():
@@ -128,7 +128,7 @@ def test_subscribe_session_ended_correctly_registers_callback():
     h.__exit__(None, None, None)
 
     h.ffi.establish_connection.assert_called_once()
-    h.ffi.dialogue.register_session_ended_handler.assert_called_once_with(user_callback)
+    h.ffi.dialogue.register_session_ended_handler.assert_called_once_with(user_callback, h)
 
 
 def test_subscribe_intent_not_recognized_correctly_registers_callback():
@@ -142,5 +142,5 @@ def test_subscribe_intent_not_recognized_correctly_registers_callback():
     h.__exit__(None, None, None)
 
     h.ffi.establish_connection.assert_called_once()
-    h.ffi.dialogue.register_intent_not_recognized_handler.assert_called_once_with(user_callback)
+    h.ffi.dialogue.register_intent_not_recognized_handler.assert_called_once_with(user_callback, h)
 

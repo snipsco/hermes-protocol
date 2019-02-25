@@ -72,7 +72,7 @@ class Hermes(object):
         :return: the current instance of Hermes to allow chaining.
         """
 
-        self.ffi.dialogue.register_subscribe_intent_handler(intent_name, user_callback_subscribe_intent)
+        self.ffi.dialogue.register_subscribe_intent_handler(intent_name, user_callback_subscribe_intent, self)
         return self
 
     def subscribe_intents(self, user_callback_subscribe_intents):
@@ -87,7 +87,7 @@ class Hermes(object):
         :param user_callback_subscribe_intents: The callback to be executed when any intent is parsed by the platform.
         :return: the current instance of Hermes to allow chaining.
         """
-        self.ffi.dialogue.register_subscribe_intents_handler(user_callback_subscribe_intents)
+        self.ffi.dialogue.register_subscribe_intents_handler(user_callback_subscribe_intents, self)
         return self
 
     def subscribe_session_started(self, user_callback_subscribe_session_started):
@@ -103,7 +103,7 @@ class Hermes(object):
         started.
         :return: the current instance of Hermes to allow chaining.
         """
-        self.ffi.dialogue.register_session_started_handler(user_callback_subscribe_session_started)
+        self.ffi.dialogue.register_session_started_handler(user_callback_subscribe_session_started, self)
         return self
 
     def subscribe_session_queued(self, user_callback_subscribe_session_queued):
@@ -118,7 +118,7 @@ class Hermes(object):
         :param user_callback_subscribe_session_queued: the callback to be executed when a new dialogue session is queued.
         :return: the current instance of Hermes to allow chaining.
         """
-        self.ffi.dialogue.register_session_queued_handler(user_callback_subscribe_session_queued)
+        self.ffi.dialogue.register_session_queued_handler(user_callback_subscribe_session_queued, self)
         return self
 
     def subscribe_session_ended(self, user_callback_subscribe_session_ended):
@@ -132,7 +132,7 @@ class Hermes(object):
         :param user_callback_subscribe_session_ended: the callback to be executed when a new dialogue session is ended.
         :return: the current instance of Hermes to allow chaining.
         """
-        self.ffi.dialogue.register_session_ended_handler(user_callback_subscribe_session_ended)
+        self.ffi.dialogue.register_session_ended_handler(user_callback_subscribe_session_ended, self)
         return self
 
     def subscribe_intent_not_recognized(self, user_callback_subscribe_intent_not_recognized):
@@ -152,7 +152,7 @@ class Hermes(object):
         :param user_callback_subscribe_intent_not_recognized: the callback executed when an intent is not recognized.
         :return: the current instance of Hermes to allow chaining.
         """
-        self.ffi.dialogue.register_intent_not_recognized_handler(user_callback_subscribe_intent_not_recognized)
+        self.ffi.dialogue.register_intent_not_recognized_handler(user_callback_subscribe_intent_not_recognized, self)
         return self
 
     def publish_continue_session(self, session_id, text, intent_filter, custom_data=None,

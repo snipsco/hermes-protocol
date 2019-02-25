@@ -81,10 +81,11 @@ def test_subscribe_intent_correctly_registers_callback(ffi_utils, hermes_protoco
         pass
 
     ffi = FFI()
+    hermes_client = mock.Mock()
     mqtt_opts = MqttOptions()
 
     ffi.establish_connection(mqtt_opts)
-    ffi.dialogue.register_subscribe_intent_handler(DUMMY_INTENT_NAME, user_callback)
+    ffi.dialogue.register_subscribe_intent_handler(DUMMY_INTENT_NAME, user_callback, hermes_client)
 
     assert len(ffi.dialogue._c_callback_subscribe_intent) == 1
     hermes_protocol_handler_new_mqtt.assert_called_once()  # connection is established
@@ -104,11 +105,12 @@ def test_subscribe_intent_correctly_registers_two_callbacks_for_same_intent(ffi_
 
 
     ffi = FFI()
+    hermes_client = mock.Mock()
     mqtt_opts = MqttOptions()
 
     ffi.establish_connection(mqtt_opts)
-    ffi.dialogue.register_subscribe_intent_handler(DUMMY_INTENT_NAME, user_callback_1)
-    ffi.dialogue.register_subscribe_intent_handler(DUMMY_INTENT_NAME, user_callback_2)
+    ffi.dialogue.register_subscribe_intent_handler(DUMMY_INTENT_NAME, user_callback_1, hermes_client)
+    ffi.dialogue.register_subscribe_intent_handler(DUMMY_INTENT_NAME, user_callback_2, hermes_client)
     assert len(ffi.dialogue._c_callback_subscribe_intent) == 2
 
     hermes_protocol_handler_new_mqtt.assert_called_once()  # connection is established
@@ -140,7 +142,8 @@ def test_subscribe_intents_correctly_registers_callback(ffi_utils, hermes_protoc
     mqtt_opts = MqttOptions()
     ffi.establish_connection(mqtt_opts)
 
-    ffi.dialogue.register_subscribe_intents_handler(user_callback)
+    hermes_client = mock.Mock()
+    ffi.dialogue.register_subscribe_intents_handler(user_callback, hermes_client)
 
     assert ffi.dialogue._c_callback_subscribe_intents is not None
 
@@ -159,8 +162,9 @@ def test_subscribe_session_started_correctly_registers_callback(ffi_utils, herme
     ffi = FFI()
     mqtt_opts = MqttOptions()
     ffi.establish_connection(mqtt_opts)
+    hermes_client = mock.Mock()
 
-    ffi.dialogue.register_session_started_handler(user_callback)
+    ffi.dialogue.register_session_started_handler(user_callback, hermes_client)
 
     assert ffi.dialogue._c_callback_subscribe_session_started is not None
 
@@ -179,8 +183,9 @@ def test_subscribe_session_queued_correctly_registers_callback(ffi_utils, hermes
     ffi = FFI()
     mqtt_opts = MqttOptions()
     ffi.establish_connection(mqtt_opts)
+    hermes_client = mock.Mock()
 
-    ffi.dialogue.register_session_queued_handler(user_callback)
+    ffi.dialogue.register_session_queued_handler(user_callback, hermes_client)
 
     assert ffi.dialogue._c_callback_subscribe_session_queued is not None
 
@@ -199,8 +204,9 @@ def test_subscribe_session_ended_correctly_registers_callback(ffi_utils, hermes_
     ffi = FFI()
     mqtt_opts = MqttOptions()
     ffi.establish_connection(mqtt_opts)
+    hermes_client = mock.Mock()
 
-    ffi.dialogue.register_session_ended_handler(user_callback)
+    ffi.dialogue.register_session_ended_handler(user_callback, hermes_client)
 
     assert ffi.dialogue._c_callback_subscribe_session_ended is not None
 
@@ -219,7 +225,9 @@ def test_subscribe_intent_not_recognized_correctly_registers_callback(ffi_utils,
     mqtt_opts = MqttOptions()
     ffi.establish_connection(mqtt_opts)
 
-    ffi.dialogue.register_intent_not_recognized_handler(user_callback)
+    hermes_client = mock.Mock()
+
+    ffi.dialogue.register_intent_not_recognized_handler(user_callback, hermes_client)
 
     assert ffi.dialogue._c_callback_subscribe_intent_not_recognized is not None
 
