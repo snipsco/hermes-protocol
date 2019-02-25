@@ -40,7 +40,11 @@ class IntentMessage(object):
         site_id = c_repr.site_id.decode('utf-8')
         input = c_repr.input.decode('utf-8')
         intent = IntentClassifierResult.from_c_repr(c_repr.intent.contents)
-        slots = SlotMap.from_c_repr(c_repr.slots.contents)
+        if c_repr.slots:  # Slots is now nullable.
+            slots = SlotMap.from_c_repr(c_repr.slots.contents)
+        else:
+            slots = None
+        
         return cls(session_id, custom_data, site_id, input, intent, slots)
 
 
