@@ -21,9 +21,8 @@ export type FlowActionReturnData<API = 'json'> =
         custom_data?: string
     }
 export type FlowActionReturn<API = 'json'> =
-    FlowActionReturnData<API> |
-    Promise<FlowActionReturnData<API> | void | string> |
-    void
+    FlowActionReturnData<API> | string | void |
+    Promise<FlowActionReturnData<API> | void | string>
 
 export type FlowIntentAction<API = 'json'> = (
     message: API extends 'json' ? IntentMessage : IntentMessageLegacy,

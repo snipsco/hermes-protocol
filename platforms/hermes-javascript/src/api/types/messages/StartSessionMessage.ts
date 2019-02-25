@@ -6,7 +6,7 @@ export type StartSessionMessage = {
         text?: string,
         intentFilter?: string[],
         canBeEnqueued?: boolean,
-        sendIntentNotRecognized?: false
+        sendIntentNotRecognized?: boolean
     },
     customData?: string,
     siteId?: string
@@ -19,7 +19,7 @@ export type StartSessionMessageLegacy = {
             text?: string,
             intent_filter?: string[],
             can_be_enqueued?: boolean,
-            send_intent_not_recognized?: false
+            send_intent_not_recognized?: boolean
         }
     },
     custom_data?: string,
