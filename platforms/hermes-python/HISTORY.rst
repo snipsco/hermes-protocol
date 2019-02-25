@@ -1,4 +1,8 @@
 ## History
+## 0.3.2 (2019-02-25) 
+* Fixes an important bug that gave the argument `hermes` the wrong type for every registered callback. 
+* Fixes an important bug that caused the program to crash when parsing intentMessage that had no slots. 
+
 ### 0.3.1 (2019-02-25)
 * Fixes import bug with templates, the `hermes_python.ffi.utils` module now re-exports `MqttOptions`
 
