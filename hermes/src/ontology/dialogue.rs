@@ -137,6 +137,11 @@ pub struct ContinueSessionMessage {
     /// the dialogue manager will handle non recognized intents by itself)
     #[serde(default)]
     pub send_intent_not_recognized: bool,
+    /// An optional string, requires `intent_filter` to contain a single value. If set, the dialogue
+    /// engine will not run the the intent classification on the user response and go straight to
+    /// slot filling, assuming the intent is the one passed in the `intent_filter`, and searching
+    /// the value of the given slot
+    pub slot: Option<String>,
 }
 
 impl<'de> HermesMessage<'de> for ContinueSessionMessage {}

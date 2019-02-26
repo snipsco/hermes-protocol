@@ -40,6 +40,11 @@ typedef struct {
   void *user_data;
 } CSoundFeedbackFacade;
 
+typedef struct {
+  const void *facade;
+  void *user_data;
+} CTtsFacade;
+
 /**
  * A struct representing the configuration of the MQTT client
  */
@@ -119,6 +124,8 @@ SNIPS_RESULT hermes_drop_injection_facade(const CInjectionFacade *cstruct);
 
 SNIPS_RESULT hermes_drop_sound_feedback_facade(const CSoundFeedbackFacade *cstruct);
 
+SNIPS_RESULT hermes_drop_tts_facade(const CTtsFacade *cstruct);
+
 SNIPS_RESULT hermes_enable_debug_logs(void);
 
 /**
@@ -152,10 +159,15 @@ SNIPS_RESULT hermes_protocol_handler_new_mqtt_with_options(const CProtocolHandle
 SNIPS_RESULT hermes_protocol_handler_sound_feedback_facade(const CProtocolHandler *handler,
                                                            const CSoundFeedbackFacade **facade);
 
+SNIPS_RESULT hermes_protocol_handler_tts_facade(const CProtocolHandler *handler,
+                                                const CTtsFacade **facade);
+
 SNIPS_RESULT hermes_sound_feedback_publish_toggle_off_json(const CSoundFeedbackFacade *facade,
                                                            const char *message);
 
 SNIPS_RESULT hermes_sound_feedback_publish_toggle_on_json(const CSoundFeedbackFacade *facade,
                                                           const char *message);
+
+SNIPS_RESULT hermes_tts_publish_register_sound_json(const CTtsFacade *facade, const char *message);
 
 #endif /* LIB_HERMES_H_ */

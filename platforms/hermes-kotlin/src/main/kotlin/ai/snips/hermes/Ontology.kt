@@ -39,6 +39,7 @@ data class ContinueSessionMessage @ParcelConstructor constructor(
         @ParcelProperty("text") val text: String,
         @ParcelProperty("intentFilter") val intentFilter: List<String>,
         @ParcelProperty("customData") val customData: String?,
+        @ParcelProperty("slot") val slot: String?,
         @ParcelProperty("sendIntentNotRecognized") val sendIntentNotRecognized: Boolean
 )
 

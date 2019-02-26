@@ -159,6 +159,7 @@ class CContinueSessionMessage(p: Pointer?) : Structure(p), Structure.ByReference
             text = continueSessionMessage.text.toPointer()
             intent_filter = if (continueSessionMessage.intentFilter.isEmpty()) null else CStringArray.fromStringList(continueSessionMessage.intentFilter)
             custom_data = continueSessionMessage.customData?.toPointer()
+            slot = continueSessionMessage.slot?.toPointer()
             send_intent_not_recognized = if (continueSessionMessage.sendIntentNotRecognized) 1 else 0
         }
     }
@@ -172,6 +173,8 @@ class CContinueSessionMessage(p: Pointer?) : Structure(p), Structure.ByReference
     @JvmField
     var custom_data: Pointer? = null
     @JvmField
+    var slot: Pointer? = null
+    @JvmField
     var send_intent_not_recognized: Byte = -1
 
     // be careful this block must be below the field definition if you don't want the native values read by JNA
@@ -180,13 +183,14 @@ class CContinueSessionMessage(p: Pointer?) : Structure(p), Structure.ByReference
         read()
     }
 
-    override fun getFieldOrder() = listOf("session_id", "text", "intent_filter", "custom_data", "send_intent_not_recognized")
+    override fun getFieldOrder() = listOf("session_id", "text", "intent_filter", "custom_data", "slot", "send_intent_not_recognized")
 
     fun toContinueSessionMessage() = ContinueSessionMessage(
             sessionId = session_id.readString(),
             text = text.readString(),
             intentFilter = intent_filter?.toStringList() ?: listOf(),
             customData = custom_data?.readString(),
+            slot = slot?.readString(),
             sendIntentNotRecognized = send_intent_not_recognized == 1.toByte()
     )
 }

@@ -1,3 +1,10 @@
+// TODO: Remove these `extern crate` when cbindgen won't need them to generate symbols.
+// See https://github.com/eqrion/cbindgen/issues/221
+extern crate ffi_utils;
+extern crate hermes_ffi;
+extern crate snips_nlu_ontology_ffi;
+extern crate snips_nlu_ontology_ffi_macros;
+
 use failure::format_err;
 use failure::Fallible;
 use failure::ResultExt;

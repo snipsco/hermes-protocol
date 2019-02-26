@@ -1,4 +1,5 @@
 use std::ptr::null;
+use std::slice;
 
 use failure::Fallible;
 use failure::ResultExt;
@@ -106,5 +107,62 @@ impl Drop for CSayFinishedMessage {
     fn drop(&mut self) {
         take_back_nullable_c_string!(self.id);
         take_back_nullable_c_string!(self.session_id);
+    }
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct CRegisterSoundMessage {
+    pub sound_id: *const libc::c_char,
+    pub wav_sound: *const u8,
+    // Note: we can't use `libc::size_t` because it's not supported by JNA
+    pub wav_sound_len: libc::c_int,
+}
+
+unsafe impl Sync for CRegisterSoundMessage {}
+
+impl CReprOf<hermes::RegisterSoundMessage> for CRegisterSoundMessage {
+    fn c_repr_of(input: hermes::RegisterSoundMessage) -> Fallible<Self> {
+        Ok(Self {
+            wav_sound_len: input.wav_sound.len() as libc::c_int,
+            wav_sound: Box::into_raw(input.wav_sound.into_boxed_slice()) as *const u8,
+            sound_id: convert_to_c_string!(input.sound_id),
+        })
+    }
+}
+
+impl AsRust<hermes::RegisterSoundMessage> for CRegisterSoundMessage {
+    fn as_rust(&self) -> Fallible<hermes::RegisterSoundMessage> {
+        Ok(hermes::RegisterSoundMessage {
+            wav_sound: unsafe { slice::from_raw_parts(self.wav_sound as *const u8, self.wav_sound_len as usize) }
+                .to_vec(),
+            sound_id: create_rust_string_from!(self.sound_id),
+        })
+    }
+}
+
+impl Drop for CRegisterSoundMessage {
+    fn drop(&mut self) {
+        let _ = unsafe {
+            Box::from_raw(slice::from_raw_parts_mut(
+                self.wav_sound as *mut u8,
+                self.wav_sound_len as usize,
+            ))
+        };
+        take_back_c_string!(self.sound_id);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::super::tests::round_trip_test;
+    use super::*;
+
+    #[test]
+    fn round_trip_register_sound() {
+        round_trip_test::<_, CRegisterSoundMessage>(hermes::RegisterSoundMessage {
+            sound_id: "my sound id".into(),
+            wav_sound: vec![6; 513],
+        });
     }
 }

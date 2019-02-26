@@ -208,6 +208,10 @@ impl HermesTopic {
         match comps.next() {
             Some("say") => Some(Tts(Say)),
             Some("sayFinished") => Some(Tts(SayFinished)),
+            Some("registerSound") => match comps.next() {
+                Some(id) => Some(Tts(RegisterSound(id.into()))),
+                _ => None,
+            },
             Some("versionRequest") => Some(HermesTopic::Component(
                 None,
                 Component::Tts,
@@ -393,10 +397,22 @@ pub enum AsrCommand {
 
 impl ToPath for AsrCommand {}
 
-#[derive(Debug, Clone, Copy, PartialEq, ToString)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum TtsCommand {
     Say,
     SayFinished,
+    RegisterSound(String),
+}
+
+impl fmt::Display for TtsCommand {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let subpath = match *self {
+            TtsCommand::Say => "say".to_owned(),
+            TtsCommand::SayFinished => "sayFinished".to_owned(),
+            TtsCommand::RegisterSound(ref sound) => format!("registerSound/{}", sound),
+        };
+        write!(f, "{}", subpath)
+    }
 }
 
 impl ToPath for TtsCommand {}
@@ -627,6 +643,10 @@ mod tests {
             ),
             (HermesTopic::Tts(TtsCommand::Say), "hermes/tts/say"),
             (HermesTopic::Tts(TtsCommand::SayFinished), "hermes/tts/sayFinished"),
+            (
+                HermesTopic::Tts(TtsCommand::RegisterSound("foobar".into())),
+                "hermes/tts/registerSound/foobar",
+            ),
             (
                 HermesTopic::Component(None, Component::Tts, ComponentCommand::VersionRequest),
                 "hermes/tts/versionRequest",

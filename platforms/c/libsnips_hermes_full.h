@@ -1,43 +1,44 @@
 #ifndef LIB_HERMES_H_
 #define LIB_HERMES_H_
 
+#include <stdarg.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <stdbool.h>
 
-/*
+/**
  * Enum representing the grain of a resolved date related value
  */
 typedef enum {
-  /*
+  /**
    * The resolved value has a granularity of a year
    */
   SNIPS_GRAIN_YEAR = 0,
-  /*
+  /**
    * The resolved value has a granularity of a quarter
    */
   SNIPS_GRAIN_QUARTER = 1,
-  /*
+  /**
    * The resolved value has a granularity of a mount
    */
   SNIPS_GRAIN_MONTH = 2,
-  /*
+  /**
    * The resolved value has a granularity of a week
    */
   SNIPS_GRAIN_WEEK = 3,
-  /*
+  /**
    * The resolved value has a granularity of a day
    */
   SNIPS_GRAIN_DAY = 4,
-  /*
+  /**
    * The resolved value has a granularity of an hour
    */
   SNIPS_GRAIN_HOUR = 5,
-  /*
+  /**
    * The resolved value has a granularity of a minute
    */
   SNIPS_GRAIN_MINUTE = 6,
-  /*
+  /**
    * The resolved value has a granularity of a second
    */
   SNIPS_GRAIN_SECOND = 7,
@@ -48,29 +49,29 @@ typedef enum {
   SNIPS_INJECTION_KIND_ADD_FROM_VANILLA = 2,
 } SNIPS_INJECTION_KIND;
 
-/*
+/**
  * Enum describing the precision of a resolved value
  */
 typedef enum {
-  /*
+  /**
    * The resolved value is approximate
    */
   SNIPS_PRECISION_APPROXIMATE = 0,
-  /*
+  /**
    * The resolved value is exact
    */
   SNIPS_PRECISION_EXACT = 1,
 } SNIPS_PRECISION;
 
-/*
+/**
  * Used as a return type of functions that can encounter errors
  */
 typedef enum {
-  /*
+  /**
    * The function returned successfully
    */
   SNIPS_RESULT_OK = 0,
-  /*
+  /**
    * The function encountered an error, you can retrieve it using the dedicated function
    */
   SNIPS_RESULT_KO = 1,
@@ -90,55 +91,55 @@ typedef enum {
   SNIPS_SESSION_TERMINATION_TYPE_ERROR = 6,
 } SNIPS_SESSION_TERMINATION_TYPE;
 
-/*
+/**
  * Enum type describing how to cast the value of a CSlotValue
  */
 typedef enum {
-  /*
+  /**
    * Custom type represented by a char *
    */
   SNIPS_SLOT_VALUE_TYPE_CUSTOM = 1,
-  /*
+  /**
    * Number type represented by a CNumberValue
    */
   SNIPS_SLOT_VALUE_TYPE_NUMBER = 2,
-  /*
+  /**
    * Ordinal type represented by a COrdinalValue
    */
   SNIPS_SLOT_VALUE_TYPE_ORDINAL = 3,
-  /*
+  /**
    * Instant type represented by a CInstantTimeValue
    */
   SNIPS_SLOT_VALUE_TYPE_INSTANTTIME = 4,
-  /*
+  /**
    * Interval type represented by a CTimeIntervalValue
    */
   SNIPS_SLOT_VALUE_TYPE_TIMEINTERVAL = 5,
-  /*
+  /**
    * Amount of money type represented by a CAmountOfMoneyValue
    */
   SNIPS_SLOT_VALUE_TYPE_AMOUNTOFMONEY = 6,
-  /*
+  /**
    * Temperature type represented by a CTemperatureValue
    */
   SNIPS_SLOT_VALUE_TYPE_TEMPERATURE = 7,
-  /*
+  /**
    * Duration type represented by a CDurationValue
    */
   SNIPS_SLOT_VALUE_TYPE_DURATION = 8,
-  /*
+  /**
    * Percentage type represented by a CPercentageValue
    */
   SNIPS_SLOT_VALUE_TYPE_PERCENTAGE = 9,
-  /*
+  /**
    * Music Album type represented by a char *
    */
   SNIPS_SLOT_VALUE_TYPE_MUSICALBUM = 10,
-  /*
+  /**
    * Music Artist type represented by a char *
    */
   SNIPS_SLOT_VALUE_TYPE_MUSICARTIST = 11,
-  /*
+  /**
    * Music Track type represented by a char *
    */
   SNIPS_SLOT_VALUE_TYPE_MUSICTRACK = 12,
@@ -151,7 +152,7 @@ typedef struct {
 
 typedef struct {
   const char *site_id;
-  /*
+  /**
    * Nullable
    */
   const char *session_id;
@@ -160,7 +161,7 @@ typedef struct {
 
 typedef struct {
   const char *site_id;
-  /*
+  /**
    * Nullable
    */
   const char *session_id;
@@ -186,14 +187,14 @@ typedef struct {
 
 typedef struct {
   const char *text;
-  /*
+  /**
    * Nullable
    */
   const CAsrTokenArray *tokens;
   float likelihood;
   float seconds;
   const char *site_id;
-  /*
+  /**
    * Nullable
    */
   const char *session_id;
@@ -242,66 +243,66 @@ typedef struct {
   void *user_data;
 } CDialogueBackendFacade;
 
-/*
- * Results of the intent classifier
+/**
+ * Result of the intent classifier
  */
 typedef struct {
-  /*
+  /**
    * Name of the intent detected
    */
   const char *intent_name;
-  /*
+  /**
    * Between 0 and 1
    */
   float confidence_score;
 } CNluIntentClassifierResult;
 
-/*
+/**
  * A slot value
  */
 typedef struct {
-  /*
+  /**
    * Points to either a *const char, a CNumberValue, a COrdinalValue,
    * a CInstantTimeValue, a CTimeIntervalValue, a CAmountOfMoneyValue,
    * a CTemperatureValue or a CDurationValue depending on value_type
    */
   const void *value;
-  /*
+  /**
    * The type of the value
    */
   SNIPS_SLOT_VALUE_TYPE value_type;
 } CSlotValue;
 
-/*
+/**
  * Struct describing a Slot
  */
 typedef struct {
-  /*
+  /**
    * The resolved value of the slot
    */
   CSlotValue value;
-  /*
+  /**
    * The raw value as it appears in the input text
    */
   const char *raw_value;
-  /*
+  /**
    * Name of the entity type of the slot
    */
   const char *entity;
-  /*
+  /**
    * Name of the slot
    */
   const char *slot_name;
-  /*
+  /**
    * Start index of raw value in input text
    */
   int32_t range_start;
-  /*
+  /**
    * End index of raw value in input text
    */
   int32_t range_end;
-  /*
-   * Between 0 and 1
+  /**
+   * Confidence score of the slot
    */
   float confidence_score;
 } CSlot;
@@ -322,18 +323,18 @@ typedef struct {
 
 typedef struct {
   const char *session_id;
-  /*
+  /**
    * Nullable
    */
   const char *custom_data;
   const char *site_id;
   const char *input;
   const CNluIntentClassifierResult *intent;
-  /*
+  /**
    * Nullable
    */
   const CNluSlotArray *slots;
-  /*
+  /**
    * Nullable, the first array level represents the asr invocation, the second one the tokens
    */
   const CAsrTokenDoubleArray *asr_tokens;
@@ -342,11 +343,11 @@ typedef struct {
 typedef struct {
   const char *site_id;
   const char *session_id;
-  /*
+  /**
    * Nullable
    */
   const char *input;
-  /*
+  /**
    * Nullable
    */
   const char *custom_data;
@@ -355,7 +356,7 @@ typedef struct {
 
 typedef struct {
   SNIPS_SESSION_TERMINATION_TYPE termination_type;
-  /*
+  /**
    * Nullable,
    */
   const char *data;
@@ -363,7 +364,7 @@ typedef struct {
 
 typedef struct {
   const char *session_id;
-  /*
+  /**
    * Nullable
    */
   const char *custom_data;
@@ -373,7 +374,7 @@ typedef struct {
 
 typedef struct {
   const char *session_id;
-  /*
+  /**
    * Nullable
    */
   const char *custom_data;
@@ -382,26 +383,26 @@ typedef struct {
 
 typedef struct {
   const char *session_id;
-  /*
+  /**
    * Nullable
    */
   const char *custom_data;
   const char *site_id;
-  /*
+  /**
    * Nullable
    */
   const char *reactivated_from_session_id;
 } CSessionStartedMessage;
 
-/*
+/**
  * An array of strings
  */
 typedef struct {
-  /*
+  /**
    * Pointer to the first element of the array
    */
   const char *const *data;
-  /*
+  /**
    * Number of elements in the array
    */
   int size;
@@ -410,20 +411,24 @@ typedef struct {
 typedef struct {
   const char *session_id;
   const char *text;
-  /*
+  /**
    * Nullable
    */
   const CStringArray *intent_filter;
-  /*
+  /**
    * Nullable
    */
   const char *custom_data;
+  /**
+   * Nullable
+   */
+  const char *slot;
   unsigned char send_intent_not_recognized;
 } CContinueSessionMessage;
 
 typedef struct {
   const char *session_id;
-  /*
+  /**
    * Nullable
    */
   const char *text;
@@ -431,7 +436,7 @@ typedef struct {
 
 typedef struct {
   SNIPS_SESSION_INIT_TYPE init_type;
-  /*
+  /**
    * Points to either a *const char, a *const CActionSessionInit
    */
   const void *value;
@@ -449,12 +454,12 @@ typedef struct {
 } CDialogueFacade;
 
 typedef struct {
-  /*
+  /**
    * Nullable
    */
   const char *session_id;
   const char *error;
-  /*
+  /**
    * Nullable
    */
   const char *context;
@@ -503,11 +508,11 @@ typedef struct {
 typedef struct {
   const CInjectionRequestOperations *operations;
   const CMapStringToStringArray *lexicon;
-  /*
+  /**
    * Nullable
    */
   const char *cross_language;
-  /*
+  /**
    * Nullable
    */
   const char *id;
@@ -528,17 +533,17 @@ typedef struct {
 } CNluFacade;
 
 typedef struct {
-  /*
+  /**
    * Nullable
    */
   const char *id;
   const char *input;
   const CNluIntentClassifierResult *intent;
-  /*
+  /**
    * Nullable
    */
   const CNluSlotArray *slots;
-  /*
+  /**
    * Nullable
    */
   const char *session_id;
@@ -546,11 +551,11 @@ typedef struct {
 
 typedef struct {
   const char *input;
-  /*
+  /**
    * Nullable
    */
   const char *id;
-  /*
+  /**
    * Nullable
    */
   const char *session_id;
@@ -559,36 +564,36 @@ typedef struct {
 
 typedef struct {
   const char *input;
-  /*
+  /**
    * Nullable
    */
   const CAsrTokenArray *asr_tokens;
-  /*
+  /**
    * Nullable
    */
   const CStringArray *intent_filter;
-  /*
+  /**
    * Nullable
    */
   const char *id;
-  /*
+  /**
    * Nullable
    */
   const char *session_id;
 } CNluQueryMessage;
 
 typedef struct {
-  /*
+  /**
    * Nullable
    */
   const char *id;
   const char *input;
   const char *intent_name;
-  /*
+  /**
    * Nullable
    */
   const CNluSlot *slot;
-  /*
+  /**
    * Nullable
    */
   const char *session_id;
@@ -599,22 +604,28 @@ typedef struct {
   const CAsrTokenArray *asr_tokens;
   const char *intent_name;
   const char *slot_name;
-  /*
+  /**
    * Nullable
    */
   const char *id;
-  /*
+  /**
    * Nullable
    */
   const char *session_id;
 } CNluSlotQueryMessage;
 
 typedef struct {
-  /*
+  const char *sound_id;
+  const uint8_t *wav_sound;
+  int wav_sound_len;
+} CRegisterSoundMessage;
+
+typedef struct {
+  /**
    * Nullable
    */
   const char *id;
-  /*
+  /**
    * Nullable
    */
   const char *session_id;
@@ -622,16 +633,16 @@ typedef struct {
 
 typedef struct {
   const char *text;
-  /*
+  /**
    * Nullable
    */
   const char *lang;
-  /*
+  /**
    * Nullable
    */
   const char *id;
   const char *site_id;
-  /*
+  /**
    * Nullable
    */
   const char *session_id;
@@ -663,43 +674,43 @@ typedef struct {
   uint64_t patch;
 } CVersionMessage;
 
-/*
+/**
  * A struct representing the configuration of the MQTT client
  */
 typedef struct {
-  /*
+  /**
    * Address of the MQTT broker in the form `ip:port`
    */
   char *broker_address;
-  /*
+  /**
    * Username to use on the broker. Nullable
    */
   char *username;
-  /*
+  /**
    * Password to use on the broker. Nullable
    */
   char *password;
-  /*
+  /**
    * Hostname to use for the TLS configuration. Nullable, setting a value enables TLS
    */
   char *tls_hostname;
-  /*
+  /**
    * CA files to use if TLS is enabled. Nullable
    */
   CStringArray *tls_ca_file;
-  /*
+  /**
    * CA path to use if TLS is enabled. Nullable
    */
   CStringArray *tls_ca_path;
-  /*
+  /**
    * Client key to use if TLS is enabled. Nullable
    */
   char *tls_client_key;
-  /*
+  /**
    * Client cert to use if TLS is enabled. Nullable
    */
   char *tls_client_cert;
-  /*
+  /**
    * Boolean indicating if the root store should be disabled if TLS is enabled. The is
    * interpreted as a boolean, 0 meaning false, all other values meaning true
    */
@@ -707,11 +718,11 @@ typedef struct {
 } CMqttOptions;
 
 typedef struct {
-  /*
+  /**
    * Nullable
    */
   const char *text;
-  /*
+  /**
    * Nullable
    */
   const CStringArray *intent_filter;
@@ -719,122 +730,122 @@ typedef struct {
   unsigned char send_intent_not_recognized;
 } CActionSessionInit;
 
-/*
+/**
  * Representation of a number value
  */
 typedef double CNumberValue;
 
-/*
+/**
  * Representation of an ordinal value
  */
 typedef int64_t COrdinalValue;
 
-/*
+/**
  * Representation of a percentage value
  */
 typedef double CPercentageValue;
 
-/*
+/**
  * Representation of an instant value
  */
 typedef struct {
-  /*
+  /**
    * String representation of the instant
    */
   const char *value;
-  /*
+  /**
    * The grain of the resolved instant
    */
   SNIPS_GRAIN grain;
-  /*
+  /**
    * The precision of the resolved instant
    */
   SNIPS_PRECISION precision;
 } CInstantTimeValue;
 
-/*
+/**
  * Representation of an interval value
  */
 typedef struct {
-  /*
+  /**
    * String representation of the beginning of the interval
    */
   const char *from;
-  /*
+  /**
    * String representation of the end of the interval
    */
   const char *to;
 } CTimeIntervalValue;
 
-/*
+/**
  * Representation of an amount of money value
  */
 typedef struct {
-  /*
+  /**
    * The currency
    */
   const char *unit;
-  /*
+  /**
    * The amount of money
    */
   float value;
-  /*
+  /**
    * The precision of the resolved value
    */
   SNIPS_PRECISION precision;
 } CAmountOfMoneyValue;
 
-/*
+/**
  * Representation of a temperature value
  */
 typedef struct {
-  /*
+  /**
    * The unit used
    */
   const char *unit;
-  /*
+  /**
    * The temperature resolved
    */
   float value;
 } CTemperatureValue;
 
-/*
+/**
  * Representation of a duration value
  */
 typedef struct {
-  /*
+  /**
    * Number of years in the duration
    */
   int64_t years;
-  /*
+  /**
    * Number of quarters in the duration
    */
   int64_t quarters;
-  /*
+  /**
    * Number of months in the duration
    */
   int64_t months;
-  /*
+  /**
    * Number of weeks in the duration
    */
   int64_t weeks;
-  /*
+  /**
    * Number of days in the duration
    */
   int64_t days;
-  /*
+  /**
    * Number of hours in the duration
    */
   int64_t hours;
-  /*
+  /**
    * Number of minutes in the duration
    */
   int64_t minutes;
-  /*
+  /**
    * Number of seconds in the duration
    */
   int64_t seconds;
-  /*
+  /**
    * Precision of the resolved value
    */
   SNIPS_PRECISION precision;
@@ -999,6 +1010,8 @@ SNIPS_RESULT hermes_drop_play_bytes_message(const CPlayBytesMessage *cstruct);
 
 SNIPS_RESULT hermes_drop_play_finished_message(const CPlayFinishedMessage *cstruct);
 
+SNIPS_RESULT hermes_drop_register_sound_message(const CRegisterSoundMessage *cstruct);
+
 SNIPS_RESULT hermes_drop_say_finished_message(const CSayFinishedMessage *cstruct);
 
 SNIPS_RESULT hermes_drop_say_message(const CSayMessage *cstruct);
@@ -1027,7 +1040,7 @@ SNIPS_RESULT hermes_drop_version_message(const CVersionMessage *cstruct);
 
 SNIPS_RESULT hermes_enable_debug_logs(void);
 
-/*
+/**
  * Used to retrieve the last error that happened in this thread. A function encountered an
  * error if its return type is of type SNIPS_RESULT and it returned SNIPS_RESULT_KO
  */
@@ -1143,8 +1156,14 @@ SNIPS_RESULT hermes_sound_feedback_publish_toggle_on(const CSoundFeedbackFacade 
 SNIPS_RESULT hermes_tts_backend_publish_say_finished(const CTtsBackendFacade *facade,
                                                      const CSayFinishedMessage *message);
 
+SNIPS_RESULT hermes_tts_backend_subscribe_register_sound(const CTtsBackendFacade *facade,
+                                                         void (*handler)(const CRegisterSoundMessage*, void*));
+
 SNIPS_RESULT hermes_tts_backend_subscribe_say(const CTtsBackendFacade *facade,
                                               void (*handler)(const CSayMessage*, void*));
+
+SNIPS_RESULT hermes_tts_publish_register_sound(const CTtsFacade *facade,
+                                               const CRegisterSoundMessage *message);
 
 SNIPS_RESULT hermes_tts_publish_say(const CTtsFacade *facade, const CSayMessage *message);
 
