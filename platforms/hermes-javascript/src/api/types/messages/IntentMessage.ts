@@ -1,5 +1,64 @@
 import { slotType, slotType_legacy, grain } from '../enums'
 
+export type CustomSlotValue<T extends slotType.custom> = {
+    kind: T,
+    value: string
+}
+export type NumberSlotValue<T extends slotType.number> = {
+    kind: T,
+    value: number
+}
+export type OrdinalSlotValue<T extends slotType.ordinal> = {
+    kind: T,
+    value: number
+}
+export type InstantTimeSlotValue<T extends slotType.instantTime> = {
+    kind: T,
+    value: string,
+    grain: grain,
+    precisition: 'Exact' | 'Approximate'
+}
+export type TimeIntervalSlotValue<T extends slotType.timeInterval> = {
+    kind: T,
+    from: string,
+    to: string
+}
+export type AmountOfMoneySlotValue<T extends slotType.amountOfMoney> = {
+    kind: T,
+    value: number,
+    precisition: 'Exact' | 'Approximate',
+    unit: string
+}
+export type TemperatureSlotValue<T extends slotType.temperature> = {
+    kind: T,
+    value: number,
+    unit: 'celsius' | 'fahrenheit'
+}
+export type DurationSlotValue<T extends slotType.duration> = {
+    kind: T,
+    years: number,
+    quarters: number,
+    months: number,
+    weeks: number,
+    days: number,
+    hours: number,
+    minutes: number,
+    seconds: number,
+    precision: 'Exact' | 'Approximate'
+}
+export type MusicAlbumSlotValue<T extends slotType.musicAlbum> = {
+    kind: T,
+    value: string
+}
+export type MusicArtistSlotValue<T extends slotType.musicArtist> = {
+    kind: T,
+    value: string
+}
+export type MusicTrackSlotValue<T extends slotType.musicTrack> = {
+    kind: T,
+    value: string
+}
+
 export type NluSlot<T extends slotType = slotType> = {
     confidenceScore: number,
     rawValue: string,
@@ -9,69 +68,19 @@ export type NluSlot<T extends slotType = slotType> = {
     },
     entity: string,
     slotName: string,
-    value: {
-        kind: T,
-        value?:
-            T extends (slotType.custom | slotType.instantTime | slotType.musicAlbum | slotType.musicArtist | slotType.musicTrack) ?
-                string :
-            T extends (slotType.number | slotType.ordinal | slotType.amountOfMoney | slotType.temperature | slotType.percentage) ?
-                number :
-            T extends (slotType.timeInterval | slotType.duration) ?
-                never :
-            any,
-        grain?:
-            T extends slotType.instantTime ?
-                grain :
-            never,
-        precision?:
-            T extends (slotType.instantTime | slotType.amountOfMoney | slotType.duration) ?
-                'Exact' | 'Approximate' :
-            never,
-        from?:
-            T extends slotType.timeInterval ?
-                string :
-            never,
-        to?:
-            T extends slotType.timeInterval ?
-                string :
-            never,
-        unit?:
-            T extends (slotType.amountOfMoney | slotType.temperature) ?
-                string :
-            never,
-        years?:
-            T extends slotType.duration ?
-                number :
-            never,
-        quarters?:
-            T extends slotType.duration ?
-                number :
-            never,
-        months?:
-            T extends slotType.duration ?
-                number :
-            never,
-        weeks?:
-            T extends slotType.duration ?
-                number :
-            never,
-        days?:
-            T extends slotType.duration ?
-                number :
-            never,
-        hours?:
-            T extends slotType.duration ?
-                number :
-            never,
-        minutes?:
-            T extends slotType.duration ?
-                number :
-            never,
-        seconds?:
-            T extends slotType.duration ?
-                number :
-            never
-    }
+    value:
+        T extends slotType.custom ? CustomSlotValue<T> :
+        T extends slotType.number ? NumberSlotValue<T> :
+        T extends slotType.ordinal ? OrdinalSlotValue<T> :
+        T extends slotType.instantTime ? InstantTimeSlotValue<T> :
+        T extends slotType.timeInterval ? TimeIntervalSlotValue<T> :
+        T extends slotType.amountOfMoney ? AmountOfMoneySlotValue<T> :
+        T extends slotType.temperature ? TemperatureSlotValue<T> :
+        T extends slotType.duration ? DurationSlotValue<T> :
+        T extends slotType.musicAlbum ? MusicAlbumSlotValue<T> :
+        T extends slotType.musicArtist ? MusicArtistSlotValue<T> :
+        T extends slotType.musicTrack ? MusicTrackSlotValue<T> :
+        never
 }
 
 export type IntentMessage = {
