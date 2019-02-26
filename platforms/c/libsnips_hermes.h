@@ -322,6 +322,10 @@ typedef struct {
    * Nullable, the first array level represents the asr invocation, the second one the tokens
    */
   const CAsrTokenDoubleArray *asr_tokens;
+  /**
+   * Nullable
+   */
+  const float *asr_confidence;
 } CIntentMessage;
 
 typedef struct {

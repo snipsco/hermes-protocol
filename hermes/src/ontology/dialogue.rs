@@ -15,6 +15,8 @@ pub struct IntentMessage {
     pub input: String,
     /// The tokens detected by the ASR. The first vec represents the different ASR invocations
     pub asr_tokens: Option<Vec<Vec<AsrToken>>>,
+    /// Confidence of the asr capture
+    pub asr_confidence: Option<f32>,
     /// The result of the intent classification
     pub intent: NluIntentClassifierResult,
     /// The detected slots, if any

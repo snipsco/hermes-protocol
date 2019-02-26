@@ -22,6 +22,8 @@ pub struct CIntentMessage {
     pub slots: *const CNluSlotArray,
     /// Nullable, the first array level represents the asr invocation, the second one the tokens
     pub asr_tokens: *const CAsrTokenDoubleArray,
+    /// Nullable
+    pub asr_confidence: *const f32,
 }
 
 unsafe impl Sync for CIntentMessage {}
@@ -50,6 +52,11 @@ impl CReprOf<hermes::IntentMessage> for CIntentMessage {
             } else {
                 null()
             },
+            asr_confidence: if let Some(asr_confidence) = input.asr_confidence {
+                asr_confidence.into_raw_pointer()
+            } else {
+                null()
+            }
         })
     }
 }
@@ -72,6 +79,9 @@ impl Drop for CIntentMessage {
         }
         if !self.asr_tokens.is_null() {
             let _ = unsafe { CAsrTokenDoubleArray::drop_raw_pointer(self.asr_tokens) };
+        }
+        if !self.asr_confidence.is_null() {
+            let _ = unsafe { f32::drop_raw_pointer(self.asr_confidence) };
         }
     }
 }
