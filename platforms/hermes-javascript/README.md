@@ -188,6 +188,19 @@ withHermes((hermes, done) => {
 
 ## API
 
+**Sections:**
+
+- [Context loop](#context-loop)
+- [Hermes class](#hermes-class)
+- [Common ApiSubset methods](#common-apisubset-methods)
+- [Dialog Api Subset](#dialog-api-subset)
+- [DialogFlow](#dialogflow)
+- [Injection Api Subset](#injection-api-subset)
+- [Feedback Api Subset](#feedback-api-subset)
+- [Tts Api Subset](#tts-api-subset)
+
+----
+
 ### Context loop
 
 An hermes client should implement a context loop that will prevent the program from exiting.
