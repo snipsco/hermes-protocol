@@ -460,6 +460,9 @@ macro_rules! test_suite {
         t!(dialogue_end_session_works:
                     dialogue_backend.subscribe_end_session <= EndSessionMessage | dialogue.publish_end_session
                     with EndSessionMessage { session_id: "some id".into(), text: None };);
+        t!(dialogue_configure_works:
+                    dialogue_backend.subscribe_configure <= DialogueConfigureMessage | dialogue.publish_configure
+                    with DialogueConfigureMessage { site_id: Some("some site".into()), intents: Some(vec![DialogueConfigureIntent { intent_name: "some intent".into(), enable: Some(true)}] )};);
 
         t_component!(injection_component: injection_backend | injection);
         t!(injection_request:
