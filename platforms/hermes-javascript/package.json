@@ -31,7 +31,8 @@
     "test:mqtt:json": "jest ./tests/mqtt/mqttJson.spec.ts",
     "test:mqtt:tls": "jest ./tests/mqtt/mqttTls.spec.js",
     "test:mqtt:legacy": "jest ./tests/mqtt/mqttTests.spec.ts",
-    "test:roundtrip": "jest ./tests/casts/roundtrips.spec.js"
+    "test:roundtrip": "jest ./tests/casts/roundtrips.spec.js",
+    "release": "standard-version"
   },
   "engines": {
     "node": ">=10"
@@ -68,6 +69,7 @@
     "jest": "^24.1.0",
     "mqtt": "^2.18.8",
     "segfault-handler": "^1.0.1",
+    "standard-version": "^5.0.0",
     "ts-jest": "^23.10.5",
     "typescript": "^3.3.3"
   }
