@@ -31,7 +31,8 @@
     "test:mqtt": "npm run test:mqtt:json && npm run test:mqtt:tls",
     "test:mqtt:json": "jest ./tests/mqtt/mqttJson.spec.ts",
     "test:mqtt:tls": "jest ./tests/mqtt/mqttTls.spec.js",
-    "release": "standard-version"
+    "release": "standard-version",
+    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0 --commit-path=. -t=js/"
   },
   "engines": {
     "node": ">=10"
@@ -63,13 +64,13 @@
     "@typescript-eslint/eslint-plugin": "^1.3.0",
     "@typescript-eslint/parser": "^1.3.0",
     "camelcase": "^5.0.0",
+    "conventional-changelog-cli": "^2.0.12",
     "eslint": "^5.13.0",
     "eslint-plugin-jest": "^22.2.2",
     "jest": "^24.1.0",
     "mqtt": "^2.18.8",
     "rimraf": "^2.6.3",
     "segfault-handler": "^1.0.1",
-    "standard-version": "^5.0.0",
     "ts-jest": "^23.10.5",
     "typescript": "^3.3.3"
   }
