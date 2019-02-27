@@ -1,3 +1,12 @@
+## [0.3.1](https://github.com/snipsco/hermes-protocol/compare/js/0.3.0...0.3.1) (2019-02-27)
+
+
+### Bug Fixes
+
+* **js:** case sensitive tts import ([fe8af56](https://github.com/snipsco/hermes-protocol/commit/fe8af56))
+
+
+
 # [0.3.0](https://github.com/snipsco/hermes-protocol/compare/js/0.2.5...0.3.0) (2019-02-27)
 
 
