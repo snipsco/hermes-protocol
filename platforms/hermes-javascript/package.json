@@ -1,7 +1,7 @@
 {
   "name": "hermes-javascript",
   "version": "0.2.5",
-  "hermes-mqtt-version": "0.62.1",
+  "hermes-mqtt-version": "0.63.0",
   "description": "Hermes javascript bindings",
   "keywords": [
     "snips",
