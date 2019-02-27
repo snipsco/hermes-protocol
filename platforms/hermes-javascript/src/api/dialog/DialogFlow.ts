@@ -10,7 +10,9 @@ import {
     IntentMessage,
     IntentMessageLegacy,
     SessionStartedMessage,
-    SessionStartedMessageLegacy
+    SessionStartedMessageLegacy,
+    SessionEndedMessage,
+    SessionEndedMessageLegacy
 } from '../types/messages'
 
 export default class DialogFlow<API extends HermesAPI = 'json'> {
@@ -21,11 +23,12 @@ export default class DialogFlow<API extends HermesAPI = 'json'> {
     private notRecognizedListener = null
     private ended = false
     private useJsonApi = true
+    private slotFiller = null
 
     constructor(private dialog: Dialog<API>, public sessionId: string, done: () => void, { useJsonApi }) {
         // Sets up a subscriber to clean up in case the session is ended programatically.
-        const onSessionEnded = msg => {
-            const sessionId = this.useJsonApi ? msg.sessionId : msg.session_id
+        const onSessionEnded = (msg: SessionEndedMessage | SessionEndedMessageLegacy) => {
+            const sessionId: string = this.useJsonApi ? msg['sessionId'] : msg['session_id']
             if(sessionId === this.sessionId) {
                 this.cleanUpListeners()
                 this.reset()
@@ -43,6 +46,7 @@ export default class DialogFlow<API extends HermesAPI = 'json'> {
         this.notRecognizedAction = null
         this.notRecognizedListener = null
         this.ended = false
+        this.slotFiller = null
     }
 
     private cleanUpListeners() {
@@ -102,6 +106,7 @@ export default class DialogFlow<API extends HermesAPI = 'json'> {
 
         this.dialog.publish('continue_session', {
             text: '',
+            slot: this.slotFiller,
             ...options,
             ...continueSessionProperties
         })
@@ -140,7 +145,8 @@ export default class DialogFlow<API extends HermesAPI = 'json'> {
     }
 
     // Registers an intent filter and continue the current dialog session.
-    continue<API>(intentName: string, action: FlowIntentAction<API>) {
+    continue<API>(intentName: string, action: FlowIntentAction<API>, { slotFiller } : { slotFiller?: string} = { slotFiller: null }) {
+        this.slotFiller = slotFiller
         this.continuations.set(intentName, action)
     }
 
@@ -150,7 +156,7 @@ export default class DialogFlow<API extends HermesAPI = 'json'> {
     }
 
     // Terminates the dialog session.
-    end<API>() {
+    end() {
         this.ended = true
     }
 }

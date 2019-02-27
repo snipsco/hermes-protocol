@@ -3,7 +3,7 @@
 import { spawn } from 'child_process'
 import path from 'path'
 import mqtt from 'mqtt'
-import { Hermes, Dialog, Injection, Feedback, Audio } from '../../dist'
+import { Hermes, Dialog, Injection, Feedback, Audio, FlowIntentAction } from '../../dist'
 import {
   getFreePort,
   camelize,
@@ -447,12 +447,12 @@ it(`[dialog] should perform at least ${robustnessIterations} rounds of dialog fl
     const mqttSessionEndedMessageString = JSON.stringify(require('./mqttPublished/SessionEnded.json'))
     const hermesIntentMessage = require('./hermesPublished/Intent.json')
 
-    const loop = (msg, flow) => {
+    const loop: FlowIntentAction<'legacy'> = (msg, flow) => {
       expect(msg).toMatchObject(hermesIntentMessage)
       if(++counter >= robustnessIterations) {
         flow.end()
       } else {
-        flow.continue('anIntent', loop)
+        flow.continue('anIntent', loop, { slotFiller: 'slot' })
       }
     }
     dialog.flow('anIntent', loop)
@@ -462,11 +462,27 @@ it(`[dialog] should perform at least ${robustnessIterations} rounds of dialog fl
         client.publish('hermes/intent/anIntent', mqttIntentMessageString)
       })
     })
-    client.on('message', (topic) => {
+    client.on('message', (topic: string, messageBuffer: Buffer) => {
+      let message
+      try { message = JSON.parse(messageBuffer.toString()) } catch (e) { message = null }
       if(topic === 'hermes/dialogueManager/continueSession') {
+        expect({
+          customData: null,
+          intentFilter: [
+            'anIntent',
+          ],
+          sendIntentNotRecognized: false,
+          sessionId: '677a2717-7ac8-44f8-9013-db2222f7923d',
+          slot: 'slot',
+          text: '',
+        }).toMatchObject(message)
         return client.publish('hermes/intent/anIntent', mqttIntentMessageString)
       }
       if(topic === 'hermes/dialogueManager/endSession') {
+        expect({
+          sessionId: '677a2717-7ac8-44f8-9013-db2222f7923d',
+          text: ''
+        }).toMatchObject(message)
         client.unsubscribe('hermes/dialogueManager/continueSession')
         client.unsubscribe('hermes/dialogueManager/endSession')
         client.publish('hermes/dialogueManager/sessionEnded', mqttSessionEndedMessageString)

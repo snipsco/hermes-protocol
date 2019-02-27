@@ -98,7 +98,7 @@ describe('It should perform casting round-trips on messages', () => {
                 session_id: 'Session id',
                 text: 'Session resumed',
                 custom_data: 'customThing',
-                slot: "a slot",
+                slot: 'a slot',
                 send_intent_not_recognized: 1,
                 intent_filter: ['intent1', 'intent2']
             },

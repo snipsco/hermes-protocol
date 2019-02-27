@@ -8,9 +8,9 @@ import {
 } from './messages'
 
 export type FlowContinuation<API = 'json'> = {
-    continue: (intentName: string, action: FlowIntentAction<API>) => FlowActionReturn<API>,
+    continue: (intentName: string, action: FlowIntentAction<API>, options?: { slotFiller?: string }) => FlowActionReturn<API>,
     notRecognized: (action: FlowNotRecognizedAction<API>) => FlowActionReturn<API>,
-    end: () => FlowActionReturn<API>
+    end: () => void
 }
 export type FlowActionReturnData<API = 'json'> =
     API extends 'json' ? {

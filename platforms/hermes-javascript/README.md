@@ -424,7 +424,8 @@ dialog.publish('continue_session', {
     text: /* string */,
     intentFilter: /* string[] */,
     customData: /* string */,
-    sendIntentNotRecognized: /* boolean */
+    sendIntentNotRecognized: /* boolean */,
+    slot: /* string */
 })
 ```
 
@@ -543,7 +544,7 @@ dialog.sessionFlow('a_unique_id', (msg, flow) => {
 })
 ```
 
-#### flow->continue(intentName, action)
+#### flow.continue(intentName, action, { slotFiller })
 
 Subscribes to an intent for the next dialog step.
 
@@ -562,7 +563,25 @@ dialog.flow('intentName', async (message, flow) => {
 })
 ```
 
-#### flow->notRecognized(action)
+#### About the `slotFiller` option
+
+Set the slot filler for the current dialogue round with a given slot name.
+
+**Requires flow.continue() to be called exactly once in the current round.**
+
+If set, the dialogue engine will not run the the intent classification on the user response and go straight to
+slot filling, assuming the intent is the one passed in the `continue`, and searching the value of the given slot.
+
+```js
+// The slot filler is called with value 'slotName' for intent 'myIntent'.
+flow.continue('myIntent', (message, flow) => {
+    // "message" will be an intent message ("myIntent") with confidence 1.
+    // The "message.slots" field will either contain an array of "slotName" slots or an empty array,
+    // depending on whether the platform recognized the slot.
+}, { slotFiller: 'slotName' })
+```
+
+#### flow.notRecognized(action)
 
 Add a callback that is going to be executed if the intents failed to be recognized.
 
@@ -579,7 +598,7 @@ dialog.flow('intentName', async (message, flow) => {
 })
 ```
 
-#### flow->end()
+#### flow.end()
 
 Ends the dialog flow.
 

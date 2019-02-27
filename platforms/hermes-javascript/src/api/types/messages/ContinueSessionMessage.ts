@@ -3,6 +3,7 @@ export type ContinueSessionMessage = {
     text?: string,
     intentFilter?: string[],
     customData?: string,
+    slot?: string,
     sendIntentNotRecognized?: boolean
 }
 
@@ -11,5 +12,6 @@ export type ContinueSessionMessageLegacy = {
     text?: string,
     intent_filter?: string[],
     custom_data?: string,
+    slot?: string,
     send_intent_not_recognized?: boolean
 }
