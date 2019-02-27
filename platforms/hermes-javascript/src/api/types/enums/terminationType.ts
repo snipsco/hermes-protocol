@@ -6,12 +6,3 @@ export enum terminationType {
     timeout = 'timeout',
     error = 'error'
 }
-
-export enum terminationType_legacy {
-    nominal = 1,
-    unavailable,
-    abortedByUser,
-    intentNotRecognized,
-    timeout,
-    error
-}

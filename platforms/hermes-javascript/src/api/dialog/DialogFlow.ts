@@ -4,32 +4,27 @@ import {
     FlowIntentAction,
     FlowNotRecognizedAction,
     FlowSessionAction,
-    HermesAPI
 } from '../types'
 import {
     IntentMessage,
-    IntentMessageLegacy,
     SessionStartedMessage,
-    SessionStartedMessageLegacy,
     SessionEndedMessage,
-    SessionEndedMessageLegacy
+    IntentNotRecognizedMessage,
 } from '../types/messages'
 
-export default class DialogFlow<API extends HermesAPI = 'json'> {
+export default class DialogFlow {
 
     private continuations = new Map()
     private continuationsListeners = new Map()
     private notRecognizedAction = null
     private notRecognizedListener = null
     private ended = false
-    private useJsonApi = true
     private slotFiller = null
 
-    constructor(private dialog: Dialog<API>, public sessionId: string, done: () => void, { useJsonApi }) {
+    constructor(private dialog: Dialog, public sessionId: string, done: () => void) {
         // Sets up a subscriber to clean up in case the session is ended programatically.
-        const onSessionEnded = (msg: SessionEndedMessage | SessionEndedMessageLegacy) => {
-            const sessionId: string = this.useJsonApi ? msg['sessionId'] : msg['session_id']
-            if(sessionId === this.sessionId) {
+        const onSessionEnded = (msg: SessionEndedMessage) => {
+            if(msg.sessionId === this.sessionId) {
                 this.cleanUpListeners()
                 this.reset()
                 this.sessionId = null
@@ -37,7 +32,6 @@ export default class DialogFlow<API extends HermesAPI = 'json'> {
             }
         }
         this.dialog.once('session_ended', onSessionEnded)
-        this.useJsonApi = useJsonApi
     }
 
     private reset() {
@@ -64,15 +58,11 @@ export default class DialogFlow<API extends HermesAPI = 'json'> {
             options = { text: options }
         }
         if(this.ended) {
-            const endSessionProperties: any = this.useJsonApi ?
-                { sessionId: this.sessionId } :
-                { session_id: this.sessionId }
-
             // End the session.
             return this.dialog.publish('end_session', {
                 text: '',
                 ...options,
-                ...endSessionProperties
+                sessionId: this.sessionId
             })
         }
         let intentFilter = []
@@ -90,32 +80,22 @@ export default class DialogFlow<API extends HermesAPI = 'json'> {
             const listener = this.createListener(this.notRecognizedAction)
             const wrappedListener = this.dialog.once('intent_not_recognized', listener)
             this.notRecognizedListener = wrappedListener
-            options[this.useJsonApi ? 'sendIntentNotRecognized' : 'send_intent_not_recognized'] = true
+            options.sendIntentNotRecognized = true
         }
         // Publish a continue session message
-        const continueSessionProperties: any =
-            this.useJsonApi ?
-                {
-                    sessionId: this.sessionId,
-                    intentFilter
-                } :
-                {
-                    session_id: this.sessionId,
-                    intent_filter: intentFilter
-                }
-
         this.dialog.publish('continue_session', {
             text: '',
-            slot: this.slotFiller,
             ...options,
-            ...continueSessionProperties
+            slot: this.slotFiller,
+            sessionId: this.sessionId,
+            intentFilter
         })
     }
 
-    private createListener(action) {
-        return message => {
+    private createListener(action: FlowIntentAction | FlowNotRecognizedAction) {
+        return (message: IntentMessage & IntentNotRecognizedMessage) => {
             // Checks the session id
-            if((this.useJsonApi ? message.sessionId : message.session_id) !== this.sessionId)
+            if(message.sessionId !== this.sessionId)
                 return
             // Cleans up other listeners that could have been registered using .continue
             this.cleanUpListeners()
@@ -134,8 +114,8 @@ export default class DialogFlow<API extends HermesAPI = 'json'> {
     }
 
     // Starts a dialog flow.
-    start(action: FlowIntentAction<API> | FlowSessionAction<API>, message: API extends 'json' ? (IntentMessage | SessionStartedMessage) : (IntentMessageLegacy | SessionStartedMessageLegacy)) {
-        const flow : FlowContinuation<API> = {
+    start(action: FlowIntentAction | FlowSessionAction, message: IntentMessage | SessionStartedMessage) {
+        const flow : FlowContinuation = {
             continue: this.continue.bind(this),
             notRecognized: this.notRecognized.bind(this),
             end: this.end.bind(this)
@@ -145,13 +125,13 @@ export default class DialogFlow<API extends HermesAPI = 'json'> {
     }
 
     // Registers an intent filter and continue the current dialog session.
-    continue<API>(intentName: string, action: FlowIntentAction<API>, { slotFiller } : { slotFiller?: string} = { slotFiller: null }) {
+    continue(intentName: string, action: FlowIntentAction, { slotFiller } : { slotFiller?: string} = { slotFiller: null }) {
         this.slotFiller = slotFiller
         this.continuations.set(intentName, action)
     }
 
     // Registers a listener that will be called if no intents have been recognized.
-    notRecognized<API>(action: FlowNotRecognizedAction<API>) {
+    notRecognized(action: FlowNotRecognizedAction) {
         this.notRecognizedAction = action
     }
 

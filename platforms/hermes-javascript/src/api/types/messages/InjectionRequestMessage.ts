@@ -1,4 +1,4 @@
-import { injectionKind, injectionKind_legacy } from '../enums'
+import { injectionKind } from '../enums'
 
 export type InjectionRequestMessage = {
     id: string,
@@ -12,18 +12,4 @@ export type InjectionRequestMessage = {
             [key: string]: string[]
         }
     ][]
-}
-
-export type InjectionRequestMessageLegacy = {
-    id: string,
-    cross_language?: string,
-    lexicon: {
-        [key: string]: string[]
-    },
-    operations: {
-        kind: injectionKind_legacy,
-        values: {
-            [key: string]: string[]
-        }
-    }
 }

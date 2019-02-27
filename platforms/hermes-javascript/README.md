@@ -261,10 +261,7 @@ new Hermes({
     // Client cert to use if TLS is enabled.
     tls_client_cert: 'client-cert.cert',
     // Boolean indicating if the root store should be disabled if TLS is enabled.
-    tls_disable_root_store: false,
-    // If false, hermes-javascript will use the legacy format for published / subscribed messages.
-    // ⚠️ Notice: Setting this to false is strongly discouraged, and the support for the old format will eventually be removed in the future.
-    useJsonApi: true
+    tls_disable_root_store: false
 })
 ```
 

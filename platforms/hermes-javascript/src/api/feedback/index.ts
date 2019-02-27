@@ -1,7 +1,6 @@
 import ApiSubset from '../ApiSubset'
-import { CSiteMessage } from '../../ffi/typedefs'
-import { FeedbackTypes, HermesAPI } from '../types'
-export default class Feedback<API extends HermesAPI = 'json'> extends ApiSubset<API> {
+import { FeedbackTypes } from '../types'
+export default class Feedback extends ApiSubset {
 
     constructor(protocolHandler, call, options) {
         super(protocolHandler, call, options, 'hermes_protocol_handler_sound_feedback_facade')
@@ -9,15 +8,13 @@ export default class Feedback<API extends HermesAPI = 'json'> extends ApiSubset<
 
     publishEvents = {
         notification_on: {
-            fullEventName: 'hermes_sound_feedback_publish_toggle_on',
-            forgedStruct: CSiteMessage
+            fullEventName: 'hermes_sound_feedback_publish_toggle_on_json'
         },
         notification_off: {
-            fullEventName: 'hermes_sound_feedback_publish_toggle_off',
-            forgedStruct: CSiteMessage
+            fullEventName: 'hermes_sound_feedback_publish_toggle_off_json'
         }
     }
-    publishMessagesList: FeedbackTypes.publishMessagesList<API>
+    publishMessagesList: FeedbackTypes.publishMessagesList
 
     destroy () {
         this.call('hermes_drop_sound_feedback_facade', this.facade)

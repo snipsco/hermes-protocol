@@ -6,7 +6,7 @@ import Audio from './audio'
 import { MqttOptions } from '../casts'
 import { call } from '../ffi/bindings'
 import ApiSubset from './ApiSubset'
-import { HermesOptions, FFIFunctionCall, SubsetConstructor, HermesAPI } from './types'
+import { HermesOptions, FFIFunctionCall, SubsetConstructor } from './types'
 
 /* Types */
 
@@ -18,7 +18,7 @@ export * from './types'
  * Hermes javascript is an high level API that allows you to
  * subscribe and send Snips messages using the Hermes protocol.
  */
-export class Hermes<API extends HermesAPI = 'json'> {
+export class Hermes {
 
     /**
      * Create a new Hermes instance that connects to the underlying event bus.
@@ -34,7 +34,6 @@ export class Hermes<API extends HermesAPI = 'json'> {
      * @param {*} options.tls_client_key Client key to use if TLS is enabled.
      * @param {*} options.tls_client_cert Client cert to use if TLS is enabled.
      * @param {*} options.tls_disable_root_store Boolean indicating if the root store should be disabled if TLS is enabled.
-     * @param {*} options.useJsonApi If false, uses the legacy messages format. *(default: true)*
      */
     constructor(options: HermesOptions = {}) {
 
@@ -80,19 +79,19 @@ export class Hermes<API extends HermesAPI = 'json'> {
      * Return a Dialog instance used to interact with the dialog API.
      */
     dialog() {
-        return this._getOrCreateSubset<Dialog<API>>('dialog', Dialog)
+        return this._getOrCreateSubset<Dialog>('dialog', Dialog)
     }
     /**
      * Return an Injection instance used to interact with the vocabulary injection API.
      */
     injection() {
-        return this._getOrCreateSubset<Injection<API>>('injection', Injection)
+        return this._getOrCreateSubset<Injection>('injection', Injection)
     }
     /**
      * Return a Feedback object instance used to interact with the audio feedback API.
      */
     feedback() {
-        return this._getOrCreateSubset<Feedback<API>>('feedback', Feedback)
+        return this._getOrCreateSubset<Feedback>('feedback', Feedback)
     }
 
     /**
@@ -103,7 +102,7 @@ export class Hermes<API extends HermesAPI = 'json'> {
      * Returns an Audio object instance used to interact with the audio playback API.
      */
     audio() {
-        return this._getOrCreateSubset<Audio<API>>('audio', Audio)
+        return this._getOrCreateSubset<Audio>('audio', Audio)
     }
 
     /**
@@ -119,7 +118,7 @@ export class Hermes<API extends HermesAPI = 'json'> {
 
     // Private //
 
-    private _getOrCreateSubset<T extends ApiSubset<API>>(key: string, Class: SubsetConstructor<T>): T {
+    private _getOrCreateSubset<T extends ApiSubset>(key: string, Class: SubsetConstructor<T>): T {
         if(!this.activeSubsets.has(key)) {
             this.activeSubsets.set(key, new Class(this.protocolHandler, this.call, this.options))
         }
@@ -128,8 +127,7 @@ export class Hermes<API extends HermesAPI = 'json'> {
 
     private static defaultOptions = {
         address: 'localhost:1883',
-        logs: false,
-        useJsonApi: true
+        logs: false
     }
 
     private options : HermesOptions

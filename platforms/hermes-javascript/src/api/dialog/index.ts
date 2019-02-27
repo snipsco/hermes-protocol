@@ -1,24 +1,16 @@
 import ref from 'ref'
 import ApiSubset from '../ApiSubset'
 import DialogFlow from './DialogFlow'
-import { FlowIntentAction, FlowSessionAction, DialogTypes, HermesAPI } from '../types'
+import {
+    FlowIntentAction,
+    FlowSessionAction,
+    DialogTypes,
+    IntentMessage,
+    SessionStartedMessage
+} from '../types'
 import * as enums from '../types/enums'
-import {
-    StringArray,
-    StartSessionMessage,
-    IntentMessage
-} from '../../casts'
-import {
-    CContinueSessionMessage,
-    CEndSessionMessage,
-    CIntentMessage,
-    CIntentNotRecognizedMessage,
-    CSessionEndedMessage,
-    CSessionQueuedMessage,
-    CSessionStartedMessage
-} from '../../ffi/typedefs'
 
-export default class Dialog<API extends HermesAPI = 'json'> extends ApiSubset<API> {
+export default class Dialog extends ApiSubset {
 
     constructor(protocolHandler, call, options) {
         super(protocolHandler, call, options, 'hermes_protocol_handler_dialogue_facade')
@@ -27,62 +19,41 @@ export default class Dialog<API extends HermesAPI = 'json'> extends ApiSubset<AP
     private activeSessions = new Set()
     publishEvents = {
         start_session: {
-            fullEventName: 'hermes_dialogue_publish_start_session',
-            messageClass: StartSessionMessage
+            fullEventName: 'hermes_dialogue_publish_start_session_json'
         },
         continue_session: {
-            fullEventName: 'hermes_dialogue_publish_continue_session',
-            forgedStruct: CContinueSessionMessage,
-            forgeOptions: {
-                intent_filter: intents => new StringArray(intents).forge()
-            }
+            fullEventName: 'hermes_dialogue_publish_continue_session_json'
         },
         end_session: {
-            fullEventName: 'hermes_dialogue_publish_end_session',
-            forgedStruct: CEndSessionMessage
+            fullEventName: 'hermes_dialogue_publish_end_session_json'
         }
     }
-    publishMessagesList: DialogTypes.publishMessagesList<API>
+    publishMessagesList: DialogTypes.publishMessagesList
 
     subscribeEvents = {
         'intent/': {
-            fullEventName: 'hermes_dialogue_subscribe_intent',
-            dropEventName: 'hermes_drop_intent_message',
+            fullEventName: 'hermes_dialogue_subscribe_intent_json',
             additionalArguments: eventName => [
                 ref.allocCString(eventName.substring(7))
-            ],
-            messageStruct: CIntentMessage,
-            messageClass: IntentMessage
+            ]
         },
         intents: {
-            fullEventName: 'hermes_dialogue_subscribe_intents',
-            dropEventName: 'hermes_drop_intent_message',
-            messageStruct: CIntentMessage,
-            messageClass: IntentMessage
+            fullEventName: 'hermes_dialogue_subscribe_intents_json'
         },
         intent_not_recognized: {
-            fullEventName: 'hermes_dialogue_subscribe_intent_not_recognized',
-            dropEventName: 'hermes_drop_intent_not_recognized_message',
-            messageStruct: CIntentNotRecognizedMessage
+            fullEventName: 'hermes_dialogue_subscribe_intent_not_recognized_json'
         },
         session_ended: {
-            fullEventName: 'hermes_dialogue_subscribe_session_ended',
-            dropEventName: 'hermes_drop_session_ended_message',
-            messageStruct: CSessionEndedMessage
+            fullEventName: 'hermes_dialogue_subscribe_session_ended_json'
         },
         session_queued: {
-            fullEventName: 'hermes_dialogue_subscribe_session_queued',
-            dropEventName: 'hermes_drop_session_queued_message',
-            messageStruct: CSessionQueuedMessage
-
+            fullEventName: 'hermes_dialogue_subscribe_session_queued_json'
         },
         session_started: {
-            fullEventName: 'hermes_dialogue_subscribe_session_started',
-            dropEventName: 'hermes_drop_session_started_message',
-            messageStruct: CSessionStartedMessage
+            fullEventName: 'hermes_dialogue_subscribe_session_started_json'
         }
     }
-    subscribeMessagesList: DialogTypes.subscribeMessagesList<API>
+    subscribeMessagesList: DialogTypes.subscribeMessagesList
 
     destroy() {
         this.call('hermes_drop_dialogue_facade', this.facade)
@@ -93,7 +64,7 @@ export default class Dialog<API extends HermesAPI = 'json'> extends ApiSubset<AP
      * @param {*} intent Starting intent name.
      * @param {*} action Action to perform when the starting intent is triggered.
      */
-    flow(intent: string, action: FlowIntentAction<API>) {
+    flow(intent: string, action: FlowIntentAction) {
         return this.flows([{ intent, action }])
     }
 
@@ -101,16 +72,16 @@ export default class Dialog<API extends HermesAPI = 'json'> extends ApiSubset<AP
      * Sets up a dialog flow with multiple starting intents.
      * @param {*} intents An array of { intent, action } objects.
      */
-    flows(intents: { intent: string, action: FlowIntentAction<API> }[]) {
+    flows(intents: { intent: string, action: FlowIntentAction }[]) {
         intents.forEach(({ intent, action }) => {
-            this.on(`intent/${intent}`, (message: any) => {
-                const sessionId = this.options.useJsonApi ? message.sessionId : message.session_id
+            this.on(`intent/${intent}`, (message: IntentMessage) => {
+                const sessionId = message.sessionId
                 // If this particular session is already in progress - prevent
                 if(this.activeSessions.has(sessionId))
                     return
-                const flow = new DialogFlow<API>(this, sessionId, () => {
+                const flow = new DialogFlow(this, sessionId, () => {
                     this.activeSessions.delete(sessionId)
-                }, { useJsonApi: this.options.useJsonApi })
+                })
                 this.activeSessions.add(sessionId)
                 return flow.start(action, message)
             })
@@ -124,18 +95,17 @@ export default class Dialog<API extends HermesAPI = 'json'> extends ApiSubset<AP
      * @param id : An id that should match the customData field of the started session.
      * @param action : The action to execute on session startup.
      */
-    sessionFlow(id: string, action: FlowSessionAction<API>) {
-        const listener = message => {
-            const { useJsonApi } = this.options
-            const customData = useJsonApi ? message.customData : message.custom_data
-            const sessionId = useJsonApi ? message.sessionId : message.session_id
+    sessionFlow(id: string, action: FlowSessionAction) {
+        const listener = (message: SessionStartedMessage) => {
+            const customData = message.customData
+            const sessionId = message.sessionId
 
             if(customData !== id)
                 return
             this.off('session_started', listener)
-            const flow = new DialogFlow<API>(this, sessionId, () => {
+            const flow = new DialogFlow(this, sessionId, () => {
                 this.activeSessions.delete(sessionId)
-            }, { useJsonApi })
+            })
             this.activeSessions.add(sessionId)
             return flow.start(action, message)
         }
@@ -147,13 +117,6 @@ export default class Dialog<API extends HermesAPI = 'json'> extends ApiSubset<AP
         precision: enums.precision,
         initType: enums.initType,
         terminationType: enums.terminationType,
-        slotType: enums.slotType,
-        legacy: {
-            grain: enums.grain_legacy,
-            precision: enums.precision_legacy,
-            initType: enums.initType_legacy,
-            terminationType: enums.terminationType_legacy,
-            slotType: enums.slotType_legacy
-        }
+        slotType: enums.slotType
     }
 }

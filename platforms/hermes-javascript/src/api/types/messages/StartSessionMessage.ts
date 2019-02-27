@@ -1,4 +1,4 @@
-import { initType, initType_legacy } from '../enums'
+import { initType } from '../enums'
 
 export type StartSessionMessage = {
     init: {
@@ -10,18 +10,4 @@ export type StartSessionMessage = {
     },
     customData?: string,
     siteId?: string
-}
-
-export type StartSessionMessageLegacy = {
-    session_init: {
-        init_type: initType_legacy,
-        value: string | {
-            text?: string,
-            intent_filter?: string[],
-            can_be_enqueued?: boolean,
-            send_intent_not_recognized?: boolean
-        }
-    },
-    custom_data?: string,
-    site_id?: string
 }

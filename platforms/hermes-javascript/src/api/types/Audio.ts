@@ -1,19 +1,16 @@
 import {
-    PlayAudioMessageLegacy,
     PlayAudioMessage,
     PlayFinishedMessage,
-    PlayFinishedMessageLegacy
 } from './messages'
-import { HermesAPI } from '.'
 
 export namespace AudioTypes {
-    export type publishMessagesList<API extends HermesAPI = 'json'> = {
-        play_audio: API extends 'json' ? PlayAudioMessage : PlayAudioMessageLegacy
+    export type publishMessagesList = {
+        play_audio: PlayAudioMessage
     }
-    export type subscribeMessagesList<API extends HermesAPI = 'json'> = {
-        play_finished_all: API extends 'json' ? PlayFinishedMessage : PlayFinishedMessageLegacy
+    export type subscribeMessagesList = {
+        play_finished_all: PlayFinishedMessage
     } & {
         // Workaround for dynamic key
-        [key: string]: API extends 'json' ? PlayFinishedMessage : PlayFinishedMessageLegacy
+        [key: string]: PlayFinishedMessage
     }
 }

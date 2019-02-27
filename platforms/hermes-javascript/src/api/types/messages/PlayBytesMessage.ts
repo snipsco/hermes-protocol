@@ -1,4 +1,4 @@
-export type PlayAudioMessage = {
+export type PlayBytesMessage = {
     id: string,
     siteId: string,
     wavBytes: string,

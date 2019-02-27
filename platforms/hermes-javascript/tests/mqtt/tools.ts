@@ -1,7 +1,6 @@
 import { createServer } from 'net'
 import camelcase from 'camelcase'
 import ApiSubset from '../../dist/api/ApiSubset'
-import { HermesAPI } from '../../dist/api/types'
 
 export const wait = (time) => new Promise(resolve => setTimeout(resolve, time))
 
@@ -38,46 +37,6 @@ export const camelize = item => {
 }
 
 /* Publish */
-
-type PublisherTestArgs<API extends HermesAPI = 'legacy'> = {
-    client: any,
-    facade: ApiSubset<API>,
-    publishedJson: any,
-    expectedJson?: any,
-    hermesTopic: string,
-    facadePublication: string
-}
-export const setupPublisherTest = <API extends HermesAPI = 'legacy'>({
-    client,
-    facade,
-    publishedJson,
-    expectedJson,
-    hermesTopic,
-    facadePublication
-} : PublisherTestArgs<API>) => {
-    publishedJson = publishedJson && { ...publishedJson }
-    return new Promise(resolve => {
-        client.subscribe(hermesTopic, function() {
-            facade.publish(facadePublication, publishedJson)
-        })
-        client.on('message', (topic, messageBuffer) => {
-            let message
-            try {
-                message = JSON.parse(messageBuffer.toString())
-            } catch (e) {
-                message = null
-            }
-            if(message) {
-                const expected = expectedJson || camelize(publishedJson)
-                expect(expected).toMatchObject(message)
-            } else {
-                expect(null).toEqual(message)
-            }
-            client.unsubscribe(hermesTopic)
-            resolve()
-        })
-    })
-}
 
 type PublisherJsonTestArgs= {
     client: any,
@@ -117,35 +76,6 @@ export const setupPublisherJsonTest = ({
 }
 
 /* Subscribe */
-
-type SubscriberTestArgs<API extends HermesAPI = 'legacy'> = {
-    client: any,
-    facade: ApiSubset<API>,
-    mqttJson: any,
-    expectedJson?: any,
-    hermesTopic: string,
-    facadeSubscription: string
-}
-export const setupSubscriberTest = <API extends HermesAPI = 'legacy'>({
-    client,
-    facade,
-    mqttJson,
-    expectedJson = null,
-    hermesTopic,
-    facadeSubscription
-} : SubscriberTestArgs<API>) => {
-    mqttJson = { ...mqttJson }
-    return new Promise(async resolve => {
-        facade.once(facadeSubscription, message => {
-            const expected = expectedJson || camelize(mqttJson)
-            const received = expectedJson ? message : camelize(message)
-            expect(received).toMatchObject(expected)
-            resolve()
-        })
-        await wait(5)
-        client.publish(hermesTopic, JSON.stringify(mqttJson))
-    })
-}
 
 type SubscriberJsonTestArgs = {
     client: any,

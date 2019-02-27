@@ -1,13 +1,11 @@
 import ffi from 'ffi'
 import ref from 'ref'
-import { Casteable } from '../casts'
 import {
     SubscribeEventDescriptor,
     PublishEventDescriptor,
     MessageListener,
     FFIFunctionCall,
-    HermesOptions,
-    HermesAPI
+    HermesOptions
 } from './types'
 
 /* Tools */
@@ -34,7 +32,7 @@ const getMetadata = function<T = (SubscribeEventDescriptor | PublishEventDescrip
 
 /* Class */
 
-export default class ApiSubset<API extends HermesAPI = 'json'> {
+export default class ApiSubset {
 
     public call: FFIFunctionCall
     public destroy() {}
@@ -58,38 +56,17 @@ export default class ApiSubset<API extends HermesAPI = 'json'> {
     }
 
     private makeSubscriptionCallback<T extends keyof this['subscribeMessagesList']>(eventName: T) {
-        const {
-            messageStruct,
-            messageClass,
-            dropEventName
-        } = getMetadata(this.subscribeEvents, eventName)
-
-        if(this.options.useJsonApi) {
-            return ffi.Callback('void', [ ref.coerceType('string') ], (stringifiedJson: string) => {
-                try {
-                    const message = JSON.parse(stringifiedJson)
-                    const actions = this.listeners.get(eventName)
-                    actions.forEach(action => action(message))
-                } catch (err) {
-                    // eslint-disable-next-line
-                    console.error(err)
-                    throw err
-                }
-            })
-        } else {
-            return ffi.Callback('void', [ ref.refType(messageStruct) ], data => {
-                try {
-                    const message = new (messageClass || Casteable)(data)
-                    const actions = this.listeners.get(eventName)
-                    actions.forEach(action => action(message))
-                    this.call(dropEventName, data)
-                } catch (err) {
-                    // eslint-disable-next-line
-                    console.error(err)
-                    throw err
-                }
-            })
-        }
+        return ffi.Callback('void', [ ref.coerceType('string') ], (stringifiedJson: string) => {
+            try {
+                const message = JSON.parse(stringifiedJson)
+                const actions = this.listeners.get(eventName)
+                actions.forEach(action => action(message))
+            } catch (err) {
+                // eslint-disable-next-line
+                console.error(err)
+                throw err
+            }
+        })
     }
 
     /**
@@ -114,7 +91,7 @@ export default class ApiSubset<API extends HermesAPI = 'json'> {
             ]
             // Prevent GC
             process.on('exit', function() { callback })
-            this.call(fullEventName + (this.options.useJsonApi ? '_json' : ''), this.facade, ...args)
+            this.call(fullEventName, this.facade, ...args)
         }
         listeners.push(listener)
         return listener
@@ -157,21 +134,11 @@ export default class ApiSubset<API extends HermesAPI = 'json'> {
      * Publish a message.
      */
     publish<T extends keyof this['publishEvents']>(eventName: T, message?: this['publishMessagesList'][T]) {
-        const {
-            messageClass,
-            fullEventName,
-            forgedStruct,
-            forgeOptions
-        } = getMetadata(this.publishEvents, eventName)
+        const { fullEventName } = getMetadata(this.publishEvents, eventName)
 
         if(message) {
-            if(this.options.useJsonApi) {
-                const cStringRef = ref.allocCString(JSON.stringify(message))
-                this.call(fullEventName + '_json', this.facade, cStringRef)
-            } else {
-                const cDataRef = new (messageClass || Casteable)(message).forge(forgedStruct, forgeOptions).ref()
-                this.call(fullEventName, this.facade, cDataRef)
-            }
+            const cStringRef = ref.allocCString(JSON.stringify(message))
+            this.call(fullEventName, this.facade, cStringRef)
         } else {
             this.call(fullEventName, this.facade)
         }

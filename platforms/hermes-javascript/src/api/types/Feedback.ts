@@ -1,9 +1,8 @@
-import { NotificationMessage, NotificationMessageLegacy } from './messages'
-import { HermesAPI } from '.'
+import { NotificationMessage } from './messages'
 
 export namespace FeedbackTypes {
-    export type publishMessagesList<API extends HermesAPI = 'json'> = {
-        notification_on: API extends 'json' ? NotificationMessage : NotificationMessageLegacy,
-        notification_off: API extends 'json' ? NotificationMessage : NotificationMessageLegacy
+    export type publishMessagesList = {
+        notification_on: NotificationMessage,
+        notification_off: NotificationMessage
     }
 }

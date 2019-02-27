@@ -9,6 +9,5 @@ export type HermesOptions = {
     tls_ca_path?: string[],
     tls_client_key?: string,
     tls_client_cert?: string,
-    tls_disable_root_store?: string,
-    useJsonApi?: boolean
+    tls_disable_root_store?: string
 }

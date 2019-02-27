@@ -1,17 +1,10 @@
 import ApiSubset from '../ApiSubset'
 import {
-    InjectionRequestMessage
-} from '../../casts'
-import {
-    CInjectionRequestMessage,
-    CInjectionStatusMessage
-} from '../../ffi/typedefs'
-import {
-    InjectionTypes, HermesAPI
+    InjectionTypes
 } from '../types'
 import * as enums from '../types/enums'
 
-export default class Injection<API extends HermesAPI = 'json'> extends ApiSubset<API> {
+export default class Injection extends ApiSubset {
 
     constructor(protocolHandler, call, options) {
         super(protocolHandler, call, options, 'hermes_protocol_handler_injection_facade')
@@ -19,34 +12,26 @@ export default class Injection<API extends HermesAPI = 'json'> extends ApiSubset
 
     publishEvents = {
         injection_request: {
-            fullEventName: 'hermes_injection_publish_injection_request',
-            messageClass: InjectionRequestMessage,
-            forgedStruct: CInjectionRequestMessage
+            fullEventName: 'hermes_injection_publish_injection_request_json'
         },
         injection_status_request: {
-            fullEventName: 'hermes_injection_publish_injection_status_request',
-            forgedStruct: null
+            fullEventName: 'hermes_injection_publish_injection_status_request_json'
         }
     }
-    publishMessagesList: InjectionTypes.publishMessagesList<API>
+    publishMessagesList: InjectionTypes.publishMessagesList
 
     subscribeEvents = {
         injection_status: {
-            fullEventName: 'hermes_injection_subscribe_injection_status',
-            dropEventName: 'hermes_drop_injection_status_message',
-            messageStruct: CInjectionStatusMessage
+            fullEventName: 'hermes_injection_subscribe_injection_status_json'
         }
     }
-    subscribeMessagesList: InjectionTypes.subscribeMessagesList<API>
+    subscribeMessagesList: InjectionTypes.subscribeMessagesList
 
     destroy () {
         this.call('hermes_drop_injection_facade', this.facade)
     }
 
     static enums = {
-        injectionKind: enums.injectionKind,
-        legacy: {
-            injectionKind: enums.injectionKind_legacy
-        }
+        injectionKind: enums.injectionKind
     }
 }

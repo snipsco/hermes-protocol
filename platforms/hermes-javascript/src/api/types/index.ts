@@ -8,5 +8,3 @@ export * from './Audio'
 
 export * from './enums'
 export * from './messages'
-
-export type HermesAPI = 'json' | 'legacy'

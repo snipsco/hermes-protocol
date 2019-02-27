@@ -1,4 +1,4 @@
-import { slotType, slotType_legacy, grain } from '../enums'
+import { slotType, grain } from '../enums'
 
 export type CustomSlotValue<T extends slotType.custom> = {
     kind: T,
@@ -105,40 +105,4 @@ export type IntentMessage = {
         }[]?
     ],
     slots: NluSlot[]
-}
-
-export type IntentMessageLegacy = {
-    session_id: string,
-    custom_data?: string,
-    site_id: string,
-    input: string,
-    intent: {
-        intent_name: string,
-        confidence_score: number
-    },
-    asr_tokens: [
-        {
-            value: string,
-            confidence: number,
-            range_start: number,
-            range_end: number,
-            time: {
-                start: number,
-                end: number
-            }
-        }[]?
-    ],
-    slots: {
-        confidence_score: number,
-        raw_value: string,
-        range_start: number,
-        range_end: number
-        entity: string,
-        slot_name: string,
-        value: {
-            value_type: slotType_legacy,
-            // Wildcard
-            value: any
-        }
-    }[]
 }

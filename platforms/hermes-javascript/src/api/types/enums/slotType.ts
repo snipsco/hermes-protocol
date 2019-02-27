@@ -12,18 +12,3 @@ export enum slotType {
     musicArtist = 'MusicArtist',
     musicTrack = 'MusicTrack'
 }
-
-export enum slotType_legacy {
-    custom = 1,
-    number,
-    ordinal,
-    instantTime,
-    timeInterval,
-    amountOfMoney,
-    temperature,
-    duration,
-    percentage,
-    musicAlbum,
-    musicArtist,
-    musicTrack
-}
