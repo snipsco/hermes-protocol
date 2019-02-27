@@ -1,5 +1,5 @@
 export type RegisterSoundMessage = {
-    sound_id: string,
+    soundId: string,
     wavSound: string,
     wavSoundLen: number
 }

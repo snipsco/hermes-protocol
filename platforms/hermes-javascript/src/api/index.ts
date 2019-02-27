@@ -3,6 +3,7 @@ import Dialog from './dialog'
 import Injection from './injection'
 import Feedback from './feedback'
 import Audio from './audio'
+import Tts from './Tts'
 import { MqttOptions } from '../casts'
 import { call } from '../ffi/bindings'
 import ApiSubset from './ApiSubset'
@@ -10,7 +11,7 @@ import { HermesOptions, FFIFunctionCall, SubsetConstructor } from './types'
 
 /* Types */
 
-export { Dialog, Injection, Feedback, Audio }
+export { Dialog, Injection, Feedback, Audio, Tts }
 export { ApiSubset }
 export * from './types'
 
@@ -92,6 +93,12 @@ export class Hermes {
      */
     feedback() {
         return this._getOrCreateSubset<Feedback>('feedback', Feedback)
+    }
+    /**
+     * Return a Tts object instance used to interact with the text to speech API.
+     */
+    tts() {
+        return this._getOrCreateSubset<Tts>('tts', Tts)
     }
 
     /**

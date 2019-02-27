@@ -77,7 +77,16 @@ module.exports.library = libraryPath => ffi.Library(libraryPath, {
     // Playback finished on a specific site id
     hermes_audio_server_subscribe_play_finished_json: [ 'int', [ 'void *', 'char *', 'void *' ] ],
     // Playback finished on any site id
-    hermes_audio_server_subscribe_all_play_finished_json: [ 'int', [ 'void *', 'void *' ] ]
+    hermes_audio_server_subscribe_all_play_finished_json: [ 'int', [ 'void *', 'void *' ] ],
+
+    /* TTS */
+
+    // Allocators & destructors
+    hermes_protocol_handler_tts_facade: [ 'int', [ 'void *', 'void **' ]],
+    hermes_drop_tts_facade: [ 'int', [ 'void *' ]],
+
+    // Publish a sound file for later playback by the TTS
+    hermes_tts_publish_register_sound_json: [ 'int', [ 'void *', 'char *' ]]
 })
 
 /**

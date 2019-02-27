@@ -1,11 +1,11 @@
 import {
-    PlayAudioMessage,
+    PlayBytesMessage,
     PlayFinishedMessage,
 } from './messages'
 
 export namespace AudioTypes {
     export type publishMessagesList = {
-        play_audio: PlayAudioMessage
+        play_audio: PlayBytesMessage
     }
     export type subscribeMessagesList = {
         play_finished_all: PlayFinishedMessage

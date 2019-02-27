@@ -6,13 +6,15 @@ import {
     FlowSessionAction,
     DialogTypes,
     IntentMessage,
-    SessionStartedMessage
+    SessionStartedMessage,
+    FFIFunctionCall,
+    HermesOptions
 } from '../types'
 import * as enums from '../types/enums'
 
 export default class Dialog extends ApiSubset {
 
-    constructor(protocolHandler, call, options) {
+    constructor(protocolHandler: Buffer, call: FFIFunctionCall, options: HermesOptions) {
         super(protocolHandler, call, options, 'hermes_protocol_handler_dialogue_facade')
     }
 

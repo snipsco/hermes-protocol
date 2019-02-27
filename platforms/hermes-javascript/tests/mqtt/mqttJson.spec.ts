@@ -3,7 +3,17 @@
 import { spawn } from 'child_process'
 import path from 'path'
 import mqtt from 'mqtt'
-import { Hermes, Dialog, Injection, Feedback, Audio, FlowIntentAction } from '../../dist'
+import {
+  Hermes,
+  Dialog,
+  Injection,
+  Feedback,
+  Audio,
+  FlowIntentAction,
+  PlayBytesMessage,
+  RegisterSoundMessage,
+  Tts
+} from '../../dist'
 import {
   getFreePort,
   setupSubscriberJsonTest,
@@ -24,7 +34,8 @@ let
   dialog: Dialog,
   injection: Injection,
   feedback: Feedback,
-  audio: Audio
+  audio: Audio,
+  tts: Tts
 
 const robustnessTestsTimeout = 60000
 const robustnessIterations = 500
@@ -49,6 +60,7 @@ beforeAll(async () => {
     injection = hermes.injection()
     feedback = hermes.feedback()
     audio = hermes.audio()
+    tts = hermes.tts()
   } catch (error) {
     console.error(error)
   }
@@ -162,7 +174,7 @@ it('[audio] should publish an audio playback event', () => {
   const hermesTopic = 'hermes/audioServer/default/playBytes/8ewnjksdf093jb42'
 
   return new Promise(resolve => {
-    const message = {
+    const message: PlayBytesMessage = {
       id: '8ewnjksdf093jb42',
       siteId: 'default',
       wavBytes: wavBuffer.toString('base64'),
@@ -176,7 +188,30 @@ it('[audio] should publish an audio playback event', () => {
         client.unsubscribe(hermesTopic)
         resolve()
     })
+  })
 })
+
+// TTS
+
+it('[tts] should publish an audio playback that the tts will be able to use later on', () => {
+  const wavBuffer = Buffer.from([0x00, 0x01, 0x02, 0x03])
+  const hermesTopic = 'hermes/tts/registerSound/foobar'
+
+  return new Promise(resolve => {
+    const message: RegisterSoundMessage = {
+      soundId: 'foobar',
+      wavSound: wavBuffer.toString('base64'),
+      wavSoundLen: wavBuffer.length
+    }
+    client.subscribe(hermesTopic, function() {
+      tts.publish('register_sound', message)
+    })
+    client.on('message', (topic, messageBuffer) => {
+      expect(wavBuffer).toEqual(messageBuffer)
+      client.unsubscribe(hermesTopic)
+      resolve()
+    })
+  })
 })
 
 /* Subscribe */

@@ -1,12 +1,12 @@
 import ApiSubset from '../ApiSubset'
 import {
-    InjectionTypes
+    InjectionTypes, FFIFunctionCall, HermesOptions
 } from '../types'
 import * as enums from '../types/enums'
 
 export default class Injection extends ApiSubset {
 
-    constructor(protocolHandler, call, options) {
+    constructor(protocolHandler: Buffer, call: FFIFunctionCall, options: HermesOptions) {
         super(protocolHandler, call, options, 'hermes_protocol_handler_injection_facade')
     }
 

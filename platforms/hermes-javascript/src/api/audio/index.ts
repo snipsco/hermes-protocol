@@ -1,7 +1,7 @@
 import ref from 'ref'
 import ApiSubset from '../ApiSubset'
 import {
-    AudioTypes
+    AudioTypes, FFIFunctionCall, HermesOptions
 } from '../types'
 
 /**
@@ -11,7 +11,7 @@ import {
  */
 export default class Audio extends ApiSubset {
 
-    constructor(protocolHandler, call, options) {
+    constructor(protocolHandler: Buffer, call: FFIFunctionCall, options: HermesOptions) {
         super(protocolHandler, call, options, 'hermes_protocol_handler_audio_server_facade')
     }
 

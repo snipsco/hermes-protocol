@@ -292,6 +292,15 @@ const hermes = new Hermes()
 const feedback = hermes.feedback()
 ```
 
+#### tts()
+
+Use the text-to-speech Api Subset.
+
+```js
+const hermes = new Hermes()
+const tts = hermes.tts()
+```
+
 #### destroy()
 
 Release all the resources associated with this Hermes instance.
@@ -688,6 +697,26 @@ Turn the notification sound off.
 feedback.publish('notification_off', {
     "siteId": /* string */,
     "sessionId": /* string */
+})
+```
+
+### TTS Api Subset
+
+Exposes text-to-speech options.
+
+#### Events available for publishing
+
+- **register_sound**
+
+Register a sound file and makes the TTS able to play it in addition to pure speech.
+
+```js
+const wavBuffer = // A Buffer object containing a wav file.
+
+tts.publish('register_sound', {
+    soundId: /* the ID that is going to be used when telling the TTS to play the file */,
+    wavSound: wavBuffer.toString('base64'),
+    wavSoundLen: wavBuffer.length
 })
 ```
 

@@ -1,8 +1,8 @@
 import ApiSubset from '../ApiSubset'
-import { FeedbackTypes } from '../types'
+import { FeedbackTypes, FFIFunctionCall, HermesOptions } from '../types'
 export default class Feedback extends ApiSubset {
 
-    constructor(protocolHandler, call, options) {
+    constructor(protocolHandler: Buffer, call: FFIFunctionCall, options: HermesOptions) {
         super(protocolHandler, call, options, 'hermes_protocol_handler_sound_feedback_facade')
     }
 
