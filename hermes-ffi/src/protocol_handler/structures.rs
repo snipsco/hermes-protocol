@@ -101,6 +101,7 @@ macro_rules! generate_structures_c_symbols {
             $crate::generate_facade_publish!(hermes_dialogue_publish_start_session = CDialogueFacade: publish_start_session(CStartSessionMessage));
             $crate::generate_facade_publish!(hermes_dialogue_publish_continue_session = CDialogueFacade: publish_continue_session(CContinueSessionMessage));
             $crate::generate_facade_publish!(hermes_dialogue_publish_end_session = CDialogueFacade: publish_end_session(CEndSessionMessage));
+            $crate::generate_facade_publish!(hermes_dialogue_publish_configure = CDialogueFacade: publish_configure(CDialogueConfigureMessage));
 
             $crate::generate_facade_publish!(hermes_injection_publish_injection_request = CInjectionFacade: publish_injection_request(CInjectionRequestMessage));
             $crate::generate_facade_publish!(hermes_injection_publish_injection_status_request = CInjectionFacade: publish_injection_status_request());
@@ -175,6 +176,7 @@ macro_rules! generate_structures_c_symbols {
                 $crate::generate_facade_subscribe!(hermes_dialogue_backend_subscribe_start_session = CDialogueBackendFacade: subscribe_start_session(|CStartSessionMessage|));
                 $crate::generate_facade_subscribe!(hermes_dialogue_backend_subscribe_continue_session = CDialogueBackendFacade: subscribe_continue_session(|CContinueSessionMessage|));
                 $crate::generate_facade_subscribe!(hermes_dialogue_backend_subscribe_end_session = CDialogueBackendFacade: subscribe_end_session(|CEndSessionMessage|));
+                $crate::generate_facade_subscribe!(hermes_dialogue_backend_subscribe_configure = CDialogueBackendFacade: subscribe_configure(|CDialogueConfigureMessage|));
 
                 $crate::generate_destroy!(hermes_drop_site_message for CSiteMessage);
                 $crate::generate_destroy!(hermes_drop_hotword_detected_message for CHotwordDetectedMessage);
@@ -192,6 +194,7 @@ macro_rules! generate_structures_c_symbols {
                 $crate::generate_destroy!(hermes_drop_start_session_message for CStartSessionMessage);
                 $crate::generate_destroy!(hermes_drop_continue_session_message for CContinueSessionMessage);
                 $crate::generate_destroy!(hermes_drop_end_session_message for CEndSessionMessage);
+                $crate::generate_destroy!(hermes_drop_dialogue_configure_message for CDialogueConfigureMessage);
                 $crate::generate_destroy!(hermes_drop_injection_request_message for CInjectionRequestMessage);
                 $crate::generate_destroy!(hermes_drop_register_sound_message for CRegisterSoundMessage);
             }

@@ -112,6 +112,7 @@ macro_rules! generate_json_c_symbols {
             $crate::generate_facade_publish_json!(hermes_dialogue_publish_start_session_json = CDialogueFacade: publish_start_session());
             $crate::generate_facade_publish_json!(hermes_dialogue_publish_continue_session_json = CDialogueFacade: publish_continue_session());
             $crate::generate_facade_publish_json!(hermes_dialogue_publish_end_session_json = CDialogueFacade: publish_end_session());
+            $crate::generate_facade_publish_json!(hermes_dialogue_publish_configure_json = CDialogueFacade: publish_configure());
 
             $crate::generate_facade_publish_json!(hermes_tts_publish_register_sound_json = CTtsFacade: publish_register_sound());
 
@@ -176,6 +177,7 @@ macro_rules! generate_json_c_symbols {
                 $crate::generate_facade_subscribe_json!(hermes_dialogue_backend_subscribe_start_session_json = CDialogueBackendFacade: subscribe_start_session());
                 $crate::generate_facade_subscribe_json!(hermes_dialogue_backend_subscribe_continue_session_json = CDialogueBackendFacade: subscribe_continue_session());
                 $crate::generate_facade_subscribe_json!(hermes_dialogue_backend_subscribe_end_session_json = CDialogueBackendFacade: subscribe_end_session());
+                $crate::generate_facade_subscribe_json!(hermes_dialogue_backend_subscribe_configure_json = CDialogueBackendFacade: subscribe_configure());
             }
         }
     };

@@ -1,4 +1,5 @@
 use std::ptr::null;
+use std::slice;
 
 use failure::bail;
 use failure::format_err;
@@ -22,6 +23,8 @@ pub struct CIntentMessage {
     pub slots: *const CNluSlotArray,
     /// Nullable, the first array level represents the asr invocation, the second one the tokens
     pub asr_tokens: *const CAsrTokenDoubleArray,
+    /// Note: this value is optional. Any value not in [0,1] should be ignored.
+    pub asr_confidence: libc::c_float,
 }
 
 unsafe impl Sync for CIntentMessage {}
@@ -49,6 +52,11 @@ impl CReprOf<hermes::IntentMessage> for CIntentMessage {
                 CAsrTokenDoubleArray::c_repr_of(asr_tokens)?.into_raw_pointer()
             } else {
                 null()
+            },
+            asr_confidence: if let Some(asr_confidence) = input.asr_confidence {
+                asr_confidence
+            } else {
+                -1.0
             },
         })
     }
@@ -631,6 +639,142 @@ impl Drop for CSessionEndedMessage {
     }
 }
 
+#[repr(C)]
+#[derive(Debug)]
+pub struct CDialogueConfigureIntent {
+    pub intent_name: *const libc::c_char,
+    /// Optional Boolean 0 => false, 1 => true other values => null
+    pub enable: libc::c_uchar,
+}
+
+impl CReprOf<hermes::DialogueConfigureIntent> for CDialogueConfigureIntent {
+    fn c_repr_of(input: hermes::DialogueConfigureIntent) -> Fallible<Self> {
+        Ok(Self {
+            intent_name: convert_to_c_string!(input.intent_name),
+            enable: match input.enable {
+                Some(false) => 0,
+                Some(true) => 1,
+                None => libc::c_uchar::max_value(),
+            },
+        })
+    }
+}
+
+impl AsRust<hermes::DialogueConfigureIntent> for CDialogueConfigureIntent {
+    fn as_rust(&self) -> Fallible<hermes::DialogueConfigureIntent> {
+        Ok(hermes::DialogueConfigureIntent {
+            intent_name: create_rust_string_from!(self.intent_name),
+            enable: match self.enable {
+                0 => Some(false),
+                1 => Some(true),
+                _ => None,
+            },
+        })
+    }
+}
+
+impl Drop for CDialogueConfigureIntent {
+    fn drop(&mut self) {
+        take_back_c_string!(self.intent_name)
+    }
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct CDialogueConfigureIntentArray {
+    pub entries: *const *const CDialogueConfigureIntent,
+    pub count: libc::c_int,
+}
+
+impl CReprOf<Vec<hermes::DialogueConfigureIntent>> for CDialogueConfigureIntentArray {
+    fn c_repr_of(input: Vec<hermes::DialogueConfigureIntent>) -> Fallible<Self> {
+        let array = Self {
+            count: input.len() as _,
+            entries: Box::into_raw(
+                input
+                    .into_iter()
+                    .map(|e| CDialogueConfigureIntent::c_repr_of(e).map(|c| c.into_raw_pointer()))
+                    .collect::<Fallible<Vec<_>>>()
+                    .context("Could not convert map to C Repr")?
+                    .into_boxed_slice(),
+            ) as *const *const _,
+        };
+        Ok(array)
+    }
+}
+
+impl AsRust<Vec<hermes::DialogueConfigureIntent>> for CDialogueConfigureIntentArray {
+    fn as_rust(&self) -> Fallible<Vec<hermes::DialogueConfigureIntent>> {
+        let mut result = Vec::with_capacity(self.count as usize);
+
+        for e in unsafe { slice::from_raw_parts(self.entries, self.count as usize) } {
+            result.push(unsafe { CDialogueConfigureIntent::raw_borrow(*e) }?.as_rust()?);
+        }
+        Ok(result)
+    }
+}
+
+impl Drop for CDialogueConfigureIntentArray {
+    fn drop(&mut self) {
+        unsafe {
+            let slots = Box::from_raw(std::slice::from_raw_parts_mut(
+                self.entries as *mut *mut CDialogueConfigureIntent,
+                self.count as usize,
+            ));
+
+            for e in slots.iter() {
+                let _ = CDialogueConfigureIntent::drop_raw_pointer(*e);
+            }
+        }
+    }
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct CDialogueConfigureMessage {
+    /// Nullable
+    pub site_id: *const libc::c_char,
+    /// Nullable
+    pub intents: *const CDialogueConfigureIntentArray,
+}
+
+unsafe impl Sync for CDialogueConfigureMessage {}
+
+impl CReprOf<hermes::DialogueConfigureMessage> for CDialogueConfigureMessage {
+    fn c_repr_of(input: hermes::DialogueConfigureMessage) -> Fallible<Self> {
+        Ok(Self {
+            site_id: convert_to_nullable_c_string!(input.site_id),
+            intents: if let Some(intents) = input.intents {
+                CDialogueConfigureIntentArray::c_repr_of(intents)?.into_raw_pointer()
+            } else {
+                null()
+            },
+        })
+    }
+}
+
+impl AsRust<hermes::DialogueConfigureMessage> for CDialogueConfigureMessage {
+    fn as_rust(&self) -> Fallible<hermes::DialogueConfigureMessage> {
+        Ok(hermes::DialogueConfigureMessage {
+            site_id: create_optional_rust_string_from!(self.site_id),
+            intents: if self.intents.is_null() {
+                None
+            } else {
+                Some(unsafe { &*self.intents }.as_rust()?)
+            },
+        })
+    }
+}
+
+impl Drop for CDialogueConfigureMessage {
+    fn drop(&mut self) {
+        take_back_nullable_c_string!(self.site_id);
+        if !self.intents.is_null() {
+            let _ = unsafe { CDialogueConfigureIntentArray::drop_raw_pointer(self.intents) };
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::super::tests::round_trip_test;
@@ -777,6 +921,68 @@ mod tests {
         round_trip_test::<_, CEndSessionMessage>(hermes::EndSessionMessage {
             session_id: "my session id".into(),
             text: None,
+        });
+    }
+
+    #[test]
+    fn round_trip_dialogue_configure_intent() {
+        round_trip_test::<_, CDialogueConfigureIntent>(hermes::DialogueConfigureIntent {
+            intent_name: "my intent".into(),
+            enable: Some(true),
+        });
+        round_trip_test::<_, CDialogueConfigureIntent>(hermes::DialogueConfigureIntent {
+            intent_name: "an intent".into(),
+            enable: Some(false),
+        });
+        round_trip_test::<_, CDialogueConfigureIntent>(hermes::DialogueConfigureIntent {
+            intent_name: "".into(),
+            enable: None,
+        });
+    }
+
+    #[test]
+    fn round_trip_dialogue_configure_intent_array() {
+        round_trip_test::<_, CDialogueConfigureIntentArray>(vec![
+            hermes::DialogueConfigureIntent {
+                intent_name: "my intent".into(),
+                enable: Some(true),
+            },
+            hermes::DialogueConfigureIntent {
+                intent_name: "an intent".into(),
+                enable: Some(false),
+            },
+            hermes::DialogueConfigureIntent {
+                intent_name: "".into(),
+                enable: None,
+            },
+        ]);
+
+        round_trip_test::<_, CDialogueConfigureIntentArray>(vec![]);
+    }
+
+    #[test]
+    fn round_trip_dialogue_configure() {
+        round_trip_test::<_, CDialogueConfigureMessage>(hermes::DialogueConfigureMessage {
+            site_id: Some("some site".into()),
+            intents: Some(vec![
+                hermes::DialogueConfigureIntent {
+                    intent_name: "my intent".into(),
+                    enable: Some(true),
+                },
+                hermes::DialogueConfigureIntent {
+                    intent_name: "an intent".into(),
+                    enable: Some(false),
+                },
+                hermes::DialogueConfigureIntent {
+                    intent_name: "".into(),
+                    enable: None,
+                },
+            ]),
+        });
+
+        round_trip_test::<_, CDialogueConfigureMessage>(hermes::DialogueConfigureMessage {
+            site_id: None,
+            intents: None,
         });
     }
 }

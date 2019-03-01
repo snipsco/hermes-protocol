@@ -232,6 +232,7 @@ pub trait DialogueFacade: ComponentFacade + ToggleableFacade {
     fn publish_start_session(&self, start_session: StartSessionMessage) -> Fallible<()>;
     fn publish_continue_session(&self, continue_session: ContinueSessionMessage) -> Fallible<()>;
     fn publish_end_session(&self, end_session: EndSessionMessage) -> Fallible<()>;
+    fn publish_configure(&self, config: DialogueConfigureMessage) -> Fallible<()>;
 }
 
 /// The facade the dialogue manager must use to interact with the lambdas
@@ -244,6 +245,7 @@ pub trait DialogueBackendFacade: ComponentBackendFacade + ToggleableBackendFacad
     fn subscribe_start_session(&self, handler: Callback<StartSessionMessage>) -> Fallible<()>;
     fn subscribe_continue_session(&self, handler: Callback<ContinueSessionMessage>) -> Fallible<()>;
     fn subscribe_end_session(&self, handler: Callback<EndSessionMessage>) -> Fallible<()>;
+    fn subscribe_configure(&self, handler: Callback<DialogueConfigureMessage>) -> Fallible<()>;
 }
 
 /// The facade to interact with the injection component

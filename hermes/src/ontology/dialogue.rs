@@ -15,6 +15,8 @@ pub struct IntentMessage {
     pub input: String,
     /// The tokens detected by the ASR. The first vec represents the different ASR invocations
     pub asr_tokens: Option<Vec<Vec<AsrToken>>>,
+    /// Confidence of the asr capture
+    pub asr_confidence: Option<f32>,
     /// The result of the intent classification
     pub intent: NluIntentClassifierResult,
     /// The detected slots, if any
@@ -188,3 +190,23 @@ pub struct SessionEndedMessage {
 }
 
 impl<'de> HermesMessage<'de> for SessionEndedMessage {}
+
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DialogueConfigureMessage {
+    /// The site on which this configuration applies, if None the configuration will be applied to
+    /// all sites.
+    pub site_id: Option<String>,
+    /// Intent configurations to apply.
+    pub intents: Option<Vec<DialogueConfigureIntent>>,
+}
+
+impl<'de> HermesMessage<'de> for DialogueConfigureMessage {}
+
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+pub struct DialogueConfigureIntent {
+    /// The name of the intent that should be configured.
+    pub intent_name: String,
+    /// Whether this intent should be activated on not.
+    pub enable: Option<bool>,
+}

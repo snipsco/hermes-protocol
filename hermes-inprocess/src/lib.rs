@@ -818,6 +818,11 @@ struct DialogueEndSession {
     end_session: EndSessionMessage,
 }
 
+#[derive(Debug)]
+struct DialogueConfigure {
+    config: DialogueConfigureMessage,
+}
+
 impl DialogueFacade for InProcessComponent<Dialogue> {
     fn subscribe_session_queued(&self, handler: Callback<SessionQueuedMessage>) -> Fallible<()> {
         subscribe!(self, DialogueSessionQueued { status }, handler)
@@ -857,6 +862,10 @@ impl DialogueFacade for InProcessComponent<Dialogue> {
     fn publish_end_session(&self, end_session: EndSessionMessage) -> Fallible<()> {
         self.publish(DialogueEndSession { end_session })
     }
+
+    fn publish_configure(&self, config: DialogueConfigureMessage) -> Fallible<()> {
+        self.publish(DialogueConfigure { config })
+    }
 }
 
 impl DialogueBackendFacade for InProcessComponent<Dialogue> {
@@ -890,6 +899,10 @@ impl DialogueBackendFacade for InProcessComponent<Dialogue> {
 
     fn subscribe_end_session(&self, handler: Callback<EndSessionMessage>) -> Fallible<()> {
         subscribe!(self, DialogueEndSession { end_session }, handler)
+    }
+
+    fn subscribe_configure(&self, handler: Callback<DialogueConfigureMessage>) -> Fallible<()> {
+        subscribe!(self, DialogueConfigure { config }, handler)
     }
 }
 

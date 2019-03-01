@@ -338,6 +338,10 @@ typedef struct {
    * Nullable, the first array level represents the asr invocation, the second one the tokens
    */
   const CAsrTokenDoubleArray *asr_tokens;
+  /**
+   * Note: this value is optional. Any value not in [0,1] should be ignored.
+   */
+  float asr_confidence;
 } CIntentMessage;
 
 typedef struct {
@@ -393,6 +397,30 @@ typedef struct {
    */
   const char *reactivated_from_session_id;
 } CSessionStartedMessage;
+
+typedef struct {
+  const char *intent_name;
+  /**
+   * Optional Boolean 0 => false, 1 => true other values => null
+   */
+  unsigned char enable;
+} CDialogueConfigureIntent;
+
+typedef struct {
+  const CDialogueConfigureIntent *const *entries;
+  int count;
+} CDialogueConfigureIntentArray;
+
+typedef struct {
+  /**
+   * Nullable
+   */
+  const char *site_id;
+  /**
+   * Nullable
+   */
+  const CDialogueConfigureIntentArray *intents;
+} CDialogueConfigureMessage;
 
 /**
  * An array of strings
@@ -919,6 +947,9 @@ SNIPS_RESULT hermes_dialogue_backend_publish_session_queued(const CDialogueBacke
 SNIPS_RESULT hermes_dialogue_backend_publish_session_started(const CDialogueBackendFacade *facade,
                                                              const CSessionStartedMessage *message);
 
+SNIPS_RESULT hermes_dialogue_backend_subscribe_configure(const CDialogueBackendFacade *facade,
+                                                         void (*handler)(const CDialogueConfigureMessage*, void*));
+
 SNIPS_RESULT hermes_dialogue_backend_subscribe_continue_session(const CDialogueBackendFacade *facade,
                                                                 void (*handler)(const CContinueSessionMessage*, void*));
 
@@ -927,6 +958,9 @@ SNIPS_RESULT hermes_dialogue_backend_subscribe_end_session(const CDialogueBacken
 
 SNIPS_RESULT hermes_dialogue_backend_subscribe_start_session(const CDialogueBackendFacade *facade,
                                                              void (*handler)(const CStartSessionMessage*, void*));
+
+SNIPS_RESULT hermes_dialogue_publish_configure(const CDialogueFacade *facade,
+                                               const CDialogueConfigureMessage *message);
 
 SNIPS_RESULT hermes_dialogue_publish_continue_session(const CDialogueFacade *facade,
                                                       const CContinueSessionMessage *message);
@@ -969,6 +1003,8 @@ SNIPS_RESULT hermes_drop_audio_server_facade(const CAudioServerFacade *cstruct);
 SNIPS_RESULT hermes_drop_continue_session_message(const CContinueSessionMessage *cstruct);
 
 SNIPS_RESULT hermes_drop_dialogue_backend_facade(const CDialogueBackendFacade *cstruct);
+
+SNIPS_RESULT hermes_drop_dialogue_configure_message(const CDialogueConfigureMessage *cstruct);
 
 SNIPS_RESULT hermes_drop_dialogue_facade(const CDialogueFacade *cstruct);
 

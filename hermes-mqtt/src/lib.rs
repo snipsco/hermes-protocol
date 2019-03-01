@@ -598,6 +598,7 @@ impl DialogueFacade for MqttToggleableComponentFacade {
     p!(publish_start_session<StartSessionMessage> &HermesTopic::DialogueManager(DialogueManagerCommand::StartSession););
     p!(publish_continue_session<ContinueSessionMessage> &HermesTopic::DialogueManager(DialogueManagerCommand::ContinueSession););
     p!(publish_end_session<EndSessionMessage> &HermesTopic::DialogueManager(DialogueManagerCommand::EndSession););
+    p!(publish_configure<DialogueConfigureMessage> &HermesTopic::DialogueManager(DialogueManagerCommand::Configure););
 }
 
 impl DialogueBackendFacade for MqttToggleableComponentFacade {
@@ -609,6 +610,7 @@ impl DialogueBackendFacade for MqttToggleableComponentFacade {
     s!(subscribe_start_session<StartSessionMessage> &HermesTopic::DialogueManager(DialogueManagerCommand::StartSession););
     s!(subscribe_continue_session<ContinueSessionMessage> &HermesTopic::DialogueManager(DialogueManagerCommand::ContinueSession););
     s!(subscribe_end_session<EndSessionMessage> &HermesTopic::DialogueManager(DialogueManagerCommand::EndSession););
+    s!(subscribe_configure<DialogueConfigureMessage> &HermesTopic::DialogueManager(DialogueManagerCommand::Configure););
 }
 
 impl InjectionFacade for MqttComponentFacade {
