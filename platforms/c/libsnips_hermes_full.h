@@ -339,9 +339,9 @@ typedef struct {
    */
   const CAsrTokenDoubleArray *asr_tokens;
   /**
-   * Nullable
+   * Note: this value is optional. Any value not in [0,1] should be ignored.
    */
-  const float *asr_confidence;
+  float asr_confidence;
 } CIntentMessage;
 
 typedef struct {
