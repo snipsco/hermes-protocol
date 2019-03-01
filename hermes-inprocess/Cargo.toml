@@ -1,6 +1,6 @@
 [package]
 name = "hermes-inprocess"
-version = "0.63.0"
+version = "0.64.0-SNAPSHOT"
 authors = ["Thibaut Lorrain <thibaut.lorrain@snips.ai>"]
 edition = "2018"
 
@@ -13,4 +13,4 @@ log = "0.4"
 
 [dev-dependencies]
 semver = "0.9"
-snips-nlu-ontology = { git = "https://github.com/snipsco/snips-nlu-ontology", tag = "0.63.1" }
+snips-nlu-ontology = { git = "https://github.com/snipsco/snips-nlu-ontology", tag = "0.64.4" }

@@ -1,6 +1,6 @@
 [package]
 name = "hermes"
-version = "0.63.0"
+version = "0.64.0-SNAPSHOT"
 authors = [
     "Kevin Lefevre <kevin.lefevre@snips.ai>",
     "Thibaut Lorrain <thibaut.lorrain@snips.ai"
@@ -11,7 +11,7 @@ edition = "2018"
 base64 = "0.10"
 chrono = { version = "0.4", features = ["serde"] }
 failure = "0.1"
-snips-nlu-ontology = { git = "https://github.com/snipsco/snips-nlu-ontology", tag = "0.63.1" }
+snips-nlu-ontology = { git = "https://github.com/snipsco/snips-nlu-ontology", tag = "0.64.4" }
 semver = { version = "0.9", features = ["serde"] }
 serde = "1.0"
 serde_derive = "1.0"
