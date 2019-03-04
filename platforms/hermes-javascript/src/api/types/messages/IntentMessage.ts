@@ -16,7 +16,7 @@ export type InstantTimeSlotValue<T extends slotType.instantTime> = {
     kind: T,
     value: string,
     grain: grain,
-    precisition: 'Exact' | 'Approximate'
+    precision: 'Exact' | 'Approximate'
 }
 export type TimeIntervalSlotValue<T extends slotType.timeInterval> = {
     kind: T,
@@ -26,7 +26,7 @@ export type TimeIntervalSlotValue<T extends slotType.timeInterval> = {
 export type AmountOfMoneySlotValue<T extends slotType.amountOfMoney> = {
     kind: T,
     value: number,
-    precisition: 'Exact' | 'Approximate',
+    precision: 'Exact' | 'Approximate',
     unit: string
 }
 export type TemperatureSlotValue<T extends slotType.temperature> = {
