@@ -53,7 +53,7 @@ export default class DialogFlow {
     }
 
     // Executed after a message callback has been processed.
-    private continuation(options: { [key: string]: any } = {}) {
+    private continuation(options: { [key: string]: any } = {}, { sessionStart = false } = {}) {
         if(typeof options === 'string') {
             options = { text: options }
         }
@@ -82,14 +82,16 @@ export default class DialogFlow {
             this.notRecognizedListener = wrappedListener
             options.sendIntentNotRecognized = true
         }
-        // Publish a continue session message
-        this.dialog.publish('continue_session', {
-            text: '',
-            ...options,
-            slot: this.slotFiller,
-            sessionId: this.sessionId,
-            intentFilter
-        })
+        if(!sessionStart) {
+            // Publish a continue session message
+            this.dialog.publish('continue_session', {
+                text: '',
+                ...options,
+                slot: this.slotFiller,
+                sessionId: this.sessionId,
+                intentFilter
+            })
+        }
     }
 
     private createListener(action: FlowIntentAction | FlowNotRecognizedAction) {
@@ -114,14 +116,14 @@ export default class DialogFlow {
     }
 
     // Starts a dialog flow.
-    start(action: FlowIntentAction | FlowSessionAction, message: IntentMessage | SessionStartedMessage) {
+    start(action: FlowIntentAction | FlowSessionAction, message: IntentMessage | SessionStartedMessage, { sessionStart = false } = {}) {
         const flow : FlowContinuation = {
             continue: this.continue.bind(this),
             notRecognized: this.notRecognized.bind(this),
             end: this.end.bind(this)
         }
         return Promise.resolve(action(message as any, flow))
-            .then(this.continuation.bind(this))
+            .then((...args) => this.continuation.bind(this)(...args, { sessionStart }))
     }
 
     // Registers an intent filter and continue the current dialog session.

@@ -109,7 +109,7 @@ export default class Dialog extends ApiSubset {
                 this.activeSessions.delete(sessionId)
             })
             this.activeSessions.add(sessionId)
-            return flow.start(action, message)
+            return flow.start(action, message, { sessionStart: true })
         }
         this.on('session_started', listener)
     }
