@@ -92,6 +92,7 @@ export type IntentMessage = {
         intentName: string,
         confidenceScore: number
     },
+    asrConfidence: number,
     asrTokens: [
         {
             value: string,
