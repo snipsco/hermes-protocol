@@ -1,3 +1,13 @@
+## [0.3.2](https://github.com/snipsco/hermes-protocol/compare/js/0.3.1...0.3.2) (2019-03-04)
+
+
+### Bug Fixes
+
+* **js:** postinstall step triggering for CI builds ([b3b71fd](https://github.com/snipsco/hermes-protocol/commit/b3b71fd))
+* **js:** sessionFlow, do not publish a continue session message ([7c6acba](https://github.com/snipsco/hermes-protocol/commit/7c6acba))
+
+
+
 ## [0.3.1](https://github.com/snipsco/hermes-protocol/compare/js/0.3.0...0.3.1) (2019-02-27)
 
 
