@@ -10,7 +10,7 @@ The `hermes-python` library provides python bindings for the Hermes protocol tha
 ## Installation 
 The library is packaged as a pre-compiled platform wheel, available on [PyPi](https://pypi.org/project/hermes-python/).
 It can be installed with : 
-```
+```bash
 pip install hermes-python
 ```
 
@@ -37,18 +37,20 @@ This code implies that you created a weather assistant using the [snips Console]
 
 Here is a code example for `python2.7` : 
 
-```
+```python
 from hermes_python.hermes import Hermes
 
-MQTT_ADDR = "localhost:1883"	# Specify host and port for the MQTT broker 
+MQTT_ADDR = "localhost:1883" # Specify host and port for the MQTT broker 
 
-def subscribe_weather_forecast_callback(hermes, intentMessage):	# Defining callback functions to handle an intent that asks for the weather. 
-	print("Parsed intent : {}".format(intentMessage.intent.intent_name))
+# Defining callback functions to handle an intent that asks for the weather.
+def subscribe_weather_forecast_callback(hermes, intentMessage):
+    print("Parsed intent : {}".format(intentMessage.intent.intent_name))
 
 
 with Hermes(MQTT_ADDR) as h: # Initialization of a connection to the MQTT broker
-	h.subscribe_intent("searchWeatherForecast", subscribe_weather_forecast_callback) \  # Registering callback functions to handle the searchWeatherForecast intent
-         .start() 
+    # Registering callback functions to handle the searchWeatherForecast intent
+    h.subscribe_intent("searchWeatherForecast", subscribe_weather_forecast_callback)\
+        .start()
 
 # We get out of the with block, which closes and releases the connection. 
 
@@ -60,7 +62,7 @@ The connection to your MQTT broker can be configured with the `hermes_python.ffi
 The `Hermes` client uses the options specified in the `MqttOptions` class when establishing the connection to the MQTT broker. 
 
 Here is a code example : 
-```
+```python
 from hermes_python.hermes import Hermes
 from hermes_python.ffi.utils import MqttOptions
 
@@ -87,7 +89,7 @@ Here are the options you can specify in the MqttOptions class :
 
 Let's connect to an external MQTT broker that requires a username and a password :  
 
-```
+```python
 from hermes_python.hermes import Hermes
 from hermes_python.ffi.utils import MqttOptions
 
