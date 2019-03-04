@@ -723,6 +723,8 @@ Exposes text-to-speech options.
 
 Register a sound file and makes the TTS able to play it in addition to pure speech.
 
+You can interpolate a text-to-speech string with the following tag: `[[sound:soundId]]`
+
 ```js
 const wavBuffer = // A Buffer object containing a wav file.
 
