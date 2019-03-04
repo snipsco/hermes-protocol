@@ -90,6 +90,9 @@ typedef struct {
 
 SNIPS_RESULT hermes_destroy_mqtt_protocol_handler(CProtocolHandler *handler);
 
+SNIPS_RESULT hermes_dialogue_publish_configure_json(const CDialogueFacade *facade,
+                                                    const char *message);
+
 SNIPS_RESULT hermes_dialogue_publish_continue_session_json(const CDialogueFacade *facade,
                                                            const char *message);
 

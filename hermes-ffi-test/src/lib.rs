@@ -118,6 +118,30 @@ pub extern "C" fn hermes_ffi_test_round_trip_register_sound(
 }
 
 #[no_mangle]
+pub extern "C" fn hermes_ffi_test_round_trip_dialogue_configure_intent(
+    input: *const hermes_ffi::CDialogueConfigureIntent,
+    output: *mut *const hermes_ffi::CDialogueConfigureIntent,
+) -> ffi_utils::SNIPS_RESULT {
+    wrap!(round_trip(input, output))
+}
+
+#[no_mangle]
+pub extern "C" fn hermes_ffi_test_round_trip_dialogue_configure_intent_array(
+    input: *const hermes_ffi::CDialogueConfigureIntentArray,
+    output: *mut *const hermes_ffi::CDialogueConfigureIntentArray,
+) -> ffi_utils::SNIPS_RESULT {
+    wrap!(round_trip(input, output))
+}
+
+#[no_mangle]
+pub extern "C" fn hermes_ffi_test_round_trip_dialogue_configure(
+    input: *const hermes_ffi::CDialogueConfigureMessage,
+    output: *mut *const hermes_ffi::CDialogueConfigureMessage,
+) -> ffi_utils::SNIPS_RESULT {
+    wrap!(round_trip(input, output))
+}
+
+#[no_mangle]
 pub unsafe extern "C" fn hermes_ffi_test_destroy_string(string: *mut libc::c_char) -> SNIPS_RESULT {
     wrap!(std::ffi::CString::from_raw_pointer(string))
 }

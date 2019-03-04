@@ -155,6 +155,30 @@ typedef struct {
   void *user_data;
 } CDialogueFacade;
 
+typedef struct {
+  const char *intent_name;
+  /**
+   * Optional Boolean 0 => false, 1 => true other values => null
+   */
+  unsigned char enable;
+} CDialogueConfigureIntent;
+
+typedef struct {
+  const CDialogueConfigureIntent *const *entries;
+  int count;
+} CDialogueConfigureIntentArray;
+
+typedef struct {
+  /**
+   * Nullable
+   */
+  const char *site_id;
+  /**
+   * Nullable
+   */
+  const CDialogueConfigureIntentArray *intents;
+} CDialogueConfigureMessage;
+
 /**
  * An array of strings
  */
@@ -322,6 +346,10 @@ typedef struct {
    * Nullable, the first array level represents the asr invocation, the second one the tokens
    */
   const CAsrTokenDoubleArray *asr_tokens;
+  /**
+   * Note: this value is optional. Any value not in [0,1] should be ignored.
+   */
+  float asr_confidence;
 } CIntentMessage;
 
 typedef struct {
@@ -640,6 +668,9 @@ typedef struct {
 } CDurationValue;
 
 SNIPS_RESULT hermes_destroy_mqtt_protocol_handler(CProtocolHandler *handler);
+
+SNIPS_RESULT hermes_dialogue_publish_configure(const CDialogueFacade *facade,
+                                               const CDialogueConfigureMessage *message);
 
 SNIPS_RESULT hermes_dialogue_publish_continue_session(const CDialogueFacade *facade,
                                                       const CContinueSessionMessage *message);
