@@ -1,3 +1,7 @@
+## [0.3.5](https://github.com/snipsco/hermes-protocol/compare/js/0.3.4...0.3.5) (2019-03-05)
+
+**Upgraded dependencies.**
+
 ## [0.3.4](https://github.com/snipsco/hermes-protocol/compare/js/0.3.3...0.3.4) (2019-03-05)
 
 
