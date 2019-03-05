@@ -30,8 +30,8 @@ class IntentMessage(object):
         self.custom_data = custom_data
         self.site_id = site_id
         self.input = input
-        self.intent = intent
-        self.slots = slots
+        self.intent = intent # type : IntentClassifierResult
+        self.slots = slots  # type: SlotMap
 
     @classmethod
     def from_c_repr(cls, c_repr):

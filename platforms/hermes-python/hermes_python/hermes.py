@@ -18,6 +18,7 @@ class Hermes(object):
                  rust_logs_enabled=False,
                  mqtt_options=MqttOptions(),
                  use_json_api=False):
+        # type: (str, bool, MqttOptions, bool) -> Hermes
         """
         :param broker_address: Address of the MQTT broker in the form 'ip:port'
         :param rust_logs_enabled: Enables or Disables stdout logs *(default false)*
@@ -29,11 +30,11 @@ class Hermes(object):
         self.rust_logs_enabled = rust_logs_enabled
         self.use_json_api = use_json_api
 
-        self.mqtt_options = mqtt_options
+        self.mqtt_options = mqtt_options # type: MqttOptions
         if broker_address:  # This test is kept for API compatibility reasons.
             self.mqtt_options.broker_address = broker_address
 
-        self.ffi = FFI(use_json_api=use_json_api)
+        self.ffi = FFI(use_json_api=use_json_api) # type: FFI
 
         self._thread = None
         self._thread_terminate = False
@@ -189,7 +190,8 @@ class Hermes(object):
         self.ffi.dialogue.publish_end_session(end_session_message)
         return self
 
-    def publish_start_session_notification(self, site_id, session_init_value, custom_data, text=""):
+    def publish_start_session_notification(self, site_id, session_initiation_text, custom_data, text=""):
+        # type: (str, str, str, str) -> Hermes
         """
         Publishes a StartSession message to the Dialogue Manager to initiate a new session.
 
