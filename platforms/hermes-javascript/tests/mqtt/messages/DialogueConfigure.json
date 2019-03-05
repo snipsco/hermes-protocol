@@ -1,0 +1,17 @@
+{
+    "siteId": "default",
+    "intents":[
+        {
+            "intentName": "intent1",
+            "enable": true
+        },
+        {
+            "intentName": "intent2",
+            "enable": false
+        },
+        {
+            "intentName": "intent3",
+            "enable": null
+        }
+    ]
+}

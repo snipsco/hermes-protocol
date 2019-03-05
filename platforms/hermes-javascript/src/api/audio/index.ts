@@ -1,12 +1,8 @@
 import ref from 'ref'
 import ApiSubset from '../ApiSubset'
 import {
-    PlayBytesMessage
-} from '../../casts'
-import {
-    CPlayBytesMessage,
-    CPlayFinishedMessage
-} from '../../ffi/typedefs'
+    AudioTypes, FFIFunctionCall, HermesOptions
+} from '../types'
 
 /**
  * @experimental
@@ -15,33 +11,29 @@ import {
  */
 export default class Audio extends ApiSubset {
 
-    constructor(protocolHandler, call) {
-        super(protocolHandler, call, 'hermes_protocol_handler_audio_server_facade')
+    constructor(protocolHandler: Buffer, call: FFIFunctionCall, options: HermesOptions) {
+        super(protocolHandler, call, options, 'hermes_protocol_handler_audio_server_facade')
     }
 
     publishEvents = {
         play_audio: {
-            fullEventName: 'hermes_audio_server_publish_play_bytes',
-            messageClass: PlayBytesMessage,
-            forgedStruct: CPlayBytesMessage
+            fullEventName: 'hermes_audio_server_publish_play_bytes_json'
         }
     }
+    publishMessagesList: AudioTypes.publishMessagesList = undefined as any
 
     subscribeEvents = {
         'play_finished/': {
-            fullEventName: 'hermes_audio_server_subscribe_play_finished',
-            dropEventName: 'hermes_drop_play_finished_message',
-            messageStruct: CPlayFinishedMessage,
+            fullEventName: 'hermes_audio_server_subscribe_play_finished_json',
             additionalArguments: eventName => [
                 ref.allocCString(eventName.substring(14))
-            ],
+            ]
         },
         play_finished_all: {
-            fullEventName: 'hermes_audio_server_subscribe_all_play_finished',
-            dropEventName: 'hermes_drop_play_finished_message',
-            messageStruct: CPlayFinishedMessage
+            fullEventName: 'hermes_audio_server_subscribe_all_play_finished_json'
         },
     }
+    subscribeMessagesList: AudioTypes.subscribeMessagesList  = undefined as any
 
     destroy () {
         this.call('hermes_drop_audio_server_facade', this.facade)

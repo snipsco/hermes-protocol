@@ -1,7 +1,7 @@
 {
   "name": "hermes-javascript",
-  "version": "0.1.0",
-  "hermes-mqtt-version": "0.61.0",
+  "version": "0.3.5",
+  "hermes-mqtt-version": "0.64.1",
   "description": "Hermes javascript bindings",
   "keywords": [
     "snips",
@@ -18,23 +18,27 @@
   },
   "main": "dist/index.js",
   "scripts": {
-    "start": "npm run lint && npm run build && npm run test",
+    "start": "npm run lint && npm run clean && npm run build && npm run test",
     "lint": "eslint --ext .js,.ts src",
     "lint:fix": "eslint --ext .js,.ts --fix src",
     "build": "npm run build:sources && npm run build:declarations",
     "build:sources": "tsc",
     "build:declarations": "tsc -d --emitDeclarationOnly --allowJs false",
     "build:hermes": "node scripts/make.js",
+    "clean": "rimraf dist",
     "postinstall": "node scripts/postinstall.js",
-    "test": "npm run test:mqtt && npm run test:roundtrip",
-    "test:mqtt": "jest ./tests/mqtt/mqttTests.spec.ts && jest ./tests/mqtt/mqttTls.spec.js",
-    "test:roundtrip": "jest ./tests/casts/roundtrips.spec.js"
+    "test": "npm run test:mqtt",
+    "test:mqtt": "npm run test:mqtt:json && npm run test:mqtt:tls",
+    "test:mqtt:json": "jest ./tests/mqtt/mqttJson.spec.ts",
+    "test:mqtt:tls": "jest ./tests/mqtt/mqttTls.spec.ts",
+    "release": "standard-version",
+    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 1 --commit-path=. -t=js/"
   },
   "engines": {
     "node": ">=10"
   },
   "author": "Julien Elbaz",
-  "license": "MIT",
+  "license": "(MIT OR Apache-2.0)",
   "files": [
     "dist",
     "scripts"
@@ -48,24 +52,26 @@
     "ref-array": "^1.2.0",
     "ref-struct": "^1.1.0",
     "tmp": "0.0.33",
-    "wretch": "^1.4.2"
+    "wretch": "^1.5.0"
   },
   "devDependencies": {
-    "@types/ffi": "^0.2.1",
-    "@types/jest": "^23.3.13",
+    "@types/ffi": "^0.2.2",
+    "@types/jest": "^24.0.9",
     "@types/node-int64": "^0.4.29",
     "@types/ref": "0.0.28",
     "@types/ref-array": "0.0.28",
     "@types/ref-struct": "0.0.29",
-    "@typescript-eslint/eslint-plugin": "^1.1.0",
-    "@typescript-eslint/parser": "^1.1.0",
-    "camelcase": "^5.0.0",
-    "eslint": "^5.12.1",
-    "eslint-plugin-jest": "^22.1.3",
-    "jest": "^23.6.0",
+    "@typescript-eslint/eslint-plugin": "^1.4.2",
+    "@typescript-eslint/parser": "^1.4.2",
+    "camelcase": "^5.2.0",
+    "conventional-changelog-cli": "^2.0.12",
+    "eslint": "^5.15.1",
+    "eslint-plugin-jest": "^22.3.0",
+    "jest": "^24.1.0",
     "mqtt": "^2.18.8",
+    "rimraf": "^2.6.3",
     "segfault-handler": "^1.0.1",
-    "ts-jest": "^23.10.5",
-    "typescript": "^3.2.4"
+    "ts-jest": "^24.0.0",
+    "typescript": "^3.3.3333"
   }
 }

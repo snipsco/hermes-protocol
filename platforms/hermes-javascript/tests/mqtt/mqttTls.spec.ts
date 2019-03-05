@@ -1,15 +1,17 @@
-const fs = require('fs')
-const path = require('path')
-const { spawn } = require('child_process')
-const mqtt = require('mqtt')
-const { Hermes } = require('../../dist')
-const { LIB_ENV_FOLDER } = require('../constants')
+/* eslint-disable no-console */
 
+import fs from 'fs'
+import path from 'path'
+import { spawn } from 'child_process'
+import mqtt from 'mqtt'
+import { Hermes } from '../../dist'
+import { LIB_ENV_FOLDER } from '../constants'
 // Log segfaults
-const SegfaultHandler = require('segfault-handler')
+import SegfaultHandler from 'segfault-handler'
+
 SegfaultHandler.registerHandler('crash.log')
 
-let mosquitto, hermes
+let mosquitto: any, hermes: Hermes
 
 beforeAll(async () => {
     console.log('Launching secure mosquitto')
@@ -48,14 +50,9 @@ it('should connect to a secure TLS mosquitto server', done => {
     const message = {
         siteId: 'default',
         sessionId: 'session id',
-        confidenceScore: 0.5
-    }
-    const expectedMessage = {
-        custom_data: null,
-        input: null,
-        session_id: 'session id',
-        site_id: 'default',
-        confidence_score: 0.5
+        confidenceScore: 0.5,
+        customData: null,
+        input: null
     }
     const client = mqtt.connect('mqtts://localhost:18886', {
         username: 'foo',
@@ -66,16 +63,16 @@ it('should connect to a secure TLS mosquitto server', done => {
         rejectUnauthorized: false
     })
     client.on('error', function(err) {
-        client.end({ force: true })
+        client.end(true)
         done()
-        throw new Error(err)
+        throw err
     })
     client.on('connect', function () {
         client.publish('hermes/dialogueManager/intentNotRecognized', JSON.stringify(message))
     })
 
     const callback = function(msg) {
-        expect(expectedMessage).toEqual(msg)
+        expect(msg).toEqual(message)
         client.end()
         done()
     }

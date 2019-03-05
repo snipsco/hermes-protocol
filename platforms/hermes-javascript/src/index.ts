@@ -12,7 +12,10 @@ export type Done = () => void
  * @param {*} context The wrapped context function.
  * @param {*} opts Hermes options.
  */
-export const withHermes = function(context: (hermes: Hermes, done: Done) => void, opts?: HermesOptions) {
+export const withHermes = function(
+    context: (hermes: Hermes, done: Done) => void,
+    opts?: HermesOptions
+) {
     const hermes = new Hermes(opts)
     const keepAliveRef = tools.keepAlive(60000)
     const done: Done = () => {

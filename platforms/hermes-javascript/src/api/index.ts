@@ -3,6 +3,7 @@ import Dialog from './dialog'
 import Injection from './injection'
 import Feedback from './feedback'
 import Audio from './audio'
+import Tts from './tts'
 import { MqttOptions } from '../casts'
 import { call } from '../ffi/bindings'
 import ApiSubset from './ApiSubset'
@@ -10,7 +11,7 @@ import { HermesOptions, FFIFunctionCall, SubsetConstructor } from './types'
 
 /* Types */
 
-export { Dialog, Injection, Feedback, Audio }
+export { Dialog, Injection, Feedback, Audio, Tts }
 export { ApiSubset }
 export * from './types'
 
@@ -22,9 +23,10 @@ export class Hermes {
 
     /**
      * Create a new Hermes instance that connects to the underlying event bus.
+     * @param {*} options The Hermes options object. *(default: {})*
      * @param {*} options.address The bus address *(default localhost:1883)*
      * @param {*} options.logs Enables or Disables stdout logs *(default false)*
-     * @param {*} options.libraryPath A custom path for the dynamic hermes ffi library
+     * @param {*} options.libraryPath A custom path for the dynamic Hermes ffi library
      * @param {*} options.username Username used when connecting to the broker.
      * @param {*} options.password Password used when connecting to the broker.
      * @param {*} options.tls_hostname Hostname to use for the TLS configuration. If set, enables TLS.
@@ -78,19 +80,25 @@ export class Hermes {
      * Return a Dialog instance used to interact with the dialog API.
      */
     dialog() {
-        return this._getOrCreateSubset('dialog', Dialog)
+        return this._getOrCreateSubset<Dialog>('dialog', Dialog)
     }
     /**
      * Return an Injection instance used to interact with the vocabulary injection API.
      */
     injection() {
-        return this._getOrCreateSubset('injection', Injection)
+        return this._getOrCreateSubset<Injection>('injection', Injection)
     }
     /**
      * Return a Feedback object instance used to interact with the audio feedback API.
      */
     feedback() {
-        return this._getOrCreateSubset('feedback', Feedback)
+        return this._getOrCreateSubset<Feedback>('feedback', Feedback)
+    }
+    /**
+     * Return a Tts object instance used to interact with the text to speech API.
+     */
+    tts() {
+        return this._getOrCreateSubset<Tts>('tts', Tts)
     }
 
     /**
@@ -101,7 +109,7 @@ export class Hermes {
      * Returns an Audio object instance used to interact with the audio playback API.
      */
     audio() {
-        return this._getOrCreateSubset('audio', Audio)
+        return this._getOrCreateSubset<Audio>('audio', Audio)
     }
 
     /**
@@ -119,7 +127,7 @@ export class Hermes {
 
     private _getOrCreateSubset<T extends ApiSubset>(key: string, Class: SubsetConstructor<T>): T {
         if(!this.activeSubsets.has(key)) {
-            this.activeSubsets.set(key, new Class(this.protocolHandler, this.call))
+            this.activeSubsets.set(key, new Class(this.protocolHandler, this.call, this.options))
         }
         return this.activeSubsets.get(key)
     }

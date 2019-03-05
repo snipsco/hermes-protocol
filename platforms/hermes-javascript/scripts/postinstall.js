@@ -5,8 +5,9 @@ const fs = require('fs')
 const readline = require('readline')
 const wretch = require('wretch').default
 
-const { logger, osIsRaspbian, LIB_EXTENSION, LIB_DIST } = require('./utils')
-const hermesMqttVersion = require('../package.json')['hermes-mqtt-version']
+const { logger, osIsRaspbian, hermesMqttVersion, LIB_EXTENSION, LIB_DIST } = require('./utils')
+
+const skipOnSelfInstall = process.cwd() === process.env.INIT_CWD
 
 const request = wretch(`http://s3.amazonaws.com/snips/hermes-mqtt/${hermesMqttVersion}`).polyfills({
     fetch: require('node-fetch')
@@ -79,49 +80,50 @@ function getPlatformName () {
     return 'linux-debian-x86_64'
 }
 
-// Check platform support.
 
-logger.cmd('- Checking platform support.')
-
-const platformName = getPlatformName()
-
-// If not, then require make to build from scratch.
-
-if(process.env.HERMES_BUILD_FROM_SOURCES || !platformName) {
-    require('./make')
+if(skipOnSelfInstall) {
+    // Skipping post-install step on hermes-javascript self install.
 } else {
-    logger.cmd('- Downloading the hermes mqtt dynamic library file…')
-    logger.cmd('Target: ' + LIB_DIST)
+    logger.cmd('- Checking platform support.')
+    const platformName = getPlatformName()
 
-    const libraryFileName = 'libhermes_mqtt_ffi' + LIB_EXTENSION
+    if(process.env.HERMES_BUILD_FROM_SOURCES || !platformName) {
+        // If platform is not supported, then require make to build from scratch.
+        require('./make')
+    } else {
+        logger.cmd('- Downloading the hermes mqtt dynamic library file…')
+        logger.cmd('Target: ' + LIB_DIST)
 
-    request
-        .url(`/${platformName}/${libraryFileName}`)
-        .get()
-        .res(res => {
-            const length = res.headers.get('content-length')
-            let downloaded = 0
-            return new Promise(resolve => {
-                logger.cmd(`Downloaded ${downloaded / 1000} of ${length / 1000} KB`)
-                const fileStream = fs.createWriteStream(LIB_DIST)
-                res.body.pipe(fileStream)
-                const onChunk = chunk => {
-                    downloaded += chunk.length
-                    readline.moveCursor(process.stdout, 0, -1)
+        const libraryFileName = 'libhermes_mqtt_ffi' + LIB_EXTENSION
+
+        request
+            .url(`/${platformName}/${libraryFileName}`)
+            .get()
+            .res(res => {
+                const length = res.headers.get('content-length')
+                let downloaded = 0
+                return new Promise(resolve => {
                     logger.cmd(`Downloaded ${downloaded / 1000} of ${length / 1000} KB`)
-                }
-                res.body.on('data', onChunk)
-                res.body.once('end', () => {
-                    fileStream.removeListener('data', onChunk)
-                    return resolve()
+                    const fileStream = fs.createWriteStream(LIB_DIST)
+                    res.body.pipe(fileStream)
+                    const onChunk = chunk => {
+                        downloaded += chunk.length
+                        readline.moveCursor(process.stdout, 0, -1)
+                        logger.cmd(`Downloaded ${downloaded / 1000} of ${length / 1000} KB`)
+                    }
+                    res.body.on('data', onChunk)
+                    res.body.once('end', () => {
+                        fileStream.removeListener('data', onChunk)
+                        return resolve()
+                    })
                 })
             })
-        })
-        .then(() => logger.success('> Done!'))
-        .catch(error => {
-            logger.error('An error occured while downloading the dynamic library.')
-            logger.cmd('You can build hermes-javascript from source by setting the HERMES_BUILD_FROM_SOURCES environment variable to true.')
-            logger.cmd('Example: env HERMES_BUILD_FROM_SOURCES=true npm install hermes-javascript\n')
-            logger.error(error.message)
-        })
+            .then(() => logger.success('> Done!'))
+            .catch(error => {
+                logger.error('An error occured while downloading the dynamic library.')
+                logger.cmd('You can build hermes-javascript from source by setting the HERMES_BUILD_FROM_SOURCES environment variable to true.')
+                logger.cmd('Example: env HERMES_BUILD_FROM_SOURCES=true npm install hermes-javascript\n')
+                logger.error(error.message)
+            })
+    }
 }
