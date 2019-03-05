@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 from builtins import object
 from collections import defaultdict
 from six.moves import range
-from dotmap import DotMap
 
 from ctypes import string_at, c_double
 from ..ffi.ontology.dialogue import CAmountOfMoneyValue, CTemperatureValue, CInstantTimeValue, CTimeIntervalValue, \
@@ -67,10 +66,23 @@ class IntentClassifierResult(object):
         return cls(intent_name, confidence_score)
 
 
-class SlotMap(DotMap):
+class SlotMap(object):
+    def __init__(self, data):
+        # type: (dict) -> SlotMap
+        mapping = defaultdict(SlotsList)
+        for k,v in data.items():
+            mapping[k] = v
+        self.__data = mapping
+
+    def __getattr__(self, item):
+        return self.__data[item]
+
+    def __getitem__(self, item):
+        return self.__data[item]
+
     @classmethod
     def from_c_repr(cls, c_slots_list_repr):
-        mapping = defaultdict(SlotsList)
+        mapping = dict()
 
         slots_list_length = c_slots_list_repr.count
         c_slots_array_repr = c_slots_list_repr.entries
@@ -80,7 +92,6 @@ class SlotMap(DotMap):
             slot_name = nlu_slot.slot_name
             mapping[slot_name].append(nlu_slot)
         return cls(mapping)
-
 
 class SlotsList(list):  # An extension to make things easier to reach slot_values that are deeply nested in the IntentMessage datastructure.
     def first(self):

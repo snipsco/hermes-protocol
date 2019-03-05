@@ -75,7 +75,7 @@ setup(
     download_url='',
     license='MIT',
     keywords=['snips'],
-    install_requires=['six', 'dotmap', 'future'],
+    install_requires=['six', 'future'],
     test_suite="tests",
     extras_require=extras_require,
     packages=packages,
