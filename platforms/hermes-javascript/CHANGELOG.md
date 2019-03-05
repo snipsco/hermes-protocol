@@ -1,3 +1,13 @@
+## [0.3.4](https://github.com/snipsco/hermes-protocol/compare/js/0.3.3...0.3.4) (2019-03-05)
+
+
+### Features
+
+* **js:** add asr confidence (intent message) ([8225a2b](https://github.com/snipsco/hermes-protocol/commit/8225a2b))
+* **js:** dialogue subset, add root intents configuration ([bb9a9fc](https://github.com/snipsco/hermes-protocol/commit/bb9a9fc))
+
+
+
 ## [0.3.2](https://github.com/snipsco/hermes-protocol/compare/js/0.3.1...0.3.2) (2019-03-04)
 
 
