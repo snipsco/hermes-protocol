@@ -1,17 +1,17 @@
-import { createServer } from 'net'
+import { createServer, AddressInfo } from 'net'
 import camelcase from 'camelcase'
 import ApiSubset from '../../dist/api/ApiSubset'
 
-export const wait = (time) => new Promise(resolve => setTimeout(resolve, time))
+export const wait = (time: number) => new Promise(resolve => setTimeout(resolve, time))
 
-export const getFreePort = () => {
+export const getFreePort: () => Promise<number> = () => {
     return new Promise((resolve, reject) => {
         const server = createServer()
         server.on('error', err => {
             reject(err)
         })
         server.on('listening', () => {
-            const port = (server.address() as any).port
+            const port = (server.address() as AddressInfo).port
             server.close()
             resolve(port)
         })

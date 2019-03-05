@@ -2,7 +2,7 @@
 
 import { spawn } from 'child_process'
 import path from 'path'
-import mqtt from 'mqtt'
+import mqtt, { MqttClient } from 'mqtt'
 import {
   Hermes,
   Dialog,
@@ -27,9 +27,9 @@ import {
 /* Setup */
 
 let
-  mosquitto,
-  mosquittoPort,
-  client,
+  mosquitto: any,
+  mosquittoPort: string,
+  client: MqttClient,
   hermes: Hermes,
   dialog: Dialog,
   injection: Injection,
@@ -46,7 +46,7 @@ const SegfaultHandler = require('segfault-handler')
 SegfaultHandler.registerHandler('crash.log')
 
 beforeAll(async () => {
-  mosquittoPort = await getFreePort()
+  mosquittoPort = '' + await getFreePort()
   console.log('Launching mosquitto on port [' + mosquittoPort + ']')
   mosquitto = spawn('mosquitto', ['-p', mosquittoPort, '-v'], { stdio: 'ignore' })
   console.log('Mosquitto ready!')
@@ -72,13 +72,13 @@ beforeEach(done => {
     done()
   })
   client.on('error', function(err) {
-    client.end({ force: true })
-    throw new Error(err)
+    client.end(true)
+    throw err
   })
 })
 
 afterEach(() => {
-  client.end({ force: true })
+  client.end(true)
 })
 
 afterAll(done => {
