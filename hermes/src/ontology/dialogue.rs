@@ -204,6 +204,7 @@ pub struct DialogueConfigureMessage {
 impl<'de> HermesMessage<'de> for DialogueConfigureMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct DialogueConfigureIntent {
     /// The name of the intent that should be configured.
     pub intent_name: String,
