@@ -671,12 +671,14 @@ impl InjectionFacade for MqttComponentFacade {
     p!(publish_injection_request<InjectionRequestMessage> &HermesTopic::Injection(InjectionCommand::Perform););
     p!(publish_injection_status_request &HermesTopic::Injection(InjectionCommand::StatusRequest););
     s!(subscribe_injection_status<InjectionStatusMessage> &HermesTopic::Injection(InjectionCommand::Status););
+    s!(subscribe_injection_complete<InjectionCompleteMessage> &HermesTopic::Injection(InjectionCommand::Complete););
 }
 
 impl InjectionBackendFacade for MqttComponentFacade {
     s!(subscribe_injection_request<InjectionRequestMessage> &HermesTopic::Injection(InjectionCommand::Perform););
     s!(subscribe_injection_status_request &HermesTopic::Injection(InjectionCommand::StatusRequest););
     p!(publish_injection_status<InjectionStatusMessage> &HermesTopic::Injection(InjectionCommand::Status););
+    p!(publish_injection_complete<InjectionCompleteMessage> &HermesTopic::Injection(InjectionCommand::Complete););
 }
 
 impl MqttHermesProtocolHandler {

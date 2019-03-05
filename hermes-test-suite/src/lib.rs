@@ -473,5 +473,8 @@ macro_rules! test_suite {
         t!(injection_status:
                     injection.subscribe_injection_status <= InjectionStatusMessage | injection_backend.publish_injection_status
                     with InjectionStatusMessage { last_injection_date: Some($crate::now()) };);
+        t!(injection_complete:
+                    injection.subscribe_injection_complete <= InjectionCompleteMessage | injection_backend.publish_injection_complete
+                    with InjectionCompleteMessage { request_id: Some("some id".into()) };);
     };
 }

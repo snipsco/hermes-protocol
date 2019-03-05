@@ -77,6 +77,15 @@ pub struct InjectionStatusMessage {
 
 impl<'de> HermesMessage<'de> for InjectionStatusMessage {}
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InjectionCompleteMessage {
+    /// The id of the `InjectionRequestMessage`
+    pub request_id: Option<String>,
+}
+
+impl<'de> HermesMessage<'de> for InjectionCompleteMessage {}
+
 #[cfg(test)]
 mod test {
     use super::*;
