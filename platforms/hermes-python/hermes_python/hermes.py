@@ -199,12 +199,15 @@ class Hermes(object):
         Use this type when you only want to inform the user of something without expecting a response.
 
         :param site_id: Site where the user started the interaction.
-        :param session_init_value: Text the TTS should say.
+        :param session_initiation_text: Text the TTS should say.
         :param custom_data: Additional information that can be provided by the handler. Each message related to
         the new session - sent by the Dialogue Manager - will contain this data.
+        :param text: Text the TTS should say. This parameter was introduced by mistake and shouldn't be used.
         :return: the current instance of Hermes to allow chaining.
         """
-        session_init_message = SessionInitNotification(text)
+
+        session_init_message = SessionInitNotification(text or session_initiation_text)
+
         start_session_notification_message = StartSessionMessage(session_init_message, custom_data, site_id)
 
         self.ffi.dialogue.publish_start_session(start_session_notification_message)

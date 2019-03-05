@@ -4,6 +4,7 @@ import pytest
 
 from hermes_python.hermes import Hermes
 from hermes_python.ontology import MqttOptions
+from hermes_python.ontology.dialogue import StartSessionMessage, SessionInitNotification
 
 HOST = "localhost"
 DUMMY_INTENT_NAME = "INTENT"
@@ -144,3 +145,35 @@ def test_subscribe_intent_not_recognized_correctly_registers_callback():
     h.ffi.establish_connection.assert_called_once()
     h.ffi.dialogue.register_intent_not_recognized_handler.assert_called_once_with(user_callback, h)
 
+
+def test_start_session_notification_1():
+    h = Hermes(HOST)
+    h.ffi = mock.MagicMock()
+
+    with h:
+        h.publish_start_session_notification(None, "welcome !", "custom_data")
+
+    start_session_notification_message = StartSessionMessage(SessionInitNotification("welcome !"), "custom_data", None)
+    h.ffi.dialogue.publish_start_session.assert_called_once_with(start_session_notification_message)
+
+
+def test_start_session_notification_2():
+    h = Hermes(HOST)
+    h.ffi = mock.MagicMock()
+
+    with h:
+        h.publish_start_session_notification(None, None, "custom_data", "yup!")
+
+    start_session_notification_message = StartSessionMessage(SessionInitNotification("yup!"), "custom_data", None)
+    h.ffi.dialogue.publish_start_session.assert_called_once_with(start_session_notification_message)
+
+
+def test_start_session_notification_text_parameter_takes_precedence_over_session_initiation_text():
+    h = Hermes(HOST)
+    h.ffi = mock.MagicMock()
+
+    with h:
+        h.publish_start_session_notification(None, "test", "custom_data", "yup!")
+
+    start_session_notification_message = StartSessionMessage(SessionInitNotification("yup!"), "custom_data", None)
+    h.ffi.dialogue.publish_start_session.assert_called_once_with(start_session_notification_message)
