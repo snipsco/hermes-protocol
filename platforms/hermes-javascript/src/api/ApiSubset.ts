@@ -38,11 +38,11 @@ export default class ApiSubset {
     public destroy() {}
     private listeners = new Map()
     public options: HermesOptions
-    protected facade: Buffer
-    protected subscribeEvents: { [key: string]: SubscribeEventDescriptor }
-    public publishEvents: { [key: string]: PublishEventDescriptor}
-    public publishMessagesList: {[key: string]: any}
-    public subscribeMessagesList: {[key: string]: any}
+    protected facade: Buffer | null = null
+    protected subscribeEvents: { [key: string]: SubscribeEventDescriptor } = {}
+    public publishEvents: { [key: string]: PublishEventDescriptor} = {}
+    public publishMessagesList: {[key: string]: any} = {}
+    public subscribeMessagesList: {[key: string]: any} = {}
 
     constructor(protocolHandler: Buffer, call: FFIFunctionCall, options: HermesOptions, facadeName: string) {
         this.call = call
@@ -105,9 +105,9 @@ export default class ApiSubset {
      */
 
     once<T extends keyof this['subscribeMessagesList']>(eventName: T, listener: MessageListener<this['subscribeMessagesList'][T]>) {
-        const listenerWrapper = (...args) => {
+        const listenerWrapper = (message: this['subscribeMessagesList'][T], ...args: any[]) => {
             this.off(eventName, listenerWrapper)
-            listener(...args)
+            listener(message, ...args)
         }
         this.on(eventName, listenerWrapper)
         return listenerWrapper

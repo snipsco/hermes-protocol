@@ -14,7 +14,7 @@ export default class Feedback extends ApiSubset {
             fullEventName: 'hermes_sound_feedback_publish_toggle_off_json'
         }
     }
-    publishMessagesList: FeedbackTypes.publishMessagesList
+    publishMessagesList: FeedbackTypes.publishMessagesList = undefined as any
 
     destroy () {
         this.call('hermes_drop_sound_feedback_facade', this.facade)

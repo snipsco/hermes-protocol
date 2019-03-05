@@ -5,7 +5,7 @@ import {
 } from './messages'
 
 export type FlowContinuation = {
-    continue: (intentName: string, action: FlowIntentAction, options?: { slotFiller?: string }) => FlowActionReturn,
+    continue: (intentName: string, action: FlowIntentAction, options?: { slotFiller: string | null }) => FlowActionReturn,
     notRecognized: (action: FlowNotRecognizedAction) => FlowActionReturn,
     end: () => void
 }

@@ -14,7 +14,7 @@ export default class Tts extends ApiSubset {
             fullEventName: 'hermes_tts_publish_register_sound_json'
         }
     }
-    publishMessagesList: TtsTypes.publishMessagesList
+    publishMessagesList: TtsTypes.publishMessagesList = undefined as any
 
     destroy () {
         this.call('hermes_drop_tts_facade', this.facade)

@@ -18,14 +18,14 @@ export default class Injection extends ApiSubset {
             fullEventName: 'hermes_injection_publish_injection_status_request_json'
         }
     }
-    publishMessagesList: InjectionTypes.publishMessagesList
+    publishMessagesList: InjectionTypes.publishMessagesList = undefined as any
 
     subscribeEvents = {
         injection_status: {
             fullEventName: 'hermes_injection_subscribe_injection_status_json'
         }
     }
-    subscribeMessagesList: InjectionTypes.subscribeMessagesList
+    subscribeMessagesList: InjectionTypes.subscribeMessagesList = undefined as any
 
     destroy () {
         this.call('hermes_drop_injection_facade', this.facade)

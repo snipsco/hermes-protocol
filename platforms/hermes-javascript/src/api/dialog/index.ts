@@ -30,7 +30,7 @@ export default class Dialog extends ApiSubset {
             fullEventName: 'hermes_dialogue_publish_end_session_json'
         }
     }
-    publishMessagesList: DialogTypes.publishMessagesList
+    publishMessagesList: DialogTypes.publishMessagesList = undefined as any
 
     subscribeEvents = {
         'intent/': {
@@ -55,7 +55,7 @@ export default class Dialog extends ApiSubset {
             fullEventName: 'hermes_dialogue_subscribe_session_started_json'
         }
     }
-    subscribeMessagesList: DialogTypes.subscribeMessagesList
+    subscribeMessagesList: DialogTypes.subscribeMessagesList = undefined as any
 
     destroy() {
         this.call('hermes_drop_dialogue_facade', this.facade)

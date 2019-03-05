@@ -9,7 +9,7 @@ export type PublishEventDescriptor = {
     fullEventName: string
 }
 
-export type MessageListener<T = {[key: string]: any}> = (message?: T) => void
+export type MessageListener<T = {[key: string]: any}> = (message: T, ...args: any[]) => void
 export type FFIFunctionCall = (functionName: string, ...args: any[]) => void
 export type SubsetConstructor<Subset> = new (
     protocolHandler: Buffer,

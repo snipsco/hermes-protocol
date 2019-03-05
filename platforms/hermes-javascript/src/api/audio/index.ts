@@ -20,7 +20,7 @@ export default class Audio extends ApiSubset {
             fullEventName: 'hermes_audio_server_publish_play_bytes_json'
         }
     }
-    publishMessagesList: AudioTypes.publishMessagesList
+    publishMessagesList: AudioTypes.publishMessagesList = undefined as any
 
     subscribeEvents = {
         'play_finished/': {
@@ -33,7 +33,7 @@ export default class Audio extends ApiSubset {
             fullEventName: 'hermes_audio_server_subscribe_all_play_finished_json'
         },
     }
-    subscribeMessagesList: AudioTypes.subscribeMessagesList
+    subscribeMessagesList: AudioTypes.subscribeMessagesList  = undefined as any
 
     destroy () {
         this.call('hermes_drop_audio_server_facade', this.facade)
