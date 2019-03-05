@@ -767,6 +767,18 @@ mod tests {
                 "hermes/injection/complete",
             ),
             (
+                HermesTopic::Component(None, Component::Injection, ComponentCommand::VersionRequest),
+                "hermes/injection/versionRequest",
+            ),
+            (
+                HermesTopic::Component(None, Component::Injection, ComponentCommand::Version),
+                "hermes/injection/version",
+            ),
+            (
+                HermesTopic::Component(None, Component::Injection, ComponentCommand::Error),
+                "hermes/injection/error",
+            ),
+            (
                 HermesTopic::Component(None, Component::Injection, ComponentCommand::Loaded),
                 "hermes/injection/loaded",
             ),
