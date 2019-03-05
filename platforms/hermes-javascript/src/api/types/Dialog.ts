@@ -6,14 +6,16 @@ import {
     EndSessionMessage,
     SessionEndedMessage,
     SessionQueuedMessage,
-    SessionStartedMessage
+    SessionStartedMessage,
+    DialogueConfigureMessage
 } from './messages'
 
 export namespace DialogTypes {
     export type publishMessagesList = {
         start_session: StartSessionMessage,
         continue_session: ContinueSessionMessage,
-        end_session: EndSessionMessage
+        end_session: EndSessionMessage,
+        configure: DialogueConfigureMessage
     }
     export type subscribeMessagesList = {
         intents: IntentMessage,

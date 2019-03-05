@@ -203,6 +203,8 @@ withHermes((hermes, done) => {
 
 ### Context loop
 
+###### [Back ⬆️](#api)
+
 An hermes client should implement a context loop that will prevent the program from exiting.
 
 #### Using withHermes
@@ -248,6 +250,8 @@ function done () {
 ```
 
 ### Hermes class
+
+###### [Back ⬆️](#api)
 
 ```js
 new Hermes({
@@ -325,6 +329,8 @@ hermes.destroy()
 
 ### Common ApiSubset methods
 
+###### [Back ⬆️](#api)
+
 **Check out [the hermes protocol documentation](https://docs.snips.ai/ressources/hermes-protocol) for more details on the event names.**
 
 #### on(eventName, listener)
@@ -394,6 +400,8 @@ dialog.publish('start_session', {
 
 ### Dialog Api Subset
 
+###### [Back ⬆️](#api)
+
 The dialog manager.
 
 #### Events available for publishing
@@ -459,6 +467,20 @@ dialog.publish('end_session', {
 })
 ```
 
+- **configure**
+
+Configure intents that can trigger a session start.
+
+```js
+dialog.publish('configure', {
+    siteId: /* string */,
+    intents: [{
+        intentName: /* string */,
+        enable: /* boolean */
+    }]
+})
+```
+
 #### Events available for subscribing
 
 - **intent/[intentName]**
@@ -484,6 +506,8 @@ No intents were recognized.
 *Note that the dialog session must have been started or continued with the `sendIntentNotRecognized` flag in order for this to work.*
 
 ### DialogFlow
+
+###### [Back ⬆️](#api)
 
 The Dialog API Subset exposes a small API that makes managing complex dialog flows a breeze.
 
@@ -630,6 +654,8 @@ dialog.flow('intentName', async (message, flow) => {
 
 ### Injection Api Subset
 
+###### [Back ⬆️](#api)
+
 Vocabulary injection for the speech recognition.
 
 #### Events available for publishing
@@ -687,6 +713,8 @@ Get the status of the last injection request.
 
 ### Feedback Api Subset
 
+###### [Back ⬆️](#api)
+
 Control the sound feedback.
 
 #### Events available for publishing
@@ -714,6 +742,8 @@ feedback.publish('notification_off', {
 ```
 
 ### TTS Api Subset
+
+###### [Back ⬆️](#api)
 
 Exposes text-to-speech options.
 

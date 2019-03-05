@@ -28,6 +28,9 @@ export default class Dialog extends ApiSubset {
         },
         end_session: {
             fullEventName: 'hermes_dialogue_publish_end_session_json'
+        },
+        configure: {
+            fullEventName: 'hermes_dialogue_publish_configure_json'
         }
     }
     publishMessagesList: DialogTypes.publishMessagesList = undefined as any

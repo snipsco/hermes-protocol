@@ -32,6 +32,8 @@ module.exports.library = libraryPath => ffi.Library(libraryPath, {
     hermes_dialogue_publish_end_session_json: [ 'int', [ 'void *', 'char *' ]],
     // Programmatically start a new session
     hermes_dialogue_publish_start_session_json: [ 'int', [ 'void *', 'char *' ]],
+    // Configure the dialogue
+    hermes_dialogue_publish_configure_json: [ 'int', [ 'void *', 'char *' ]],
     // Callback - Subscribe to intents detected
     hermes_dialogue_subscribe_intent_json: [ 'int', [ 'void *', 'char *', 'void *' ]],
     hermes_dialogue_subscribe_intents_json: [ 'int', [ 'void *', 'void *' ]],

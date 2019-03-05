@@ -122,6 +122,15 @@ it('[dialog] should publish an end session event', () => {
     facadePublication: 'end_session'
   })
 })
+it('[dialog] should publish a configure event', () => {
+  return setupPublisherJsonTest({
+    client,
+    facade: dialog,
+    json: require('./messages/DialogueConfigure.json'),
+    hermesTopic: 'hermes/dialogueManager/configure',
+    facadePublication: 'configure'
+  })
+})
 
 // Injection
 
