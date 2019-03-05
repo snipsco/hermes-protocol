@@ -2,7 +2,7 @@
 
 #### A javascript wrapper around the hermes protocol
 
-[![Build Status](https://travis-ci.org/snipsco/hermes-protocol.svg)](https://travis-ci.org/snipsco/hermes-protocol)
+[![Build Status](https://travis-ci.org/snipsco/hermes-protocol.svg?branch=master)](https://travis-ci.org/snipsco/hermes-protocol)
 [![npm version](https://badge.fury.io/js/hermes-javascript.svg)](https://www.npmjs.com/package/hermes-javascript)
 
 ## Context
