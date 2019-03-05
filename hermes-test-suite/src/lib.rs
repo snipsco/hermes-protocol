@@ -278,6 +278,8 @@ macro_rules! t_component {
                 t!(error_works:
                         $f.subscribe_error <= ErrorMessage | $f_back.publish_error
                         with ErrorMessage { session_id: Some("123abc".into()), error: "some error".into(), context: None };);
+                t!(loaded_works:
+                        $f.subscribe_loaded <= $f_back.publish_loaded);
             }
         };
     }
@@ -295,6 +297,8 @@ macro_rules! t_identifiable_component {
                 t!(error_works:
                         $f.subscribe_error { "identifier".to_string() } <= ErrorMessage | $f_back.publish_error
                         with ErrorMessage { session_id: Some("123abc".into()), error: "some error".into(), context: None };);
+                t!(loaded_works:
+                        $f.subscribe_loaded { "identifier".to_string() } <= $f_back.publish_loaded);
             }
         };
     }

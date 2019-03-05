@@ -52,6 +52,7 @@ impl HermesTopic {
             )),
             Some("version") => Some(HermesTopic::Component(None, Component::Asr, ComponentCommand::Version)),
             Some("error") => Some(HermesTopic::Component(None, Component::Asr, ComponentCommand::Error)),
+            Some("loaded") => Some(HermesTopic::Component(None, Component::Asr, ComponentCommand::Loaded)),
             _ => None,
         }
     }
@@ -84,6 +85,10 @@ impl HermesTopic {
                 Component::AudioServer,
                 ComponentCommand::Error,
             )),
+            (Some(site_id), Some("loaded"), None) => Some(HermesTopic::Component(
+                Some(site_id.to_string()),
+                Component::AudioServer,
+                ComponentCommand::Loaded)),
             _ => None,
         }
     }
@@ -117,6 +122,11 @@ impl HermesTopic {
                 None,
                 Component::DialogueManager,
                 ComponentCommand::Error,
+            )),
+            Some("loaded") => Some(HermesTopic::Component(
+                None,
+                Component::DialogueManager,
+                ComponentCommand::Loaded,
             )),
             _ => None,
         }
@@ -169,6 +179,10 @@ impl HermesTopic {
                 Component::Hotword,
                 ComponentCommand::Error,
             )),
+            (Some(site_id), Some("loaded")) => Some(HermesTopic::Component(
+                Some(site_id.to_string()),
+                Component::Hotword,
+                ComponentCommand::Loaded)),
             _ => None,
         }
     }
@@ -199,6 +213,7 @@ impl HermesTopic {
             )),
             Some("version") => Some(HermesTopic::Component(None, Component::Nlu, ComponentCommand::Version)),
             Some("error") => Some(HermesTopic::Component(None, Component::Nlu, ComponentCommand::Error)),
+            Some("loaded") => Some(HermesTopic::Component(None, Component::Nlu, ComponentCommand::Loaded)),
             _ => None,
         }
     }
@@ -220,6 +235,7 @@ impl HermesTopic {
             )),
             Some("version") => Some(HermesTopic::Component(None, Component::Tts, ComponentCommand::Version)),
             Some("error") => Some(HermesTopic::Component(None, Component::Tts, ComponentCommand::Error)),
+            Some("loaded") => Some(HermesTopic::Component(None, Component::Tts, ComponentCommand::Loaded)),
             _ => None,
         }
     }
@@ -246,6 +262,11 @@ impl HermesTopic {
                 None,
                 Component::Injection,
                 ComponentCommand::Error,
+            )),
+            Some("loaded") => Some(HermesTopic::Component(
+                None,
+                Component::Injection,
+                ComponentCommand::Loaded,
             )),
             _ => None,
         }
@@ -487,6 +508,7 @@ pub enum ComponentCommand {
     VersionRequest,
     Version,
     Error,
+    Loaded,
 }
 
 impl ToPath for ComponentCommand {}
@@ -550,6 +572,10 @@ mod tests {
                 "hermes/dialogueManager/error",
             ),
             (
+                HermesTopic::Component(None, Component::DialogueManager, ComponentCommand::Loaded),
+                "hermes/dialogueManager/loaded",
+            ),
+            (
                 HermesTopic::Feedback(FeedbackCommand::Sound(SoundCommand::ToggleOn)),
                 "hermes/feedback/sound/toggleOn",
             ),
@@ -593,6 +619,10 @@ mod tests {
                 HermesTopic::Component(Some("default".into()), Component::Hotword, ComponentCommand::Error),
                 "hermes/hotword/default/error",
             ),
+            (
+                HermesTopic::Component(Some("default".into()), Component::Hotword, ComponentCommand::Loaded),
+                "hermes/hotword/default/loaded",
+            ),
             (HermesTopic::Asr(AsrCommand::ToggleOn), "hermes/asr/toggleOn"),
             (HermesTopic::Asr(AsrCommand::ToggleOff), "hermes/asr/toggleOff"),
             (HermesTopic::Asr(AsrCommand::TextCaptured), "hermes/asr/textCaptured"),
@@ -612,6 +642,10 @@ mod tests {
             (
                 HermesTopic::Component(None, Component::Asr, ComponentCommand::Error),
                 "hermes/asr/error",
+            ),
+            (
+                HermesTopic::Component(None, Component::Asr, ComponentCommand::Loaded),
+                "hermes/asr/loaded",
             ),
             (
                 HermesTopic::AudioServer(None, AudioServerCommand::ToggleOn),
@@ -661,6 +695,10 @@ mod tests {
                 HermesTopic::Component(Some("default".into()), Component::AudioServer, ComponentCommand::Error),
                 "hermes/audioServer/default/error",
             ),
+            (
+                HermesTopic::Component(Some("default".into()), Component::AudioServer, ComponentCommand::Loaded),
+                "hermes/audioServer/default/loaded",
+            ),
             (HermesTopic::Tts(TtsCommand::Say), "hermes/tts/say"),
             (HermesTopic::Tts(TtsCommand::SayFinished), "hermes/tts/sayFinished"),
             (
@@ -678,6 +716,10 @@ mod tests {
             (
                 HermesTopic::Component(None, Component::Tts, ComponentCommand::Error),
                 "hermes/tts/error",
+            ),
+            (
+                HermesTopic::Component(None, Component::Tts, ComponentCommand::Loaded),
+                "hermes/tts/loaded",
             ),
             (
                 HermesTopic::Intent("harakiri_intent".into()),
@@ -705,6 +747,10 @@ mod tests {
                 "hermes/nlu/error",
             ),
             (
+                HermesTopic::Component(None, Component::Nlu, ComponentCommand::Loaded),
+                "hermes/nlu/loaded",
+            ),
+            (
                 HermesTopic::Injection(InjectionCommand::Perform),
                 "hermes/injection/perform",
             ),
@@ -719,6 +765,10 @@ mod tests {
             (
                 HermesTopic::Injection(InjectionCommand::Complete),
                 "hermes/injection/complete",
+            ),
+            (
+                HermesTopic::Component(None, Component::Injection, ComponentCommand::Loaded),
+                "hermes/injection/loaded",
             ),
         ]
     }

@@ -280,17 +280,28 @@ struct ComponentError<T: Debug> {
     component: T,
 }
 
+#[derive(Debug)]
+struct ComponentLoaded<T: Debug> {
+    component: T,
+}
+
 impl<T: Send + Sync + Debug + Copy + 'static> ComponentFacade for InProcessComponent<T> {
     fn publish_version_request(&self) -> Fallible<()> {
         self.publish(ComponentVersionRequest {
             component: self.component,
         } as ComponentVersionRequest<T>)
     }
+
     fn subscribe_version(&self, handler: Callback<VersionMessage>) -> Fallible<()> {
         subscribe!(self, ComponentVersion<T> { version }, handler)
     }
+
     fn subscribe_error(&self, handler: Callback<ErrorMessage>) -> Fallible<()> {
         subscribe!(self, ComponentError<T> { error }, handler)
+    }
+
+    fn subscribe_loaded(&self, handler: Callback0) -> Fallible<()> {
+        subscribe!(self, ComponentLoaded<T>, handler)
     }
 }
 
@@ -314,6 +325,12 @@ impl<T: Send + Sync + Debug + Copy + 'static> ComponentBackendFacade for InProce
         };
         self.publish(component_error)
     }
+
+    fn publish_loaded(&self) -> Fallible<()> {
+        self.publish(ComponentLoaded {
+            component: self.component,
+        })
+    }
 }
 
 #[derive(Debug)]
@@ -336,6 +353,12 @@ struct IdentifiableComponentError<T: Debug> {
     component: T,
 }
 
+#[derive(Debug)]
+struct IdentifiableComponentLoaded<T: Debug> {
+    site_id: String,
+    component: T,
+}
+
 impl<T: Send + Sync + Debug + Copy + 'static> IdentifiableComponentFacade for InProcessComponent<T> {
     fn publish_version_request(&self, site_id: String) -> Fallible<()> {
         let version_request = IdentifiableComponentVersionRequest {
@@ -351,6 +374,10 @@ impl<T: Send + Sync + Debug + Copy + 'static> IdentifiableComponentFacade for In
 
     fn subscribe_error(&self, site_id: String, handler: Callback<ErrorMessage>) -> Fallible<()> {
         subscribe_filter!(self, IdentifiableComponentError<T> { error }, handler, site_id, |it| &it.site_id)
+    }
+
+    fn subscribe_loaded(&self, site_id: String, handler: Callback0) -> Fallible<()> {
+        subscribe_filter!(self, IdentifiableComponentLoaded<T>, handler, site_id)
     }
 }
 
@@ -375,6 +402,14 @@ impl<T: Send + Sync + Debug + Copy + 'static> IdentifiableComponentBackendFacade
             component: self.component,
         };
         self.publish(component_error)
+    }
+
+    fn publish_loaded(&self, site_id: String) -> Fallible<()> {
+        let version_request = IdentifiableComponentLoaded {
+            site_id,
+            component: self.component,
+        };
+        self.publish(version_request)
     }
 }
 

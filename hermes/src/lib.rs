@@ -62,6 +62,7 @@ pub trait ComponentFacade: Send + Sync {
     fn publish_version_request(&self) -> Fallible<()>;
     fn subscribe_version(&self, handler: Callback<VersionMessage>) -> Fallible<()>;
     fn subscribe_error(&self, handler: Callback<ErrorMessage>) -> Fallible<()>;
+    fn subscribe_loaded(&self, handler: Callback0) -> Fallible<()>;
 }
 
 /// A generic facade used to interact with a component
@@ -69,6 +70,7 @@ pub trait IdentifiableComponentFacade: Send + Sync {
     fn publish_version_request(&self, id: String) -> Fallible<()>;
     fn subscribe_version(&self, id: String, handler: Callback<VersionMessage>) -> Fallible<()>;
     fn subscribe_error(&self, id: String, handler: Callback<ErrorMessage>) -> Fallible<()>;
+    fn subscribe_loaded(&self, id: String, handler: Callback0) -> Fallible<()>;
 }
 
 /// A generic facade all components must use to publish their errors and versions (when requested)
@@ -76,6 +78,7 @@ pub trait ComponentBackendFacade: Send + Sync {
     fn subscribe_version_request(&self, handler: Callback0) -> Fallible<()>;
     fn publish_version(&self, version: VersionMessage) -> Fallible<()>;
     fn publish_error(&self, error: ErrorMessage) -> Fallible<()>;
+    fn publish_loaded(&self) -> Fallible<()>;
 }
 
 /// A generic facade all components must use to publish their errors and versions (when requested)
@@ -83,6 +86,7 @@ pub trait IdentifiableComponentBackendFacade: Send + Sync {
     fn subscribe_version_request(&self, id: String, handler: Callback0) -> Fallible<()>;
     fn publish_version(&self, id: String, version: VersionMessage) -> Fallible<()>;
     fn publish_error(&self, id: String, error: ErrorMessage) -> Fallible<()>;
+    fn publish_loaded(&self, id: String) -> Fallible<()>;
 }
 
 /// A facade to interact with a component that can be toggled on an off at a specific site
