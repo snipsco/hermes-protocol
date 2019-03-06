@@ -1,5 +1,8 @@
 ## History
-## 0.3.2 (2019-02-25) 
+## 0.3.3 (2019-03-06)
+* Fixes a bug with `publish_start_session_notification` that didn't take the `text` parameter into account.
+
+## 0.3.2 (2019-02-25)
 * Fixes an important bug that gave the argument `hermes` the wrong type for every registered callback. 
 * Fixes an important bug that caused the program to crash when parsing intentMessage that had no slots. 
 
