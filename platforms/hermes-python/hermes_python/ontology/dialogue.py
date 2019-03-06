@@ -82,7 +82,7 @@ class SlotMap(object):
 
     @classmethod
     def from_c_repr(cls, c_slots_list_repr):
-        mapping = dict()
+        mapping = defaultdict(SlotsList)
 
         slots_list_length = c_slots_list_repr.count
         c_slots_array_repr = c_slots_list_repr.entries
@@ -511,7 +511,7 @@ class ContinueSessionMessage(object):
         return cls(session_id, text, intent_filter, custom_data, send_intent_not_recognized, slot)
 
     def into_c_repr(self):
-        return CContinueSessionMessage.build(self.session_id, self.text, self.intent_filter, self.custom_data, self.send_intent_not_recognized)
+        return CContinueSessionMessage.build(self.session_id, self.text, self.intent_filter, self.custom_data, self.slot, self.send_intent_not_recognized)
 
 
 class IntentNotRecognizedMessage(object):
