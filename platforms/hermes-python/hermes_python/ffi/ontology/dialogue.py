@@ -454,3 +454,63 @@ class CDurationValue(Structure):
                 ("minutes", c_int64),
                 ("seconds", c_int64),
                 ("precision", c_int)]
+
+
+class CDialogueConfigureIntent(Structure):
+    _fields_ = [
+        ("intent_name", c_char_p),
+        ("enable", c_uint8)]
+
+    @classmethod
+    def from_repr(cls, repr):
+        # type: (DialogueConfigureIntent) -> CDialogueConfigureIntent
+        return cls.build(repr.intent_name, repr.enable)
+
+    @classmethod
+    def build(cls, intent_name, enable):
+        # type: (str, bool) -> CDialogueConfigureIntent
+        intent_name = intent_name.encode('utf-8')
+        enable = c_uint8(1) if enable else c_uint8(0)
+
+        return cls(intent_name, enable)
+
+
+class CDialogueConfigureIntentArray(Structure):
+    _fields_ = [
+        ("entries", POINTER(POINTER(CDialogueConfigureIntent))),
+        ("count", c_int32)]
+
+    @classmethod
+    def build(cls, intents):
+        # type: (List[DialogueConfigureIntent]) -> CDialogueConfigureIntentArray
+        c_dialogue_configure_intents = [CDialogueConfigureIntent.from_repr(dialogue_configure_intent) for dialogue_configure_intent in intents]
+
+        c_dialogue_configure_intents = [POINTER(CDialogueConfigureIntent)(intent) for intent in
+                                        c_dialogue_configure_intents]
+
+        entries = (POINTER(CDialogueConfigureIntent) * len(intents))(*c_dialogue_configure_intents)
+        entries = cast(entries, POINTER(POINTER(CDialogueConfigureIntent)))
+        count = c_int32(len(intents))
+
+        return cls(entries, count)
+
+    @classmethod
+    def from_repr(cls, repr):
+        return cls.build(repr)
+
+
+class CDialogueConfigureMessage(Structure):
+    _fields_ = [("site_id", c_char_p),
+                ("intents", POINTER(CDialogueConfigureIntentArray))]
+
+
+    @classmethod
+    def from_repr(cls, repr):
+        return cls.build(repr.site_id, repr.intents)
+
+    @classmethod
+    def build(cls, site_id, intents):
+        site_id = site_id.encode('utf-8')
+        c_dialogue_configure_intent_array = CDialogueConfigureIntentArray.build(intents)
+        c_dialogue_configure_intent_array_p = POINTER(CDialogueConfigureIntentArray)(c_dialogue_configure_intent_array)
+        return cls(site_id, c_dialogue_configure_intent_array_p)
