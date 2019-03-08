@@ -142,6 +142,9 @@ SNIPS_RESULT hermes_injection_publish_injection_request_json(const CInjectionFac
 
 SNIPS_RESULT hermes_injection_publish_injection_status_request_json(const CInjectionFacade *facade);
 
+SNIPS_RESULT hermes_injection_subscribe_injection_complete_json(const CInjectionFacade *facade,
+                                                                void (*handler)(const char*, void*));
+
 SNIPS_RESULT hermes_injection_subscribe_injection_status_json(const CInjectionFacade *facade,
                                                               void (*handler)(const char*, void*));
 
