@@ -1,0 +1,8 @@
+{
+    "sessionId": "session id",
+    "text": "text",
+    "intentFilter": ["intentA", "intentB"],
+    "customData": null,
+    "slot": null,
+    "sendIntentNotRecognized": true
+}

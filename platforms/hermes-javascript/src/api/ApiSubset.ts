@@ -1,24 +1,26 @@
 import ffi from 'ffi'
 import ref from 'ref'
-import { Casteable } from '../casts'
 import {
     SubscribeEventDescriptor,
     PublishEventDescriptor,
     MessageListener,
-    FFIFunctionCall
+    FFIFunctionCall,
+    HermesOptions
 } from './types'
 
 /* Tools */
 
 const getMetadata = function<T = (SubscribeEventDescriptor | PublishEventDescriptor)>(
     obj: { [key: string]: T },
-    eventName: string
+    eventName: string | number | symbol
 ) : T {
+    if(typeof eventName === 'symbol')
+        throw new Error('Symbol not expected')
     let metadata = obj[eventName]
     if(!metadata) {
         const matchingEntry = Object
             .entries(obj)
-            .find(([key]) => eventName.startsWith(key))
+            .find(([key]) => typeof eventName === 'string' && eventName.startsWith(key))
         if(matchingEntry) {
             metadata = matchingEntry[1]
         } else {
@@ -35,12 +37,16 @@ export default class ApiSubset {
     public call: FFIFunctionCall
     public destroy() {}
     private listeners = new Map()
-    protected facade: Buffer
-    protected subscribeEvents: { [key: string]: SubscribeEventDescriptor }
-    protected publishEvents: { [key: string]: PublishEventDescriptor}
+    public options: HermesOptions
+    protected facade: Buffer | null = null
+    protected subscribeEvents: { [key: string]: SubscribeEventDescriptor } = {}
+    public publishEvents: { [key: string]: PublishEventDescriptor} = {}
+    public publishMessagesList: {[key: string]: any} = {}
+    public subscribeMessagesList: {[key: string]: any} = {}
 
-    constructor(protocolHandler: Buffer, call: FFIFunctionCall, facadeName: string) {
+    constructor(protocolHandler: Buffer, call: FFIFunctionCall, options: HermesOptions, facadeName: string) {
         this.call = call
+        this.options = options
         this.listeners = new Map()
         if(facadeName && protocolHandler) {
             const facadeRef = ref.alloc('void **')
@@ -49,41 +55,38 @@ export default class ApiSubset {
         }
     }
 
+    private makeSubscriptionCallback<T extends keyof this['subscribeMessagesList']>(eventName: T) {
+        return ffi.Callback('void', [ ref.coerceType('string') ], (stringifiedJson: string) => {
+            try {
+                const message = JSON.parse(stringifiedJson)
+                const actions = this.listeners.get(eventName)
+                actions.forEach(action => action(message))
+            } catch (err) {
+                // eslint-disable-next-line
+                console.error(err)
+                throw err
+            }
+        })
+    }
+
     /**
      * Subscribes a message listener to a given hermes event.
      *
      * @param {*} eventName The event name to subscribe to.
      * @param {*} listener  A callback triggered when receiving a message.
      */
-    on(eventName: string, listener: MessageListener) {
+    on<T extends keyof this['subscribeMessagesList']>(eventName: T, listener: MessageListener<this['subscribeMessagesList'][T]>) {
         const {
-            messageStruct,
-            messageClass,
-            dropEventName,
             fullEventName,
             additionalArguments
         } = getMetadata(this.subscribeEvents, eventName)
-
         let listeners = this.listeners.get(eventName)
         if(!listeners) {
             listeners = []
             this.listeners.set(eventName, listeners)
-            const callback = ffi.Callback('void', [ ref.refType(messageStruct) ], data => {
-                try {
-                    const message = new (messageClass || Casteable)(data)
-                    const actions = this.listeners.get(eventName)
-                    actions.forEach(action => action(message))
-                    this.call(dropEventName, data)
-                } catch (err) {
-                    // console.error('Error while executing callback for event: ' + fullEventName)
-                    // console.error('message:', err.message)
-                    // eslint-disable-next-line
-                    console.error(err)
-                    throw err
-                }
-            })
+            const callback = this.makeSubscriptionCallback(eventName)
             const args = [
-                ...(additionalArguments && additionalArguments(eventName) || []),
+                ...(additionalArguments && additionalArguments(eventName as string) || []),
                 callback
             ]
             // Prevent GC
@@ -101,10 +104,10 @@ export default class ApiSubset {
      * @returns {*} The reference to the wrapped listener.
      */
 
-    once(eventName: string, listener: MessageListener) {
-        const listenerWrapper = (...args) => {
+    once<T extends keyof this['subscribeMessagesList']>(eventName: T, listener: MessageListener<this['subscribeMessagesList'][T]>) {
+        const listenerWrapper = (message: this['subscribeMessagesList'][T], ...args: any[]) => {
             this.off(eventName, listenerWrapper)
-            listener(...args)
+            listener(message, ...args)
         }
         this.on(eventName, listenerWrapper)
         return listenerWrapper
@@ -116,7 +119,7 @@ export default class ApiSubset {
      * @param {*} eventName The event name that was subscribed to.
      * @param {*} listener The reference to the listener callback to remove.
      */
-    off(eventName: string, listener: MessageListener) {
+    off<T extends keyof this['subscribeMessagesList']>(eventName: T, listener: MessageListener<this['subscribeMessagesList'][T]>) {
         const listeners = this.listeners.get(eventName)
         if(!listeners)
             return false
@@ -130,17 +133,12 @@ export default class ApiSubset {
     /**
      * Publish a message.
      */
-    publish(eventName: string, message?: {[key: string]: any}) {
-        const {
-            messageClass,
-            fullEventName,
-            forgedStruct,
-            forgeOptions
-        } = getMetadata(this.publishEvents, eventName)
+    publish<T extends keyof this['publishEvents']>(eventName: T, message?: this['publishMessagesList'][T]) {
+        const { fullEventName } = getMetadata(this.publishEvents, eventName)
 
         if(message) {
-            const cDataRef = new (messageClass || Casteable)(message).forge(forgedStruct, forgeOptions).ref()
-            this.call(fullEventName, this.facade, cDataRef)
+            const cStringRef = ref.allocCString(JSON.stringify(message))
+            this.call(fullEventName, this.facade, cStringRef)
         } else {
             this.call(fullEventName, this.facade)
         }

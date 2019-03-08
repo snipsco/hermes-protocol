@@ -1,21 +1,33 @@
 import Dialog from './index'
 import {
     FlowContinuation,
-    FlowAction
+    FlowIntentAction,
+    FlowNotRecognizedAction,
+    FlowSessionAction,
+    MessageListener,
 } from '../types'
+import {
+    IntentMessage,
+    SessionStartedMessage,
+    SessionEndedMessage,
+    IntentNotRecognizedMessage,
+    EndSessionMessage,
+    ContinueSessionMessage,
+} from '../types/messages'
 
 export default class DialogFlow {
 
     private continuations = new Map()
     private continuationsListeners = new Map()
-    private notRecognizedAction = null
-    private notRecognizedListener = null
-    private ended = false
+    private notRecognizedAction: FlowNotRecognizedAction | null = null
+    private notRecognizedListener?: MessageListener<IntentNotRecognizedMessage> | null = null
+    private ended: boolean = false
+    private slotFiller: string | null = null
 
-    constructor(private dialog: Dialog, public sessionId: string, done: () => void) {
+    constructor(private dialog: Dialog, public sessionId: string | null, done: () => void) {
         // Sets up a subscriber to clean up in case the session is ended programatically.
-        const onSessionEnded = msg => {
-            if(msg.session_id === this.sessionId) {
+        const onSessionEnded = (msg: SessionEndedMessage | undefined) => {
+            if(msg && msg.sessionId === this.sessionId) {
                 this.cleanUpListeners()
                 this.reset()
                 this.sessionId = null
@@ -31,6 +43,7 @@ export default class DialogFlow {
         this.notRecognizedAction = null
         this.notRecognizedListener = null
         this.ended = false
+        this.slotFiller = null
     }
 
     private cleanUpListeners() {
@@ -43,48 +56,55 @@ export default class DialogFlow {
     }
 
     // Executed after a message callback has been processed.
-    private continuation(options: { [key: string]: any } = {}) {
+    private continuation(
+        options: string | void | Partial<EndSessionMessage & ContinueSessionMessage> = {},
+        { sessionStart = false } = {}
+    ) {
+        let messageOptions: Partial<EndSessionMessage & ContinueSessionMessage> = {}
         if(typeof options === 'string') {
-            options = { text: options }
+            messageOptions = { text: options }
         }
         if(this.ended) {
             // End the session.
             return this.dialog.publish('end_session', {
                 text: '',
-                ...options,
-                session_id: this.sessionId
-            })
+                ...messageOptions,
+                sessionId: this.sessionId
+            } as EndSessionMessage)
         }
-        let intent_filter = []
+        let intentFilter: string[] = []
         if(this.continuations.size > 0) {
             // If continue calls have been registered.
             this.continuations.forEach((action, intentName) => {
-                intent_filter.push(intentName)
+                intentFilter.push(intentName)
                 const listener = this.createListener(action)
-                const wrappedListener = this.dialog.once(`intent/${intentName}`, listener)
+                const wrappedListener = this.dialog.once(`intent/${intentName}`, listener as any)
                 this.continuationsListeners.set(intentName, wrappedListener)
             })
         }
         if(this.notRecognizedAction) {
             // If a listener has been set in case the intent has not been properly detected
             const listener = this.createListener(this.notRecognizedAction)
-            const wrappedListener = this.dialog.once('intent_not_recognized', listener)
+            const wrappedListener = this.dialog.once('intent_not_recognized', listener as any)
             this.notRecognizedListener = wrappedListener
-            options.send_intent_not_recognized = 1
+            messageOptions.sendIntentNotRecognized = true
         }
-        // Publish a continue session message
-        this.dialog.publish('continue_session', {
-            text: '',
-            ...options,
-            session_id: this.sessionId,
-            intent_filter
-        })
+        if(!sessionStart) {
+            // Publish a continue session message
+            this.dialog.publish('continue_session', {
+                text: '',
+                ...messageOptions,
+                slot: this.slotFiller,
+                sessionId: this.sessionId,
+                intentFilter
+            } as ContinueSessionMessage)
+        }
     }
 
-    private createListener(action) {
-        return message => {
+    private createListener(action: FlowIntentAction | FlowNotRecognizedAction) {
+        return (message: IntentMessage & IntentNotRecognizedMessage) => {
             // Checks the session id
-            if(message.session_id !== this.sessionId)
+            if(message.sessionId !== this.sessionId)
                 return
             // Cleans up other listeners that could have been registered using .continue
             this.cleanUpListeners()
@@ -103,23 +123,24 @@ export default class DialogFlow {
     }
 
     // Starts a dialog flow.
-    start(action: FlowAction, message: { [key: string]: any }) {
+    start(action: FlowIntentAction | FlowSessionAction, message: IntentMessage | SessionStartedMessage, { sessionStart = false } = {}) {
         const flow : FlowContinuation = {
             continue: this.continue.bind(this),
             notRecognized: this.notRecognized.bind(this),
             end: this.end.bind(this)
         }
-        return Promise.resolve(action(message, flow))
-            .then(this.continuation.bind(this))
+        return Promise.resolve(action(message as any, flow))
+            .then((...args) => this.continuation.bind(this)(...args, { sessionStart }))
     }
 
     // Registers an intent filter and continue the current dialog session.
-    continue(intentName: string, action: FlowAction) {
+    continue(intentName: string, action: FlowIntentAction, continueOptions : { slotFiller: string | null } = { slotFiller: null }) {
+        this.slotFiller = continueOptions.slotFiller
         this.continuations.set(intentName, action)
     }
 
     // Registers a listener that will be called if no intents have been recognized.
-    notRecognized(action: FlowAction) {
+    notRecognized(action: FlowNotRecognizedAction) {
         this.notRecognizedAction = action
     }
 

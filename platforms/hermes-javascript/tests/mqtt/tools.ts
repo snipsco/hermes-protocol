@@ -1,17 +1,17 @@
-import { createServer } from 'net'
+import { createServer, AddressInfo } from 'net'
 import camelcase from 'camelcase'
 import ApiSubset from '../../dist/api/ApiSubset'
 
-export const wait = (time) => new Promise(resolve => setTimeout(resolve, time))
+export const wait = (time: number) => new Promise(resolve => setTimeout(resolve, time))
 
-export const getFreePort = () => {
+export const getFreePort: () => Promise<number> = () => {
     return new Promise((resolve, reject) => {
         const server = createServer()
         server.on('error', err => {
             reject(err)
         })
         server.on('listening', () => {
-            const port = (server.address() as any).port
+            const port = (server.address() as AddressInfo).port
             server.close()
             resolve(port)
         })
@@ -36,26 +36,26 @@ export const camelize = item => {
     return item
 }
 
-type PublisherTestArgs = {
+/* Publish */
+
+type PublisherJsonTestArgs= {
     client: any,
     facade: ApiSubset,
-    publishedJson: any,
-    expectedJson?: any,
+    json: any,
     hermesTopic: string,
     facadePublication: string
 }
-export const setupPublisherTest = ({
+export const setupPublisherJsonTest = ({
     client,
     facade,
-    publishedJson,
-    expectedJson,
+    json,
     hermesTopic,
     facadePublication
-} : PublisherTestArgs) => {
-    publishedJson = publishedJson && { ...publishedJson }
+} : PublisherJsonTestArgs) => {
+    json = json && { ...json }
     return new Promise(resolve => {
         client.subscribe(hermesTopic, function() {
-            facade.publish(facadePublication, publishedJson)
+            facade.publish(facadePublication, json)
         })
         client.on('message', (topic, messageBuffer) => {
             let message
@@ -65,10 +65,9 @@ export const setupPublisherTest = ({
                 message = null
             }
             if(message) {
-                const expected = expectedJson || camelize(publishedJson)
-                expect(expected).toMatchObject(message)
+                expect(message).toMatchObject(json)
             } else {
-                expect(null).toEqual(message)
+                expect(message).toEqual(null)
             }
             client.unsubscribe(hermesTopic)
             resolve()
@@ -76,31 +75,28 @@ export const setupPublisherTest = ({
     })
 }
 
-type SubscriberTestArgs = {
+/* Subscribe */
+
+type SubscriberJsonTestArgs = {
     client: any,
     facade: ApiSubset,
-    mqttJson: any,
-    expectedJson?: any,
+    json: any,
     hermesTopic: string,
     facadeSubscription: string
 }
-export const setupSubscriberTest = ({
+export const setupSubscriberJsonTest = ({
     client,
     facade,
-    mqttJson,
-    expectedJson = null,
+    json,
     hermesTopic,
     facadeSubscription
-} : SubscriberTestArgs) => {
-    mqttJson = { ...mqttJson }
+} : SubscriberJsonTestArgs) => {
     return new Promise(async resolve => {
         facade.once(facadeSubscription, message => {
-            const expected = expectedJson || camelize(mqttJson)
-            const received = expectedJson ? message : camelize(message)
-            expect(received).toMatchObject(expected)
+            expect(message).toMatchObject(json)
             resolve()
         })
         await wait(5)
-        client.publish(hermesTopic, JSON.stringify(mqttJson))
+        client.publish(hermesTopic, JSON.stringify(json))
     })
 }

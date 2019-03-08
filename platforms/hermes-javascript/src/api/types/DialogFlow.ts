@@ -1,13 +1,33 @@
+import {
+    IntentMessage,
+    IntentNotRecognizedMessage,
+    SessionStartedMessage,
+} from './messages'
+
 export type FlowContinuation = {
-    continue: (intentName: string, action: FlowAction) => void,
-    notRecognized: (action: FlowAction) => void,
+    continue: (intentName: string, action: FlowIntentAction, options?: { slotFiller: string | null }) => FlowActionReturn,
+    notRecognized: (action: FlowNotRecognizedAction) => FlowActionReturn,
     end: () => void
 }
-export type FlowActionReturn = string | {
+export type FlowActionReturnData = {
     text?: string,
-    custom_data?: string
+    customData?: string
 }
-export type FlowAction = (
-    message: { [key: string]: any },
+export type FlowActionReturn =
+    FlowActionReturnData | string | void |
+    Promise<FlowActionReturnData | void | string>
+
+export type FlowIntentAction = (
+    message: IntentMessage,
     flow: FlowContinuation
-) => FlowActionReturn | Promise<FlowActionReturn | void> | void
+) => FlowActionReturn
+
+export type FlowNotRecognizedAction = (
+    message: IntentNotRecognizedMessage,
+    flow: FlowContinuation
+) => FlowActionReturn
+
+export type FlowSessionAction = (
+    message: SessionStartedMessage,
+    flow: FlowContinuation
+) => FlowActionReturn
