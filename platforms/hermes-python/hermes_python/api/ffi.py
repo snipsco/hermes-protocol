@@ -197,6 +197,13 @@ class DialogueFFI(object):
         )
         return self
 
+    def publish_configure(self, message):
+        self._call_foreign_function(
+            'hermes_dialogue_publish_configure',
+            message
+        )
+        return self
+
     def _register_c_handler(self, ffi_function_name, c_handler):
         if self.use_json_api:
             ffi_function_name = ffi_function_name + "_json"

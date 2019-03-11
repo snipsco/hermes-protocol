@@ -173,3 +173,29 @@ Let's connect to an external MQTT broker that requires a username and a password
     with Hermes(mqtt_options=mqtt_opts) as h:
         h.subscribe_intents().loop_forever()
 
+
+Configuring Dialogue
+--------------------
+
+``hermes-python`` offers the possibility to configure different aspects of the Dialogue system.
+
+Enabling and disabling intents on the fly
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+It is possible to enable and disable intents of your assistant on the fly.
+Once an intent is disabled, it will not be recognized by the NLU.
+
+Note that intents in the intent filters of started or continued session will take precedence over intents that are enabled/disabled in the configuration of the Dialogue.
+
+You can disable/enable intents with the following methods :
+
+::
+    from hermes_python.ontology.dialogue.session import DialogueConfiguration
+
+    dialogue_conf = DialogueConfiguration() \
+                            .disable_intent("intent1")              \
+                            .enable_intent("intent2)                \
+                            .enable_intents(["intent1", "intent2"]) \
+                            .disable_intents(["intent2, "intent1])
+
+    hermes.configure_dialogue(dialogue_conf)

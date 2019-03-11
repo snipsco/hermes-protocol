@@ -243,6 +243,17 @@ class Hermes(object):
         self.ffi.dialogue.publish_start_session(start_session_action_message)
         return self
 
+    def configure_dialogue(self, configure_message):
+        # type: () -> Hermes
+        configure_dialogue_messages = configure_message.build()
+
+        for conf in configure_dialogue_messages:
+            self.ffi.dialogue.publish_configure(conf)
+
+        return self
+
+
+
     def start(self):
         """
         DEPRECATED. This method is just kept for compatibility with previous versions of the library.
