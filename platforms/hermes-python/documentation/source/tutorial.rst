@@ -25,8 +25,6 @@ This code implies that you created a weather assistant using the `Snips Console 
              .start()
         # We get out of the with block, which closes and releases the connection.
 
-
-
 This app is a bit limited as it only prints out which intent was detected by our assistant.
 Let's add more features.
 
@@ -110,15 +108,15 @@ Managing sessions
 Snips platform includes support for conversations with back and forth communication between the Dialogue Manager and the client code.
 For a conversation, the dialogue manager creates **sessions**.
 
-
-
 Starting a session
 ^^^^^^^^^^^^^^^^^^
 
 A session can be started in two manners :
 
-* with an action
 * with a notification
+* with an action
+
+
 
 Ending a session
 ^^^^^^^^^^^^^^^^

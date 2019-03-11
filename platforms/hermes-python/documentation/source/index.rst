@@ -4,7 +4,7 @@ Hermes Python
 .. toctree::
    :maxdepth: 2
    
-   installation
    requirements
+   installation
    tutorial
    api
