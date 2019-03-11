@@ -244,7 +244,7 @@ class Hermes(object):
         return self
 
     def configure_dialogue(self, configure_message):
-        # type: () -> Hermes
+        # type: (DialogueConfiguration) -> Hermes
         configure_dialogue_messages = configure_message.build()
 
         for conf in configure_dialogue_messages:
