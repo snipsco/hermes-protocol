@@ -482,7 +482,7 @@ class CDialogueConfigureIntentArray(Structure):
 
     @classmethod
     def build(cls, intents):
-        # type: (List[DialogueConfigureIntent]) -> CDialogueConfigureIntentArray
+        # type: (List[DialogueConfigure]) -> CDialogueConfigureIntentArray
         c_dialogue_configure_intents = [CDialogueConfigureIntent.from_repr(dialogue_configure_intent) for dialogue_configure_intent in intents]
 
         c_dialogue_configure_intents = [POINTER(CDialogueConfigureIntent)(intent) for intent in
@@ -510,6 +510,7 @@ class CDialogueConfigureMessage(Structure):
 
     @classmethod
     def build(cls, site_id, intents):
+        # type: (str, List[DialogueConfigureIntent]) -> CDialogueConfigureMessage
         site_id = site_id.encode('utf-8')
         c_dialogue_configure_intent_array = CDialogueConfigureIntentArray.build(intents)
         c_dialogue_configure_intent_array_p = POINTER(CDialogueConfigureIntentArray)(c_dialogue_configure_intent_array)

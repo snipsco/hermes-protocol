@@ -316,7 +316,7 @@ class IntentNotRecognizedMessage(object):
 
 class DialogueConfigureMessage(object):
     def __init__(self, site_id, intents):
-        # type:(str, List[float]) -> DialogueConfigureMessage
+        # type:(str, List[DialogueConfigure]) -> DialogueConfigureMessage
         self.site_id = site_id
         self.intents = intents
 
@@ -333,13 +333,13 @@ class DialogueConfigureMessage(object):
         intents_filter_length = c_repr.intents.contents.count
         c_intents_filter_array_repr = c_repr.intents.contents.entries
 
-        intents = [DialogueConfigure.from_c_repr(c_intents_filter_array_repr[i].contents) for i in range(intents_filter_length)]
+        intents = [DialogueConfigureIntent.from_c_repr(c_intents_filter_array_repr[i].contents) for i in range(intents_filter_length)]
         return cls(site_id, intents)
 
 
-class DialogueConfigure(object):
+class DialogueConfigureIntent(object):
     def __init__(self, intent_name, enable):
-        # type: (str, bool) -> DialogueConfigure
+        # type: (str, bool) -> DialogueConfigureIntent
         self.intent_name = intent_name
         self.enable = enable
 
@@ -359,5 +359,5 @@ class DialogueConfigureIntentArray(list):
     def from_c_repr(cls, c_repr):
         intents_filter_length = c_repr.count
         c_intents_filter_array_repr = c_repr.entries
-        return [DialogueConfigure.from_c_repr(c_intents_filter_array_repr[i].contents) for i in
+        return [DialogueConfigureIntent.from_c_repr(c_intents_filter_array_repr[i].contents) for i in
                    range(intents_filter_length)]

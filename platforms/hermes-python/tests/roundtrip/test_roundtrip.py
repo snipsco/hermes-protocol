@@ -285,9 +285,9 @@ def test_hermes_ffi_test_round_trip_end_session_2():
     assert end_session_message == round_trip_end_session_message
 
 def test_hermes_ffi_test_round_trip_dialogue_configure():
-    intent1 = hermes_python.ontology.dialogue.DialogueConfigure("intent1", True)
-    intent2 = hermes_python.ontology.dialogue.DialogueConfigure("intent1", True)
-    intent3 = hermes_python.ontology.dialogue.DialogueConfigure("intent1", True)
+    intent1 = hermes_python.ontology.dialogue.DialogueConfigureIntent("intent1", True)
+    intent2 = hermes_python.ontology.dialogue.DialogueConfigureIntent("intent1", True)
+    intent3 = hermes_python.ontology.dialogue.DialogueConfigureIntent("intent1", True)
     dialogue_configure = \
         hermes_python.ontology.dialogue.DialogueConfigureMessage("kitchen", [intent1, intent2, intent3])
 
@@ -302,11 +302,11 @@ def test_hermes_ffi_test_round_trip_dialogue_configure():
 
 
 def test_hermes_ffi_test_round_trip_dialogue_configure_intent():
-    dialogue_configure_intent = hermes_python.ontology.dialogue.DialogueConfigure("intent1", True)
+    dialogue_configure_intent = hermes_python.ontology.dialogue.DialogueConfigureIntent("intent1", True)
     round_trip_dialogue_configure_intent = get_round_trip_data_structure(
         dialogue_configure_intent,
         hermes_python.ffi.ontology.dialogue.CDialogueConfigureIntent,
-        hermes_python.ontology.dialogue.DialogueConfigure,
+        hermes_python.ontology.dialogue.DialogueConfigureIntent,
         lib.hermes_ffi_test_round_trip_dialogue_configure_intent
     )
 
@@ -314,8 +314,8 @@ def test_hermes_ffi_test_round_trip_dialogue_configure_intent():
 
 
 def test_hermes_ffi_test_round_trip_dialogue_configure_intent_array():
-    intent_1 = hermes_python.ontology.dialogue.DialogueConfigure("intent1", True)
-    intent_2 = hermes_python.ontology.dialogue.DialogueConfigure("intent2", True)
+    intent_1 = hermes_python.ontology.dialogue.DialogueConfigureIntent("intent1", True)
+    intent_2 = hermes_python.ontology.dialogue.DialogueConfigureIntent("intent2", True)
 
     dialogue_configure_intent_array = hermes_python.ontology.dialogue.DialogueConfigureIntentArray([intent_1, intent_2])
     assert len(dialogue_configure_intent_array) == 2
