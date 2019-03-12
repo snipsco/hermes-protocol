@@ -11,16 +11,19 @@ from hermes_python.ffi.ontology.dialogue import CAmountOfMoneyValue, CTemperatur
 class SlotMap(object):
     def __init__(self, data):
         # type: (dict) -> SlotMap
-        mapping = defaultdict(SlotsList)
+        mapping = dict()
         for k,v in data.items():
-            mapping[k] = v
+            mapping[k] = SlotsList(v)
         self.__data = mapping
 
     def __getattr__(self, item):
-        return self.__data[item]
+        return self.__data.get(item, SlotsList())
 
     def __getitem__(self, item):
-        return self.__data[item]
+        return self.__data.get(item, SlotsList())
+
+    def __len__(self):
+        return self.__data.__len__()
 
     @classmethod
     def from_c_repr(cls, c_slots_list_repr):

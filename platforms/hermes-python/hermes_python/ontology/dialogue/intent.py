@@ -20,7 +20,7 @@ class IntentMessage(object):
         self.site_id = site_id
         self.input = input
         self.intent = intent  # type : IntentClassifierResult
-        self.slots = slots  # type: SlotMap
+        self.slots = slots if slots else SlotMap({})  # type: SlotMap
 
     @classmethod
     def from_c_repr(cls, c_repr):
@@ -32,7 +32,7 @@ class IntentMessage(object):
         if c_repr.slots:  # Slots is now nullable.
             slots = SlotMap.from_c_repr(c_repr.slots.contents)
         else:
-            slots = None
+            slots = SlotMap({})
 
         return cls(session_id, custom_data, site_id, input, intent, slots)
 

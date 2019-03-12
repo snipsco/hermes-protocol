@@ -48,17 +48,39 @@ We could also retrieve the associated confidence score the NLU engine had when c
 
 Extracting slots
 ^^^^^^^^^^^^^^^^
+Here are some best practices when dealing with slots.
+The ``IntentMessage`` object has a ``slots`` attribute.
+
+This ``slots`` attributes is a **container** that is empty when the intent message doesn't have slots : ::
+
+    assert len(intent_message.slots) == 0
+
+This container is a dictionary where the key is the name of the slot, and the value is a list of all the slot values for
+this slot name.
+
+You can access these values in two ways : ::
+
+    assert len(intent_message.slots.slot1) == 0
+    assert len(intent_message.slots["slot1"]) == 0
+
+The slot values are of type ``NluSlot`` which is a deeply nested object, we offer convenience methods to rapidly access
+the `slot_value` attribute of the `NluSlot`.
+
+To access the first ``slot_value`` of a slot called ``myslot``, you can use :
+::
+
+    intent_message.slots.myslot.first()
+
+You can also access all the ``slot_value`` of a slot called ``myslot`` :
+::
+
+    intent_message.slots.myslot.all()
+
 
 Let's add to our Weather assistant example.
 
 We assume that the ``searchWeatherForecast`` has one slot called ``forecast_location``,
 that indicates which location the user would like to know the weather at.
-
-Slots are stored in the Intent Message under the ``slots`` attribute.
-This attributes holds the different extracted slots as a dictionnary :
-
-* The key is the name of the slot
-* The value is a list of slot values.
 
 Let's print all the ``forecast_location`` slots :
 
@@ -120,6 +142,14 @@ A session can be started in two manners :
 
 Ending a session
 ^^^^^^^^^^^^^^^^
+
+
+Slot Filling
+^^^^^^^^^^^^
+
+
+
+
 
 
 Configuring MQTT options

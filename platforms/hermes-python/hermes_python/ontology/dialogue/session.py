@@ -3,7 +3,7 @@ from builtins import object
 from six.moves import range
 
 from hermes_python.ffi.ontology.dialogue import CStartSessionMessageAction, CStartSessionMessageNotification, \
-    CSessionInitAction, CSessionInitNotification, CEndSessionMessage, CContinueSessionMessage, CDialogueConfigureMessage
+    CSessionInitAction, CSessionInitNotification, CEndSessionMessage, CContinueSessionMessage
 
 
 class SessionInit(object):
