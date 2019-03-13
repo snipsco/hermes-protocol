@@ -9,6 +9,8 @@ from setuptools import setup, find_packages
 from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
 from setuptools.command.install import install
 
+from sphinx.setup_command import BuildDoc
+
 
 
 class InstallPlatlib(install):
@@ -54,11 +56,6 @@ extras_require = {
     ],
 }
 
-def get_rust_extension_command(argvs):
-    if "--plat-name" in argvs:
-        return RustExtension(TARGET, CARGO_FILE_PATH, binding=Binding.NoBinding, dinghy=True, rust_x_compile_target="arm-unknown-linux-gnueabihf", dinghy_platform="raspbian")
-    return RustExtension(TARGET, CARGO_FILE_PATH, binding=Binding.NoBinding)
-
 setup(
     name=PACKAGE_NAME,
     version=version,
@@ -79,7 +76,19 @@ setup(
     test_suite="tests",
     extras_require=extras_require,
     packages=packages,
-    cmdclass={'bdist_wheel': bdist_wheel, 'install': InstallPlatlib},
+    cmdclass={
+        'bdist_wheel': bdist_wheel,
+        'install': InstallPlatlib,
+        'documentation': BuildDoc},
+    command_options={
+        'documentation': {
+            'project': ('setup.py', 'Hermes Python'),
+            'version': ('setup.py', version),
+            'source_dir': ('setup.py', './documentation/source'),
+            'build_dir': ('setup.py', './documentation/build'),
+            'builder': ('setup.py', 'doctest singlehtml html markdown')
+        }
+    },
     zip_safe=False,
     include_package_data=True,
 )
