@@ -148,10 +148,6 @@ Slot Filling
 ^^^^^^^^^^^^
 
 
-
-
-
-
 Configuring MQTT options
 ------------------------
 
@@ -220,12 +216,13 @@ Note that intents in the intent filters of started or continued session will tak
 You can disable/enable intents with the following methods :
 
 ::
+
     from hermes_python.ontology.dialogue.session import DialogueConfiguration
 
-    dialogue_conf = DialogueConfiguration() \
-                            .disable_intent("intent1")              \
-                            .enable_intent("intent2)                \
-                            .enable_intents(["intent1", "intent2"]) \
-                            .disable_intents(["intent2, "intent1])
+    dialogue_conf = DialogueConfiguration()                          \
+                            .disable_intent("intent1")               \
+                            .enable_intent("intent2")                \
+                            .enable_intents(["intent1", "intent2"])  \
+                            .disable_intents(["intent2", "intent1"])
 
     hermes.configure_dialogue(dialogue_conf)
