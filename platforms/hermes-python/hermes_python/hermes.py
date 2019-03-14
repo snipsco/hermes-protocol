@@ -102,6 +102,7 @@ class Hermes(object):
 
         :param user_callback_subscribe_session_started: the callback to be executed when a new dialogue session is
         started.
+
         :return: the current instance of Hermes to allow chaining.
         """
         self.ffi.dialogue.register_session_started_handler(user_callback_subscribe_session_started, self)
@@ -157,7 +158,7 @@ class Hermes(object):
         return self
 
     def publish_continue_session(self, session_id, text, intent_filter, custom_data=None,
-                                 send_intent_not_recognized=False):
+                                 send_intent_not_recognized=False, slot_to_fill=None):
         """
         Publishes a ContinueSession message to the Dialogue Manage to continue a dialogue session.
 
@@ -168,10 +169,11 @@ class Hermes(object):
         non recognized intents by itself or sent them as an `IntentNotRecognizedMessage` for the client to handle.
         This setting applies only to the next conversation turn. The default value is false
         (and the dialogue manager will handle non recognized intents by itself)
+
         :return: the current instance of Hermes to allow chaining.
         """
         continue_session_msg = ContinueSessionMessage(session_id, text, intent_filter, custom_data,
-                                                      send_intent_not_recognized)
+                                                      send_intent_not_recognized, slot_to_fill)
         self.ffi.dialogue.publish_continue_session(continue_session_msg)
         return self
 
@@ -203,6 +205,7 @@ class Hermes(object):
         :param custom_data: Additional information that can be provided by the handler. Each message related to
         the new session - sent by the Dialogue Manager - will contain this data.
         :param text: Text the TTS should say. This parameter was introduced by mistake and shouldn't be used.
+
         :return: the current instance of Hermes to allow chaining.
         """
 
@@ -232,6 +235,7 @@ class Hermes(object):
         on this siteId, if false, the session is just dropped if there is running one.
         :param custom_data: Additional information that can be provided by the handler. Each message related
         to the new session - sent by the Dialogue Manager - will contain this data.
+
         :return: the current instance of Hermes to allow chaining.
         """
         session_init_message = SessionInitAction(
@@ -256,15 +260,15 @@ class Hermes(object):
 
     def start(self):
         """
+
         DEPRECATED. This method is just kept for compatibility with previous versions of the library.
-        :return:
         """
         self.loop_forever()
 
     def loop_forever(self):
         """
+
         This is a convenience method to loop forever in a blocking fashion.
-        :return: None
         """
         while 1:
             if self._thread_terminate:
@@ -273,8 +277,8 @@ class Hermes(object):
 
     def loop_start(self):
         """
+
         to set a thread running to call a infinite loop for you.
-        :return: None
         """
         self._thread_terminate = False
         self._thread = threading.Thread(target=self.loop_forever)

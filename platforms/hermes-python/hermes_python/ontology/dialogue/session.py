@@ -235,7 +235,7 @@ class SessionTermination(object):
 
 
 class ContinueSessionMessage(object):
-    def __init__(self, session_id, text, intent_filter, custom_data, send_intent_not_recognized, slot = None):
+    def __init__(self, session_id, text, intent_filter, custom_data, send_intent_not_recognized, slot=None):
         """
         :param session_id: Identifier of the dialogue session during which this intent was parsed.
         :param text:

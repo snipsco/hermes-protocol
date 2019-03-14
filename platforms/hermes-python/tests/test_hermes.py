@@ -4,7 +4,7 @@ import pytest
 
 from hermes_python.hermes import Hermes
 from hermes_python.ontology import MqttOptions
-from hermes_python.ontology.dialogue import StartSessionMessage, SessionInitNotification
+from hermes_python.ontology.dialogue import StartSessionMessage, SessionInitNotification, ContinueSessionMessage
 
 HOST = "localhost"
 DUMMY_INTENT_NAME = "INTENT"
@@ -177,3 +177,15 @@ def test_start_session_notification_text_parameter_takes_precedence_over_session
 
     start_session_notification_message = StartSessionMessage(SessionInitNotification("yup!"), "custom_data", None)
     h.ffi.dialogue.publish_start_session.assert_called_once_with(start_session_notification_message)
+
+
+class TestContinueSession(object):
+    def test_continue_session_slot_filler(self):
+        h = Hermes(HOST)
+        h.ffi = mock.MagicMock()
+
+        with h:
+            h.publish_continue_session("session_id", "Tell me what the missing slot is", ["intent1"], None, False, "missing_slot")
+
+        continue_session_message = ContinueSessionMessage("session_id", "Tell me what the missing slot is", ["intent1"], None, False, "missing_slot")
+        h.ffi.dialogue.publish_continue_session.assert_called_once_with(continue_session_message)
