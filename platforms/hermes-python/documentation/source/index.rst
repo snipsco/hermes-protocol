@@ -9,3 +9,4 @@ Hermes Python
    installation
    tutorial
    api
+   HISTORY

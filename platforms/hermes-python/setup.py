@@ -3,7 +3,6 @@
 
 import io
 import os
-import sys
 from setuptools import setup, find_packages
 
 from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
@@ -12,11 +11,11 @@ from setuptools.command.install import install
 from sphinx.setup_command import BuildDoc
 
 
-
 class InstallPlatlib(install):
     def finalize_options(self):
         install.finalize_options(self)
         self.install_lib = self.install_platlib
+
 
 class bdist_wheel(_bdist_wheel, object):
     def finalize_options(self):
@@ -36,13 +35,13 @@ HISTORY = os.path.join(ROOT_PATH, "HISTORY.rst")
 VERSION = "__version__"
 
 with io.open(os.path.join(PACKAGE_PATH, VERSION)) as f:
-	version = f.readline()
+    version = f.readline()
 
 with io.open(README, "rt", encoding="utf8") as f:
-	readme = f.read()
+    readme = f.read()
 
 with io.open(HISTORY, "rt", encoding="utf8") as f:
-	history = f.read()
+    history = f.read()
 
 packages = [p for p in find_packages() if "tests" not in p]
 
@@ -86,7 +85,7 @@ setup(
             'version': ('setup.py', version),
             'source_dir': ('setup.py', './documentation/source'),
             'build_dir': ('setup.py', './documentation/build'),
-            'builder': ('setup.py', 'doctest singlehtml html markdown')
+            'builder': ('setup.py', 'doctest rst')
         }
     },
     zip_safe=False,
