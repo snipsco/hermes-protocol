@@ -70,7 +70,10 @@ data class IntentMessage @ParcelConstructor constructor(
         @ParcelProperty("siteId") val siteId: String,
         @ParcelProperty("input") val input: String,
         @ParcelProperty("intent") val intent: IntentClassifierResult,
-        @ParcelProperty("slots") val slots: List<Slot>)
+        @ParcelProperty("slots") val slots: List<Slot>,
+        @ParcelProperty("asrConfidence") val asrConfidence: Float?,
+        // Use a mutable list here so that Parceler is happy
+        @ParcelProperty("asrTokens") val asrTokens: MutableList<List<AsrToken>>)
 
 @Parcel(BEAN)
 data class IntentNotRecognizedMessage @ParcelConstructor constructor(
@@ -157,4 +160,28 @@ data class InjectionRequestMessage @ParcelConstructor constructor(
         @ParcelProperty("lexicon") val lexicon : MutableMap<String, List<String>>,
         @ParcelProperty("crossLanguage") val crossLanguage: String?,
         @ParcelProperty("id") val id : String?
+)
+
+@Parcel(BEAN)
+data class AsrDecodingDuration @ParcelConstructor constructor(
+        @ParcelProperty("start") val start: Float,
+        @ParcelProperty("end") val end: Float
+)
+
+@Parcel(BEAN)
+data class AsrToken @ParcelConstructor constructor(
+        @ParcelProperty("value") val value: String,
+        @ParcelProperty("confidence") val confidence: Float,
+        @ParcelProperty("range") val range: IntRange,
+        @ParcelProperty("time") val time: AsrDecodingDuration
+)
+
+@Parcel(BEAN)
+data class TextCapturedMessage @ParcelConstructor constructor(
+        @ParcelProperty("text") val text: String,
+        @ParcelProperty("likelihood") val likelihood: Float,
+        @ParcelProperty("tokens") val tokens: List<AsrToken>,
+        @ParcelProperty("seconds") val seconds: Float,
+        @ParcelProperty("siteId") val siteId: String,
+        @ParcelProperty("sessionId") val sessionId: String?
 )
