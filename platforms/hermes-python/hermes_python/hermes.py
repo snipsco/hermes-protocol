@@ -169,6 +169,10 @@ class Hermes(object):
         non recognized intents by itself or sent them as an `IntentNotRecognizedMessage` for the client to handle.
         This setting applies only to the next conversation turn. The default value is false
         (and the dialogue manager will handle non recognized intents by itself)
+        :param slot_to_fill: is an Optional string. It requires `intent_filter` to contain a single value.
+        If set, the dialogue engine will not run the the intent classification on the user response and will go straight
+        to slot filling, assuming the intent is the one passed in the `intent_filter`,
+        and searching the value of the given slot. 
 
         :return: the current instance of Hermes to allow chaining.
         """
