@@ -70,7 +70,6 @@
     "jest": "^24.1.0",
     "mqtt": "^2.18.8",
     "rimraf": "^2.6.3",
-    "segfault-handler": "^1.0.1",
     "ts-jest": "^24.0.0",
     "typescript": "^3.3.3333"
   }
