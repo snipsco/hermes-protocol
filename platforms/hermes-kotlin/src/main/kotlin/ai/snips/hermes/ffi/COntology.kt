@@ -1,17 +1,40 @@
 package ai.snips.hermes.ffi
 
-import ai.snips.hermes.*
+import ai.snips.hermes.AsrDecodingDuration
+import ai.snips.hermes.AsrToken
+import ai.snips.hermes.ContinueSessionMessage
+import ai.snips.hermes.EndSessionMessage
+import ai.snips.hermes.InjectionKind
 import ai.snips.hermes.InjectionKind.Add
+import ai.snips.hermes.InjectionOperation
+import ai.snips.hermes.InjectionRequestMessage
+import ai.snips.hermes.IntentClassifierResult
+import ai.snips.hermes.IntentMessage
+import ai.snips.hermes.IntentNotRecognizedMessage
+import ai.snips.hermes.SayFinishedMessage
+import ai.snips.hermes.SayMessage
+import ai.snips.hermes.SessionEndedMessage
+import ai.snips.hermes.SessionInit
 import ai.snips.hermes.SessionInit.Action
 import ai.snips.hermes.SessionInit.Notification
 import ai.snips.hermes.SessionInit.Type
+import ai.snips.hermes.SessionQueuedMessage
+import ai.snips.hermes.SessionStartedMessage
+import ai.snips.hermes.SessionTermination
 import ai.snips.hermes.SessionTermination.AbortedByUser
 import ai.snips.hermes.SessionTermination.Error
 import ai.snips.hermes.SessionTermination.IntenNotRecognized
 import ai.snips.hermes.SessionTermination.Nominal
 import ai.snips.hermes.SessionTermination.SiteUnAvailable
 import ai.snips.hermes.SessionTermination.Timeout
-import ai.snips.nlu.ontology.ffi.*
+import ai.snips.hermes.Slot
+import ai.snips.hermes.StartSessionMessage
+import ai.snips.hermes.TextCapturedMessage
+import ai.snips.nlu.ontology.ffi.CSlot
+import ai.snips.nlu.ontology.ffi.readRangeTo
+import ai.snips.nlu.ontology.ffi.readSlotValue
+import ai.snips.nlu.ontology.ffi.readString
+import ai.snips.nlu.ontology.ffi.toPointer
 import com.sun.jna.Memory
 import com.sun.jna.Pointer
 import com.sun.jna.Structure
@@ -231,7 +254,8 @@ class CNluSlot(p: Pointer?) : Structure(p), Structure.ByReference {
         }
     }
 
-    @JvmField var nlu_slot: CSlot? = null
+    @JvmField
+    var nlu_slot: CSlot? = null
 
     // be careful this block must be below the field definition if you don't want the native values read by JNA
     // overridden by the default ones
@@ -285,8 +309,10 @@ class CNluSlotArray(p: Pointer?) : Structure(p), Structure.ByReference {
 }
 
 class CNluIntentClassifierResult : Structure(), Structure.ByReference {
-    @JvmField var intent_name: Pointer? = null
-    @JvmField var confidence_score: Float? = null
+    @JvmField
+    var intent_name: Pointer? = null
+    @JvmField
+    var confidence_score: Float? = null
 
     override fun getFieldOrder() = listOf("intent_name", "confidence_score")
 
@@ -307,6 +333,10 @@ class CIntentMessage(p: Pointer) : Structure(p), Structure.ByReference {
     var intent: CNluIntentClassifierResult? = null
     @JvmField
     var slots: CNluSlotArray? = null
+    @JvmField
+    var asr_tokens: CAsrTokenDoubleArray? = null
+    @JvmField
+    var asr_confidence: Float? = null
 
     // be careful this block must be below the field definition if you don't want the native values read by JNA
     // overridden by the default ones
@@ -314,7 +344,7 @@ class CIntentMessage(p: Pointer) : Structure(p), Structure.ByReference {
         read()
     }
 
-    override fun getFieldOrder() = listOf("session_id", "custom_data", "site_id", "input", "intent", "slots")
+    override fun getFieldOrder() = listOf("session_id", "custom_data", "site_id", "input", "intent", "slots", "asr_tokens", "asr_confidence")
 
     fun toIntentMessage() = IntentMessage(
             sessionId = session_id.readString(),
@@ -322,7 +352,9 @@ class CIntentMessage(p: Pointer) : Structure(p), Structure.ByReference {
             siteId = site_id.readString(),
             input = input.readString(),
             intent = intent!!.toIntentClassifierResult(),
-            slots = slots?.toSlotList() ?: listOf())
+            slots = slots?.toSlotList() ?: listOf(),
+            asrConfidence = asr_confidence,
+            asrTokens = asr_tokens?.toAsrTokenDoubleList()?.toMutableList() ?: mutableListOf())
 }
 
 class CIntentNotRecognizedMessage(p: Pointer?) : Structure(p), Structure.ByReference {
@@ -627,7 +659,7 @@ class CInjectionRequestOperations(p: Pointer?) : Structure(p), Structure.ByRefer
         @JvmStatic
         fun fromInjectionOperationsList(input: List<InjectionOperation>) = CInjectionRequestOperations(null).apply {
             count = input.size
-            operations = if(input.isNotEmpty()) Memory(Pointer.SIZE * input.size.toLong()).apply {
+            operations = if (input.isNotEmpty()) Memory(Pointer.SIZE * input.size.toLong()).apply {
                 input.forEachIndexed { i, o ->
                     this.setPointer(i.toLong() * Pointer.SIZE, CInjectionRequestOperation.fromInjectionOperation(o).pointer.share(0))
                 }
@@ -687,4 +719,191 @@ class CInjectionRequestMessage(p: Pointer?) : Structure(p), Structure.ByReferenc
             crossLanguage = cross_language?.readString(),
             id = id?.readString()
     )
+}
+
+class CAsrDecodingDuration : Structure(), Structure.ByValue {
+    companion object {
+        @JvmStatic
+        fun fromAsrDecodingDuration(duration: AsrDecodingDuration) = CAsrDecodingDuration().apply {
+            start = duration.start
+            end = duration.end
+        }
+    }
+
+
+    @JvmField
+    var start: Float? = null
+
+    @JvmField
+    var end: Float? = null
+
+    // be careful this block must be below the field definition if you don't want the native values read by JNA
+    // overridden by the default ones
+    init {
+        read()
+    }
+
+
+    override fun getFieldOrder() = listOf("start", "end")
+
+    fun toAsrDecodingDuration() = AsrDecodingDuration(start = start!!,
+                                                      end = end!!)
+}
+
+class CAsrToken(p: Pointer?) : Structure(p), Structure.ByReference {
+    companion object {
+        @JvmStatic
+        fun fromAsrToken(token: AsrToken) = CAsrToken(null).apply {
+            value = token.value.toPointer()
+            confidence = token.confidence
+            range_start = token.range.start
+            range_end = token.range.endInclusive
+            time = CAsrDecodingDuration.fromAsrDecodingDuration(token.time)
+        }
+    }
+
+    @JvmField
+    var value: Pointer? = null
+
+    @JvmField
+    var confidence: Float? = null
+
+    @JvmField
+    var range_start: Int = -1
+
+    @JvmField
+    var range_end: Int = -1
+
+    @JvmField
+    var time: CAsrDecodingDuration? = null
+
+    // be careful this block must be below the field definition if you don't want the native values read by JNA
+    // overridden by the default ones
+    init {
+        read()
+    }
+
+    override fun getFieldOrder() = listOf("value", "confidence", "range_start", "range_end", "time")
+
+    fun toAsrToken() = AsrToken(
+            value = value.readString(),
+            confidence = confidence!!,
+            range = range_start..range_end,
+            time = time!!.toAsrDecodingDuration()
+    )
+
+}
+
+
+class CAsrTokenArray(p: Pointer?) : Structure(p), Structure.ByReference {
+    companion object {
+        @JvmStatic
+        fun fromAsrTokenList(list: List<AsrToken>) = CAsrTokenArray(null).apply {
+            count = list.size
+            entries = if (count > 0)
+                Memory(Pointer.SIZE * list.size.toLong()).apply {
+                    list.forEachIndexed { i, e ->
+                        this.setPointer(i.toLong() * Pointer.SIZE, CAsrToken.fromAsrToken(e).apply { write() }.pointer)
+                    }
+                }
+            else null
+        }
+    }
+
+    @JvmField
+    var entries: Pointer? = null
+    @JvmField
+    var count: Int = -1
+
+    // be careful this block must be below the field definition if you don't want the native values read by JNA
+    // overridden by the default ones
+    init {
+        read()
+    }
+
+    override fun getFieldOrder() = listOf("entries", "count")
+
+    fun toAsrTokenList(): List<AsrToken> = if (count > 0) {
+        entries!!.getPointerArray(0, count).map { CAsrToken(it).toAsrToken() }
+    } else listOf()
+}
+
+class CAsrTokenDoubleArray(p: Pointer?) : Structure(p), Structure.ByReference {
+    companion object {
+        @JvmStatic
+        fun fromAsrTokenDoubleList(list: List<List<AsrToken>>) = CAsrTokenDoubleArray(null).apply {
+            count = list.size
+            entries = if (count > 0)
+                Memory(Pointer.SIZE * list.size.toLong()).apply {
+                    list.forEachIndexed { i, e ->
+                        this.setPointer(i.toLong() * Pointer.SIZE, CAsrTokenArray.fromAsrTokenList(e).apply { write() }.pointer)
+                    }
+                }
+            else null
+        }
+    }
+
+    @JvmField
+    var entries: Pointer? = null
+    @JvmField
+    var count: Int = -1
+
+    // be careful this block must be below the field definition if you don't want the native values read by JNA
+    // overridden by the default ones
+    init {
+        read()
+    }
+
+    override fun getFieldOrder() = listOf("entries", "count")
+
+    fun toAsrTokenDoubleList(): List<List<AsrToken>> = if (count > 0) {
+        entries!!.getPointerArray(0, count).map { CAsrTokenArray(it).toAsrTokenList() }
+    } else listOf()
+}
+
+
+class CTextCapturedMessage(p: Pointer?) : Structure(p), Structure.ByReference {
+    companion object {
+        @JvmStatic
+        fun fromTextCapturedMessage(message:TextCapturedMessage) = CTextCapturedMessage(null).apply {
+            text = message.text.toPointer()
+            tokens = CAsrTokenArray.fromAsrTokenList(message.tokens)
+            likelihood = message.likelihood
+            seconds = message.seconds
+            site_id = message.siteId.toPointer()
+            session_id = message.sessionId?.toPointer()
+        }
+    }
+
+
+    @JvmField
+    var text: Pointer? = null
+    @JvmField
+    var tokens: CAsrTokenArray? = null
+    @JvmField
+    var likelihood: Float? = null
+    @JvmField
+    var seconds: Float? = null
+    @JvmField
+    var site_id: Pointer? = null
+    @JvmField
+    var session_id: Pointer? = null
+
+    // be careful this block must be below the field definition if you don't want the native values read by JNA
+    // overridden by the default ones
+    init {
+        read()
+    }
+
+    override fun getFieldOrder() = listOf("text", "tokens", "likelihood", "seconds", "site_id", "session_id")
+
+    fun toTextCapturedMessage() = TextCapturedMessage(
+            text = text.readString(),
+            tokens = tokens?.toAsrTokenList() ?: listOf(),
+            likelihood = likelihood!!,
+            seconds = seconds!!,
+            siteId = site_id.readString(),
+            sessionId = session_id?.readString()
+    )
+
 }

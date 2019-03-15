@@ -142,6 +142,38 @@ pub extern "C" fn hermes_ffi_test_round_trip_dialogue_configure(
 }
 
 #[no_mangle]
+pub extern "C" fn hermes_ffi_test_round_trip_asr_token(
+    input: *const hermes_ffi::CAsrToken,
+    output: *mut *const hermes_ffi::CAsrToken,
+) -> ffi_utils::SNIPS_RESULT {
+    wrap!(round_trip(input, output))
+}
+
+#[no_mangle]
+pub extern "C" fn hermes_ffi_test_round_trip_asr_token_array(
+    input: *const hermes_ffi::CAsrTokenArray,
+    output: *mut *const hermes_ffi::CAsrTokenArray,
+) -> ffi_utils::SNIPS_RESULT {
+    wrap!(round_trip(input, output))
+}
+
+#[no_mangle]
+pub extern "C" fn hermes_ffi_test_round_trip_asr_token_double_array(
+    input: *const hermes_ffi::CAsrTokenDoubleArray,
+    output: *mut *const hermes_ffi::CAsrTokenDoubleArray,
+) -> ffi_utils::SNIPS_RESULT {
+    wrap!(round_trip(input, output))
+}
+
+#[no_mangle]
+pub extern "C" fn hermes_ffi_test_round_trip_text_captured(
+    input: *const hermes_ffi::CTextCapturedMessage,
+    output: *mut *const hermes_ffi::CTextCapturedMessage,
+) -> ffi_utils::SNIPS_RESULT {
+    wrap!(round_trip(input, output))
+}
+
+#[no_mangle]
 pub unsafe extern "C" fn hermes_ffi_test_destroy_string(string: *mut libc::c_char) -> SNIPS_RESULT {
     wrap!(std::ffi::CString::from_raw_pointer(string))
 }
@@ -151,6 +183,25 @@ pub unsafe extern "C" fn hermes_ffi_test_destroy_map_string_to_string_array(
     input: *mut CMapStringToStringArray,
 ) -> SNIPS_RESULT {
     wrap!(CMapStringToStringArray::drop_raw_pointer(input))
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn hermes_ffi_test_destroy_asr_token(input: *mut hermes_ffi::CAsrToken) -> SNIPS_RESULT {
+    wrap!(hermes_ffi::CAsrToken::drop_raw_pointer(input))
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn hermes_ffi_test_destroy_asr_token_array(
+    input: *mut hermes_ffi::CAsrTokenArray,
+) -> SNIPS_RESULT {
+    wrap!(hermes_ffi::CAsrTokenArray::drop_raw_pointer(input))
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn hermes_ffi_test_destroy_asr_token_double_array(
+    input: *mut hermes_ffi::CAsrTokenDoubleArray,
+) -> SNIPS_RESULT {
+    wrap!(hermes_ffi::CAsrTokenDoubleArray::drop_raw_pointer(input))
 }
 
 generate_hermes_c_symbols!();
