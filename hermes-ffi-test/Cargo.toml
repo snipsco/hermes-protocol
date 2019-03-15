@@ -1,6 +1,6 @@
 [package]
 name = "hermes-ffi-test"
-version = "0.64.2"
+version = "0.65.0-SNAPSHOT"
 authors = ["Thibaut Lorrain <thibaut.lorrain@snips.ai>"]
 edition = "2018"
 
