@@ -475,7 +475,7 @@ Configure intents that can trigger a session start.
 dialog.publish('configure', {
     siteId: /* string */,
     intents: [{
-        intentName: /* string */,
+        intentId: /* string */,
         enable: /* boolean */
     }]
 })
