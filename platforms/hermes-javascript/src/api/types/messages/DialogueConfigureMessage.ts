@@ -1,7 +1,7 @@
 export type DialogueConfigureMessage = {
     siteId?: string,
     intents?: {
-        intentName: string,
+        intentId: string,
         enable: boolean
     }[]
 }
