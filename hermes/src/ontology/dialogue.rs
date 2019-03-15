@@ -207,7 +207,7 @@ impl<'de> HermesMessage<'de> for DialogueConfigureMessage {}
 #[serde(rename_all = "camelCase")]
 pub struct DialogueConfigureIntent {
     /// The name of the intent that should be configured.
-    pub intent_name: String,
+    pub intent_id: String,
     /// Whether this intent should be activated on not.
     pub enable: Option<bool>,
 }

@@ -41,10 +41,6 @@ const robustnessTestsTimeout = 60000
 const robustnessIterations = 500
 const robustnessDelay = 5
 
-// Log segfaults
-const SegfaultHandler = require('segfault-handler')
-SegfaultHandler.registerHandler('crash.log')
-
 beforeAll(async () => {
   mosquittoPort = '' + await getFreePort()
   console.log('Launching mosquitto on port [' + mosquittoPort + ']')

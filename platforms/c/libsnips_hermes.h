@@ -156,7 +156,7 @@ typedef struct {
 } CDialogueFacade;
 
 typedef struct {
-  const char *intent_name;
+  const char *intent_id;
   /**
    * Optional Boolean 0 => false, 1 => true other values => null
    */

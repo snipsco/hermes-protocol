@@ -6,10 +6,6 @@ import { spawn } from 'child_process'
 import mqtt from 'mqtt'
 import { Hermes } from '../../dist'
 import { LIB_ENV_FOLDER } from '../constants'
-// Log segfaults
-import SegfaultHandler from 'segfault-handler'
-
-SegfaultHandler.registerHandler('crash.log')
 
 let mosquitto: any, hermes: Hermes
 

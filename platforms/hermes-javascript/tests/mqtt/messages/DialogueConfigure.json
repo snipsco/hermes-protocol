@@ -2,15 +2,15 @@
     "siteId": "default",
     "intents":[
         {
-            "intentName": "intent1",
+            "intentId": "intent1",
             "enable": true
         },
         {
-            "intentName": "intent2",
+            "intentId": "intent2",
             "enable": false
         },
         {
-            "intentName": "intent3",
+            "intentId": "intent3",
             "enable": null
         }
     ]
