@@ -642,7 +642,7 @@ impl Drop for CSessionEndedMessage {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CDialogueConfigureIntent {
-    pub intent_name: *const libc::c_char,
+    pub intent_id: *const libc::c_char,
     /// Optional Boolean 0 => false, 1 => true other values => null
     pub enable: libc::c_uchar,
 }
@@ -650,7 +650,7 @@ pub struct CDialogueConfigureIntent {
 impl CReprOf<hermes::DialogueConfigureIntent> for CDialogueConfigureIntent {
     fn c_repr_of(input: hermes::DialogueConfigureIntent) -> Fallible<Self> {
         Ok(Self {
-            intent_name: convert_to_c_string!(input.intent_name),
+            intent_id: convert_to_c_string!(input.intent_id),
             enable: match input.enable {
                 Some(false) => 0,
                 Some(true) => 1,
@@ -663,7 +663,7 @@ impl CReprOf<hermes::DialogueConfigureIntent> for CDialogueConfigureIntent {
 impl AsRust<hermes::DialogueConfigureIntent> for CDialogueConfigureIntent {
     fn as_rust(&self) -> Fallible<hermes::DialogueConfigureIntent> {
         Ok(hermes::DialogueConfigureIntent {
-            intent_name: create_rust_string_from!(self.intent_name),
+            intent_id: create_rust_string_from!(self.intent_id),
             enable: match self.enable {
                 0 => Some(false),
                 1 => Some(true),
@@ -675,7 +675,7 @@ impl AsRust<hermes::DialogueConfigureIntent> for CDialogueConfigureIntent {
 
 impl Drop for CDialogueConfigureIntent {
     fn drop(&mut self) {
-        take_back_c_string!(self.intent_name)
+        take_back_c_string!(self.intent_id)
     }
 }
 
@@ -927,15 +927,15 @@ mod tests {
     #[test]
     fn round_trip_dialogue_configure_intent() {
         round_trip_test::<_, CDialogueConfigureIntent>(hermes::DialogueConfigureIntent {
-            intent_name: "my intent".into(),
+            intent_id: "my intent".into(),
             enable: Some(true),
         });
         round_trip_test::<_, CDialogueConfigureIntent>(hermes::DialogueConfigureIntent {
-            intent_name: "an intent".into(),
+            intent_id: "an intent".into(),
             enable: Some(false),
         });
         round_trip_test::<_, CDialogueConfigureIntent>(hermes::DialogueConfigureIntent {
-            intent_name: "".into(),
+            intent_id: "".into(),
             enable: None,
         });
     }
@@ -944,15 +944,15 @@ mod tests {
     fn round_trip_dialogue_configure_intent_array() {
         round_trip_test::<_, CDialogueConfigureIntentArray>(vec![
             hermes::DialogueConfigureIntent {
-                intent_name: "my intent".into(),
+                intent_id: "my intent".into(),
                 enable: Some(true),
             },
             hermes::DialogueConfigureIntent {
-                intent_name: "an intent".into(),
+                intent_id: "an intent".into(),
                 enable: Some(false),
             },
             hermes::DialogueConfigureIntent {
-                intent_name: "".into(),
+                intent_id: "".into(),
                 enable: None,
             },
         ]);
@@ -966,15 +966,15 @@ mod tests {
             site_id: Some("some site".into()),
             intents: Some(vec![
                 hermes::DialogueConfigureIntent {
-                    intent_name: "my intent".into(),
+                    intent_id: "my intent".into(),
                     enable: Some(true),
                 },
                 hermes::DialogueConfigureIntent {
-                    intent_name: "an intent".into(),
+                    intent_id: "an intent".into(),
                     enable: Some(false),
                 },
                 hermes::DialogueConfigureIntent {
-                    intent_name: "".into(),
+                    intent_id: "".into(),
                     enable: None,
                 },
             ]),
