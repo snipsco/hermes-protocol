@@ -191,15 +191,17 @@ pub unsafe extern "C" fn hermes_ffi_test_destroy_asr_token(input: *mut hermes_ff
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn hermes_ffi_test_destroy_asr_token_array(input: *mut hermes_ffi::CAsrTokenArray) -> SNIPS_RESULT {
+pub unsafe extern "C" fn hermes_ffi_test_destroy_asr_token_array(
+    input: *mut hermes_ffi::CAsrTokenArray,
+) -> SNIPS_RESULT {
     wrap!(hermes_ffi::CAsrTokenArray::drop_raw_pointer(input))
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn hermes_ffi_test_destroy_asr_token_double_array(input: *mut hermes_ffi::CAsrTokenDoubleArray) -> SNIPS_RESULT {
+pub unsafe extern "C" fn hermes_ffi_test_destroy_asr_token_double_array(
+    input: *mut hermes_ffi::CAsrTokenDoubleArray,
+) -> SNIPS_RESULT {
     wrap!(hermes_ffi::CAsrTokenDoubleArray::drop_raw_pointer(input))
 }
-
-
 
 generate_hermes_c_symbols!();
