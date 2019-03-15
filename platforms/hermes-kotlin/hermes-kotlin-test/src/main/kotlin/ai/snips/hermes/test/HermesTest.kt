@@ -111,12 +111,12 @@ class HermesTest {
 
 
     private fun <T, U> roundTrip(input: T,
-                                 toCCoonverter: (T) -> U,
+                                 toCConverter: (T) -> U,
                                  roundTrip: (U, PointerByReference) -> Int,
                                  fromCConverter: (Pointer) -> T,
                                  drop: (Pointer) -> Int): T {
         return PointerByReference().apply {
-            parseError(roundTrip(toCCoonverter(input), this))
+            parseError(roundTrip(toCConverter(input), this))
         }.value.let {
             fromCConverter(it).apply {
                 parseError(drop(it))
