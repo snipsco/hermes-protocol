@@ -4,7 +4,7 @@ from collections import defaultdict
 from collections.abc import Mapping
 from six.moves import range
 
-from ctypes import string_at, c_double
+from ctypes import string_at, c_double, c_int64
 from hermes_python.ffi.ontology.dialogue import CAmountOfMoneyValue, CTemperatureValue, CInstantTimeValue, \
     CTimeIntervalValue, CDurationValue
 
@@ -156,6 +156,10 @@ class SlotValue(object):
             c_repr_number = c_double.from_address(c_repr.value)
             number = c_repr_number.value
             value = NumberValue(number)
+        elif 3 == value_type: # ORDINAL
+            c_repr_number = c_int64.from_address(c_repr.value)
+            number = c_repr_number.value
+            value = OrdinalValue(number)
         elif 4 == value_type: # INSTANTTIME
             c_repr_instant_time_value = CInstantTimeValue.from_address(c_repr.value)
             value = InstantTimeValue.from_c_repr(c_repr_instant_time_value)
@@ -209,6 +213,16 @@ class NumberValue(object):
         A structured representation of Number Value slot type.
 
         :param value:
+        """
+        self.value = value
+
+
+class OrdinalValue(object):
+    def __init__(self, value):
+        """
+        A structured representation of Ordinal Value slot type.
+
+        :param value: an integer value.
         """
         self.value = value
 
