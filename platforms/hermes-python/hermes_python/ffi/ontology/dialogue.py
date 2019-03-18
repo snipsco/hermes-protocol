@@ -271,7 +271,7 @@ class CNluSlotArray(Structure):
 
     @classmethod
     def from_repr(cls, repr):
-        # type: (SlotMap)
+        # type: (SlotMap) -> CNluSlotArray
         """
         impl CReprOf<Vec<hermes::NluSlot>> for CNluSlotArray {
             fn c_repr_of(input: Vec<hermes::NluSlot>) -> Fallible<Self> {
@@ -458,21 +458,21 @@ class CDurationValue(Structure):
 
 class CDialogueConfigureIntent(Structure):
     _fields_ = [
-        ("intent_name", c_char_p),
+        ("intent_id", c_char_p),
         ("enable", c_uint8)]
 
     @classmethod
     def from_repr(cls, repr):
         # type: (DialogueConfigureIntent) -> CDialogueConfigureIntent
-        return cls.build(repr.intent_name, repr.enable)
+        return cls.build(repr.intent_id, repr.enable)
 
     @classmethod
-    def build(cls, intent_name, enable):
+    def build(cls, intent_id, enable):
         # type: (str, bool) -> CDialogueConfigureIntent
-        intent_name = intent_name.encode('utf-8')
+        intent_id = intent_id.encode('utf-8')
         enable = c_uint8(1) if enable else c_uint8(0)
 
-        return cls(intent_name, enable)
+        return cls(intent_id, enable)
 
 
 class CDialogueConfigureIntentArray(Structure):

@@ -79,9 +79,9 @@ class DialogueConfiguration(object):
 
 
 class DialogueConfigureIntent(object):
-    def __init__(self, intent_name, enable):
+    def __init__(self, intent_id, enable):
         # type: (str, bool) -> DialogueConfigureIntent
-        self.intent_name = intent_name
+        self.intent_id = intent_id
         self.enable = enable
 
     def __eq__(self, other):
@@ -89,9 +89,9 @@ class DialogueConfigureIntent(object):
 
     @classmethod
     def from_c_repr(cls, c_repr):
-        intent_name = c_repr.intent_name.decode('utf-8')
+        intent_id = c_repr.intent_id.decode('utf-8')
         enable = True if c_repr.enable > 0 else False
-        return cls(intent_name, enable)
+        return cls(intent_id, enable)
 
 
 class DialogueConfigureIntentArray(list):

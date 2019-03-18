@@ -14,7 +14,7 @@ class TestDialogueConfiguration:
 
         assert dialogue_configure_message.site_id is None
         assert len(dialogue_configure_message.intents) == 1
-        assert dialogue_configure_message.intents[0].intent_name == "intent_1"
+        assert dialogue_configure_message.intents[0].intent_id == "intent_1"
         assert not dialogue_configure_message.intents[0].enable
 
     def test_dialogue_configuration_disabling_intents(self):
