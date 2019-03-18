@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 from ctypes import cdll, CFUNCTYPE, c_void_p, c_char_p, POINTER, pointer, string_at
 import os
 from glob import glob
+import sys
 
 import hermes_python
 from hermes_python.ontology.dialogue import IntentMessage, IntentClassifierResult, SlotMap, NluSlot, SlotValue, \
@@ -14,7 +15,7 @@ from hermes_python.ffi.ontology.dialogue import CSessionQueuedMessage, CSessionS
     CIntentNotRecognizedMessage, CContinueSessionMessage, CStartSessionMessageNotification, CStartSessionMessageAction, \
     CEndSessionMessage, CDialogueConfigureMessage
 
-DYLIB_NAME = "libhermes_ffi_test.so"
+DYLIB_NAME = "libhermes_ffi_test" + (".dylib" if sys.platform == "darwin" else ".so")
 DYLIB_DIR = os.path.join(os.path.dirname(__file__), "./debug")
 DYLIB_PATH = glob(os.path.join(DYLIB_DIR, DYLIB_NAME))[0]
 
