@@ -9,8 +9,11 @@ from glob import glob
 
 import hermes_python
 from hermes_python.ontology.dialogue import IntentMessage, IntentClassifierResult, SlotMap, NluSlot, SlotValue, CustomValue
+from hermes_python.ffi.ontology.dialogue import CSessionQueuedMessage, CSessionStartedMessage, CSessionEndedMessage, \
+CIntentNotRecognizedMessage, CContinueSessionMessage, CStartSessionMessageNotification, CStartSessionMessageAction, \
+CEndSessionMessage, CDialogueConfigureMessage
 
-DYLIB_NAME = "libhermes_ffi_test.so"
+DYLIB_NAME = "libhermes_ffi_test.dylib"
 DYLIB_DIR = os.path.join(os.path.dirname(__file__), "./debug")
 DYLIB_PATH = glob(os.path.join(DYLIB_DIR, DYLIB_NAME))[0]
 
@@ -18,6 +21,51 @@ lib = cdll.LoadLibrary(DYLIB_PATH)
 
 class LibException(Exception):
     pass
+
+
+def dispatch_to_ffi_function(pointer_to_c_struct, c_struct_type):
+    if c_struct_type is CSessionQueuedMessage:
+        print(c_struct_type)
+        return lib.hermes_drop_session_queued_message(pointer_to_c_struct)
+    elif c_struct_type is CSessionStartedMessage:
+        print(c_struct_type)
+        return lib.hermes_drop_session_started_message(pointer_to_c_struct)
+    elif c_struct_type is CSessionEndedMessage:
+        print(c_struct_type)
+        return lib.hermes_drop_session_ended_message(pointer_to_c_struct)
+    elif c_struct_type is CIntentNotRecognizedMessage:
+        type(c_struct_type)
+        return lib.hermes_drop_intent_not_recognized_message(pointer_to_c_struct)
+    elif c_struct_type is CContinueSessionMessage:
+        type(c_struct_type)
+        return lib.hermes_drop_continue_session_message(pointer_to_c_struct)
+    elif c_struct_type is CStartSessionMessageNotification:
+        type(c_struct_type)
+        return lib.hermes_drop_start_session_message(pointer_to_c_struct)
+    elif c_struct_type is CStartSessionMessageAction:
+        type(c_struct_type)
+        return lib.hermes_drop_start_session_message(pointer_to_c_struct)
+    elif c_struct_type is CEndSessionMessage:
+        type(c_struct_type)
+        return lib.hermes_drop_end_session_message(pointer_to_c_struct)
+    elif c_struct_type is CDialogueConfigureMessage:
+        type(c_struct_type)
+        return lib.hermes_drop_dialogue_configure_message(pointer_to_c_struct)
+    else:
+        raise Exception("Cannot drop struct of type {}".format(c_struct_type))
+
+
+
+def drop_structure(ptr_to_c_struct, C_struct_type):
+    destruction = dispatch_to_ffi_function(ptr_to_c_struct, C_struct_type)
+    if destruction > 0:
+        wrap_c_error()
+
+
+def wrap_c_error():
+    error_p = POINTER(c_char_p)(c_char_p("".encode('utf-8')))
+    lib.hermes_ffi_test_get_last_error(error_p)
+    raise LibException(string_at(error_p.contents).decode('utf-8'))
 
 
 def get_round_trip_data_structure(py_ontology_object_instance, C_Ontology_Type, Python_Ontology_Class, round_trip_function):
@@ -30,10 +78,7 @@ def get_round_trip_data_structure(py_ontology_object_instance, C_Ontology_Type, 
     result = round_trip_function(pointer_c_repr, output_pointer)
 
     if result > 0:
-        error_p = POINTER(c_char_p)(c_char_p("".encode('utf-8')))
-        lib.hermes_ffi_test_get_last_error(error_p)
-        raise Exception(string_at(error_p.contents).decode('utf-8'))
-
+        wrap_c_error()
 
     # Deserialize Rust result into C representation
     round_trip_c_repr_object = C_Ontology_Type.from_address(output_pointer.contents.value)
@@ -143,7 +188,6 @@ def test_hermes_ffi_test_round_trip_continue_session_2():
     assert continue_session_message == round_trip_continue_session_message
 
 
-
 def test_hermes_ffi_test_round_trip_start_session_notification_1():
     session_init = hermes_python.ontology.dialogue.SessionInitNotification("testing")
 
@@ -158,6 +202,7 @@ def test_hermes_ffi_test_round_trip_start_session_notification_1():
 
     assert start_session_message == round_trip_start_session_message
 
+
 def test_hermes_ffi_test_round_trip_start_session_notification_2():
     session_init = hermes_python.ontology.dialogue.SessionInitNotification()
 
@@ -171,6 +216,7 @@ def test_hermes_ffi_test_round_trip_start_session_notification_2():
     )
 
     assert start_session_message == round_trip_start_session_message
+
 
 def test_hermes_ffi_test_round_trip_start_session_notification_3():
     session_init = hermes_python.ontology.dialogue.SessionInitNotification()
@@ -187,7 +233,6 @@ def test_hermes_ffi_test_round_trip_start_session_notification_3():
 
     assert start_session_message == round_trip_start_session_message
     assert round_trip_start_session_message.custom_data == "blabla"
-
 
 
 def test_hermes_ffi_test_round_trip_start_session_notification_4():
@@ -247,6 +292,7 @@ def test_hermes_ffi_test_round_trip_start_session_action_3():
 
     assert start_session_message == round_trip_start_session_message
 
+
 def test_hermes_ffi_test_round_trip_start_session_action_4():
     session_init = hermes_python.ontology.dialogue.SessionInitAction(send_intent_not_recognized=True)
     start_session_message = hermes_python.ontology.dialogue.StartSessionMessage(session_init, None, None)
@@ -260,6 +306,7 @@ def test_hermes_ffi_test_round_trip_start_session_action_4():
 
     assert start_session_message == round_trip_start_session_message
     assert start_session_message.init.send_intent_not_recognized == round_trip_start_session_message.init.send_intent_not_recognized
+
 
 def test_hermes_ffi_test_round_trip_end_session_1():
     end_session_message = hermes_python.ontology.dialogue.EndSessionMessage("session_id")
@@ -283,6 +330,7 @@ def test_hermes_ffi_test_round_trip_end_session_2():
     )
 
     assert end_session_message == round_trip_end_session_message
+
 
 def test_hermes_ffi_test_round_trip_dialogue_configure():
     intent1 = hermes_python.ontology.dialogue.DialogueConfigureIntent("intent1", True)
@@ -329,10 +377,7 @@ def test_hermes_ffi_test_round_trip_dialogue_configure_intent_array():
 
     assert dialogue_configure_intent_array == round_trip_dialogue_configure_intent_array
 
-
-
 """
-
 def test_hermes_ffi_test_round_trip_intent():
     slot_value = SlotValue(1, CustomValue("hello :) 🎁"))
     search_weather_nlu = NluSlot(0.2, slot_value, "hello", "proutEntity", "searchWeather", 0, 2)
@@ -347,6 +392,7 @@ def test_hermes_ffi_test_round_trip_intent():
     )
 
     assert intent_message == round_trip_intent_message
+
 
 
 # TODO : Missing tests.
