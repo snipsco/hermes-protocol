@@ -43,3 +43,11 @@ def test_unseen_slot_acces_dict_notation():
     assert slots['unseen_slot'].first() is None
     assert slots['unseen_slot'].all() is None
 
+
+def test_slot_map_items_iteration():
+    from hermes_python.ontology.dialogue import SlotsList
+    slots = hermes_python.ontology.dialogue.SlotMap({"test_slot": SlotsList()})
+
+    for slot, slot_value_list in slots.items():
+        assert slot == "test_slot"
+        assert len(slot_value_list) == 0
