@@ -8,8 +8,6 @@ from setuptools import setup, find_packages
 from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
 from setuptools.command.install import install
 
-from sphinx.setup_command import BuildDoc
-
 
 class InstallPlatlib(install):
     def finalize_options(self):
@@ -31,7 +29,7 @@ PACKAGE_NAME = "hermes_python"
 ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
 PACKAGE_PATH = os.path.join(ROOT_PATH, PACKAGE_NAME)
 README = os.path.join(ROOT_PATH, "README.md")
-HISTORY = os.path.join(ROOT_PATH, "HISTORY.rst")
+HISTORY = os.path.join(ROOT_PATH, "documentation/source/HISTORY.rst")
 VERSION = "__version__"
 
 with io.open(os.path.join(PACKAGE_PATH, VERSION)) as f:
@@ -77,8 +75,7 @@ setup(
     packages=packages,
     cmdclass={
         'bdist_wheel': bdist_wheel,
-        'install': InstallPlatlib,
-        'documentation': BuildDoc},
+        'install': InstallPlatlib},
     command_options={
         'documentation': {
             'project': ('setup.py', 'Hermes Python'),
