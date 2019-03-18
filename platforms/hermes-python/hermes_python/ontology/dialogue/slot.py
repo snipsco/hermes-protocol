@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from builtins import object
 from collections import defaultdict
+from collections.abc import Mapping
 from six.moves import range
 
 from ctypes import string_at, c_double
@@ -8,7 +9,7 @@ from hermes_python.ffi.ontology.dialogue import CAmountOfMoneyValue, CTemperatur
     CTimeIntervalValue, CDurationValue
 
 
-class SlotMap(object):
+class SlotMap(Mapping):
     def __init__(self, data):
         # type: (dict) -> SlotMap
         mapping = dict()
@@ -24,6 +25,11 @@ class SlotMap(object):
 
     def __len__(self):
         return self.__data.__len__()
+
+    def __iter__(self):
+        return iter(self.__data)
+
+
 
     @classmethod
     def from_c_repr(cls, c_slots_list_repr):
@@ -222,7 +228,7 @@ class AmountOfMoneyValue(object):
 
     @classmethod
     def from_c_repr(cls, c_repr):
-        unit = c_repr.unit.decode('utf-8')
+        unit = c_repr.unit.decode('utf-8') if c_repr.unit else None
         value = c_repr.value
         precision = c_repr.precision
 
@@ -242,7 +248,7 @@ class TemperatureValue(object):
 
     @classmethod
     def from_c_repr(cls, c_repr):
-        unit = c_repr.unit.decode('utf-8')
+        unit = c_repr.unit.decode('utf-8') if c_repr.unit else None
         value = c_repr.value
         return cls(unit, value)
 
