@@ -1,7 +1,14 @@
 # -*- coding: utf-8 -*-
 from builtins import object
 from collections import defaultdict
-from collections.abc import Mapping
+
+
+# Ever since Python3.3, Mapping was moved to the abc submodule.
+try:
+    from collections.abc import Mapping  # Python3.3+
+except ImportError:
+    from collections import Mapping  # Python2.7+
+
 from six.moves import range
 
 from ctypes import string_at, c_double, c_int64
