@@ -5,7 +5,7 @@ import pytest
 from hermes_python.api.ffi import FFI
 from hermes_python.ontology import MqttOptions
 from hermes_python.ontology.dialogue import StartSessionMessage, SessionInitAction, SessionInitNotification, \
-    ContinueSessionMessage, EndSessionMessage
+    ContinueSessionMessage, EndSessionMessage, DialogueConfigureMessage, DialogueConfigureIntent
 
 HOST = "localhost"
 DUMMY_INTENT_NAME = "INTENT"
@@ -349,3 +349,13 @@ def test_publish_end_session_success_json(ffi_utils, hermes_protocol_handler_new
 
     ffi_utils.hermes_dialogue_publish_end_session_json.assert_called_once()
 
+
+@mock.patch("hermes_python.api.ffi.utils")
+def test_configure_dialogue(ffi_utils):
+    ffi = FFI(use_json_api=False)
+
+    intent_config = DialogueConfigureIntent("dummy_intent", False)
+    dialogue_configure_message = DialogueConfigureMessage(None, intent_config)
+    ffi.dialogue.publish_configure(dialogue_configure_message)
+
+    ffi_utils.hermes_dialogue_publish_configure.assert_called_once()
