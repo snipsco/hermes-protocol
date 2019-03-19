@@ -4,6 +4,8 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 from itertools import groupby
 
+from hermes_python.ffi.ontology.dialogue import CDialogueConfigureMessage
+
 from .intent import *
 from .slot import *
 from .session import *
