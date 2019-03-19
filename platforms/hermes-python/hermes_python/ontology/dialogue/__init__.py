@@ -120,7 +120,7 @@ class DialogueConfigureMessage(object):
 
     @classmethod
     def from_c_repr(cls, c_repr):
-        site_id = c_repr.site_id.decode('utf-8')
+        site_id = c_repr.site_id.decode('utf-8') if c_repr.site_id else None
 
         intents_filter_length = c_repr.intents.contents.count
         c_intents_filter_array_repr = c_repr.intents.contents.entries

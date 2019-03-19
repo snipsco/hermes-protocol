@@ -361,6 +361,23 @@ def test_hermes_ffi_test_round_trip_dialogue_configure():
     assert dialogue_configure == round_trip_dialogue_configure
 
 
+def test_hermes_ffi_test_round_trip_dialogue_configure_default_site_id():
+    intent1 = hermes_python.ontology.dialogue.DialogueConfigureIntent("intent1", True)
+    intent2 = hermes_python.ontology.dialogue.DialogueConfigureIntent("intent1", True)
+    intent3 = hermes_python.ontology.dialogue.DialogueConfigureIntent("intent1", True)
+    dialogue_configure = \
+        hermes_python.ontology.dialogue.DialogueConfigureMessage(None, [intent1, intent2, intent3])
+
+    round_trip_dialogue_configure = get_round_trip_data_structure(
+        dialogue_configure,
+        hermes_python.ffi.ontology.dialogue.CDialogueConfigureMessage,
+        hermes_python.ontology.dialogue.DialogueConfigureMessage,
+        lib.hermes_ffi_test_round_trip_dialogue_configure
+    )
+
+    assert dialogue_configure == round_trip_dialogue_configure
+
+
 def test_hermes_ffi_test_round_trip_dialogue_configure_intent():
     dialogue_configure_intent = hermes_python.ontology.dialogue.DialogueConfigureIntent("intent1", True)
     round_trip_dialogue_configure_intent = get_round_trip_data_structure(

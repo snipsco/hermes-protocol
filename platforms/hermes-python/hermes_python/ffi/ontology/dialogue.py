@@ -511,7 +511,7 @@ class CDialogueConfigureMessage(Structure):
     @classmethod
     def build(cls, site_id, intents):
         # type: (str, List[DialogueConfigureIntent]) -> CDialogueConfigureMessage
-        site_id = site_id.encode('utf-8')
+        site_id = site_id.encode('utf-8') if site_id else None
         c_dialogue_configure_intent_array = CDialogueConfigureIntentArray.build(intents)
         c_dialogue_configure_intent_array_p = POINTER(CDialogueConfigureIntentArray)(c_dialogue_configure_intent_array)
         return cls(site_id, c_dialogue_configure_intent_array_p)
