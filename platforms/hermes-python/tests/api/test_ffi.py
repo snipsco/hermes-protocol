@@ -355,7 +355,7 @@ def test_configure_dialogue(ffi_utils):
     ffi = FFI(use_json_api=False)
 
     intent_config = DialogueConfigureIntent("dummy_intent", False)
-    dialogue_configure_message = DialogueConfigureMessage(None, intent_config)
+    dialogue_configure_message = DialogueConfigureMessage(None, [intent_config])
     ffi.dialogue.publish_configure(dialogue_configure_message)
 
     ffi_utils.hermes_dialogue_publish_configure.assert_called_once()
