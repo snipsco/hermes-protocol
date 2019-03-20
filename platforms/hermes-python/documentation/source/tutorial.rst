@@ -31,7 +31,7 @@ Let's add more features.
 Handling the ``IntentMessage`` object
 -------------------------------------
 
-In the previous example, we registered a callback that had this signature::
+In the previous example, we registered a callback that had this signature.  ::
 
     subscribe_intent_callback(hermes, intent_message)
 
