@@ -159,12 +159,14 @@ class Hermes(object):
 
     def publish_continue_session(self, session_id, text, intent_filter, custom_data=None,
                                  send_intent_not_recognized=False, slot_to_fill=None):
+
         """
         Publishes a ContinueSession message to the Dialogue Manage to continue a dialogue session.
 
         :param session_id: The identifier of the session to be continued.
         :param text: the text the TTS should say to start this additional request of the session.
         :param intent_filter: A list of intents names to restrict the NLU resolution on the answer of this query.
+        Can be an empty list.
         :param send_intent_not_recognized: An optional boolean to indicate whether the dialogue manager should handle
         non recognized intents by itself or sent them as an `IntentNotRecognizedMessage` for the client to handle.
         This setting applies only to the next conversation turn. The default value is false
