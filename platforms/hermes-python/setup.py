@@ -28,7 +28,7 @@ class bdist_wheel(_bdist_wheel, object):
 PACKAGE_NAME = "hermes_python"
 ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
 PACKAGE_PATH = os.path.join(ROOT_PATH, PACKAGE_NAME)
-README = os.path.join(ROOT_PATH, "README.md")
+README = os.path.join(ROOT_PATH, "README.rst")
 HISTORY = os.path.join(ROOT_PATH, "documentation/source/HISTORY.rst")
 VERSION = "__version__"
 
