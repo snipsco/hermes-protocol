@@ -1,5 +1,12 @@
 History
 ==========
+
+0.4.4 (2019-03-20)
+^^^^^^^^^^^^^^^^^^
+* Adds support to configure the Dialogue Mananger : enabling and disabling intents on the fly.
+* Adds slot filling API : You can ask for a specific slot when continuing a session
+* adding support for `OrdinalSlot`
+
 0.3.3 (2019-03-06)
 ^^^^^^^^^^^^^^^^^^
 * Fixes a bug with `publish_start_session_notification` that didn't take the `text` parameter into account.
