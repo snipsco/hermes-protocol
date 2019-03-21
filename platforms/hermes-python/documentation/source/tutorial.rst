@@ -276,7 +276,7 @@ from the end-user.
 ::
     import json
     from hermes_python.hermes import Hermes, MqttOptions
-    
+
     required_slots_questions = {
         "band": "What band would you like to see live ?",
         "number_of_tickets": "How many tickets should I buy ?"
