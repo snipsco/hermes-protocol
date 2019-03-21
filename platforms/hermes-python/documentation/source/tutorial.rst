@@ -127,7 +127,10 @@ Coming back to our example, we can now have the app print the ``forecast_locatio
 Managing sessions
 -----------------
 
-Snips platform includes support for conversations with back and forth communication between the Dialogue Manager and the client code.
+Ideas :
+- rich conversations
+
+The Snips platform includes support for conversations with back and forth communication between the Dialogue Manager and the client code.
 For a conversation, the dialogue manager creates **sessions**.
 
 Starting a session
