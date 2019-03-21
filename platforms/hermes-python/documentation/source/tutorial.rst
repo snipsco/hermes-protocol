@@ -274,6 +274,7 @@ If we build on our previous example, we could continue a dialog session by speci
 from the end-user.
 
 ::
+
     import json
     from hermes_python.hermes import Hermes, MqttOptions
 
