@@ -127,28 +127,187 @@ Coming back to our example, we can now have the app print the ``forecast_locatio
 Managing sessions
 -----------------
 
-Ideas :
-- rich conversations
+The Snips platform includes support for conversations with back and forth communication between the Dialogue Manager and
+the client code. Within the Snips platform, a conversation happening between a user and her assistant is called a session.
 
-The Snips platform includes support for conversations with back and forth communication between the Dialogue Manager and the client code.
-For a conversation, the dialogue manager creates **sessions**.
+In this document, we will go through the details of how to start, continue and end a session.
+
+In its default setup, you initiate a conversation with your assistant by pronouncing the defined wake-word.
+You say your request out-loud, an intent is extracted from your request, and triggers the portion of the action code you
+registered to react to this intent.
+Under the hood, the Dialogue Manager starts a new **session** when the wake-word is detected. The session is then ended
+by the action code.
 
 Starting a session
 ^^^^^^^^^^^^^^^^^^
 
-A session can be started in two manners :
+A session can be also be started programmatically. When you initiate a new session, the Dialogue Manager will start the
+session by asking the TTS to say the text (if any) and wait for the answer of the end user.
 
-* with a notification
+You can start a session in two manners :
+
 * with an action
+* with a notification
 
+
+When initiating a new session with an action, it means the action code will expect a response from the end user.
+
+For instance: You could have an assistant that books concerts tickets for you. The action code would start a session
+with an action, having the assistant asking for what band you would like to see live.
+
+When initiating a new session with a notification, it means the action code only inform the user of something without
+expecting a response.
+
+For instance: Instead of pronouncing your defined wake-word, you could program a button to initiate a new session.
+
+Let's build up on our previous example of an assistant that book concerts tickets for you.
+Here, we are going to initiate a new session with an **action**, filtering on the intent the end-user can respond with.
+
+::
+
+    from hermes_python.hermes import Hermes, MqttOptions
+
+    with Hermes(mqtt_options=MqttOptions()) as h:
+        h.publish_start_session_action(None,
+            "What band would you like to see live ?",
+            ["findLiveBands"],
+            True, False, None)
+
+
+Let's say that we added a physical button to initiate a conversation with our concert tickets booking assistant.
+We could use this button to initiate a new session and start talking immediately after pressing the button instead of
+relying on triggering a wake-word.
+
+When the button is pressed, the following code could be ran :
+::
+
+    hermes.publish_start_session_notification("office", None, None)
+
+
+This would initiate a new session on the ``office`` site id.
 
 
 Ending a session
 ^^^^^^^^^^^^^^^^
 
+To put an end to the current interaction the action code can terminate a started session. You can optionally terminate a
+session with a session with a message that should be said out loud by the TTS.
 
-Slot Filling
+Let's get back to our concert tickets booking assistant, we would end a session like this :
+
+::
+
+    from hermes_python.hermes import Hermes, MqttOptions
+
+
+    def find_shows(band):
+        pass
+
+
+    def findLiveBandHandler(hermes, intent_message):
+        band = intent_message.slots.band.first().value
+        shows = find_shows(band)
+        hermes.publish_end_session(intent_message.session_id, "I found {} shows for this band !".format(len(shows)))
+
+
+    with Hermes(mqtt_options=MqttOptions()) as h:
+        h\
+            .subscribe_intent("findLiveBand", findLiveBandHandler)\
+            .start()
+
+
+
+Continuing a session
+^^^^^^^^^^^^^^^^^^^^
+
+You can programmatically extend the lifespan of a dialogue session, expecting interactions from the end users.
+The typical use of continuing a session is for your assistant to ask additional information to the end user.
+
+Let's continue with our concert tickets booking assistant, after starting a session, we will continue a session,
+expecting the user to tell us how many tickets the assistant should buy.
+
+::
+
+    import json
+    from hermes_python.hermes import Hermes, MqttOptions
+
+    required_slots = {  # We are expecting these slots.
+        "band": None,
+        "number_of_tickets": None
+    }
+
+    def ticketShoppingHandler(hermes, intent_message):
+        available_slots = json.loads(intent_message.custom_data)
+
+        band_slot = intent_message.slots.band.first().value or available_slots["band"]
+        number_of_tickets = intent_message.slots.number_of_tickets.first().value or available_slots["number_of_tickets"]
+
+        available_slots["band"] = band_slot
+        available_slots["number_of_tickets"] = number_of_tickets
+
+        if not band_slot:
+            return hermes.publish_continue_session(intent_message.session_id,
+                                                   "What band would you like to see live ?",
+                                                   ["ticketShopping"],
+                                                   custom_data=json.dumps(available_slots))
+
+        if not number_of_tickets:
+            return hermes.publish_continue_session(intent_message.session_id,
+                                                   "How many tickets should I buy ?",
+                                                   ["ticketShopping"],
+                                                   custom_data=json.dumps(available_slots))
+
+        return hermes.publish_end_session(intent_message.session_id, "Ok ! Consider it booked !")
+
+
+    with Hermes(mqtt_options=MqttOptions("raspi-anthal-support.local")) as h:
+        h\
+            .subscribe_intent("ticketShopping", ticketShoppingHandler)\
+            .start()
+
+
+Slot filling
 ^^^^^^^^^^^^
+
+You can programmatically continue a session, and asking for a specific slot.
+If we build on our previous example, we could continue a dialog session by specifying which slot the assistant expects
+from the end-user.
+
+::
+    import json
+    from hermes_python.hermes import Hermes, MqttOptions
+    
+    required_slots_questions = {
+        "band": "What band would you like to see live ?",
+        "number_of_tickets": "How many tickets should I buy ?"
+    }
+
+    def ticketShoppingHandler(hermes, intent_message):
+        available_slots = json.loads(intent_message.custom_data)
+
+        band_slot = intent_message.slots.band.first().value or available_slots["band"]
+        number_of_tickets = intent_message.slots.number_of_tickets.first().value or available_slots["number_of_tickets"]
+
+        available_slots["band"] = band_slot
+        available_slots["number_of_tickets"] = number_of_tickets
+
+        missing_slots = filter(lambda slot: slot is None, [band_slot, number_of_tickets])
+
+        if len(missing_slots):
+            missing_slot = missing_slots.pop()
+            return hermes.publish_continue_session(intent_message.session_id,
+                                                   required_slots_questions[missing_slot],
+                                                   custom_data=json.dumps(available_slots),
+                                                   slot_to_fill=missing_slot)
+        else:
+            return hermes.publish_end_session(intent_message.session_id, "Ok ! Consider it booked !")
+
+
+    with Hermes(mqtt_options=MqttOptions("raspi-anthal-support.local")) as h:
+        h\
+            .subscribe_intent("ticketShopping", ticketShoppingHandler)\
+            .start()
+
 
 
 Configuring MQTT options
