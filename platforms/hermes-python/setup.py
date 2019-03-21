@@ -58,7 +58,6 @@ setup(
     version=version,
     description='Python bindings for Snips Hermes Protocol',
     long_description=readme + history,
-    long_description_content_type='text/markdown',
     author='Anthony Reinette',
     author_email='anthony.reinette@snips.ai',
     url='https://github.com/snipsco/hermes-protocol/tree/develop/platforms/hermes-python', 
