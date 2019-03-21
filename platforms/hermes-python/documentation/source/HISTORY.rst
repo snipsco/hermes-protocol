@@ -1,7 +1,7 @@
 History
 ==========
 
-0.4.4 (2019-03-20)
+0.4.0 (2019-03-20)
 ^^^^^^^^^^^^^^^^^^
 * Adds support to configure the Dialogue Mananger : enabling and disabling intents on the fly.
 * Adds slot filling API : You can ask for a specific slot when continuing a session
