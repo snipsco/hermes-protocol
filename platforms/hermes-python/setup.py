@@ -49,7 +49,6 @@ extras_require = {
         "pytest",
         "coverage",
         "pytest-cov",
-        "setuptools_rust",
     ],
 }
 
@@ -68,7 +67,7 @@ setup(
     download_url='',
     license='MIT',
     keywords=['snips'],
-    install_requires=['six', 'future'],
+    install_requires=['six', 'future', 'typing'],
     test_suite="tests",
     extras_require=extras_require,
     packages=packages,
