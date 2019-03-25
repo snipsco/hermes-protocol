@@ -392,7 +392,7 @@ dialog.publish('start_session', {
     siteId: 'site Id',
     init: {
         type:  Dialog.enums.initType.notification,
-        value: 'hello world'
+        text: 'hello world'
     }
 })
 ```
@@ -412,7 +412,7 @@ Start a new dialog session.
 ```js
 const { Dialog } = require('hermes-javascript')
 
-// Start a 'notification type' session
+// Start a 'notification type' session that will say whatever is in the "text" field and terminate.
 
 dialog.publish('start_session', {
     customData: /* string */,
@@ -424,7 +424,7 @@ dialog.publish('start_session', {
     }
 })
 
-// Start an 'action type' session
+// Start an 'action type' session that will initiate a dialogue with the user.
 
 dialog.publish('start_session', {
     customData: /* string */,
