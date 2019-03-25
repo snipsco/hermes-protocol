@@ -99,7 +99,7 @@ class Hermes(object):
         return self
 
     def subscribe_session_started(self, user_callback_subscribe_session_started):
-        # type: (str, Callable[[Hermes, SessionStartedMessage], None]) -> Hermes
+        # type: (Callable[[Hermes, SessionStartedMessage], None]) -> Hermes
         """
         Register a callback when the Dialogue Manager starts a new session.
 
@@ -115,7 +115,7 @@ class Hermes(object):
         return self
 
     def subscribe_session_queued(self, user_callback_subscribe_session_queued):
-        # type: (str, Callable[[Hermes, SessionQueuedMessage], None]) -> Hermes
+        # type: (Callable[[Hermes, SessionQueuedMessage], None]) -> Hermes
         """
         Register a callback when the Dialogue Manager queues the current session.
 
@@ -130,7 +130,7 @@ class Hermes(object):
         return self
 
     def subscribe_session_ended(self, user_callback_subscribe_session_ended):
-        # type: (str, Callable[[Hermes, SessionEndedMessage], None]) -> Hermes
+        # type: (Callable[[Hermes, SessionEndedMessage], None]) -> Hermes
         """
         Register a callback when the Dialogue Manager ends a session.
 
@@ -145,7 +145,7 @@ class Hermes(object):
         return self
 
     def subscribe_intent_not_recognized(self, user_callback_subscribe_intent_not_recognized):
-        # type: (str, Callable[[Hermes, IntentNotRecognizedMessage], None]) -> Hermes
+        # type: (Callable[[Hermes, IntentNotRecognizedMessage], None]) -> Hermes
         """
         Register a callback when the Dialogue Manager doesn't recognize an intent.
 
@@ -169,7 +169,7 @@ class Hermes(object):
 
     def publish_continue_session(self, session_id, text, intent_filter, custom_data=None,
                                  send_intent_not_recognized=False, slot_to_fill=None):
-        # type: (str, str, List[str], str, bool, Optional[str]) -> Hermes
+        # type: (str, Optional[str], List[str], Optional[str], bool, Optional[str]) -> Hermes
 
         """
         Publishes a ContinueSession message to the Dialogue Manage to continue a dialogue session.
@@ -188,7 +188,7 @@ class Hermes(object):
         return self
 
     def publish_end_session(self, session_id, text):
-        # type: (str, Optional[str]) -> Hermes
+        # type: (Optional[str], Optional[str]) -> Hermes
         """
         Publishes a EndSession message to the Dialogue Manager to end a dialogue session.
 
