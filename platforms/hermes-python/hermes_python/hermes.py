@@ -4,7 +4,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 from builtins import object
-from typing import Optional, Callable, List
+from typing import Optional, Callable, List, Text
 
 from .ontology import MqttOptions
 
@@ -23,7 +23,7 @@ class Hermes(object):
                  rust_logs_enabled=False,
                  mqtt_options=MqttOptions(),
                  use_json_api=False):
-        # type: (Optional[str], bool, MqttOptions, bool) -> None
+        # type: (Optional[Text], bool, MqttOptions, bool) -> None
         """
         :param broker_address: Address of the MQTT broker in the form 'ip:port'
         :param rust_logs_enabled: Enables or Disables stdout logs *(default false)*
@@ -64,7 +64,7 @@ class Hermes(object):
         return self
 
     def subscribe_intent(self, intent_name, user_callback_subscribe_intent):
-        # type: (str, Callable[[Hermes, IntentMessage], None]) -> Hermes
+        # type: (Text, Callable[[Hermes, IntentMessage], None]) -> Hermes
         """
         Registers a callback to be triggered when the intent intent_name is recognized.
 
@@ -169,7 +169,7 @@ class Hermes(object):
 
     def publish_continue_session(self, session_id, text, intent_filter, custom_data=None,
                                  send_intent_not_recognized=False, slot_to_fill=None):
-        # type: (str, Optional[str], List[str], Optional[str], bool, Optional[str]) -> Hermes
+        # type: (Text, Optional[Text], List[Text], Optional[Text], bool, Optional[Text]) -> Hermes
 
         """
         Publishes a ContinueSession message to the Dialogue Manage to continue a dialogue session.
@@ -188,7 +188,7 @@ class Hermes(object):
         return self
 
     def publish_end_session(self, session_id, text):
-        # type: (Optional[str], Optional[str]) -> Hermes
+        # type: (Optional[Text], Optional[Text]) -> Hermes
         """
         Publishes a EndSession message to the Dialogue Manager to end a dialogue session.
 
@@ -203,8 +203,8 @@ class Hermes(object):
         self.ffi.dialogue.publish_end_session(end_session_message)
         return self
 
-    def publish_start_session_notification(self, site_id, session_initiation_text, custom_data, text=""):
-        # type: (Optional[str], str, Optional[str], Optional[str]) -> Hermes
+    def publish_start_session_notification(self, site_id, session_initiation_text, custom_data, text=u""):
+        # type: (Optional[Text], Text, Optional[Text], Optional[Text]) -> Hermes
         """
         Publishes a StartSession message to the Dialogue Manager to initiate a new session.
 
@@ -229,7 +229,7 @@ class Hermes(object):
     def publish_start_session_action(self, site_id, session_init_text, session_init_intent_filter,
                                      session_init_can_be_enqueued, session_init_send_intent_not_recognized,
                                      custom_data):
-        # type: (Optional[str], Optional[str], List[str], bool, bool, Optional[str]) -> Hermes
+        # type: (Optional[Text], Optional[Text], List[Text], bool, bool, Optional[Text]) -> Hermes
         """
         Publishes a StartSession message to the Dialogue Manager to initiate a new session.
 
