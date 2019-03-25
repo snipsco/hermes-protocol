@@ -238,7 +238,7 @@ class CNluSlot(Structure):
 
     @classmethod
     def from_repr(cls, repr):
-        # type: NluSlot -> CNluSlot
+        # type: (NluSlot) -> CNluSlot
         c_slot_value = CSlotValue.from_repr(repr.slot_value)
         c_slot = CSlot.build(c_slot_value,
                              repr.raw_value,

@@ -24,3 +24,7 @@ source env27/bin/activate
 pip install -r requirements/tests.txt
 py.test 
 
+virtualenv --python=python3.7 env37
+source env37/bin/activate
+pip install -r requirements/lint.txt
+mypy --py2 --follow-imports=skip -p hermes_python.ontology  # Gradually add packages here ! 

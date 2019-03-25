@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
+from typing import Any
 from builtins import object
 from collections import defaultdict
 
 
 # Ever since Python3.3, Mapping was moved to the abc submodule.
 try:
-    from collections.abc import Mapping  # Python3.3+
+    from collections.abc import Mapping  # type: ignore
 except ImportError:
     from collections import Mapping  # Python2.7+
 
@@ -18,7 +19,7 @@ from hermes_python.ffi.ontology.dialogue import CAmountOfMoneyValue, CTemperatur
 
 class SlotMap(Mapping):
     def __init__(self, data):
-        # type: (dict) -> SlotMap
+        # type: (dict) -> None
         mapping = dict()
         for k,v in data.items():
             mapping[k] = SlotsList(v)
@@ -35,8 +36,6 @@ class SlotMap(Mapping):
 
     def __iter__(self):
         return iter(self.__data)
-
-
 
     @classmethod
     def from_c_repr(cls, c_slots_list_repr):

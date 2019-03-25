@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-
+from typing import List
 from __future__ import absolute_import
 from __future__ import unicode_literals
 from itertools import groupby
+from typing import Optional, Text
 
 from hermes_python.ffi.ontology.dialogue import CDialogueConfigureMessage
 
@@ -21,34 +22,33 @@ class DialogueConfiguration(object):
         self.intents = []  # type: List[Tuple[str, str, bool]]
 
     def disable_intent(self, intent_name, site_id=None):
-        # type: (str) -> DialogueConfiguration
+        # type: (Text, Optional[Text]) -> DialogueConfiguration
         self.intents.append((site_id or self.default_site_id, intent_name, False))
         return self
 
     def disable_intents(self, intent_filter, site_id=None):
-        # type: (List[str]) -> DialogueConfiguration
+        # type: (List[Text], Optional[Text]) -> DialogueConfiguration
         for intent_name in intent_filter:
             self.disable_intent(intent_name, site_id)
         return self
 
     def enable_intent(self, intent_name, site_id=None):
-        # type: (str) -> DialogueConfiguration
+        # type: (Text, Optional[Text]) -> DialogueConfiguration
         self.intents.append((site_id or self.default_site_id, intent_name, True))
         return self
 
     def enable_intents(self, intent_filter, site_id=None):
-        # type: (List[str]) -> DialogueConfiguration
+        # type: (List[Text], Optional[Text]) -> DialogueConfiguration
         for intent_name in intent_filter:
             self.enable_intent(intent_name, site_id)
         return self
 
     def for_site_id(self, site_id):
-        # type: (str) -> DialogueConfiguration
+        # type: (Text) -> DialogueConfiguration
         self.default_site_id = site_id
         return self
 
     def build(self):
-        # type: () -> List[DialogueConfigureMessage]
         """
         We perform the following :
         [("site_id1", "intent1", False), ("site_id1", "intent1", True), ("site_id2", "intent2", False), ("site_id1", "intent2", True)]
@@ -58,7 +58,7 @@ class DialogueConfiguration(object):
         {"site_id1":[("intent1, [False, True]), ("intent2", [True] )], "site_id2": [("intent2", False)]}
         =>
         {"site_id1": [("intent1", True)], "site_id2" : [("intent2", False)]}
-        :return:
+        :return: List[DialogueConfigureMessage]
         """
         transformed_intents = [(site_id, intent_name, [_flag for _site, _intent_name, _flag in list(group)]) for
                                (site_id, intent_name), group in groupby(self.intents, lambda tuple: (
@@ -82,7 +82,7 @@ class DialogueConfiguration(object):
 
 class DialogueConfigureIntent(object):
     def __init__(self, intent_id, enable):
-        # type: (str, bool) -> DialogueConfigureIntent
+        # type: (Text, bool) -> None
         self.intent_id = intent_id
         self.enable = enable
 
@@ -108,7 +108,7 @@ class DialogueConfigureIntentArray(list):
 
 class DialogueConfigureMessage(object):
     def __init__(self, site_id, intents):
-        # type:(str, List[DialogueConfigureIntent]) -> DialogueConfigureMessage
+        # type:(Text, List[DialogueConfigureIntent]) -> None
         self.site_id = site_id
         self.intents = intents
 
