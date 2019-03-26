@@ -251,6 +251,14 @@ function done () {
 
 ### Hermes class
 
+The Hermes class provides foreign function interface bindings to the Hermes protocol library.
+
+**⚠️ Important: Except for very specific use cases, you should have only a single instance of the Hermes class in your program. It can either be provided by the `withHermes` function OR created by calling `new Hermes()`.**
+
+**Just keep a single reference to the Hermes instance and pass it around.**
+
+The technical reason is that the shared hermes library is read and FFI bindings are created every time you call `new Hermes` or `withHermes`, which is really inefficient.
+
 ###### [Back ⬆️](#api)
 
 ```js
@@ -287,7 +295,6 @@ new Hermes({
 Use the Dialog Api Subset.
 
 ```js
-const hermes = new Hermes()
 const dialog = hermes.dialog()
 ```
 
@@ -296,7 +303,6 @@ const dialog = hermes.dialog()
 Use the Injection Api Subset.
 
 ```js
-const hermes = new Hermes()
 const injection = hermes.injection()
 ```
 
@@ -305,7 +311,6 @@ const injection = hermes.injection()
 Use the Sound Feedback Api Subset.
 
 ```js
-const hermes = new Hermes()
 const feedback = hermes.feedback()
 ```
 
@@ -314,7 +319,6 @@ const feedback = hermes.feedback()
 Use the text-to-speech Api Subset.
 
 ```js
-const hermes = new Hermes()
 const tts = hermes.tts()
 ```
 
@@ -323,7 +327,6 @@ const tts = hermes.tts()
 Release all the resources associated with this Hermes instance.
 
 ```js
-const hermes = new Hermes()
 hermes.destroy()
 ```
 
@@ -338,7 +341,6 @@ hermes.destroy()
 Subscribes to an event on the bus.
 
 ```js
-const hermes = new Hermes()
 const dialog = hermes.dialog()
 
 dialog.on('session_started', message => {
@@ -351,7 +353,6 @@ dialog.on('session_started', message => {
 Subscribes to an event on the bus, then unsubscribes after the first event is received.
 
 ```js
-const hermes = new Hermes()
 const dialog = hermes.dialog()
 
 dialog.once('intent/myIntent', message => {
@@ -364,7 +365,6 @@ dialog.once('intent/myIntent', message => {
 Unsubscribe an already existing event.
 
 ```js
-const hermes = new Hermes()
 const dialog = hermes.dialog()
 
 const handler = message => {
@@ -385,7 +385,6 @@ Publish an event programatically.
 ```js
 const { Dialog } = require('hermes-javascript')
 
-const hermes = new Hermes()
 const dialog = hermes.dialog()
 
 dialog.publish('start_session', {
@@ -393,7 +392,7 @@ dialog.publish('start_session', {
     siteId: 'site Id',
     init: {
         type:  Dialog.enums.initType.notification,
-        value: 'hello world'
+        text: 'hello world'
     }
 })
 ```
@@ -413,7 +412,7 @@ Start a new dialog session.
 ```js
 const { Dialog } = require('hermes-javascript')
 
-// Start a 'notification type' session
+// Start a 'notification type' session that will say whatever is in the "text" field and terminate.
 
 dialog.publish('start_session', {
     customData: /* string */,
@@ -425,7 +424,7 @@ dialog.publish('start_session', {
     }
 })
 
-// Start an 'action type' session
+// Start an 'action type' session that will initiate a dialogue with the user.
 
 dialog.publish('start_session', {
     customData: /* string */,
@@ -516,7 +515,6 @@ The Dialog API Subset exposes a small API that makes managing complex dialog flo
 Starts a new dialog flow.
 
 ```js
-const hermes = new Hermes()
 const dialog = hermes.dialog()
 
 dialog.flow('intentName', (message, flow) => {

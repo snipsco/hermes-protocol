@@ -1,3 +1,17 @@
+## [0.3.6](https://github.com/snipsco/hermes-protocol/compare/js/0.3.5...0.3.6) (2019-03-18)
+
+
+### Bug Fixes
+
+* **js:** Rename configure message instantName to intentId ([23d204b](https://github.com/snipsco/hermes-protocol/commit/23d204b))
+
+
+### BREAKING CHANGES
+
+* **js:** breaks configure message publishing
+
+
+
 ## [0.3.5](https://github.com/snipsco/hermes-protocol/compare/js/0.3.4...0.3.5) (2019-03-05)
 
 **Upgraded dependencies.**
