@@ -16,6 +16,18 @@ def test_slot_access_dict_notation():
     assert type(slots["test_slot"]) is SlotsList
 
 
+def test_helper_method_access():
+    from hermes_python.ontology.dialogue import SlotsList, NluSlot, SlotMap, SlotValue, CustomValue
+
+    custom_value_slot = CustomValue("Hello world")
+    nlu_slot = NluSlot(0.1, SlotValue(1, custom_value_slot), "test", "test", "test_slot", 0, 0)
+    slots = SlotMap({"test_slot": SlotsList()})
+
+    slots.test_slot.append(nlu_slot)
+
+    assert type(slots.test_slot.first()) is CustomValue
+
+
 def test_unseen_slot_access_1():
     slots = hermes_python.ontology.dialogue.SlotMap({})
     assert len(slots) == 0
