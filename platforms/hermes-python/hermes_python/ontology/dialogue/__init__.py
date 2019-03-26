@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-from typing import List
 from __future__ import absolute_import
 from __future__ import unicode_literals
+from typing import List
 from itertools import groupby
-from typing import Optional, Text
+from typing import Optional, Text, Tuple, List, DefaultDict
 
 from hermes_python.ffi.ontology.dialogue import CDialogueConfigureMessage
 
@@ -18,8 +18,9 @@ class DialogueConfiguration(object):
     """
 
     def __init__(self, site_id=None):
+        # type: (Optional[Text]) -> None
         self.default_site_id = site_id
-        self.intents = []  # type: List[Tuple[str, str, bool]]
+        self.intents = []  # type: List[Tuple[Optional[Text], Text, bool]]
 
     def disable_intent(self, intent_name, site_id=None):
         # type: (Text, Optional[Text]) -> DialogueConfiguration
@@ -49,6 +50,7 @@ class DialogueConfiguration(object):
         return self
 
     def build(self):
+        # type: () -> List[DialogueConfigureMessage]
         """
         We perform the following :
         [("site_id1", "intent1", False), ("site_id1", "intent1", True), ("site_id2", "intent2", False), ("site_id1", "intent2", True)]
@@ -64,7 +66,7 @@ class DialogueConfiguration(object):
                                (site_id, intent_name), group in groupby(self.intents, lambda tuple: (
                 tuple[0], tuple[1]))]  # Grouping elements by (site_id, intent_name)
 
-        transformed_intents_grouped_by_site_id = defaultdict(list)
+        transformed_intents_grouped_by_site_id = defaultdict(list)  # type: DefaultDict[Optional[Text], List[Tuple[Text, List[bool]]]]
 
         for site_id, group in groupby(transformed_intents, lambda tuple: tuple[0]):
             for _site, _intent_name, _flags in list(group):
@@ -108,7 +110,7 @@ class DialogueConfigureIntentArray(list):
 
 class DialogueConfigureMessage(object):
     def __init__(self, site_id, intents):
-        # type:(Text, List[DialogueConfigureIntent]) -> None
+        # type:(Optional[Text], List[DialogueConfigureIntent]) -> None
         self.site_id = site_id
         self.intents = intents
 
