@@ -58,7 +58,10 @@ export type MusicTrackSlotValue<T extends slotType.musicTrack> = {
     kind: T,
     value: string
 }
-
+export type PercentageSlotValue<T extends slotType.percentage> = {
+    kind: T,
+    value: number
+}
 export type NluSlot<T extends slotType = slotType> = {
     confidenceScore: number,
     rawValue: string,
@@ -77,6 +80,7 @@ export type NluSlot<T extends slotType = slotType> = {
         T extends slotType.amountOfMoney ? AmountOfMoneySlotValue<T> :
         T extends slotType.temperature ? TemperatureSlotValue<T> :
         T extends slotType.duration ? DurationSlotValue<T> :
+        T extends slotType.percentage ? PercentageSlotValue<T> :
         T extends slotType.musicAlbum ? MusicAlbumSlotValue<T> :
         T extends slotType.musicArtist ? MusicArtistSlotValue<T> :
         T extends slotType.musicTrack ? MusicTrackSlotValue<T> :
