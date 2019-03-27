@@ -143,8 +143,7 @@ class SlotValue(object):
         """
         A structured representation of values a slot can take.
 
-        :param value_type: a constant that defines the type of the Slot Value between : Custom, Number, Ordinal,
-        InstantTime, TimeInterval, AmountOfMoney, Temperature, Duration and Percentage.
+        :param value_type: a constant that defines the type of the Slot Value.
         :param value: The parsed value according to the value_type of the slot.
         """
         self.value_type = value_type
