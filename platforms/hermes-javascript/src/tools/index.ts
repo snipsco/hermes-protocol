@@ -1,14 +1,16 @@
 import Int64 from 'node-int64'
 
- /**
+/**
  * Prevents the process from terminating.
+ * @param timer - The interval of time between loop iterations.
  */
-export function keepAlive(timer = 20) {
+export function keepAlive(timer = 60000) {
     return setInterval(() => {}, timer)
 }
 
 /**
  * Stops the keepAlive loop.
+ * @param keepAliveRef - A reference to an existing keepAlive loop.
  */
 export function killKeepAlive(keepAliveRef: NodeJS.Timeout) {
     clearInterval(keepAliveRef)
@@ -16,6 +18,8 @@ export function killKeepAlive(keepAliveRef: NodeJS.Timeout) {
 
 /**
  * Generic C struct to JS object casting method.
+ * @param struct - A "C structure" object exposed by the "ref" module.
+ * @param customKeysCasting - Allows to specify the behaviour for keys mapping to a sub structure.
  */
 export function cast(struct, customKeysCasting = {}) {
 

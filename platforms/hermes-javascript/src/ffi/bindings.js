@@ -95,7 +95,7 @@ module.exports.library = libraryPath => ffi.Library(libraryPath, {
  * An FFI function call wrapper that throws & returns with the
  * proper error message if an error code is returned by hermes.
  *
- * @param {*} libraryPath
+ * @param libraryPath - Path to the hermes library.
  */
 module.exports.call = function(libraryPath = path.resolve(__dirname, '../../libhermes_mqtt_ffi')) {
     const library = module.exports.library(libraryPath)

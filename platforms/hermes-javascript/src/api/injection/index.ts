@@ -4,6 +4,9 @@ import {
 } from '../types'
 import * as enums from '../types/enums'
 
+/**
+ * The Injection API subset.
+ */
 export default class Injection extends ApiSubset {
 
     constructor(protocolHandler: Buffer, call: FFIFunctionCall, options: HermesOptions) {
@@ -31,6 +34,9 @@ export default class Injection extends ApiSubset {
         this.call('hermes_drop_injection_facade', this.facade)
     }
 
+    /**
+     * Injection enumerations.
+     */
     static enums = {
         injectionKind: enums.injectionKind
     }

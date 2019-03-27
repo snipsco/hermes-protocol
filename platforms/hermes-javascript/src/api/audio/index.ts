@@ -8,6 +8,8 @@ import {
  * @experimental
  *
  * Warning: Experimental, use at your own risk!
+ *
+ * The Audio API subset.
  */
 export default class Audio extends ApiSubset {
 

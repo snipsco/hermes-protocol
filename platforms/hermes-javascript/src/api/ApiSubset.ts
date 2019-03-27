@@ -30,21 +30,23 @@ const getMetadata = function<T = (SubscribeEventDescriptor | PublishEventDescrip
     return metadata
 }
 
-/* Class */
 
+/**
+ * An abstract Hermes API subset.
+ */
 export default class ApiSubset {
 
-    public call: FFIFunctionCall
+    protected call: FFIFunctionCall
     public destroy() {}
     private listeners = new Map()
-    public options: HermesOptions
+    protected options: HermesOptions
     protected facade: Buffer | null = null
     protected subscribeEvents: { [key: string]: SubscribeEventDescriptor } = {}
     public publishEvents: { [key: string]: PublishEventDescriptor} = {}
     public publishMessagesList: {[key: string]: any} = {}
     public subscribeMessagesList: {[key: string]: any} = {}
 
-    constructor(protocolHandler: Buffer, call: FFIFunctionCall, options: HermesOptions, facadeName: string) {
+    protected constructor(protocolHandler: Buffer, call: FFIFunctionCall, options: HermesOptions, facadeName: string) {
         this.call = call
         this.options = options
         this.listeners = new Map()
@@ -72,10 +74,11 @@ export default class ApiSubset {
     /**
      * Subscribes a message listener to a given hermes event.
      *
-     * @param {*} eventName The event name to subscribe to.
-     * @param {*} listener  A callback triggered when receiving a message.
+     * @param eventName - The event name to subscribe to.
+     * @param listener - A callback triggered when receiving a message.
+     * @returns A reference to the listener.
      */
-    on<T extends keyof this['subscribeMessagesList']>(eventName: T, listener: MessageListener<this['subscribeMessagesList'][T]>) {
+    public on<T extends keyof this['subscribeMessagesList']>(eventName: T, listener: MessageListener<this['subscribeMessagesList'][T]>) {
         const {
             fullEventName,
             additionalArguments
@@ -99,12 +102,12 @@ export default class ApiSubset {
 
     /**
      * Add a message listener that will only get called **once** for a given hermes event, then unsubscribe.
-     * @param {*} eventName The event name to subscribe to.
-     * @param {*} listener A callback triggered when receiving a message.
-     * @returns {*} The reference to the wrapped listener.
+     *
+     * @param eventName - The event name to subscribe to.
+     * @param listener - A callback triggered when receiving a message.
+     * @returns A reference to the wrapped listener.
      */
-
-    once<T extends keyof this['subscribeMessagesList']>(eventName: T, listener: MessageListener<this['subscribeMessagesList'][T]>) {
+    public once<T extends keyof this['subscribeMessagesList']>(eventName: T, listener: MessageListener<this['subscribeMessagesList'][T]>) {
         const listenerWrapper = (message: this['subscribeMessagesList'][T], ...args: any[]) => {
             this.off(eventName, listenerWrapper)
             listener(message, ...args)
@@ -116,10 +119,11 @@ export default class ApiSubset {
     /**
      * Removes an existing message listener for a given hermes event.
      *
-     * @param {*} eventName The event name that was subscribed to.
-     * @param {*} listener The reference to the listener callback to remove.
+     * @param eventName - The event name that was subscribed to.
+     * @param listener - A reference to the listener callback to remove.
+     * @returns True if succeeded, false otherwise.
      */
-    off<T extends keyof this['subscribeMessagesList']>(eventName: T, listener: MessageListener<this['subscribeMessagesList'][T]>) {
+    public off<T extends keyof this['subscribeMessagesList']>(eventName: T, listener: MessageListener<this['subscribeMessagesList'][T]>) {
         const listeners = this.listeners.get(eventName)
         if(!listeners)
             return false
@@ -132,8 +136,11 @@ export default class ApiSubset {
 
     /**
      * Publish a message.
+     *
+     * @param eventName - Name of the publishing event.
+     * @param message - Contents of the message.
      */
-    publish<T extends keyof this['publishEvents']>(eventName: T, message?: this['publishMessagesList'][T]) {
+    public publish<T extends keyof this['publishEvents']>(eventName: T, message?: this['publishMessagesList'][T]) {
         const { fullEventName } = getMetadata(this.publishEvents, eventName)
 
         if(message) {

@@ -63,14 +63,22 @@ export type PercentageSlotValue<T extends slotType.percentage> = {
     value: number
 }
 export type NluSlot<T extends slotType = slotType> = {
+    /** Confidence of the slot, between 0 and 1, 1 being confident. */
     confidenceScore: number,
+    /**  The raw value of the slot, as is was in the input. */
     rawValue: string,
+    /** The range where the slot can be found in the input. */
     range: {
+        /** Beginning of the range (inclusive). */
         start: number,
+        /** End of the range (exclusive). */
         end: number
     },
+    /** The entity of the slot. */
     entity: string,
+    /** The name of the slot. */
     slotName: string,
+    /** The resolved value of the slot. */
     value:
         T extends slotType.custom ? CustomSlotValue<T> :
         T extends slotType.number ? NumberSlotValue<T> :
@@ -87,27 +95,48 @@ export type NluSlot<T extends slotType = slotType> = {
         never
 }
 
-export type IntentMessage = {
-    sessionId: string,
-    siteId: string,
-    input: string,
-    customData?: string,
+export interface IntentMessage {
+    /** The current session id. */
+    sessionId: string
+    /** The site where the user interaction took place. */
+    siteId: string
+    /** The user input that has generated this intent. */
+    input: string
+    /** Custom data provided in the StartSessionMessage or a ContinueSessionMessage. */
+    customData?: string
+    /** Structured description of the intent classification. */
     intent: {
+        /** The name of the detected intent. */
         intentName: string,
+        /** The probability of the detection, between 0 and 1, 1 being sure. */
         confidenceScore: number
-    },
-    asrConfidence: number,
+    }
+    /** The level of confidence in the ASR prediction. */
+    asrConfidence: number
+    /**
+     * Structured description of the tokens the ASR captured on for this intent.
+     * The first level of arrays represents each invocation of the ASR,
+     * the second one are the tokens captured.
+     */
     asrTokens: [
         {
+            /** The value of the token. */
             value: string,
+            /** Confidence of the token, between 0 and 1, 1 being confident. */
             confidence: number,
+            /** The start range in which the token is in the original input. */
             rangeStart: number,
+            /** The end range in which the token is in the original input. */
             rangeEnd: number,
+            /** Time when this token was detected. */
             time: {
+                /** Start time. */
                 start: number,
+                /** End time. */
                 end: number
             }
         }[]?
-    ],
+    ]
+    /** Structured description of the detected slots for this intent if any. */
     slots: NluSlot[]
 }

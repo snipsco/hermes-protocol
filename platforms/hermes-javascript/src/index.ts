@@ -1,16 +1,23 @@
+/**
+ * @module api
+ */
+
 import { Hermes, HermesOptions } from './api'
 import * as tools from './tools'
 
 export * from './tools'
 export * from './api'
 
+/**
+ * Will stop Hermes gracefully when called.
+ */
 export type Done = () => void
 
 /**
- * Sets up an event loop and initializes the Hermes class.
+ * Sets an event loop up and initializes the Hermes class.
  *
- * @param {*} context The wrapped context function.
- * @param {*} opts Hermes options.
+ * @param context - The wrapped context function.
+ * @param opts - Options used to create the Hermes instance.
  */
 export const withHermes = function(
     context: (hermes: Hermes, done: Done) => void,
