@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 # -- Project information -----------------------------------------------------
 
 project = 'Hermes Python'
-copyright = '2019, Snips
+copyright = '2019, Snips'
 author = 'Anthony Reinette'
 
 # The short X.Y version

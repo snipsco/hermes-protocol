@@ -11,7 +11,10 @@ The lifecycle of a script using ``hermes-python`` has the following steps :
 Let's quickly dive into an example :
 
 Let's write an app for a Weather Assistant !
-This code implies that you created a weather assistant using the `Snips Console <https://console.snips.ai/>`_, and that it has a ``searchWeatherForecast`` intent. ::
+This code implies that you created a weather assistant using the `Snips Console <https://console.snips.ai/>`_, and that it has a ``searchWeatherForecast`` intent.
+Or you could download `this weather Assistant <https://resources.snips.ai/assistants/assistant-weather-EN-0.19.0-dyn-heysnipsv4.zip>`_ .
+
+::
 
     from hermes_python.hermes import Hermes
 
