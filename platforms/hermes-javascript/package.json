@@ -1,6 +1,6 @@
 {
   "name": "hermes-javascript",
-  "version": "0.3.6",
+  "version": "0.3.7",
   "hermes-mqtt-version": "0.64.3",
   "description": "Hermes javascript bindings",
   "keywords": [
@@ -33,7 +33,8 @@
     "test:mqtt:tls": "jest ./tests/mqtt/mqttTls.spec.ts",
     "release": "standard-version",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 1 --commit-path=. -t=js/",
-    "documentation": "typedoc --out docs --mode modules --external-modulemap  \".*(?:/src/api/types/|/src/)([\\w\\-_]+)/\" --excludeNotExported --excludePrivate --excludeProtected --excludeExternals --ignoreCompilerErrors src"
+    "documentation": "typedoc --out docs --mode modules --external-modulemap  \".*(?:/src/api/types/|/src/)([\\w\\-_]+)/\" --excludeNotExported --excludePrivate --excludeProtected --excludeExternals --ignoreCompilerErrors src",
+    "prepare": "npm run build && npm run changelog"
   },
   "engines": {
     "node": ">=10"
