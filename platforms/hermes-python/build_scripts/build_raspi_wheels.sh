@@ -29,6 +29,7 @@ done
 rm hermes_python/dylib/*.so
 
 ls -1 dist/
+mkdir -p wheelhouse
 cp dist/*.whl wheelhouse/
 rm -rf dist/*.whl
 cd ../..

@@ -1,0 +1,2 @@
+sphinxcontrib-restbuilder==0.2
+sphinx_rtd_theme
