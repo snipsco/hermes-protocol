@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 from ctypes import c_char_p, c_int32, c_void_p, c_uint8, POINTER, Structure
+from enum import IntEnum
 
 
 class CStringArray(Structure):
@@ -27,7 +28,8 @@ class CMqttOptions(Structure):
                 ("tls_disable_root_store", c_uint8)]
 
     @classmethod
-    def build(cls, broker_address, username, password, tls_hostname, tls_ca_file, tls_ca_path, tls_client_key, tls_client_cert, tls_disable_root_store):
+    def build(cls, broker_address, username, password, tls_hostname, tls_ca_file, tls_ca_path, tls_client_key,
+              tls_client_cert, tls_disable_root_store):
         broker_address = broker_address.encode('utf-8')
         username = username.encode('utf-8') if username else None
         password = password.encode('utf-8') if password else None
@@ -46,5 +48,36 @@ class CMqttOptions(Structure):
     def from_repr(cls, repr):
         return cls.build(repr.broker_address,
                          repr.username, repr.password,
-                         repr.tls_hostname, repr.tls_ca_file, repr.tls_ca_path, repr.tls_client_key, repr.tls_client_cert, repr.tls_disable_root_store)
+                         repr.tls_hostname, repr.tls_ca_file, repr.tls_ca_path, repr.tls_client_key,
+                         repr.tls_client_cert, repr.tls_disable_root_store)
 
+
+class SlotValueType(IntEnum):
+    CUSTOM = 1
+    NUMBER = 2
+    ORDINAL = 3
+    INSTANTTIME = 4
+    TIMEINTERVAL = 5
+    AMOUNTOFMONEY = 6
+    TEMPERATURE = 7
+    DURATION = 8
+    PERCENTAGE = 9
+    MUSICARTIST = 10
+    MUSICALBUM = 11
+    MUSICTRACK = 12
+
+
+class Grain(IntEnum):
+    YEAR = 0
+    QUARTER = 1
+    MONTH = 2
+    WEEK = 3
+    DAY = 4
+    HOUR = 5
+    MINUTE = 6
+    SECOND = 7
+
+
+class Precision(IntEnum):
+    APPROXIMATE = 0
+    EXACT = 1

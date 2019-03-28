@@ -1,7 +1,6 @@
 from ctypes import c_char_p, c_int32, c_int64, c_int, c_float, c_uint8, c_void_p, POINTER, pointer, Structure, c_double,\
     byref, cast
-from ..ontology import CStringArray
-
+from ..ontology import CStringArray, SlotValueType, Grain, Precision
 
 class CSayMessage(Structure):
     _fields_ = [("text", c_char_p),
@@ -165,7 +164,7 @@ class CNluIntentClassifierResult(Structure):
 class CSlotValue(Structure):
     _fields_ = [
         ("value", c_void_p),
-        ("value_type", c_int32) # TODO : value_type is an enum
+        ("value_type", c_int32)
     ]
     @classmethod
     def build(cls, value, value_type):
@@ -173,34 +172,34 @@ class CSlotValue(Structure):
 
     @classmethod
     def from_repr(cls, repr):
-        if 1 == repr.value_type:  # CUSTOM
+        if SlotValueType.CUSTOM == repr.value_type:  # CUSTOM
             c_repr_custom_value = repr.value.value.encode('utf-8')
             c_repr_value = cast(c_char_p(c_repr_custom_value), c_void_p)
             return cls(c_repr_value, c_int32(repr.value_type))
 
-        elif 2 == repr.value_type:  # NUMBER
+        elif SlotValueType.NUMBER == repr.value_type:  # NUMBER
             c_repr_number = c_double(repr.value.value)
             cls(byref(c_repr_number), c_int32(repr.value_type))
 
-        elif 4 == repr.value_type:  # INSTANTTIME
+        elif SlotValueType.INSTANTTIME == repr.value_type:  # INSTANTTIME
             c_repr_instant_time_value = CInstantTimeValue.from_repr(repr.value)
             cls(byref(c_repr_instant_time_value), c_int32(repr.value_type))
 
-        elif 5 == repr.value_type:  # TIMEINTERVAL TODO
+        elif SlotValueType.TIMEINTERVAL == repr.value_type:  # TIMEINTERVAL
             cls(c_void_p, c_int32(repr.value_type))
-        elif 6 == repr.value_type:  # AMOUNTOFMONEY TODO
+        elif SlotValueType.AMOUNTOFMONEY == repr.value_type:  # AMOUNTOFMONEY
             cls(c_void_p, c_int32(repr.value_type))
-        elif 7 == repr.value_type:  # TEMPERATURE TODO
+        elif SlotValueType.TEMPERATURE == repr.value_type:  # TEMPERATURE
             cls(c_void_p, c_int32(repr.value_type))
-        elif 8 == repr.value_type:  # DURATION TODO
+        elif SlotValueType.DURATION == repr.value_type:  # DURATION
             cls(c_void_p, c_int32(repr.value_type))
-        elif 9 == repr.value_type:  # PERCENTAGE TODO
+        elif SlotValueType.PERCENTAGE == repr.value_type:  # PERCENTAGE
             cls(c_void_p, c_int32(repr.value_type))
-        elif 10 == repr.value_type:  # MUSICARTIST TODO
+        elif SlotValueType.MUSICARTIST == repr.value_type:  # MUSICARTIST
             cls(c_void_p, c_int32(repr.value_type))
-        elif 11 == repr.value_type:  # MUSICALBUM TODO
+        elif SlotValueType.MUSICALBUM == repr.value_type:  # MUSICALBUM
             cls(c_void_p, c_int32(repr.value_type))
-        elif 12 == repr.value_type:  # MUSICTRACK TODO
+        elif SlotValueType.MUSICTRACK == repr.value_type:  # MUSICTRACK
             cls(c_void_p, c_int32(repr.value_type))
 
         else:
@@ -302,7 +301,6 @@ class CNluSlotArray(Structure):
         entries = cast(entries, POINTER(POINTER(CNluSlot)))
 
         return cls(entries, c_int(count))
-
 
 
 class CIntentMessage(Structure):

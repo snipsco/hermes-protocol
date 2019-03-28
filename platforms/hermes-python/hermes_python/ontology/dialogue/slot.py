@@ -13,6 +13,7 @@ except ImportError:
 from six.moves import range
 
 from ctypes import string_at, c_double, c_int64
+from hermes_python.ffi.ontology import SlotValueType
 from hermes_python.ffi.ontology.dialogue import CAmountOfMoneyValue, CTemperatureValue, CInstantTimeValue, \
     CTimeIntervalValue, CDurationValue
 
@@ -153,45 +154,45 @@ class SlotValue(object):
     def from_c_repr(cls, c_repr):
         value_type = c_repr.value_type
 
-        if 1 == value_type:  # CUSTOM
+        if SlotValueType.CUSTOM == value_type:  # CUSTOM
             c_repr_custom_value = c_repr.value
             string_value = string_at(c_repr_custom_value).decode('utf-8')
             value = CustomValue(string_value)
-        elif 2 == value_type: # NUMBER
+        elif SlotValueType.NUMBER == value_type: # NUMBER
             c_repr_number = c_double.from_address(c_repr.value)
             number = c_repr_number.value
             value = NumberValue(number)
-        elif 3 == value_type: # ORDINAL
+        elif SlotValueType.ORDINAL == value_type: # ORDINAL
             c_repr_number = c_int64.from_address(c_repr.value)
             number = c_repr_number.value
             value = OrdinalValue(number)
-        elif 4 == value_type: # INSTANTTIME
+        elif SlotValueType.INSTANTTIME == value_type: # INSTANTTIME
             c_repr_instant_time_value = CInstantTimeValue.from_address(c_repr.value)
             value = InstantTimeValue.from_c_repr(c_repr_instant_time_value)
-        elif 5 == value_type: # TIMEINTERVAL
+        elif SlotValueType.TIMEINTERVAL == value_type: # TIMEINTERVAL
             c_repr_time_interval_value = CTimeIntervalValue.from_address(c_repr.value)
             value = TimeIntervalValue.from_c_repr(c_repr_time_interval_value)
-        elif 6 == value_type: # AMOUNTOFMONEY
+        elif SlotValueType.AMOUNTOFMONEY == value_type: # AMOUNTOFMONEY
             c_repr_amount_of_money_value = CAmountOfMoneyValue.from_address(c_repr.value)
             value = AmountOfMoneyValue.from_c_repr(c_repr_amount_of_money_value)
-        elif 7 == value_type: # TEMPERATURE
+        elif SlotValueType.TEMPERATURE == value_type: # TEMPERATURE
             c_repr_temperature_value = CTemperatureValue.from_address(c_repr.value)
             value = TemperatureValue.from_c_repr(c_repr_temperature_value)
-        elif 8 == value_type: # DURATION
+        elif SlotValueType.DURATION == value_type: # DURATION
             c_repr_duration_value = CDurationValue.from_address(c_repr.value)
             value = DurationValue.from_c_repr(c_repr_duration_value)
-        elif 9 == value_type: # PERCENTAGE
+        elif SlotValueType.PERCENTAGE == value_type: # PERCENTAGE
             c_repr_percentage = c_double.from_address(c_repr.value)
             value = PercentageValue(c_repr_percentage.value)
-        elif 10 == value_type:  # MUSICARTIST
+        elif SlotValueType.MUSICARTIST == value_type:  # MUSICARTIST
             c_repr_music_artist_value = c_repr.value
             string_value = string_at(c_repr_music_artist_value).decode('utf-8')
             value = MusicArtistValue(string_value)
-        elif 11 == value_type:  # MUSICALBUM
+        elif SlotValueType.MUSICALBUM == value_type:  # MUSICALBUM
             c_repr_music_album_value = c_repr.value
             string_value = string_at(c_repr_music_album_value).decode('utf-8')
             value = MusicAlbumValue(string_value)
-        elif 12 == value_type:  # MUSICTRACK
+        elif SlotValueType.MUSICTRACK == value_type:  # MUSICTRACK
             c_repr_music_artist_value = c_repr.value
             string_value = string_at(c_repr_music_artist_value).decode('utf-8')
             value = MusicTrackValue(string_value)
