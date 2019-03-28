@@ -2,6 +2,7 @@ package ai.snips.hermes.ffi
 
 import ai.snips.hermes.AsrDecodingDuration
 import ai.snips.hermes.AsrToken
+import ai.snips.hermes.AsrTokenRange
 import ai.snips.hermes.ContinueSessionMessage
 import ai.snips.hermes.EndSessionMessage
 import ai.snips.hermes.InjectionKind
@@ -757,7 +758,7 @@ class CAsrToken(p: Pointer?) : Structure(p), Structure.ByReference {
             value = token.value.toPointer()
             confidence = token.confidence
             range_start = token.range.start
-            range_end = token.range.endInclusive
+            range_end = token.range.end
             time = CAsrDecodingDuration.fromAsrDecodingDuration(token.time)
         }
     }
@@ -788,7 +789,7 @@ class CAsrToken(p: Pointer?) : Structure(p), Structure.ByReference {
     fun toAsrToken() = AsrToken(
             value = value.readString(),
             confidence = confidence!!,
-            range = range_start..range_end,
+            range = AsrTokenRange(range_start, range_end),
             time = time!!.toAsrDecodingDuration()
     )
 

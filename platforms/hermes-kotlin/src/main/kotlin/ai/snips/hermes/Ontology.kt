@@ -169,10 +169,16 @@ data class AsrDecodingDuration @ParcelConstructor constructor(
 )
 
 @Parcel(BEAN)
+data class AsrTokenRange @ParcelConstructor constructor(
+        @ParcelProperty("start") val start: Int,
+        @ParcelProperty("end") val end: Int
+)
+
+@Parcel(BEAN)
 data class AsrToken @ParcelConstructor constructor(
         @ParcelProperty("value") val value: String,
         @ParcelProperty("confidence") val confidence: Float,
-        @ParcelProperty("range") val range: IntRange,
+        @ParcelProperty("range") val range: AsrTokenRange,
         @ParcelProperty("time") val time: AsrDecodingDuration
 )
 

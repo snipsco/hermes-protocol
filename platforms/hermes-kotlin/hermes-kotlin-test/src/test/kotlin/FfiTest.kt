@@ -1,5 +1,6 @@
 import ai.snips.hermes.AsrDecodingDuration
 import ai.snips.hermes.AsrToken
+import ai.snips.hermes.AsrTokenRange
 import ai.snips.hermes.ContinueSessionMessage
 import ai.snips.hermes.EndSessionMessage
 import ai.snips.hermes.InjectionKind.Add
@@ -125,7 +126,7 @@ class FfiTest {
     fun roundTripAsrToken() {
         val input = AsrToken(value = "toto",
                              time = AsrDecodingDuration(start = 1.2f, end = 4.4f),
-                             range = 5..10,
+                             range = AsrTokenRange(start = 5, end = 10),
                              confidence = 0.8f)
         assertThat(HermesTest().roundTripAsrToken(input)).isEqualTo(input)
     }
@@ -134,7 +135,7 @@ class FfiTest {
     fun roundTripAsrTokenArray() {
         val input = listOf(AsrToken(value = "toto",
                                     time = AsrDecodingDuration(start = 1.2f, end = 4.4f),
-                                    range = 5..10,
+                                    range = AsrTokenRange(start = 5, end = 10),
                                     confidence = 0.8f))
         assertThat(HermesTest().roundTripAsrTokenArray(input)).isEqualTo(input)
         assertThat(HermesTest().roundTripAsrTokenArray(listOf())).isEqualTo(listOf<AsrToken>())
@@ -144,7 +145,7 @@ class FfiTest {
     fun roundTripAsrTokenDoubleArray() {
         val input = listOf(listOf(AsrToken(value = "toto",
                                            time = AsrDecodingDuration(start = 1.2f, end = 4.4f),
-                                           range = 5..10,
+                                           range = AsrTokenRange(start = 5, end = 10),
                                            confidence = 0.8f)), listOf())
         assertThat(HermesTest().roundTripAsrTokenDoubleArray(input)).isEqualTo(input)
         assertThat(HermesTest().roundTripAsrTokenArray(listOf())).isEqualTo(listOf<List<AsrToken>>())
@@ -161,11 +162,11 @@ class FfiTest {
                 likelihood = 0.95f,
                 tokens = listOf(AsrToken(value = "hello",
                                          time = AsrDecodingDuration(start = 0.2f, end = 1.2f),
-                                         range = 0..5,
+                                         range = AsrTokenRange(start = 0, end = 6),
                                          confidence = 0.8f),
                                 AsrToken(value = "world",
                                          time = AsrDecodingDuration(start = 1.2f, end = 3.2f),
-                                         range = 6..10,
+                                         range = AsrTokenRange(start = 6, end = 10),
                                          confidence = 0.85f))
         )
 
