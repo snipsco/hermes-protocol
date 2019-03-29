@@ -11,7 +11,14 @@ BUILDDIR      = build
 help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
-.PHONY: help Makefile
+rst:
+	@$(SPHINXBUILD) -M rst "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+	head -n 9 ../README.rst >> tmp.rst
+	tail -n+5 build/rst/README.rst >> tmp.rst
+	mv tmp.rst ../README.rst
+
+
+.PHONY: help Makefile rst
 
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
