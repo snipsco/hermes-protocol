@@ -392,3 +392,25 @@ You can disable/enable intents with the following methods :
                             .disable_intents(["intent2", "intent1"])
 
     hermes.configure_dialogue(dialogue_conf)
+
+
+Enabling Debugging
+------------------
+
+You can debug ``hermes-python`` if you encounter an issue and get a better stacktrace that you can send us.
+
+To do so, you have to set the ``rust_logs_enabled`` flag to True when you create an instance of the ``Hermes`` class :
+
+::
+
+    from hermes_python.hermes import Hermes
+
+    def callback(hermes, intent_message):
+        pass
+
+    with Hermes("localhost:1883", rust_logs_enabled=True) as h:
+        h.subscribe_intent("...", callback)
+        h.start()
+
+You should then execute your script with the ``RUST_LOG`` environment variable : ``RUST_LOG=TRACE python your_script.py``.
+

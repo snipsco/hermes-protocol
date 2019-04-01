@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from typing import Any
+from typing import Any, Text
 from builtins import object
 from collections import defaultdict
 
@@ -13,9 +13,10 @@ except ImportError:
 from six.moves import range
 
 from ctypes import string_at, c_double, c_int64
-from hermes_python.ffi.ontology import SlotValueType
+from hermes_python.ffi.ontology import SlotValueType, Grain, Precision
 from hermes_python.ffi.ontology.dialogue import CAmountOfMoneyValue, CTemperatureValue, CInstantTimeValue, \
     CTimeIntervalValue, CDurationValue
+
 
 
 class SlotMap(Mapping):
@@ -235,6 +236,7 @@ class OrdinalValue(object):
 
 class AmountOfMoneyValue(object):
     def __init__(self, unit, value, precision):
+        # type: (Text, Any, Precision) -> None
         """
         A structured representation of a slot type that represents an amount of money.
 
@@ -250,7 +252,7 @@ class AmountOfMoneyValue(object):
     def from_c_repr(cls, c_repr):
         unit = c_repr.unit.decode('utf-8') if c_repr.unit else None
         value = c_repr.value
-        precision = c_repr.precision
+        precision = Precision(c_repr.precision)
 
         return cls(unit, value, precision)
 
@@ -275,6 +277,7 @@ class TemperatureValue(object):
 
 class InstantTimeValue(object):
     def __init__(self, value, grain, precision):
+        # type: (Any, Grain, Precision) -> None
         """
         A structured representation of a slot type that represents a date.
 
@@ -289,8 +292,8 @@ class InstantTimeValue(object):
     @classmethod
     def from_c_repr(cls, c_repr):
         value = c_repr.value.decode('utf-8')
-        grain = c_repr.grain
-        precision = c_repr.precision
+        grain = Grain(c_repr.grain)
+        precision = Precision(c_repr.precision)
 
         return cls(value, grain, precision)
 
@@ -315,6 +318,7 @@ class TimeIntervalValue(object):
 
 class DurationValue(object):
     def __init__(self, years, quarters, months, weeks, days, hours, minutes, seconds, precision):
+        # type: (int, int, int, int, int, int, int, int, Precision ) -> None
         """
         A structured representation of a slot type that represents a duration.
 
@@ -348,7 +352,7 @@ class DurationValue(object):
         hours = c_repr.hours
         minutes = c_repr.minutes
         seconds = c_repr.seconds
-        precision = c_repr.precision
+        precision = Precision(c_repr.precision)
         return cls(years, quarters, months, weeks, days, hours, minutes, seconds, precision)
 
 

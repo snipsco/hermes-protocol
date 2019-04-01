@@ -1,6 +1,11 @@
 History
 ==========
 
+0.4.1 (2019-03-29)
+^^^^^^^^^^^^^^^^^^
+* Re-enables debugging of hermes-python with the `rust_logs_enabled` flag
+* AmountOfMoneyValue, InstantTimeValue and DurationValue slot values now use Precision and Grain enumerations
+
 0.4.0 (2019-03-20)
 ^^^^^^^^^^^^^^^^^^
 * Adds support to configure the Dialogue Mananger : enabling and disabling intents on the fly.

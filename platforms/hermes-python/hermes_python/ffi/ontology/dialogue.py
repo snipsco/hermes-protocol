@@ -181,6 +181,10 @@ class CSlotValue(Structure):
             c_repr_number = c_double(repr.value.value)
             cls(byref(c_repr_number), c_int32(repr.value_type))
 
+        elif SlotValueType.ORDINAL == repr.value_type:  # ORDINAL
+            c_repr_ordinal_value = c_int64(repr.value.value)
+            cls(byref(c_repr_ordinal_value), c_int32(repr.value_type))
+
         elif SlotValueType.INSTANTTIME == repr.value_type:  # INSTANTTIME
             c_repr_instant_time_value = CInstantTimeValue.from_repr(repr.value)
             cls(byref(c_repr_instant_time_value), c_int32(repr.value_type))

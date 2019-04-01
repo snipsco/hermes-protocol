@@ -39,7 +39,7 @@ class Hermes(object):
         if broker_address:  # This test is kept for API compatibility reasons.
             self.mqtt_options.broker_address = broker_address
 
-        self.ffi = FFI(use_json_api=use_json_api)  # type: FFI
+        self.ffi = FFI(use_json_api=use_json_api, rust_logs_enabled=rust_logs_enabled)  # type: FFI
 
         self._thread = None
         self._thread_terminate = False

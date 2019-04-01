@@ -21,6 +21,7 @@ cp ../../target/debug/libhermes_ffi_test.so tests/roundtrip/debug
 
 virtualenv --python=python2.7 env27
 source env27/bin/activate 
+pip install . 
 pip install -r requirements/tests.txt
 py.test 
 
