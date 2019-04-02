@@ -4,7 +4,11 @@ import ai.snips.hermes.AsrToken
 import ai.snips.hermes.ContinueSessionMessage
 import ai.snips.hermes.EndSessionMessage
 import ai.snips.hermes.InjectionRequestMessage
+import ai.snips.hermes.IntentMessage
 import ai.snips.hermes.IntentNotRecognizedMessage
+import ai.snips.hermes.SessionEndedMessage
+import ai.snips.hermes.SessionQueuedMessage
+import ai.snips.hermes.SessionStartedMessage
 import ai.snips.hermes.StartSessionMessage
 import ai.snips.hermes.TextCapturedMessage
 import ai.snips.hermes.ffi.CAsrToken
@@ -18,6 +22,8 @@ import ai.snips.hermes.ffi.CMapStringToStringArray
 import ai.snips.hermes.ffi.CStartSessionMessage
 import ai.snips.hermes.ffi.CTextCapturedMessage
 import ai.snips.hermes.test.HermesTest.HermesTestLib.Companion.INSTANCE
+import ai.snips.nlu.ontology.ffi.readString
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.sun.jna.Library
 import com.sun.jna.Native
 import com.sun.jna.Pointer
@@ -36,6 +42,8 @@ class HermesTest {
                 }
             }
         }
+
+        val JSON_MAPPER = jacksonObjectMapper()
     }
 
     fun roundTripContinueSession(input: ContinueSessionMessage) =
@@ -110,11 +118,11 @@ class HermesTest {
                       INSTANCE::hermes_drop_text_captured_message)
 
 
-    private fun <T, U> roundTrip(input: T,
-                                 toCConverter: (T) -> U,
-                                 roundTrip: (U, PointerByReference) -> Int,
-                                 fromCConverter: (Pointer) -> T,
-                                 drop: (Pointer) -> Int): T {
+    fun <T, U> roundTrip(input: T,
+                         toCConverter: (T) -> U,
+                         roundTrip: (U, PointerByReference) -> Int,
+                         fromCConverter: (Pointer) -> T,
+                         drop: (Pointer) -> Int): T {
         return PointerByReference().apply {
             parseError(roundTrip(toCConverter(input), this))
         }.value.let {
@@ -123,6 +131,45 @@ class HermesTest {
             }
         }
     }
+
+
+    fun roundTripSessionQueuedJson(input: SessionQueuedMessage) =
+            roundTripJson(input, INSTANCE::hermes_ffi_test_round_trip_session_queued_json)
+
+    fun roundTripSessionStartedJson(input: SessionStartedMessage) =
+            roundTripJson(input, INSTANCE::hermes_ffi_test_round_trip_session_started_json)
+
+    fun roundTripSessionEndedJson(input: SessionEndedMessage) =
+            roundTripJson(input, INSTANCE::hermes_ffi_test_round_trip_session_ended_json)
+
+    fun roundTripIntentJson(input: IntentMessage) =
+            roundTripJson(input, INSTANCE::hermes_ffi_test_round_trip_intent_json)
+
+    fun roundTripIntentNotRecognizedJson(input: IntentNotRecognizedMessage) =
+            roundTripJson(input, INSTANCE::hermes_ffi_test_round_trip_intent_not_recognized_json)
+
+    fun roundTripStartSessionJson(input: StartSessionMessage) =
+            roundTripJson(input, INSTANCE::hermes_ffi_test_round_trip_start_session_json)
+
+    fun roundTripContinueSessionJson(input: ContinueSessionMessage) =
+            roundTripJson(input, INSTANCE::hermes_ffi_test_round_trip_continue_session_json)
+
+    fun roundTripEndSessionJson(input: EndSessionMessage) =
+            roundTripJson(input, INSTANCE::hermes_ffi_test_round_trip_end_session_json)
+
+    fun roundTripInjectionRequestJson(input: InjectionRequestMessage) =
+            roundTripJson(input, INSTANCE::hermes_ffi_test_round_trip_injection_request_json)
+
+    fun roundTripTextCapturedJson(input: TextCapturedMessage) =
+            roundTripJson(input, INSTANCE::hermes_ffi_test_round_trip_text_captured_json)
+
+    inline fun <reified T> roundTripJson(input: T,
+                                         noinline roundTrip: (String, PointerByReference) -> Int) =
+            roundTrip(input,
+                      JSON_MAPPER::writeValueAsString,
+                      roundTrip,
+                      { JSON_MAPPER.readValue(it.readString(), T::class.java) },
+                      INSTANCE::hermes_ffi_test_destroy_string)
 
 
     interface HermesTestLib : Library {
@@ -140,6 +187,19 @@ class HermesTest {
         fun hermes_ffi_test_round_trip_asr_token_array(input: CAsrTokenArray, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_asr_token_double_array(input: CAsrTokenDoubleArray, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_text_captured(input: CTextCapturedMessage, output: PointerByReference): Int
+
+
+        fun hermes_ffi_test_round_trip_session_queued_json(input: String, output: PointerByReference): Int
+        fun hermes_ffi_test_round_trip_session_started_json(input: String, output: PointerByReference): Int
+        fun hermes_ffi_test_round_trip_session_ended_json(input: String, output: PointerByReference): Int
+        fun hermes_ffi_test_round_trip_intent_json(input: String, output: PointerByReference): Int
+        fun hermes_ffi_test_round_trip_intent_not_recognized_json(input: String, output: PointerByReference): Int
+        fun hermes_ffi_test_round_trip_start_session_json(input: String, output: PointerByReference): Int
+        fun hermes_ffi_test_round_trip_continue_session_json(input: String, output: PointerByReference): Int
+        fun hermes_ffi_test_round_trip_end_session_json(input: String, output: PointerByReference): Int
+        fun hermes_ffi_test_round_trip_injection_request_json(input: String, output: PointerByReference): Int
+        fun hermes_ffi_test_round_trip_text_captured_json(input: String, output: PointerByReference): Int
+
 
         fun hermes_ffi_test_get_last_error(error: PointerByReference): Int
 

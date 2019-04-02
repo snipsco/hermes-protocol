@@ -10,7 +10,7 @@ crate-type = ["rlib", "staticlib", "cdylib"]
 [features]
 full_bindings = ["hermes-ffi/full_bindings"]
 structures = ["hermes-ffi/structures"]
-json = ["hermes-ffi/json"]
+json = ["hermes-ffi/json", "serde_json"]
 default = ["structures", "json", "full_bindings"]
 
 [dependencies]
@@ -19,3 +19,5 @@ hermes = { path = "../hermes" }
 hermes-ffi = { path = "../hermes-ffi" }
 ffi-utils = { git = "https://github.com/snipsco/snips-utils-rs", rev = "291ce1d" }
 libc = "0.2"
+serde_json = { version = "1.0", optional = true }
+

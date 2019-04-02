@@ -1,15 +1,18 @@
 #[macro_use]
 extern crate failure;
-extern crate ffi_utils;
-extern crate hermes;
-extern crate hermes_ffi;
-extern crate libc;
 
 use failure::Fallible;
 use ffi_utils::*;
 use hermes_ffi::*;
+use libc;
 
 generate_error_handling!(hermes_ffi_test_get_last_error);
+
+#[cfg(feature= "json")]
+mod json_round_trips;
+
+#[cfg(feature= "json")]
+pub use json_round_trips::*;
 
 fn round_trip<T, U>(input: *const T, output: *mut *const T) -> Fallible<()>
 where

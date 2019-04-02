@@ -317,7 +317,7 @@ class CNluIntentClassifierResult : Structure(), Structure.ByReference {
 
     override fun getFieldOrder() = listOf("intent_name", "confidence_score")
 
-    fun toIntentClassifierResult() = IntentClassifierResult(intentName = intent_name?.readString(),
+    fun toIntentClassifierResult() = IntentClassifierResult(intentName = intent_name!!.readString(),
                                                             confidenceScore = confidence_score!!)
 }
 

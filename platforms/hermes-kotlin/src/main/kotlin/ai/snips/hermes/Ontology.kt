@@ -1,16 +1,37 @@
 package ai.snips.hermes
 
+import ai.snips.hermes.SessionInit.Action
+import ai.snips.hermes.SessionInit.Notification
 import ai.snips.hermes.SessionInit.Type.ACTION
 import ai.snips.hermes.SessionInit.Type.NOTIFICATION
 import ai.snips.nlu.ontology.Range
 import ai.snips.nlu.ontology.SlotValue
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonFormat
+import com.fasterxml.jackson.annotation.JsonFormat.Shape.ARRAY
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type
+import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.fasterxml.jackson.annotation.JsonUnwrapped
 import org.parceler.Parcel
 import org.parceler.Parcel.Serialization.BEAN
 import org.parceler.ParcelConstructor
 import org.parceler.ParcelProperty
 
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
+@JsonSubTypes(
+        Type(value = Action::class, name = "action"),
+        Type(value = Notification::class, name = "notification")
+)
 sealed class SessionInit(val type: SessionInit.Type) {
-    enum class Type { ACTION, NOTIFICATION }
+    enum class Type {
+        @JsonProperty("action")
+        ACTION,
+        @JsonProperty("notification")
+        NOTIFICATION
+    }
 
     @Parcel(BEAN)
     data class Action @ParcelConstructor constructor(
@@ -60,7 +81,7 @@ data class Slot @ParcelConstructor constructor(
 
 @Parcel(BEAN)
 data class IntentClassifierResult @ParcelConstructor constructor(
-        @ParcelProperty("intentName") val intentName: String?,
+        @ParcelProperty("intentName") val intentName: String,
         @ParcelProperty("confidenceScore") val confidenceScore: Float)
 
 @Parcel(BEAN)
@@ -127,39 +148,40 @@ sealed class SessionTermination(val type: SessionTermination.Type) {
 
 @Parcel(BEAN)
 data class SayMessage @ParcelConstructor constructor(
-    @ParcelProperty("text") val text: String,
-    @ParcelProperty("lang") val lang: String?,
-    @ParcelProperty("id") val id: String?,
-    @ParcelProperty("siteId") val siteId: String,
-    @ParcelProperty("sessionId") val sessionId: String?
+        @ParcelProperty("text") val text: String,
+        @ParcelProperty("lang") val lang: String?,
+        @ParcelProperty("id") val id: String?,
+        @ParcelProperty("siteId") val siteId: String,
+        @ParcelProperty("sessionId") val sessionId: String?
 )
 
 @Parcel(BEAN)
 data class SayFinishedMessage @ParcelConstructor constructor(
-    @ParcelProperty("id") val id: String?,
-    @ParcelProperty("sessionId") val sessionId: String?
+        @ParcelProperty("id") val id: String?,
+        @ParcelProperty("sessionId") val sessionId: String?
 )
 
 @Parcel
 enum class InjectionKind {
-    Add,
-    AddFromVanilla,
+    @JsonProperty("add") Add,
+    @JsonProperty("addFromVanilla") AddFromVanilla,
 }
 
 @Parcel(BEAN)
+@JsonFormat(shape = ARRAY)
 data class InjectionOperation @ParcelConstructor constructor(
-        @ParcelProperty("kind") val kind : InjectionKind,
+        @ParcelProperty("kind") val kind: InjectionKind,
         // Using a MutableMap here so that Parceler is happy
-        @ParcelProperty("values") val values : MutableMap<String, List<String>>
+        @ParcelProperty("values") val values: MutableMap<String, List<String>>
 )
 
 @Parcel(BEAN)
 data class InjectionRequestMessage @ParcelConstructor constructor(
-        @ParcelProperty("operations") val operations :  List<InjectionOperation>,
+        @ParcelProperty("operations") val operations: List<InjectionOperation>,
         // Using a MutableMap here so that Parceler is happy
-        @ParcelProperty("lexicon") val lexicon : MutableMap<String, List<String>>,
+        @ParcelProperty("lexicon") val lexicon: MutableMap<String, List<String>>,
         @ParcelProperty("crossLanguage") val crossLanguage: String?,
-        @ParcelProperty("id") val id : String?
+        @ParcelProperty("id") val id: String?
 )
 
 @Parcel(BEAN)
@@ -178,9 +200,23 @@ data class AsrTokenRange @ParcelConstructor constructor(
 data class AsrToken @ParcelConstructor constructor(
         @ParcelProperty("value") val value: String,
         @ParcelProperty("confidence") val confidence: Float,
-        @ParcelProperty("range") val range: AsrTokenRange,
+        @ParcelProperty("range") @JsonIgnore val range: AsrTokenRange,
         @ParcelProperty("time") val time: AsrDecodingDuration
-)
+) {
+        @Deprecated("use the range property")
+        val rangeStart = range.start
+        @Deprecated("use the range property")
+        val rangeEnd = range.end
+
+        @JsonCreator
+        @Deprecated("use the constructor with the range parameter")
+        constructor(@JsonProperty("value") value: String,
+                @JsonProperty("confidence") confidence: Float,
+                @JsonProperty("rangeStart") rangeStart: Int,
+                @JsonProperty("rangeEnd") rangeEnd: Int,
+                @JsonProperty("time") time: AsrDecodingDuration) :
+                this(value, confidence, AsrTokenRange(rangeStart, rangeEnd), time)
+}
 
 @Parcel(BEAN)
 data class TextCapturedMessage @ParcelConstructor constructor(
