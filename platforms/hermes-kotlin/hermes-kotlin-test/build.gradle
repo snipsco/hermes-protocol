@@ -25,8 +25,11 @@ repositories {
 dependencies {
     compile rootProject
 
+    compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.+"
+    
     testCompile 'junit:junit:4.12'
     testCompile 'com.google.truth:truth:0.36'
+    
 }
 
 
