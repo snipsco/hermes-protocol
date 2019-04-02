@@ -8,10 +8,10 @@ use libc;
 
 generate_error_handling!(hermes_ffi_test_get_last_error);
 
-#[cfg(feature= "json")]
+#[cfg(feature = "json")]
 mod json_round_trips;
 
-#[cfg(feature= "json")]
+#[cfg(feature = "json")]
 pub use json_round_trips::*;
 
 fn round_trip<T, U>(input: *const T, output: *mut *const T) -> Fallible<()>
