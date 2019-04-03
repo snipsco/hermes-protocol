@@ -1,19 +1,35 @@
 import ai.snips.hermes.AsrDecodingDuration
 import ai.snips.hermes.AsrToken
+import ai.snips.hermes.AsrTokenRange
 import ai.snips.hermes.ContinueSessionMessage
 import ai.snips.hermes.EndSessionMessage
 import ai.snips.hermes.InjectionKind.Add
 import ai.snips.hermes.InjectionOperation
 import ai.snips.hermes.InjectionRequestMessage
+import ai.snips.hermes.IntentClassifierResult
+import ai.snips.hermes.IntentMessage
 import ai.snips.hermes.IntentNotRecognizedMessage
 import ai.snips.hermes.SessionInit
+import ai.snips.hermes.SessionQueuedMessage
+import ai.snips.hermes.Slot
 import ai.snips.hermes.StartSessionMessage
 import ai.snips.hermes.TextCapturedMessage
 import ai.snips.hermes.test.HermesTest
+import ai.snips.nlu.ontology.Range
+import ai.snips.nlu.ontology.SlotValue
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
 class FfiTest {
+
+    @Test
+    fun roundTripSessionQueued() {
+        val input = SessionQueuedMessage(sessionId = "some session id",
+                                         siteId = "some site id",
+                                         customData = "some custom data")
+
+        assertThat(HermesTest().roundTripSessionQueuedJson(input)).isEqualTo(input)
+    }
 
     @Test
     fun roundTripStartSessionAction() {
@@ -29,6 +45,7 @@ class FfiTest {
 
         )
         assertThat(HermesTest().roundTripStartSession(input)).isEqualTo(input)
+        assertThat(HermesTest().roundTripStartSessionJson(input)).isEqualTo(input)
     }
 
     @Test
@@ -42,6 +59,7 @@ class FfiTest {
 
         )
         assertThat(HermesTest().roundTripStartSession(input)).isEqualTo(input)
+        assertThat(HermesTest().roundTripStartSessionJson(input)).isEqualTo(input)
     }
 
     @Test
@@ -55,6 +73,7 @@ class FfiTest {
                 slot = "some slot"
         )
         assertThat(HermesTest().roundTripContinueSession(input)).isEqualTo(input)
+        assertThat(HermesTest().roundTripContinueSessionJson(input)).isEqualTo(input)
     }
 
     @Test
@@ -64,6 +83,7 @@ class FfiTest {
                 sessionId = "qsmd3711EAED"
         )
         assertThat(HermesTest().roundTripEndSession(input)).isEqualTo(input)
+        assertThat(HermesTest().roundTripEndSessionJson(input)).isEqualTo(input)
     }
 
     @Test
@@ -76,6 +96,7 @@ class FfiTest {
                 confidenceScore = 0.5f
         )
         assertThat(HermesTest().roundTripIntentNotRecognized(input)).isEqualTo(input)
+        assertThat(HermesTest().roundTripIntentNotRecognizedJson(input)).isEqualTo(input)
 
         val input2 = IntentNotRecognizedMessage(
                 input = null,
@@ -85,6 +106,7 @@ class FfiTest {
                 confidenceScore = 0.5f
         )
         assertThat(HermesTest().roundTripIntentNotRecognized(input2)).isEqualTo(input2)
+        assertThat(HermesTest().roundTripIntentNotRecognizedJson(input2)).isEqualTo(input2)
     }
 
     @Test
@@ -97,6 +119,7 @@ class FfiTest {
         )
 
         assertThat(HermesTest().roundTripInjectionRequest(input)).isEqualTo(input)
+        assertThat(HermesTest().roundTripInjectionRequestJson(input)).isEqualTo(input)
 
         val input2 = InjectionRequestMessage(
                 operations = listOf(InjectionOperation(Add, mutableMapOf("hello" to listOf("hello", "world"),
@@ -110,6 +133,8 @@ class FfiTest {
         )
 
         assertThat(HermesTest().roundTripInjectionRequest(input2)).isEqualTo(input2)
+        //json is a bit tricky to deserialize properly
+        //assertThat(HermesTest().roundTripInjectionRequestJson(input2)).isEqualTo(input2)
     }
 
     @Test
@@ -125,7 +150,7 @@ class FfiTest {
     fun roundTripAsrToken() {
         val input = AsrToken(value = "toto",
                              time = AsrDecodingDuration(start = 1.2f, end = 4.4f),
-                             range = 5..10,
+                             range = AsrTokenRange(start = 5, end = 10),
                              confidence = 0.8f)
         assertThat(HermesTest().roundTripAsrToken(input)).isEqualTo(input)
     }
@@ -134,7 +159,7 @@ class FfiTest {
     fun roundTripAsrTokenArray() {
         val input = listOf(AsrToken(value = "toto",
                                     time = AsrDecodingDuration(start = 1.2f, end = 4.4f),
-                                    range = 5..10,
+                                    range = AsrTokenRange(start = 5, end = 10),
                                     confidence = 0.8f))
         assertThat(HermesTest().roundTripAsrTokenArray(input)).isEqualTo(input)
         assertThat(HermesTest().roundTripAsrTokenArray(listOf())).isEqualTo(listOf<AsrToken>())
@@ -144,7 +169,7 @@ class FfiTest {
     fun roundTripAsrTokenDoubleArray() {
         val input = listOf(listOf(AsrToken(value = "toto",
                                            time = AsrDecodingDuration(start = 1.2f, end = 4.4f),
-                                           range = 5..10,
+                                           range = AsrTokenRange(start = 5, end = 10),
                                            confidence = 0.8f)), listOf())
         assertThat(HermesTest().roundTripAsrTokenDoubleArray(input)).isEqualTo(input)
         assertThat(HermesTest().roundTripAsrTokenArray(listOf())).isEqualTo(listOf<List<AsrToken>>())
@@ -161,15 +186,16 @@ class FfiTest {
                 likelihood = 0.95f,
                 tokens = listOf(AsrToken(value = "hello",
                                          time = AsrDecodingDuration(start = 0.2f, end = 1.2f),
-                                         range = 0..5,
+                                         range = AsrTokenRange(start = 0, end = 6),
                                          confidence = 0.8f),
                                 AsrToken(value = "world",
                                          time = AsrDecodingDuration(start = 1.2f, end = 3.2f),
-                                         range = 6..10,
+                                         range = AsrTokenRange(start = 6, end = 10),
                                          confidence = 0.85f))
         )
 
         assertThat(HermesTest().roundTripTextCaptured(input)).isEqualTo(input)
+        assertThat(HermesTest().roundTripTextCapturedJson(input)).isEqualTo(input)
 
         val input2 = TextCapturedMessage(
                 text = "hello world",
@@ -179,5 +205,56 @@ class FfiTest {
                 likelihood = 0.95f,
                 tokens = listOf())
         assertThat(HermesTest().roundTripTextCaptured(input2)).isEqualTo(input2)
+        assertThat(HermesTest().roundTripTextCapturedJson(input2)).isEqualTo(input2)
+    }
+
+
+    @Test
+    fun roundTripIntent() {
+        val input = IntentMessage(
+                customData = null,
+                siteId = "some site id",
+                sessionId = "some session id",
+                asrTokens = mutableListOf(),
+                asrConfidence = null,
+                input = "some input string",
+                intent = IntentClassifierResult(
+                        intentName = "Some intent",
+                        confidenceScore = 0.5f
+                ),
+                slots = listOf()
+
+        )
+
+        assertThat(HermesTest().roundTripIntentJson(input)).isEqualTo(input)
+
+        val input2 = IntentMessage(
+                customData = "some custom data",
+                siteId = "some site id",
+                sessionId = "some session id",
+                asrTokens = mutableListOf(listOf(AsrToken(value = "hello",
+                                                          time = AsrDecodingDuration(start = 0.2f, end = 1.2f),
+                                                          range = AsrTokenRange(start = 0, end = 6),
+                                                          confidence = 0.8f),
+                                                 AsrToken(value = "world",
+                                                          time = AsrDecodingDuration(start = 1.2f, end = 3.2f),
+                                                          range = AsrTokenRange(start = 6, end = 10),
+                                                          confidence = 0.85f))),
+                asrConfidence = 0.83f,
+                input = "some input string",
+                intent = IntentClassifierResult(
+                        intentName = "Some intent",
+                        confidenceScore = 0.5f
+                ),
+                slots = listOf(Slot(rawValue = "some value",
+                                    confidenceScore = 1.0f,
+                                    range = Range(start = 1, end = 8),
+                                    value = SlotValue.CustomValue("toto"),
+                                    entity = "some entity",
+                                    slotName = "some slot"))
+
+        )
+        assertThat(HermesTest().roundTripIntentJson(input2)).isEqualTo(input2)
+
     }
 }

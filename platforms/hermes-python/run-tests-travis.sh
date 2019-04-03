@@ -21,6 +21,12 @@ cp ../../target/debug/libhermes_ffi_test.so tests/roundtrip/debug
 
 virtualenv --python=python2.7 env27
 source env27/bin/activate 
+pip install . 
 pip install -r requirements/tests.txt
 py.test 
+
+virtualenv --python=python3 env3
+source env3/bin/activate
+pip install -r requirements/lint.txt
+mypy --py2 --follow-imports=skip -p hermes_python.ontology
 

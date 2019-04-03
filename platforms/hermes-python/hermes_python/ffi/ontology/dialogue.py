@@ -1,27 +1,6 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
-from ctypes import c_char_p, c_int32, c_int64, c_int, c_float, c_uint8, c_void_p, POINTER, pointer, Structure, byref
-
-
-class CStringArray(Structure):
-    _fields_ = [
-        ("data", POINTER(c_char_p)),
-        ("size", c_int32)
-    ]
-
-
-class CProtocolHandler(Structure):
-    _fields_ = [("handler", c_void_p)]
-
-
-class CTtsFacade(Structure):
-    _fields_ = [("facade", c_void_p)]
-
-
-class CDialogueFacade(Structure):
-    _fields_ = [("facade", c_void_p)]
-
+from ctypes import c_char_p, c_int32, c_int64, c_int, c_float, c_uint8, c_void_p, POINTER, pointer, Structure, c_double,\
+    byref, cast
+from ..ontology import CStringArray, SlotValueType, Grain, Precision
 
 class CSayMessage(Structure):
     _fields_ = [("text", c_char_p),
@@ -80,12 +59,21 @@ class CEndSessionMessage(Structure):
     @classmethod
     def build(cls, session_id, text):
         b_text = text.encode('utf-8') if text else None
-        return cls(session_id.encode('utf-8'), b_text)
+        b_session_id = session_id.encode('utf-8') if session_id else None
+        return cls(b_session_id, b_text)
 
+    @classmethod
+    def from_repr(cls, py_repr):
+        return py_repr.into_c_repr()
+
+
+SNIPS_SESSION_INIT_TYPE_ACTION = 1
+SNIPS_SESSION_INIT_TYPE_NOTIFICATION = 2
 
 
 class CSessionInit(Structure):
     _fields_ = [("init_type", c_int32)]  # 1 : Action, 2: Notification
+
 
 class CActionSessionInit(Structure):
     _fields_ = [("text", c_char_p),  # Nullable
@@ -114,7 +102,7 @@ class CSessionInitAction(CSessionInit):
     @classmethod
     def build(cls, text, intent_filter, can_be_enqueued_boolean, send_intent_not_recognized):
         cActionSessionInit = CActionSessionInit.build(text, intent_filter, can_be_enqueued_boolean, send_intent_not_recognized)
-        return cls(c_int(1), pointer(cActionSessionInit))
+        return cls(c_int(SNIPS_SESSION_INIT_TYPE_ACTION), pointer(cActionSessionInit))
 
 
 class CSessionInitNotification(CSessionInit):
@@ -122,8 +110,8 @@ class CSessionInitNotification(CSessionInit):
 
     @classmethod
     def build(cls, value):
-        encoded_value = value.encode('utf-8') if value else None
-        return cls(c_int(0), encoded_value)
+        encoded_value = value.encode('utf-8')
+        return cls(c_int(SNIPS_SESSION_INIT_TYPE_NOTIFICATION), encoded_value)
 
 
 class CStartSessionMessageAction(Structure):
@@ -134,8 +122,13 @@ class CStartSessionMessageAction(Structure):
     @classmethod
     def build(cls, init, custom_data, site_id):
         custom_data = custom_data.encode('utf-8') if custom_data else None
-        site_id = site_id.encode('utf-8')
+        site_id = site_id.encode('utf-8') if site_id else None
         return cls(init, custom_data, site_id)
+
+    @classmethod
+    def from_repr(cls, repr):
+        return repr.into_c_repr()
+
 
 class CStartSessionMessageNotification(Structure):
     _fields_ = [("init", CSessionInitNotification),
@@ -145,8 +138,12 @@ class CStartSessionMessageNotification(Structure):
     @classmethod
     def build(cls, init, custom_data, site_id):
         custom_data = custom_data.encode('utf-8') if custom_data else None
-        site_id = site_id.encode('utf-8')
+        site_id = site_id.encode('utf-8') if site_id else None
         return cls(init, custom_data, site_id)
+
+    @classmethod
+    def from_repr(cls, repr):
+        return repr.into_c_repr()
 
 
 class CNluIntentClassifierResult(Structure):
@@ -167,7 +164,7 @@ class CNluIntentClassifierResult(Structure):
 class CSlotValue(Structure):
     _fields_ = [
         ("value", c_void_p),
-        ("value_type", c_int32) # TODO : value_type is an enum
+        ("value_type", c_int32)
     ]
     @classmethod
     def build(cls, value, value_type):
@@ -175,7 +172,43 @@ class CSlotValue(Structure):
 
     @classmethod
     def from_repr(cls, repr):
-        return cls(pointer(repr.value), repr.value_type)
+        if SlotValueType.CUSTOM == repr.value_type:  # CUSTOM
+            c_repr_custom_value = repr.value.value.encode('utf-8')
+            c_repr_value = cast(c_char_p(c_repr_custom_value), c_void_p)
+            return cls(c_repr_value, c_int32(repr.value_type))
+
+        elif SlotValueType.NUMBER == repr.value_type:  # NUMBER
+            c_repr_number = c_double(repr.value.value)
+            cls(byref(c_repr_number), c_int32(repr.value_type))
+
+        elif SlotValueType.ORDINAL == repr.value_type:  # ORDINAL
+            c_repr_ordinal_value = c_int64(repr.value.value)
+            cls(byref(c_repr_ordinal_value), c_int32(repr.value_type))
+
+        elif SlotValueType.INSTANTTIME == repr.value_type:  # INSTANTTIME
+            c_repr_instant_time_value = CInstantTimeValue.from_repr(repr.value)
+            cls(byref(c_repr_instant_time_value), c_int32(repr.value_type))
+
+        elif SlotValueType.TIMEINTERVAL == repr.value_type:  # TIMEINTERVAL
+            cls(c_void_p, c_int32(repr.value_type))
+        elif SlotValueType.AMOUNTOFMONEY == repr.value_type:  # AMOUNTOFMONEY
+            cls(c_void_p, c_int32(repr.value_type))
+        elif SlotValueType.TEMPERATURE == repr.value_type:  # TEMPERATURE
+            cls(c_void_p, c_int32(repr.value_type))
+        elif SlotValueType.DURATION == repr.value_type:  # DURATION
+            cls(c_void_p, c_int32(repr.value_type))
+        elif SlotValueType.PERCENTAGE == repr.value_type:  # PERCENTAGE
+            cls(c_void_p, c_int32(repr.value_type))
+        elif SlotValueType.MUSICARTIST == repr.value_type:  # MUSICARTIST
+            cls(c_void_p, c_int32(repr.value_type))
+        elif SlotValueType.MUSICALBUM == repr.value_type:  # MUSICALBUM
+            cls(c_void_p, c_int32(repr.value_type))
+        elif SlotValueType.MUSICTRACK == repr.value_type:  # MUSICTRACK
+            cls(c_void_p, c_int32(repr.value_type))
+
+        else:
+            raise Exception("Bad value type. Got : {}".format(repr.value_type))
+
 
 
 class CSlot(Structure):
@@ -191,6 +224,7 @@ class CSlot(Structure):
 
     @classmethod
     def build(cls, c_slot_value, raw_value, entity, slot_name, range_start, range_end, confidence_score):
+        # type: (CSlotValue, str, str, str, int, int, float) -> CSlot
         raw_value = raw_value.encode('utf-8') if raw_value else None
         entity = entity.encode('utf-8') if entity else None
         slot_name = slot_name.encode('utf-8') if slot_name else None
@@ -207,7 +241,17 @@ class CNluSlot(Structure):
 
     @classmethod
     def from_repr(cls, repr):
-        return cls(repr.slot)
+        # type: (NluSlot) -> CNluSlot
+        c_slot_value = CSlotValue.from_repr(repr.slot_value)
+        c_slot = CSlot.build(c_slot_value,
+                             repr.raw_value,
+                             repr.entity,
+                             repr.slot_name,
+                             repr.range_start,
+                             repr.range_end,
+                             repr.confidence_score)
+
+        return cls(POINTER(CSlot)(c_slot))
 
     @classmethod
     def build(cls, nlu_slot):
@@ -221,11 +265,47 @@ class CSlotList(Structure):
         ("size", c_int32)
     ]
 
+
 class CNluSlotArray(Structure):
     _fields_ = [
         ("entries", POINTER(POINTER(CNluSlot))), # *const *const CNluSlot,
         ("count", c_int)
     ]
+
+    @classmethod
+    def from_repr(cls, repr):
+        # type: (SlotMap) -> CNluSlotArray
+        """
+        impl CReprOf<Vec<hermes::NluSlot>> for CNluSlotArray {
+            fn c_repr_of(input: Vec<hermes::NluSlot>) -> Fallible<Self> {
+                let array = Self {
+                    count: input.len() as _,
+                    entries: Box::into_raw(
+                        input
+                            .into_iter()
+                            .map(|e| CNluSlot::c_repr_of(e).map(|c| c.into_raw_pointer()))
+                            .collect::<Fallible<Vec<_>>>()
+                            .context("Could not convert map to C Repr")?
+                            .into_boxed_slice(),
+                    ) as *const *const _,
+                };
+                Ok(array)
+            }
+        }
+        :param repr:
+        :return:
+        """
+
+        # We flatten all the slots into a list
+        nlu_slots = [nlu_slot for slot_name, nlu_slot_array in repr.items() for nlu_slot in nlu_slot_array]
+        count = len(nlu_slots)
+
+        c_nlu_slots = [CNluSlot.from_repr(nlu_slot) for nlu_slot in nlu_slots]
+        entries = (CNluSlot * count)(*c_nlu_slots)
+        entries = cast(entries, POINTER(POINTER(CNluSlot)))
+
+        return cls(entries, c_int(count))
+
 
 class CIntentMessage(Structure):
     _fields_ = [("session_id", c_char_p),
@@ -250,6 +330,7 @@ class CIntentMessage(Structure):
         c_slots = POINTER(CNluSlotArray)(CNluSlotArray.from_repr(repr.slots))
         return cls.build(repr.session_id, repr.custom_data, repr.site_id, repr.input, c_intent_classifier_result, c_slots)
 
+
 class CSessionTermination(Structure):
     _fields_ = [("termination_type", c_int),
                 ("data", c_char_p)]
@@ -262,6 +343,7 @@ class CSessionTermination(Structure):
     @classmethod
     def from_repr(cls, repr):
         return cls.build(repr.termination_type, repr.data)
+
 
 class CSessionEndedMessage(Structure):
     _fields_ = [("session_id", c_char_p),
@@ -353,7 +435,6 @@ class CTemperatureValue(Structure):
                 ("value", c_float)]
 
 
-
 class CInstantTimeValue(Structure):
     _fields_ = [("value", c_char_p),
                ("grain", c_int), # TODO : CGrain is an enum ...
@@ -363,6 +444,7 @@ class CInstantTimeValue(Structure):
 class CTimeIntervalValue(Structure):
     _fields_ = [("from_date", c_char_p),
                 ("to_date", c_char_p)]
+
 
 class CDurationValue(Structure):
     _fields_ = [("years", c_int64),
@@ -375,3 +457,63 @@ class CDurationValue(Structure):
                 ("seconds", c_int64),
                 ("precision", c_int)]
 
+
+class CDialogueConfigureIntent(Structure):
+    _fields_ = [
+        ("intent_id", c_char_p),
+        ("enable", c_uint8)]
+
+    @classmethod
+    def from_repr(cls, repr):
+        # type: (DialogueConfigureIntent) -> CDialogueConfigureIntent
+        return cls.build(repr.intent_id, repr.enable)
+
+    @classmethod
+    def build(cls, intent_id, enable):
+        # type: (str, bool) -> CDialogueConfigureIntent
+        intent_id = intent_id.encode('utf-8')
+        enable = c_uint8(1) if enable else c_uint8(0)
+
+        return cls(intent_id, enable)
+
+
+class CDialogueConfigureIntentArray(Structure):
+    _fields_ = [
+        ("entries", POINTER(POINTER(CDialogueConfigureIntent))),
+        ("count", c_int32)]
+
+    @classmethod
+    def build(cls, intents):
+        # type: (List[DialogueConfigureIntent]) -> CDialogueConfigureIntentArray
+        c_dialogue_configure_intents = [CDialogueConfigureIntent.from_repr(dialogue_configure_intent) for dialogue_configure_intent in intents]
+
+        c_dialogue_configure_intents = [POINTER(CDialogueConfigureIntent)(intent) for intent in
+                                        c_dialogue_configure_intents]
+
+        entries = (POINTER(CDialogueConfigureIntent) * len(intents))(*c_dialogue_configure_intents)
+        entries = cast(entries, POINTER(POINTER(CDialogueConfigureIntent)))
+        count = c_int32(len(intents))
+
+        return cls(entries, count)
+
+    @classmethod
+    def from_repr(cls, repr):
+        return cls.build(repr)
+
+
+class CDialogueConfigureMessage(Structure):
+    _fields_ = [("site_id", c_char_p),  # site_id is nullable.
+                ("intents", POINTER(CDialogueConfigureIntentArray))]
+
+
+    @classmethod
+    def from_repr(cls, repr):
+        return cls.build(repr.site_id, repr.intents)
+
+    @classmethod
+    def build(cls, site_id, intents):
+        # type: (str, List[DialogueConfigureIntent]) -> CDialogueConfigureMessage
+        site_id = site_id.encode('utf-8') if site_id else None
+        c_dialogue_configure_intent_array = CDialogueConfigureIntentArray.build(intents)
+        c_dialogue_configure_intent_array_p = POINTER(CDialogueConfigureIntentArray)(c_dialogue_configure_intent_array)
+        return cls(site_id, c_dialogue_configure_intent_array_p)

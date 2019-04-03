@@ -2,5 +2,6 @@ mock
 pytest
 coverage
 pytest-cov
-dotmap
 future
+typing
+paho-mqtt
