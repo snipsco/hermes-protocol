@@ -5,4 +5,6 @@ export interface SessionStartedMessage {
     siteId: string
     /** Custom data provided in the StartSessionMessage or a ContinueSessionMessage. */
     customData?: string
+    /** The session was reactivated from this session id. */
+    reactivatedFromSessionId?: string
 }

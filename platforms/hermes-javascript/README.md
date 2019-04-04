@@ -758,8 +758,7 @@ const wavBuffer = // A Buffer object containing a wav file.
 
 tts.publish('register_sound', {
     soundId: /* the ID that is going to be used when telling the TTS to play the file */,
-    wavSound: wavBuffer.toString('base64'),
-    wavSoundLen: wavBuffer.length
+    wavSound: wavBuffer.toString('base64')
 })
 ```
 

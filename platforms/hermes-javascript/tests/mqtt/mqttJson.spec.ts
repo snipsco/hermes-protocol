@@ -205,8 +205,7 @@ it('[tts] should publish an audio playback that the tts will be able to use late
   return new Promise(resolve => {
     const message: RegisterSoundMessage = {
       soundId: 'foobar',
-      wavSound: wavBuffer.toString('base64'),
-      wavSoundLen: wavBuffer.length
+      wavSound: wavBuffer.toString('base64')
     }
     client.subscribe(hermesTopic, function() {
       tts.publish('register_sound', message)

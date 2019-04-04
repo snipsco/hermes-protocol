@@ -3,6 +3,11 @@ export interface RegisterSoundMessage {
     soundId: string
     /** Sound buffer (Wav PCM16) stringified in base64. */
     wavSound: string
-    /** Length of the sound buffer. */
-    wavSoundLen: number
+    /**
+     * @deprecated
+     * **Unused! Kept for avoiding breaking existing action code.**
+     *
+     * Length of the sound buffer.
+     */
+    wavSoundLen?: number
 }

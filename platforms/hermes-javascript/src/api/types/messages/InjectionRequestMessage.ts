@@ -16,7 +16,7 @@ export interface InjectionRequestMessage {
     operations: [
         injectionKind,
         {
-            [key: string]: string[]
+            [key: string]: (string | [string, number])[]
         }
     ][]
 }
