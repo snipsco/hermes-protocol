@@ -5,7 +5,7 @@ use failure::bail;
 use failure::Fallible;
 use failure::ResultExt;
 use ffi_utils::*;
-use snips_nlu_ontology_ffi_macros::CSlot;
+use snips_nlu_ontology_ffi_macros::*;
 
 use crate::asr::CAsrTokenArray;
 
@@ -264,11 +264,9 @@ impl CReprOf<hermes::NluSlot> for CNluSlot {
 
 impl AsRust<hermes::NluSlot> for CNluSlot {
     fn as_rust(&self) -> Fallible<hermes::NluSlot> {
-        //hermes::NluSlot {
-        //confidence: self.confidence,
-        //nlu_slot: unimplemented!(),
-        //}
-        bail!("Missing converter for CSlot, if you need this feature, please tell us !")
+        Ok(hermes::NluSlot {
+            nlu_slot: unsafe {&*self.nlu_slot}.as_rust()?
+        })
     }
 }
 

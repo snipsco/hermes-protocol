@@ -64,9 +64,29 @@ impl CReprOf<hermes::IntentMessage> for CIntentMessage {
 
 impl AsRust<hermes::IntentMessage> for CIntentMessage {
     fn as_rust(&self) -> Fallible<hermes::IntentMessage> {
-        bail!("Missing converter for CSlotList, if you need this feature, please tell us !")
+        Ok(
+            hermes::IntentMessage {
+                session_id: create_rust_string_from!(self.session_id),
+                custom_data: create_optional_rust_string_from!(self.custom_data),
+                site_id: create_rust_string_from!(self.site_id),
+                input: create_rust_string_from!(self.input),
+                asr_tokens: if self.asr_tokens.is_null() {
+                    None
+                } else {
+                    Some(unsafe { &*self.asr_tokens }.as_rust()?)
+                },
+                asr_confidence: if self.asr_confidence >= 0.0 && self.asr_confidence <= 1.0 {
+                    Some(self.asr_confidence)
+                } else {
+                    None
+                },
+                intent: unsafe { &*self.intent }.as_rust()?,
+                slots: unsafe { &*self.slots }.as_rust()?,
+            }
+        )
     }
 }
+
 
 impl Drop for CIntentMessage {
     fn drop(&mut self) {
@@ -777,8 +797,10 @@ impl Drop for CDialogueConfigureMessage {
 
 #[cfg(test)]
 mod tests {
+    use std::ops::Range;
     use super::super::tests::round_trip_test;
     use super::*;
+
 
     #[test]
     fn round_trip_intent_not_recognized() {
@@ -984,5 +1006,60 @@ mod tests {
             site_id: None,
             intents: None,
         });
+    }
+
+    #[test]
+    fn round_trip_intent_message() {
+        let slot = hermes::NluSlot {
+            nlu_slot: snips_nlu_ontology::Slot {
+                raw_value: "Guadeloupe".to_string(),
+                value: snips_nlu_ontology::SlotValue::Custom("Guadeloupe".to_string().into()),
+                range: Range { start: (22), end: (32) },
+                entity: "entity".to_string(),
+                slot_name: "forecast_location".to_string(),
+                confidence_score: Some(0.8),
+            }
+        };
+
+        let asr_token_double_array = vec![
+            vec![
+                hermes::AsrToken {
+                    value: "hello".to_string(),
+                    confidence: 0.98,
+                    range_start: 1,
+                    range_end: 4,
+                    time: hermes::AsrDecodingDuration { start: 0.0, end: 5.0 },
+                },
+                hermes::AsrToken {
+                    value: "world".to_string(),
+                    confidence: 0.73,
+                    range_start: 5,
+                    range_end: 9,
+                    time: hermes::AsrDecodingDuration { start: 0.0, end: 5.0 },
+                },
+            ],
+            vec![],
+            vec![hermes::AsrToken {
+                value: "yop".to_string(),
+                confidence: 0.97,
+                range_start: 5,
+                range_end: 1,
+                time: hermes::AsrDecodingDuration { start: 1.0, end: 4.5 },
+            }],
+        ];
+
+        round_trip_test::<_, CIntentMessage>(hermes::IntentMessage {
+            session_id: "a session id".to_string(),
+            custom_data: Some("a custom datum".to_string()),
+            site_id: "a site id".to_string(),
+            input: "What's the weather in Guadeloupe ?".to_string(),
+            asr_tokens: Some(asr_token_double_array),
+            asr_confidence: Some(0.7),
+            intent: hermes::nlu::NluIntentClassifierResult {
+                intent_name: "a boring intent".to_string(),
+                confidence_score: 1.0,
+            },
+            slots: vec![slot],
+        })
     }
 }

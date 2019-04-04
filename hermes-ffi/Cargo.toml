@@ -23,3 +23,4 @@ env_logger = "0.6"
 
 [dev-dependencies]
 spectral = "0.6"
+snips-nlu-ontology = { git = "https://github.com/snipsco/snips-nlu-ontology", tag = "0.64.4" }
