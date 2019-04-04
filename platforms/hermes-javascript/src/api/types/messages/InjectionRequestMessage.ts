@@ -4,11 +4,11 @@ export interface InjectionRequestMessage {
     /** Id of the injection. */
     id: string
     /**
-     * The language to compute the pronunciations for.
+     * An extra language to compute the pronunciations for.
      * *Note: 'en' is the only options for now*
      * */
     crossLanguage?: string
-    /** Custom pronunciations. */
+    /** Custom pronunciations. Do not use if you don't know what this is about! */
     lexicon: {
         [key: string]: string[]
     }
