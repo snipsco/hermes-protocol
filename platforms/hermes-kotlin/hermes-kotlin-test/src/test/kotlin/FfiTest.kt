@@ -2,6 +2,8 @@ import ai.snips.hermes.AsrDecodingDuration
 import ai.snips.hermes.AsrToken
 import ai.snips.hermes.AsrTokenRange
 import ai.snips.hermes.ContinueSessionMessage
+import ai.snips.hermes.DialogueConfigureIntent
+import ai.snips.hermes.DialogueConfigureMessage
 import ai.snips.hermes.EndSessionMessage
 import ai.snips.hermes.InjectionKind.Add
 import ai.snips.hermes.InjectionOperation
@@ -256,5 +258,22 @@ class FfiTest {
         )
         assertThat(HermesTest().roundTripIntentJson(input2)).isEqualTo(input2)
 
+    }
+
+    @Test
+    fun roundTripDialogueConfigure() {
+        val input = DialogueConfigureMessage(siteId = null, intents = listOf())
+        assertThat(HermesTest().roundTripDialogueConfigure(input)).isEqualTo(input)
+        assertThat(HermesTest().roundTripDialogueConfigureJson(input)).isEqualTo(input)
+
+        val input2 = DialogueConfigureMessage(siteId = "some site id",
+                                              intents = listOf(DialogueConfigureIntent(intentId = "some intent",
+                                                                                       enable = true),
+                                                               DialogueConfigureIntent(intentId = "some intent",
+                                                                                       enable = null),
+                                                               DialogueConfigureIntent(intentId = "some intent",
+                                                                                       enable = false)))
+        assertThat(HermesTest().roundTripDialogueConfigure(input2)).isEqualTo(input2)
+        assertThat(HermesTest().roundTripDialogueConfigureJson(input2)).isEqualTo(input2)
     }
 }

@@ -227,3 +227,15 @@ data class TextCapturedMessage @ParcelConstructor constructor(
         @ParcelProperty("siteId") val siteId: String,
         @ParcelProperty("sessionId") val sessionId: String?
 )
+
+@Parcel(BEAN)
+data class DialogueConfigureMessage @ParcelConstructor constructor(
+    @ParcelProperty("siteId") val siteId: String?,
+    @ParcelProperty("intents") val intents: List<DialogueConfigureIntent>
+)
+
+@Parcel(BEAN)
+data class DialogueConfigureIntent @ParcelConstructor constructor(
+        @ParcelProperty("intentId") val intentId: String,
+        @ParcelProperty("enable") val enable: Boolean?
+)
