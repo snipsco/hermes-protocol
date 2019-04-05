@@ -4,6 +4,8 @@ import ai.snips.hermes.AsrDecodingDuration
 import ai.snips.hermes.AsrToken
 import ai.snips.hermes.AsrTokenRange
 import ai.snips.hermes.ContinueSessionMessage
+import ai.snips.hermes.DialogueConfigureIntent
+import ai.snips.hermes.DialogueConfigureMessage
 import ai.snips.hermes.EndSessionMessage
 import ai.snips.hermes.InjectionKind
 import ai.snips.hermes.InjectionKind.Add
@@ -39,6 +41,7 @@ import ai.snips.nlu.ontology.ffi.toPointer
 import com.sun.jna.Memory
 import com.sun.jna.Pointer
 import com.sun.jna.Structure
+import kotlin.Byte.Companion
 
 class CStringArray(p: Pointer?) : Structure(p), Structure.ByReference {
     companion object {
@@ -907,4 +910,103 @@ class CTextCapturedMessage(p: Pointer?) : Structure(p), Structure.ByReference {
             sessionId = session_id?.readString()
     )
 
+}
+
+class CDialogueConfigureIntent(p: Pointer?) : Structure(p), Structure.ByReference {
+    companion object {
+        @JvmStatic
+        fun fromDialogueConfigureIntent(dialogueConfigureIntent: DialogueConfigureIntent) = CDialogueConfigureIntent(null).apply {
+            intent_id = dialogueConfigureIntent.intentId.toPointer()
+            enable = when(dialogueConfigureIntent.enable) {
+                true -> 1
+                false -> 0
+                null -> -1
+            }
+        }
+    }
+
+    @JvmField
+    var intent_id: Pointer? = null
+
+    @JvmField
+    var enable: Byte = -1
+
+    // be careful this block must be below the field definition if you don't want the native values read by JNA
+    // overridden by the default ones
+    init {
+        read()
+    }
+
+    override fun getFieldOrder() = listOf("intent_id", "enable")
+
+    fun toDialogueConfigureIntent() = DialogueConfigureIntent(
+            intentId = intent_id.readString(),
+            enable = when(enable) {
+                0.toByte() -> false
+                1.toByte() -> true
+                else -> null
+            }
+    )
+}
+
+class CDialogueConfigureIntentArray(p: Pointer?) : Structure(p), Structure.ByReference {
+    companion object {
+        @JvmStatic
+        fun fromDialogueConfigureIntentList(list: List<DialogueConfigureIntent>) = CDialogueConfigureIntentArray(null).apply {
+            count = list.size
+            entries = if (count > 0)
+                Memory(Pointer.SIZE * list.size.toLong()).apply {
+                    list.forEachIndexed { i, e ->
+                        this.setPointer(i.toLong() * Pointer.SIZE, CDialogueConfigureIntent.fromDialogueConfigureIntent(e).apply { write() }.pointer)
+                    }
+                }
+            else null
+        }
+    }
+
+    @JvmField
+    var entries: Pointer? = null
+    @JvmField
+    var count: Int = -1
+
+    // be careful this block must be below the field definition if you don't want the native values read by JNA
+    // overridden by the default ones
+    init {
+        read()
+    }
+
+    override fun getFieldOrder() = listOf("entries", "count")
+
+    fun toDialogueConfigureIntentList(): List<DialogueConfigureIntent> = if (count > 0) {
+        entries!!.getPointerArray(0, count).map { CDialogueConfigureIntent(it).toDialogueConfigureIntent() }
+    } else listOf()
+}
+
+class CDialogueConfigureMessage(p: Pointer?) : Structure(p), Structure.ByReference {
+    companion object {
+        @JvmStatic
+        fun fromDialogueConfigureMessage(dialogueConfigureMessage: DialogueConfigureMessage) = CDialogueConfigureMessage(null).apply {
+            site_id = dialogueConfigureMessage.siteId?.toPointer()
+            intents = CDialogueConfigureIntentArray.fromDialogueConfigureIntentList(dialogueConfigureMessage.intents)
+        }
+    }
+
+    @JvmField
+    var site_id: Pointer? = null
+
+    @JvmField
+    var intents: CDialogueConfigureIntentArray? = null
+
+    // be careful this block must be below the field definition if you don't want the native values read by JNA
+    // overridden by the default ones
+    init {
+        read()
+    }
+
+    override fun getFieldOrder() = listOf("site_id", "intents")
+
+    fun toDialogueConfigureMessage() = DialogueConfigureMessage(
+            siteId = site_id?.readString(),
+            intents = intents?.toDialogueConfigureIntentList() ?: listOf()
+    )
 }
