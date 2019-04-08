@@ -2,6 +2,7 @@ package ai.snips.hermes.test
 
 import ai.snips.hermes.AsrToken
 import ai.snips.hermes.ContinueSessionMessage
+import ai.snips.hermes.DialogueConfigureMessage
 import ai.snips.hermes.EndSessionMessage
 import ai.snips.hermes.InjectionRequestMessage
 import ai.snips.hermes.IntentMessage
@@ -15,6 +16,7 @@ import ai.snips.hermes.ffi.CAsrToken
 import ai.snips.hermes.ffi.CAsrTokenArray
 import ai.snips.hermes.ffi.CAsrTokenDoubleArray
 import ai.snips.hermes.ffi.CContinueSessionMessage
+import ai.snips.hermes.ffi.CDialogueConfigureMessage
 import ai.snips.hermes.ffi.CEndSessionMessage
 import ai.snips.hermes.ffi.CInjectionRequestMessage
 import ai.snips.hermes.ffi.CIntentNotRecognizedMessage
@@ -117,6 +119,12 @@ class HermesTest {
                       { CTextCapturedMessage(it).toTextCapturedMessage() },
                       INSTANCE::hermes_drop_text_captured_message)
 
+    fun roundTripDialogueConfigure(input: DialogueConfigureMessage) =
+            roundTrip(input,
+                      CDialogueConfigureMessage.Companion::fromDialogueConfigureMessage,
+                      INSTANCE::hermes_ffi_test_round_trip_dialogue_configure,
+                      { CDialogueConfigureMessage(it).toDialogueConfigureMessage() },
+                      INSTANCE::hermes_drop_dialogue_configure_message)
 
     fun <T, U> roundTrip(input: T,
                          toCConverter: (T) -> U,
@@ -163,6 +171,9 @@ class HermesTest {
     fun roundTripTextCapturedJson(input: TextCapturedMessage) =
             roundTripJson(input, INSTANCE::hermes_ffi_test_round_trip_text_captured_json)
 
+    fun roundTripDialogueConfigureJson(input: DialogueConfigureMessage) =
+            roundTripJson(input, INSTANCE::hermes_ffi_test_round_trip_dialogue_configure_json)
+
     inline fun <reified T> roundTripJson(input: T,
                                          noinline roundTrip: (String, PointerByReference) -> Int) =
             roundTrip(input,
@@ -187,6 +198,7 @@ class HermesTest {
         fun hermes_ffi_test_round_trip_asr_token_array(input: CAsrTokenArray, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_asr_token_double_array(input: CAsrTokenDoubleArray, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_text_captured(input: CTextCapturedMessage, output: PointerByReference): Int
+        fun hermes_ffi_test_round_trip_dialogue_configure(input: CDialogueConfigureMessage, output: PointerByReference): Int
 
 
         fun hermes_ffi_test_round_trip_session_queued_json(input: String, output: PointerByReference): Int
@@ -199,6 +211,7 @@ class HermesTest {
         fun hermes_ffi_test_round_trip_end_session_json(input: String, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_injection_request_json(input: String, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_text_captured_json(input: String, output: PointerByReference): Int
+        fun hermes_ffi_test_round_trip_dialogue_configure_json(input: String, output: PointerByReference): Int
 
 
         fun hermes_ffi_test_get_last_error(error: PointerByReference): Int
@@ -215,5 +228,6 @@ class HermesTest {
         fun hermes_drop_intent_not_recognized_message(ptr: Pointer): Int
         fun hermes_drop_injection_request_message(ptr: Pointer): Int
         fun hermes_drop_text_captured_message(ptr: Pointer): Int
+        fun hermes_drop_dialogue_configure_message(ptr: Pointer): Int
     }
 }

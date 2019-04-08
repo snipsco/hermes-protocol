@@ -383,7 +383,7 @@ You can disable/enable intents with the following methods :
 
 ::
 
-    from hermes_python.ontology.dialogue.session import DialogueConfiguration
+    from hermes_python.ontology.dialogue import DialogueConfiguration
 
     dialogue_conf = DialogueConfiguration()                          \
                             .disable_intent("intent1")               \
