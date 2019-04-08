@@ -32,7 +32,6 @@
     "test:mqtt:json": "jest ./tests/mqtt/mqttJson.spec.ts",
     "test:mqtt:tls": "jest ./tests/mqtt/mqttTls.spec.ts",
     "test:roundtrip:json": "jest ./tests/roundtrips/roundtripJson.spec.ts",
-    "release": "standard-version",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 1 --commit-path=. -t=js/",
     "documentation": "typedoc --out docs --mode modules --external-modulemap  \".*(?:/src/api/types/|/src/)([\\w\\-_]+)/\" --excludeNotExported --excludePrivate --excludeProtected --excludeExternals --ignoreCompilerErrors src",
     "prepare": "npm run build && npm run changelog"
