@@ -1,7 +1,6 @@
 use std::ptr::null;
 use std::slice;
 
-use failure::bail;
 use failure::format_err;
 use failure::Fallible;
 use failure::ResultExt;
