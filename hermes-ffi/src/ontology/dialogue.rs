@@ -64,29 +64,26 @@ impl CReprOf<hermes::IntentMessage> for CIntentMessage {
 
 impl AsRust<hermes::IntentMessage> for CIntentMessage {
     fn as_rust(&self) -> Fallible<hermes::IntentMessage> {
-        Ok(
-            hermes::IntentMessage {
-                session_id: create_rust_string_from!(self.session_id),
-                custom_data: create_optional_rust_string_from!(self.custom_data),
-                site_id: create_rust_string_from!(self.site_id),
-                input: create_rust_string_from!(self.input),
-                asr_tokens: if self.asr_tokens.is_null() {
-                    None
-                } else {
-                    Some(unsafe { &*self.asr_tokens }.as_rust()?)
-                },
-                asr_confidence: if self.asr_confidence >= 0.0 && self.asr_confidence <= 1.0 {
-                    Some(self.asr_confidence)
-                } else {
-                    None
-                },
-                intent: unsafe { &*self.intent }.as_rust()?,
-                slots: unsafe { &*self.slots }.as_rust()?,
-            }
-        )
+        Ok(hermes::IntentMessage {
+            session_id: create_rust_string_from!(self.session_id),
+            custom_data: create_optional_rust_string_from!(self.custom_data),
+            site_id: create_rust_string_from!(self.site_id),
+            input: create_rust_string_from!(self.input),
+            asr_tokens: if self.asr_tokens.is_null() {
+                None
+            } else {
+                Some(unsafe { &*self.asr_tokens }.as_rust()?)
+            },
+            asr_confidence: if self.asr_confidence >= 0.0 && self.asr_confidence <= 1.0 {
+                Some(self.asr_confidence)
+            } else {
+                None
+            },
+            intent: unsafe { &*self.intent }.as_rust()?,
+            slots: unsafe { &*self.slots }.as_rust()?,
+        })
     }
 }
-
 
 impl Drop for CIntentMessage {
     fn drop(&mut self) {
@@ -797,10 +794,9 @@ impl Drop for CDialogueConfigureMessage {
 
 #[cfg(test)]
 mod tests {
-    use std::ops::Range;
     use super::super::tests::round_trip_test;
     use super::*;
-
+    use std::ops::Range;
 
     #[test]
     fn round_trip_intent_not_recognized() {
@@ -1018,7 +1014,7 @@ mod tests {
                 entity: "entity".to_string(),
                 slot_name: "forecast_location".to_string(),
                 confidence_score: Some(0.8),
-            }
+            },
         };
 
         let asr_token_double_array = vec![

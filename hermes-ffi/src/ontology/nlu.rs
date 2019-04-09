@@ -265,7 +265,7 @@ impl CReprOf<hermes::NluSlot> for CNluSlot {
 impl AsRust<hermes::NluSlot> for CNluSlot {
     fn as_rust(&self) -> Fallible<hermes::NluSlot> {
         Ok(hermes::NluSlot {
-            nlu_slot: unsafe {&*self.nlu_slot}.as_rust()?
+            nlu_slot: unsafe { &*self.nlu_slot }.as_rust()?,
         })
     }
 }
