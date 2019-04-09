@@ -6,6 +6,7 @@ from hermes_python.api.ffi import FFI
 from hermes_python.ontology import MqttOptions
 from hermes_python.ontology.dialogue import StartSessionMessage, SessionInitAction, SessionInitNotification, \
     ContinueSessionMessage, EndSessionMessage, DialogueConfigureMessage, DialogueConfigureIntent
+from hermes_python.ontology.soundfeedback import SiteMessage
 
 HOST = "localhost"
 DUMMY_INTENT_NAME = "INTENT"
@@ -359,3 +360,13 @@ def test_configure_dialogue(ffi_utils):
     ffi.dialogue.publish_configure(dialogue_configure_message)
 
     ffi_utils.hermes_dialogue_publish_configure.assert_called_once()
+
+
+@mock.patch("hermes_python.api.ffi.utils")
+def test_publish_(ffi_utils):
+
+    ffi = FFI(use_json_api=False)
+    site_message = SiteMessage("default")
+    ffi.sound_feedback.publish_toggle_on(site_message)
+
+    ffi_utils.hermes_sound_feedback_publish_toggle_on.assert_called_once()

@@ -32,31 +32,37 @@ def test_context_manager_enter_calls_ffi_api():
     h.ffi.release_connection.assert_called_once()
 
 
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_sound_feedback_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_dialogue_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
-def test_context_manager_enter(hermes_protocol_handler_new_mqtt, hermes_protocol_handler_dialogue_facade):
+def test_context_manager_enter(hermes_protocol_handler_new_mqtt, hermes_protocol_handler_dialogue_facade, hermes_protocol_handler_sound_feedback_facade):
     with Hermes(HOST) as h:
         pass
 
     hermes_protocol_handler_new_mqtt.assert_called_once()
     hermes_protocol_handler_dialogue_facade.assert_called_once()
+    hermes_protocol_handler_sound_feedback_facade.assert_called_once()
 
-
+@mock.patch("hermes_python.api.ffi.hermes_drop_sound_feedback_facade")
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_sound_feedback_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_dialogue_facade")
 @mock.patch("hermes_python.api.ffi.hermes_drop_dialogue_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
-def test_context_manager_exit(hermes_protocol_handler_new_mqtt, hermes_drop_dialogue_facade, hermes_protocol_handler_dialogue_facade):
+def test_context_manager_exit(hermes_protocol_handler_new_mqtt, hermes_drop_dialogue_facade, hermes_protocol_handler_dialogue_facade, hermes_protocol_handler_sound_feedback_facade, hermes_drop_sound_feedback_facade):
     with Hermes(HOST) as h:
         pass
     hermes_protocol_handler_new_mqtt.assert_called_once()
     hermes_protocol_handler_dialogue_facade.assert_called_once()
+    hermes_protocol_handler_sound_feedback_facade.assert_called_once()
     hermes_drop_dialogue_facade.assert_called_once()
+    hermes_drop_sound_feedback_facade.assert_called_once()
 
 
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_sound_feedback_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_dialogue_facade")
 @mock.patch("hermes_python.api.ffi.hermes_drop_dialogue_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
-def test_context_manager_catches_exceptions(hermes_protocol_handler_new_mqtt, mocked_hermes_drop_dialogue_facade, hermes_protocol_handler_dialogue_facade):
+def test_context_manager_catches_exceptions(hermes_protocol_handler_new_mqtt, mocked_hermes_drop_dialogue_facade, hermes_protocol_handler_dialogue_facade, hermes_protocol_handler_sound_feedback_facade):
     hermes_protocol_handler_dialogue_facade.side_effect = Exception("An exception occured!")
 
     with pytest.raises(Exception):

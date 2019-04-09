@@ -11,6 +11,7 @@ from .ontology import MqttOptions
 from .ontology.dialogue import ContinueSessionMessage, EndSessionMessage, StartSessionMessage, SessionInitNotification, \
     SessionInitAction, SessionStartedMessage, IntentMessage, SessionQueuedMessage, SessionEndedMessage, \
     DialogueConfiguration, IntentNotRecognizedMessage
+from .ontology.soundfeedback import SiteMessage
 from .api.ffi import FFI
 
 import threading
@@ -263,6 +264,16 @@ class Hermes(object):
         for conf in configure_dialogue_messages:
             self.ffi.dialogue.publish_configure(conf)
 
+        return self
+
+    def publish_enable_sound_feedback(self, site_message):
+        # type: (SiteMessage) -> Hermes
+        self.ffi.sound_feedback.publish_toggle_on(site_message)
+        return self
+
+    def publish_disable_sound_feedback(self, site_message):
+        # type: (SiteMessage) -> Hermes
+        self.ffi.sound_feedback.publish_toggle_off(site_message)
         return self
 
     def start(self):
