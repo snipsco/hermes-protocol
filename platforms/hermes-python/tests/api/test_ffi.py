@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 import mock
-import pytest
 
 from hermes_python.api.ffi import FFI
 from hermes_python.ontology import MqttOptions
@@ -11,13 +10,16 @@ from hermes_python.ontology.soundfeedback import SiteMessage
 HOST = "localhost"
 DUMMY_INTENT_NAME = "INTENT"
 
+
 def test_initialization():
     h = FFI()
     assert 0 == len(h.dialogue._c_callback_subscribe_intent)
 
+
 def test_initialization_use_json_api_by_default():
         h = FFI()
         assert h.use_json_api
+
 
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
 def test_establish_connection_calls_api_subsets(hermes_protocol_handler_new_mqtt):
@@ -26,42 +28,54 @@ def test_establish_connection_calls_api_subsets(hermes_protocol_handler_new_mqtt
 
     # Here, you have to mock every API subset of Hermes Protocol
     mocked_dialogue_ffi = mock.Mock()
+    mocked_sound_feedback_ffi = mock.Mock()
     ffi.dialogue = mocked_dialogue_ffi
+    ffi.sound_feedback = mocked_sound_feedback_ffi
 
     ffi.establish_connection(mqtt_opts)
 
     hermes_protocol_handler_new_mqtt.assert_called_once()
     ffi.dialogue.initialize_facade.assert_called_once()
+    ffi.sound_feedback.initialize_facade.assert_called_once()
 
-@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
-def test_release_connection_calls_api_subsets(hermes_protocol_handler_new_mqtt):
+
+def test_release_connection_calls_api_subsets():
     ffi = FFI()
-    mqtt_opts = MqttOptions()
 
     # Here, you have to mock every API subset of Hermes Protocol
     mocked_dialogue_ffi = mock.Mock()
+    mocked_sound_feedback_ffi = mock.Mock()
     ffi.dialogue = mocked_dialogue_ffi
+    ffi.sound_feedback = mocked_sound_feedback_ffi
 
     ffi.release_connection()
 
     ffi.dialogue.release_facade.assert_called_once()
+    ffi.sound_feedback.release_facade.assert_called_once()
 
+
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_sound_feedback_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_dialogue_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
-def test_establishing_successful_connection(hermes_protocol_handler_new_mqtt, hermes_protocol_handler_dialogue_facade):
+def test_establishing_successful_connection(hermes_protocol_handler_new_mqtt, hermes_protocol_handler_dialogue_facade,
+                                            hermes_protocol_handler_sound_feedback_facade):
     ffi = FFI()
     mqtt_opts = MqttOptions()
     ffi.establish_connection(mqtt_opts)
 
     hermes_protocol_handler_new_mqtt.assert_called_once()
     hermes_protocol_handler_dialogue_facade.assert_called_once()
+    hermes_protocol_handler_sound_feedback_facade.assert_called_once()
 
 
+@mock.patch("hermes_python.api.ffi.hermes_drop_sound_feedback_facade")
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_sound_feedback_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_dialogue_facade")
 @mock.patch("hermes_python.api.ffi.hermes_drop_dialogue_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
 def test_release_connection_sucessful(hermes_protocol_handler_new_mqtt, hermes_drop_dialogue_facade,
-                                      hermes_protocol_handler_dialogue_facade):
+                                      hermes_protocol_handler_dialogue_facade,
+                                      hermes_protocol_handler_sound_feedback_facade, hermes_drop_sound_feedback_facade):
     ffi = FFI()
     mqtt_opts = MqttOptions()
 
@@ -70,14 +84,18 @@ def test_release_connection_sucessful(hermes_protocol_handler_new_mqtt, hermes_d
 
     hermes_protocol_handler_new_mqtt.assert_called_once()
     hermes_protocol_handler_dialogue_facade.assert_called_once()
+    hermes_protocol_handler_sound_feedback_facade.assert_called_once()
     hermes_drop_dialogue_facade.assert_called_once()
+    hermes_drop_sound_feedback_facade.assert_called_once()
 
 
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_sound_feedback_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_dialogue_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
 @mock.patch("hermes_python.api.ffi.utils")
 def test_subscribe_intent_correctly_registers_callback(ffi_utils, hermes_protocol_handler_new_mqtt,
-                                                       hermes_protocol_handler_dialogue_facade):
+                                                       hermes_protocol_handler_dialogue_facade,
+                                                       hermes_protocol_handler_sound_feedback_facade):
     def user_callback(hermes, intentMessage):
         pass
 
@@ -91,13 +109,17 @@ def test_subscribe_intent_correctly_registers_callback(ffi_utils, hermes_protoco
     assert len(ffi.dialogue._c_callback_subscribe_intent) == 1
     hermes_protocol_handler_new_mqtt.assert_called_once()  # connection is established
     hermes_protocol_handler_dialogue_facade.assert_called_once()  # connection is established
+    hermes_protocol_handler_sound_feedback_facade.assert_called_once() # connection is established
     ffi_utils.hermes_dialogue_subscribe_intent_json.assert_called_once()
 
 
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_sound_feedback_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_dialogue_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
 @mock.patch("hermes_python.api.ffi.utils")
-def test_subscribe_intent_correctly_registers_two_callbacks_for_same_intent(ffi_utils, hermes_protocol_handler_new_mqtt, hermes_protocol_handler_dialogue_facade):
+def test_subscribe_intent_correctly_registers_two_callbacks_for_same_intent(ffi_utils, hermes_protocol_handler_new_mqtt,
+                                                                            hermes_protocol_handler_dialogue_facade,
+                                                                            hermes_protocol_handler_sound_feedback_facade):
     def user_callback_1(hermes, intentMessage):
         pass
 
@@ -116,6 +138,7 @@ def test_subscribe_intent_correctly_registers_two_callbacks_for_same_intent(ffi_
 
     hermes_protocol_handler_new_mqtt.assert_called_once()  # connection is established
     hermes_protocol_handler_dialogue_facade.assert_called_once()  # connection is established
+    hermes_protocol_handler_sound_feedback_facade.assert_called_once()  # connection is established
     assert ffi_utils.hermes_dialogue_subscribe_intent_json.call_count == 2
 
 
@@ -132,10 +155,13 @@ def test_successful_registration_c_handler_callback(utils):
     utils.test_function.assert_called_once()
 
 
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_sound_feedback_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_dialogue_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
 @mock.patch("hermes_python.api.ffi.utils")
-def test_subscribe_intents_correctly_registers_callback(ffi_utils, hermes_protocol_handler_new_mqtt, hermes_protocol_handler_dialogue_facade):
+def test_subscribe_intents_correctly_registers_callback(ffi_utils, hermes_protocol_handler_new_mqtt,
+                                                        hermes_protocol_handler_dialogue_facade,
+                                                        hermes_protocol_handler_sound_feedback_facade):
     def user_callback(hermes, intentMessage):
         pass
 
@@ -150,13 +176,17 @@ def test_subscribe_intents_correctly_registers_callback(ffi_utils, hermes_protoc
 
     hermes_protocol_handler_new_mqtt.assert_called_once()  # connection is established
     hermes_protocol_handler_dialogue_facade.assert_called_once()  # connection is established
+    hermes_protocol_handler_sound_feedback_facade.assert_called_once()  # connection is established
     ffi_utils.hermes_dialogue_subscribe_intents_json.assert_called_once()
 
 
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_sound_feedback_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_dialogue_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
 @mock.patch("hermes_python.api.ffi.utils")
-def test_subscribe_session_started_correctly_registers_callback(ffi_utils, hermes_protocol_handler_new_mqtt, hermes_protocol_handler_dialogue_facade):
+def test_subscribe_session_started_correctly_registers_callback(ffi_utils, hermes_protocol_handler_new_mqtt,
+                                                                hermes_protocol_handler_dialogue_facade,
+                                                                hermes_protocol_handler_sound_feedback_facade):
     def user_callback(hermes, intentMessage):
         pass
 
@@ -171,13 +201,17 @@ def test_subscribe_session_started_correctly_registers_callback(ffi_utils, herme
 
     hermes_protocol_handler_new_mqtt.assert_called_once()  # connection is established
     hermes_protocol_handler_dialogue_facade.assert_called_once()  # connection is established
+    hermes_protocol_handler_sound_feedback_facade.assert_called_once()  # connection is established
     ffi_utils.hermes_dialogue_subscribe_session_started_json.assert_called_once()
 
 
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_sound_feedback_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_dialogue_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
 @mock.patch("hermes_python.api.ffi.utils")
-def test_subscribe_session_queued_correctly_registers_callback(ffi_utils, hermes_protocol_handler_new_mqtt, hermes_protocol_handler_dialogue_facade):
+def test_subscribe_session_queued_correctly_registers_callback(ffi_utils, hermes_protocol_handler_new_mqtt,
+                                                               hermes_protocol_handler_dialogue_facade,
+                                                               hermes_protocol_handler_sound_feedback_facade):
     def user_callback(hermes, intentMessage):
         pass
 
@@ -192,13 +226,17 @@ def test_subscribe_session_queued_correctly_registers_callback(ffi_utils, hermes
 
     hermes_protocol_handler_new_mqtt.assert_called_once()  # connection is established
     hermes_protocol_handler_dialogue_facade.assert_called_once()  # connection is established
+    hermes_protocol_handler_sound_feedback_facade.assert_called_once()  # connection is established
     ffi_utils.hermes_dialogue_subscribe_session_queued_json.assert_called_once()
 
 
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_sound_feedback_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_dialogue_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
 @mock.patch("hermes_python.api.ffi.utils")
-def test_subscribe_session_ended_correctly_registers_callback(ffi_utils, hermes_protocol_handler_new_mqtt, hermes_protocol_handler_dialogue_facade):
+def test_subscribe_session_ended_correctly_registers_callback(ffi_utils, hermes_protocol_handler_new_mqtt,
+                                                              hermes_protocol_handler_dialogue_facade,
+                                                              hermes_protocol_handler_sound_feedback_facade):
     def user_callback(hermes, intentMessage):
         pass
 
@@ -213,12 +251,17 @@ def test_subscribe_session_ended_correctly_registers_callback(ffi_utils, hermes_
 
     hermes_protocol_handler_new_mqtt.assert_called_once()  # connection is established
     hermes_protocol_handler_dialogue_facade.assert_called_once()  # connection is established
+    hermes_protocol_handler_sound_feedback_facade.assert_called_once()  # connection is established
     ffi_utils.hermes_dialogue_subscribe_session_ended_json.assert_called_once()
 
+
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_sound_feedback_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_dialogue_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
 @mock.patch("hermes_python.api.ffi.utils")
-def test_subscribe_intent_not_recognized_correctly_registers_callback(ffi_utils, hermes_protocol_handler_new_mqtt, hermes_protocol_handler_dialogue_facade):
+def test_subscribe_intent_not_recognized_correctly_registers_callback(ffi_utils, hermes_protocol_handler_new_mqtt,
+                                                                      hermes_protocol_handler_dialogue_facade,
+                                                                      hermes_protocol_handler_sound_feedback_facade):
     def user_callback(hermes, intentMessage):
         pass
 
@@ -234,12 +277,17 @@ def test_subscribe_intent_not_recognized_correctly_registers_callback(ffi_utils,
 
     hermes_protocol_handler_new_mqtt.assert_called_once()  # connection is established
     hermes_protocol_handler_dialogue_facade.assert_called_once()  # connection is established
+    hermes_protocol_handler_sound_feedback_facade.assert_called_once()  # connection is established
     ffi_utils.hermes_dialogue_subscribe_intent_not_recognized_json.assert_called_once()
 
+
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_sound_feedback_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_dialogue_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
 @mock.patch("hermes_python.api.ffi.utils")
-def test_publish_start_session_with_action_success(ffi_utils, hermes_protocol_handler_new_mqtt, hermes_protocol_handler_dialogue_facade):
+def test_publish_start_session_with_action_success(ffi_utils, hermes_protocol_handler_new_mqtt,
+                                                   hermes_protocol_handler_dialogue_facade,
+                                                   hermes_protocol_handler_sound_feedback_facade):
     ffi = FFI(use_json_api=False)
     mqtt_opts = MqttOptions()
     ffi.establish_connection(mqtt_opts)
@@ -251,10 +299,13 @@ def test_publish_start_session_with_action_success(ffi_utils, hermes_protocol_ha
     ffi_utils.hermes_dialogue_publish_start_session.assert_called_once()
 
 
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_sound_feedback_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_dialogue_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
 @mock.patch("hermes_python.api.ffi.utils")
-def test_publish_start_session_with_action_success_json(ffi_utils, hermes_protocol_handler_new_mqtt, hermes_protocol_handler_dialogue_facade):
+def test_publish_start_session_with_action_success_json(ffi_utils, hermes_protocol_handler_new_mqtt,
+                                                        hermes_protocol_handler_dialogue_facade,
+                                                        hermes_protocol_handler_sound_feedback_facade):
     ffi = FFI()
     mqtt_opts = MqttOptions()
     ffi.establish_connection(mqtt_opts)
@@ -264,10 +315,13 @@ def test_publish_start_session_with_action_success_json(ffi_utils, hermes_protoc
     ffi_utils.hermes_dialogue_publish_start_session_json.assert_called_once()
 
 
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_sound_feedback_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_dialogue_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
 @mock.patch("hermes_python.api.ffi.utils")
-def test_publish_start_session_with_notification_success(ffi_utils, hermes_protocol_handler_new_mqtt, hermes_protocol_handler_dialogue_facade):
+def test_publish_start_session_with_notification_success(ffi_utils, hermes_protocol_handler_new_mqtt,
+                                                         hermes_protocol_handler_dialogue_facade,
+                                                         hermes_protocol_handler_sound_feedback_facade):
     ffi = FFI(use_json_api=False)
     mqtt_opts = MqttOptions()
     ffi.establish_connection(mqtt_opts)
@@ -279,10 +333,11 @@ def test_publish_start_session_with_notification_success(ffi_utils, hermes_proto
     ffi_utils.hermes_dialogue_publish_start_session.assert_called_once()
 
 
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_sound_feedback_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_dialogue_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
 @mock.patch("hermes_python.api.ffi.utils")
-def test_publish_start_session_with_notification_success_json(ffi_utils, hermes_protocol_handler_new_mqtt, hermes_protocol_handler_dialogue_facade):
+def test_publish_start_session_with_notification_success_json(ffi_utils):
     ffi = FFI()
     mqtt_opts = MqttOptions()
     ffi.establish_connection(mqtt_opts)
@@ -292,10 +347,13 @@ def test_publish_start_session_with_notification_success_json(ffi_utils, hermes_
     ffi_utils.hermes_dialogue_publish_start_session_json.assert_called_once()
 
 
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_sound_feedback_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_dialogue_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
 @mock.patch("hermes_python.api.ffi.utils")
-def test_publish_continue_session_success(ffi_utils, hermes_protocol_handler_new_mqtt, hermes_protocol_handler_dialogue_facade):
+def test_publish_continue_session_success(ffi_utils, hermes_protocol_handler_new_mqtt,
+                                          hermes_protocol_handler_dialogue_facade,
+                                          hermes_protocol_handler_sound_feedback_facade):
     ffi = FFI(use_json_api=False)
     mqtt_opts = MqttOptions()
     ffi.establish_connection(mqtt_opts)
@@ -309,10 +367,14 @@ def test_publish_continue_session_success(ffi_utils, hermes_protocol_handler_new
     ffi.dialogue.publish_continue_session(continue_session_message)
     ffi_utils.hermes_dialogue_publish_continue_session.assert_called_once()
 
+
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_sound_feedback_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_dialogue_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
 @mock.patch("hermes_python.api.ffi.utils")
-def test_publish_continue_session_success_json(ffi_utils, hermes_protocol_handler_new_mqtt, hermes_protocol_handler_dialogue_facade):
+def test_publish_continue_session_success_json(ffi_utils, hermes_protocol_handler_new_mqtt,
+                                               hermes_protocol_handler_dialogue_facade,
+                                               hermes_protocol_handler_sound_feedback_facade):
     ffi = FFI()
     mqtt_opts = MqttOptions()
     ffi.establish_connection(mqtt_opts)
@@ -323,10 +385,13 @@ def test_publish_continue_session_success_json(ffi_utils, hermes_protocol_handle
     ffi_utils.hermes_dialogue_publish_continue_session_json.assert_called_once()
 
 
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_sound_feedback_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_dialogue_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
 @mock.patch("hermes_python.api.ffi.utils")
-def test_publish_end_session_success(ffi_utils, hermes_protocol_handler_new_mqtt, hermes_protocol_handler_dialogue_facade):
+def test_publish_end_session_success(ffi_utils, hermes_protocol_handler_new_mqtt,
+                                     hermes_protocol_handler_dialogue_facade,
+                                     hermes_protocol_handler_sound_feedback_facade):
     ffi = FFI(use_json_api=False)
     mqtt_opts = MqttOptions()
     ffi.establish_connection(mqtt_opts)
@@ -337,10 +402,13 @@ def test_publish_end_session_success(ffi_utils, hermes_protocol_handler_new_mqtt
     ffi_utils.hermes_dialogue_publish_end_session.assert_called_once()
 
 
+@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_sound_feedback_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_dialogue_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
 @mock.patch("hermes_python.api.ffi.utils")
-def test_publish_end_session_success_json(ffi_utils, hermes_protocol_handler_new_mqtt, hermes_protocol_handler_dialogue_facade):
+def test_publish_end_session_success_json(ffi_utils, hermes_protocol_handler_new_mqtt,
+                                          hermes_protocol_handler_dialogue_facade,
+                                          hermes_protocol_handler_sound_feedback_facade):
     ffi = FFI()
     mqtt_opts = MqttOptions()
     ffi.establish_connection(mqtt_opts)
