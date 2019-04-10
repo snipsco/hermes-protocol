@@ -15,6 +15,9 @@ import {
     ContinueSessionMessage,
 } from '../types/messages'
 
+/**
+ * Dialog flow session manager.
+ */
 export default class DialogFlow {
 
     private continuations = new Map()
@@ -24,6 +27,12 @@ export default class DialogFlow {
     private ended: boolean = false
     private slotFiller: string | null = null
 
+    /**
+     * @internal **For internal use only**
+     * @param dialog - Dialog instance.
+     * @param sessionId - The session id to manage.
+     * @param done - A callback to perform when the session ends.
+     */
     constructor(private dialog: Dialog, public sessionId: string | null, done: () => void) {
         // Sets up a subscriber to clean up in case the session is ended programatically.
         const onSessionEnded = (msg: SessionEndedMessage | undefined) => {
@@ -122,7 +131,15 @@ export default class DialogFlow {
         }
     }
 
-    // Starts a dialog flow.
+    /**
+     * @internal **For internal use only.**
+     *
+     * Starts a dialog flow.
+     *
+     * @param action - Action to perform on flow creation.
+     * @param message - The message received on flow creation.
+     * @param options - Internal options.
+     */
     start(action: FlowIntentAction | FlowSessionAction, message: IntentMessage | SessionStartedMessage, { sessionStart = false } = {}) {
         const flow : FlowContinuation = {
             continue: this.continue.bind(this),
@@ -134,18 +151,18 @@ export default class DialogFlow {
     }
 
     // Registers an intent filter and continue the current dialog session.
-    continue(intentName: string, action: FlowIntentAction, continueOptions : { slotFiller: string | null } = { slotFiller: null }) {
+    private continue(intentName: string, action: FlowIntentAction, continueOptions : { slotFiller: string | null } = { slotFiller: null }) {
         this.slotFiller = continueOptions.slotFiller
         this.continuations.set(intentName, action)
     }
 
     // Registers a listener that will be called if no intents have been recognized.
-    notRecognized(action: FlowNotRecognizedAction) {
+    private notRecognized(action: FlowNotRecognizedAction) {
         this.notRecognizedAction = action
     }
 
     // Terminates the dialog session.
-    end() {
+    private end() {
         this.ended = true
     }
 }

@@ -1,6 +1,6 @@
 {
   "name": "hermes-javascript",
-  "version": "0.3.6",
+  "version": "0.3.7",
   "hermes-mqtt-version": "0.64.3",
   "description": "Hermes javascript bindings",
   "keywords": [
@@ -18,7 +18,7 @@
   },
   "main": "dist/index.js",
   "scripts": {
-    "start": "npm run lint && npm run clean && npm run build && npm run test",
+    "start": "npm run lint && npm run clean && npm run build && npm run test && npm run documentation",
     "lint": "eslint --ext .js,.ts src",
     "lint:fix": "eslint --ext .js,.ts --fix src",
     "build": "npm run build:sources && npm run build:declarations",
@@ -28,11 +28,13 @@
     "clean": "rimraf dist",
     "postinstall": "node scripts/postinstall.js",
     "test": "npm run test:mqtt",
-    "test:mqtt": "npm run test:mqtt:json && npm run test:mqtt:tls",
+    "test:mqtt": "npm run test:roundtrip:json && npm run test:mqtt:json && npm run test:mqtt:tls",
     "test:mqtt:json": "jest ./tests/mqtt/mqttJson.spec.ts",
     "test:mqtt:tls": "jest ./tests/mqtt/mqttTls.spec.ts",
-    "release": "standard-version",
-    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 1 --commit-path=. -t=js/"
+    "test:roundtrip:json": "jest ./tests/roundtrips/roundtripJson.spec.ts",
+    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 1 --commit-path=. -t=js/",
+    "documentation": "typedoc --out docs --mode modules --external-modulemap  \".*(?:/src/api/types/|/src/)([\\w\\-_]+)/\" --excludeNotExported --excludePrivate --excludeProtected --excludeExternals --ignoreCompilerErrors src",
+    "prepare": "npm run build && npm run changelog"
   },
   "engines": {
     "node": ">=10"
@@ -71,6 +73,9 @@
     "mqtt": "^2.18.8",
     "rimraf": "^2.6.3",
     "ts-jest": "^24.0.0",
+    "typedoc": "^0.14.2",
+    "typedoc-plugin-external-module-map": "^1.0.0",
+    "typedoc-plugin-external-module-name": "^2.0.0",
     "typescript": "^3.3.3333"
   }
 }

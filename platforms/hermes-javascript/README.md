@@ -666,15 +666,11 @@ Requests custom payload to be injected.
 const { Injection } = require('hermes-javascript')
 
 injection.publish('injection_request', {
+    // Id of the injection request, used to identify the injection when retrieving its status.
     id: /* string */,
+    // An extra language to compute the pronunciations for.
+    // Note: 'en' is the only options for now.
     crossLanguage: /* string */,
-    // An object having string keys mapped with an array of string entries
-    lexicon: {
-        films : [
-            'The Wolf of Wall Street',
-            'The Lord of the Rings'
-        ]
-    },
     // An array of operations objects
     operations: [
         // Each operation is a tuple (an array containing two elements)
@@ -690,7 +686,10 @@ injection.publish('injection_request', {
                 ]
             }
         ]
-    ]
+    ],
+    // Custom pronunciations. Do not use if you don't know what this is about!
+    // An object having string keys mapped with an array of string entries
+    lexicon: {}
 })
 ```
 
@@ -758,8 +757,7 @@ const wavBuffer = // A Buffer object containing a wav file.
 
 tts.publish('register_sound', {
     soundId: /* the ID that is going to be used when telling the TTS to play the file */,
-    wavSound: wavBuffer.toString('base64'),
-    wavSoundLen: wavBuffer.length
+    wavSound: wavBuffer.toString('base64')
 })
 ```
 

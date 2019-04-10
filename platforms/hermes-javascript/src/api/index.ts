@@ -18,23 +18,18 @@ export * from './types'
 /**
  * Hermes javascript is an high level API that allows you to
  * subscribe and send Snips messages using the Hermes protocol.
+ *
+ * **Important: do not instanciate this class more than once!**
  */
 export class Hermes {
 
     /**
      * Create a new Hermes instance that connects to the underlying event bus.
-     * @param {*} options The Hermes options object. *(default: {})*
-     * @param {*} options.address The bus address *(default localhost:1883)*
-     * @param {*} options.logs Enables or Disables stdout logs *(default false)*
-     * @param {*} options.libraryPath A custom path for the dynamic Hermes ffi library
-     * @param {*} options.username Username used when connecting to the broker.
-     * @param {*} options.password Password used when connecting to the broker.
-     * @param {*} options.tls_hostname Hostname to use for the TLS configuration. If set, enables TLS.
-     * @param {*} options.tls_ca_file CA files to use if TLS is enabled.
-     * @param {*} options.tls_ca_path CA paths to use if TLS is enabled.
-     * @param {*} options.tls_client_key Client key to use if TLS is enabled.
-     * @param {*} options.tls_client_cert Client cert to use if TLS is enabled.
-     * @param {*} options.tls_disable_root_store Boolean indicating if the root store should be disabled if TLS is enabled.
+     *
+     * **Important: Each call to this function will open the hermes shared library
+     * and bind hermes-javascript to it. It is an expensive operation.**
+     *
+     * @param options - Options used to instanciate a new Hermes object.
      */
     constructor(options: HermesOptions = {}) {
 
@@ -78,24 +73,32 @@ export class Hermes {
 
     /**
      * Return a Dialog instance used to interact with the dialog API.
+     *
+     * @returns A Dialog instance, reused from a previous call if possible.
      */
     dialog() {
         return this._getOrCreateSubset<Dialog>('dialog', Dialog)
     }
     /**
      * Return an Injection instance used to interact with the vocabulary injection API.
+     *
+     * @returns An Injection instance, reused from a previous call if possible.
      */
     injection() {
         return this._getOrCreateSubset<Injection>('injection', Injection)
     }
     /**
      * Return a Feedback object instance used to interact with the audio feedback API.
+     *
+     * @returns An Feedback instance, reused from a previous call if possible.
      */
     feedback() {
         return this._getOrCreateSubset<Feedback>('feedback', Feedback)
     }
     /**
      * Return a Tts object instance used to interact with the text to speech API.
+     *
+     * @returns An Tts instance, reused from a previous call if possible.
      */
     tts() {
         return this._getOrCreateSubset<Tts>('tts', Tts)
@@ -104,9 +107,11 @@ export class Hermes {
     /**
      * @experimental
      *
-     * Warning: Experimental, use at your own risk!
+     * **Warning: Experimental, use at your own risk!**
      *
      * Returns an Audio object instance used to interact with the audio playback API.
+     *
+     * @returns An Audio instance, reused from a previous call if possible.
      */
     audio() {
         return this._getOrCreateSubset<Audio>('audio', Audio)

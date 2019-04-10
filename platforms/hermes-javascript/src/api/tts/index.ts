@@ -3,6 +3,9 @@ import {
     FFIFunctionCall, HermesOptions, TtsTypes
 } from '../types'
 
+/**
+ * The Tts API subset.
+ */
 export default class Tts extends ApiSubset {
 
     constructor(protocolHandler: Buffer, call: FFIFunctionCall, options: HermesOptions) {

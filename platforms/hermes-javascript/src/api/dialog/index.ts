@@ -12,6 +12,9 @@ import {
 } from '../types'
 import * as enums from '../types/enums'
 
+/**
+ * The Dialog API subset.
+ */
 export default class Dialog extends ApiSubset {
 
     constructor(protocolHandler: Buffer, call: FFIFunctionCall, options: HermesOptions) {
@@ -65,17 +68,19 @@ export default class Dialog extends ApiSubset {
     }
 
     /**
-     * Sets up a dialog flow.
-     * @param {*} intent Starting intent name.
-     * @param {*} action Action to perform when the starting intent is triggered.
+     * Sets a dialog flow up.
+     *
+     * @param intent - Starting intent name.
+     * @param action - Action to perform when the starting intent is triggered.
      */
     flow(intent: string, action: FlowIntentAction) {
         return this.flows([{ intent, action }])
     }
 
     /**
-     * Sets up a dialog flow with multiple starting intents.
-     * @param {*} intents An array of { intent, action } objects.
+     * Sets a dialog flow up with multiple starting intents.
+     *
+     * @param intents - An array of { intent, action } objects.
      */
     flows(intents: { intent: string, action: FlowIntentAction }[]) {
         intents.forEach(({ intent, action }) => {
@@ -117,6 +122,9 @@ export default class Dialog extends ApiSubset {
         this.on('session_started', listener)
     }
 
+    /**
+     * Dialog enumerations.
+     */
     static enums = {
         grain: enums.grain,
         precision: enums.precision,

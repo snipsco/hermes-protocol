@@ -1,3 +1,12 @@
+## [0.3.7](https://github.com/snipsco/hermes-protocol/compare/js/0.3.6...0.3.7) (2019-03-27)
+
+
+### Bug Fixes
+
+* **js:** missing PercentageSlotValue type definition ([b428d5f](https://github.com/snipsco/hermes-protocol/commit/b428d5f))
+
+
+
 ## [0.3.6](https://github.com/snipsco/hermes-protocol/compare/js/0.3.5...0.3.6) (2019-03-18)
 
 

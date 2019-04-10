@@ -10,8 +10,8 @@ class Casteable {
     /**
      * Create a new Casteable class from either a Buffer containing a C structure or a plain old javascript object.
      *
-     * @param {*} arg Object or Buffer
-     * @param {*} customKeyCasting Keys that need a custom method when casting from a Buffer.
+     * @param arg - Object or Buffer
+     * @param customKeyCasting - Keys that need a custom method when casting from a Buffer.
      */
     constructor(arg = {}, customKeyCasting) {
         // 'type' field: C type to cast the Casteable into
@@ -35,8 +35,8 @@ class Casteable {
     /**
      * Forge a C structure from this Casteable.
      *
-     * @param {*} type C structure type
-     * @param {*} specialFields Fields that need a custom method when casting.
+     * @param type - C structure type
+     * @param specialFields - Fields that need a custom method when casting.
      */
     forge(type, specialFields = {}) {
         if(!type) {

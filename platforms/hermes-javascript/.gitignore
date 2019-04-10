@@ -6,3 +6,4 @@ payloads
 /crash.log
 /experiments.js
 libhermes_*.dylib
+/docs

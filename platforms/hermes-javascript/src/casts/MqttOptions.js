@@ -3,7 +3,7 @@ const Casteable = require('./Casteable')
 const StringArray = require('./StringArray')
 const { CMqttOptions } = require('../ffi/typedefs')
 
-class IntentMessage extends Casteable {
+class MqttOptions extends Casteable {
     constructor(args) {
         super(args)
         this.type = CMqttOptions
@@ -17,4 +17,4 @@ class IntentMessage extends Casteable {
     }
 }
 
-module.exports = IntentMessage
+module.exports = MqttOptions
