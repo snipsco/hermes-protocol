@@ -134,6 +134,10 @@ impl<T: Send + Sync + Debug> Drop for InProcessComponent<T> {
 impl<T: Send + Sync + Debug> InProcessComponent<T> {
     fn publish<M: ripb::Message + Debug + 'static>(&self, message: M) -> Fallible<()> {
         debug!("Publishing {:?}/{:#?}", self.component, message);
+        self.publish_quiet(message)
+    }
+
+    fn publish_quiet<M: ripb::Message + Debug + 'static>(&self, message: M) -> Fallible<()> {
         let bus = self.bus.lock().map_err(PoisonLock::from)?;
         bus.publish(message);
         Ok(())
@@ -763,7 +767,7 @@ impl AudioServerBackendFacade for InProcessComponent<AudioServer> {
     }
 
     fn publish_audio_frame(&self, frame: AudioFrameMessage) -> Fallible<()> {
-        self.publish(AudioServerAudioFrame { frame })
+        self.publish_quiet(AudioServerAudioFrame { frame })
     }
 
     fn subscribe_replay_request(&self, site_id: String, handler: Callback<ReplayRequestMessage>) -> Fallible<()> {
