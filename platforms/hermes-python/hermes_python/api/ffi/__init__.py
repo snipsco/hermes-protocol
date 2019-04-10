@@ -4,7 +4,7 @@ from ...ffi.utils import hermes_protocol_handler_new_mqtt_with_options
 from ...ffi import utils, lib
 
 from .dialogue import DialogueFFI
-from .sound_feedback import SoundFeedBackFFI
+from .feedback import SoundFeedBackFFI
 from .injection import InjectionFFI
 
 

@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 from typing import Optional, Text
-from hermes_python.ffi.ontology.soundfeedback import CSiteMessage
+from hermes_python.ffi.ontology.feedback import CSiteMessage
 
 
 class SiteMessage(object):

@@ -11,7 +11,7 @@ from .ontology import MqttOptions
 from .ontology.dialogue import ContinueSessionMessage, EndSessionMessage, StartSessionMessage, SessionInitNotification, \
     SessionInitAction, SessionStartedMessage, IntentMessage, SessionQueuedMessage, SessionEndedMessage, \
     DialogueConfiguration, IntentNotRecognizedMessage
-from .ontology.soundfeedback import SiteMessage
+from .ontology.feedback import SiteMessage
 from .api.ffi import FFI
 
 import threading

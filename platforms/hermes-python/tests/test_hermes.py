@@ -32,7 +32,7 @@ def test_context_manager_enter_calls_ffi_api():
     h.ffi.release_connection.assert_called_once()
 
 
-@mock.patch("hermes_python.api.ffi.sound_feedback.hermes_protocol_handler_sound_feedback_facade")
+@mock.patch("hermes_python.api.ffi.feedback.hermes_protocol_handler_sound_feedback_facade")
 @mock.patch("hermes_python.api.ffi.dialogue.hermes_protocol_handler_dialogue_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
 def test_context_manager_enter(hermes_protocol_handler_new_mqtt, hermes_protocol_handler_dialogue_facade, hermes_protocol_handler_sound_feedback_facade):
@@ -44,8 +44,8 @@ def test_context_manager_enter(hermes_protocol_handler_new_mqtt, hermes_protocol
     hermes_protocol_handler_sound_feedback_facade.assert_called_once()
 
 
-@mock.patch("hermes_python.api.ffi.sound_feedback.hermes_drop_sound_feedback_facade")
-@mock.patch("hermes_python.api.ffi.sound_feedback.hermes_protocol_handler_sound_feedback_facade")
+@mock.patch("hermes_python.api.ffi.feedback.hermes_drop_sound_feedback_facade")
+@mock.patch("hermes_python.api.ffi.feedback.hermes_protocol_handler_sound_feedback_facade")
 @mock.patch("hermes_python.api.ffi.dialogue.hermes_protocol_handler_dialogue_facade")
 @mock.patch("hermes_python.api.ffi.dialogue.hermes_drop_dialogue_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
@@ -59,7 +59,7 @@ def test_context_manager_exit(hermes_protocol_handler_new_mqtt, hermes_drop_dial
     hermes_drop_sound_feedback_facade.assert_called_once()
 
 
-@mock.patch("hermes_python.api.ffi.sound_feedback.hermes_protocol_handler_sound_feedback_facade")
+@mock.patch("hermes_python.api.ffi.feedback.hermes_protocol_handler_sound_feedback_facade")
 @mock.patch("hermes_python.api.ffi.dialogue.hermes_protocol_handler_dialogue_facade")
 @mock.patch("hermes_python.api.ffi.dialogue.hermes_drop_dialogue_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")

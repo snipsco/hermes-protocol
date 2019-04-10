@@ -1,6 +1,6 @@
 import mock
-from hermes_python.api.ffi import FFI
-from hermes_python.ontology.soundfeedback import SiteMessage
+from hermes_python.api.ffi.feedback import SoundFeedBackFFI
+from hermes_python.ontology.feedback import SiteMessage
 
 
 @mock.patch("hermes_python.api.ffi.sound_feedback.utils")
