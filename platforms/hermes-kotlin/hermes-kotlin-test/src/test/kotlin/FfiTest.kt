@@ -228,6 +228,7 @@ class FfiTest {
 
         )
 
+        assertThat(HermesTest().roundTripIntent(input)).isEqualTo(input)
         assertThat(HermesTest().roundTripIntentJson(input)).isEqualTo(input)
 
         val input2 = IntentMessage(
@@ -256,6 +257,8 @@ class FfiTest {
                                     slotName = "some slot"))
 
         )
+        // we're still missing a few converters to do that (slot)
+        //assertThat(HermesTest().roundTripIntent(input2)).isEqualTo(input2)
         assertThat(HermesTest().roundTripIntentJson(input2)).isEqualTo(input2)
 
     }

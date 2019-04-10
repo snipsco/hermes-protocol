@@ -255,6 +255,7 @@ class CNluSlot(p: Pointer?) : Structure(p), Structure.ByReference {
         @JvmStatic
         fun fromSlot(slot: Slot) = CNluSlot(null).apply {
             nlu_slot = null
+            throw java.lang.RuntimeException("Converter for CSlot not existing yet...")
         }
     }
 
@@ -313,6 +314,15 @@ class CNluSlotArray(p: Pointer?) : Structure(p), Structure.ByReference {
 }
 
 class CNluIntentClassifierResult : Structure(), Structure.ByReference {
+    companion object {
+        @JvmStatic
+        fun fromIntentClassifierResult(intentClassifierResult: IntentClassifierResult) =
+                CNluIntentClassifierResult().apply {
+                    intent_name = intentClassifierResult.intentName.toPointer()
+                    confidence_score = intentClassifierResult.confidenceScore
+                }
+    }
+
     @JvmField
     var intent_name: Pointer? = null
     @JvmField
@@ -324,7 +334,21 @@ class CNluIntentClassifierResult : Structure(), Structure.ByReference {
                                                             confidenceScore = confidence_score!!)
 }
 
-class CIntentMessage(p: Pointer) : Structure(p), Structure.ByReference {
+class CIntentMessage(p: Pointer?) : Structure(p), Structure.ByReference {
+    companion object {
+        @JvmStatic
+        fun fromIntentMessage(message: IntentMessage) = CIntentMessage(null).apply {
+            session_id = message.sessionId.toPointer()
+            custom_data = message.customData?.toPointer()
+            site_id = message.siteId.toPointer()
+            input = message.input.toPointer()
+            intent = CNluIntentClassifierResult.fromIntentClassifierResult(message.intent)
+            slots = CNluSlotArray.fromSlotList(message.slots)
+            asr_tokens = CAsrTokenDoubleArray.fromAsrTokenDoubleList(message.asrTokens)
+            asr_confidence = message.asrConfidence ?: -1.0f
+        }
+    }
+
     @JvmField
     var session_id: Pointer? = null
     @JvmField
@@ -357,7 +381,7 @@ class CIntentMessage(p: Pointer) : Structure(p), Structure.ByReference {
             input = input.readString(),
             intent = intent!!.toIntentClassifierResult(),
             slots = slots?.toSlotList() ?: listOf(),
-            asrConfidence = asr_confidence,
+            asrConfidence = if(asr_confidence?.let { it in 0.0..1.0 } == true) asr_confidence else null,
             asrTokens = asr_tokens?.toAsrTokenDoubleList()?.toMutableList() ?: mutableListOf())
 }
 

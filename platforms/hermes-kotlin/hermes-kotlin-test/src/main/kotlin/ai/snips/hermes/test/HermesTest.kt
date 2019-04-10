@@ -19,6 +19,7 @@ import ai.snips.hermes.ffi.CContinueSessionMessage
 import ai.snips.hermes.ffi.CDialogueConfigureMessage
 import ai.snips.hermes.ffi.CEndSessionMessage
 import ai.snips.hermes.ffi.CInjectionRequestMessage
+import ai.snips.hermes.ffi.CIntentMessage
 import ai.snips.hermes.ffi.CIntentNotRecognizedMessage
 import ai.snips.hermes.ffi.CMapStringToStringArray
 import ai.snips.hermes.ffi.CStartSessionMessage
@@ -68,6 +69,13 @@ class HermesTest {
                       INSTANCE::hermes_ffi_test_round_trip_end_session,
                       { CEndSessionMessage(it).toEndSessionMessage() },
                       INSTANCE::hermes_drop_end_session_message)
+
+    fun roundTripIntent(input: IntentMessage) =
+            roundTrip(input,
+                      CIntentMessage.Companion::fromIntentMessage,
+                      INSTANCE::hermes_ffi_test_round_trip_intent,
+                      { CIntentMessage(it).toIntentMessage() },
+                      INSTANCE::hermes_drop_intent_message)
 
     fun roundTripIntentNotRecognized(input: IntentNotRecognizedMessage) =
             roundTrip(input,
@@ -191,6 +199,7 @@ class HermesTest {
         fun hermes_ffi_test_round_trip_start_session(input: CStartSessionMessage, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_continue_session(input: CContinueSessionMessage, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_end_session(input: CEndSessionMessage, output: PointerByReference): Int
+        fun hermes_ffi_test_round_trip_intent(input: CIntentMessage, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_intent_not_recognized(input: CIntentNotRecognizedMessage, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_injection_request(input: CInjectionRequestMessage, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_map_string_to_string_array(input: CMapStringToStringArray, output: PointerByReference): Int
@@ -225,6 +234,7 @@ class HermesTest {
         fun hermes_drop_continue_session_message(ptr: Pointer): Int
         fun hermes_drop_start_session_message(ptr: Pointer): Int
         fun hermes_drop_end_session_message(ptr: Pointer): Int
+        fun hermes_drop_intent_message(ptr: Pointer): Int
         fun hermes_drop_intent_not_recognized_message(ptr: Pointer): Int
         fun hermes_drop_injection_request_message(ptr: Pointer): Int
         fun hermes_drop_text_captured_message(ptr: Pointer): Int
