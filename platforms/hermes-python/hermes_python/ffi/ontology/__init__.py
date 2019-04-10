@@ -12,6 +12,16 @@ class CStringArray(Structure):
     ]
 
 
+class CMapStringToStringArrayEntry(Structure):
+    _fields_ = [("key", c_char_p),
+                ("value", POINTER(CStringArray))]
+
+
+class CMapStringToStringArray(Structure):
+    _fields_ = [("entries", POINTER(POINTER(CMapStringToStringArrayEntry))),
+                ("count", c_int32)]
+
+
 class CProtocolHandler(Structure):
     _fields_ = [("handler", c_void_p)]
 
