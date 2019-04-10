@@ -53,3 +53,6 @@ hermes_dialogue_publish_configure = wrap_library_call(lib.hermes_dialogue_publis
 
 hermes_protocol_handler_sound_feedback_facade = wrap_library_call(lib.hermes_protocol_handler_sound_feedback_facade)
 hermes_drop_sound_feedback_facade = wrap_library_call(lib.hermes_drop_sound_feedback_facade)
+
+hermes_sound_feedback_publish_toggle_on = wrap_library_call(lib.hermes_sound_feedback_publish_toggle_on)
+hermes_sound_feedback_publish_toggle_off = wrap_library_call(lib.hermes_sound_feedback_publish_toggle_off)
