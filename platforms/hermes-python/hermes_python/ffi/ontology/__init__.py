@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-from ctypes import c_char_p, c_int32, c_void_p, c_uint8, POINTER, Structure
+from ctypes import c_char_p, c_int32, c_void_p, c_uint8, POINTER, Structure, pointer
 from enum import IntEnum
 
 
@@ -11,15 +11,56 @@ class CStringArray(Structure):
         ("size", c_int32)
     ]
 
+    @classmethod
+    def from_repr(self, repr):
+        encoded_strings = [s.encode("utf-8") for s in repr]
+        arr = (c_char_p * len(repr))()
+        arr[:] = encoded_strings
+        return CStringArray(arr, len(repr))
+
+    def into_repr(self):
+        return [self.data[i].decode('utf-8') for i in range(self.size)]
+
 
 class CMapStringToStringArrayEntry(Structure):
     _fields_ = [("key", c_char_p),
                 ("value", POINTER(CStringArray))]
 
+    @classmethod
+    def from_repr(cls, repr):
+        return cls(
+            c_char_p(repr[0].encode('utf-8')),
+            pointer(CStringArray.from_repr(repr[1]))
+        )
+
+    def into_repr(self):
+        key = self.key.decode('utf-8')
+        list_of_strings = [self.value.contents.data[i].decode('utf-8') for i in range(self.value.contents.size)]
+        return key, list_of_strings
+
 
 class CMapStringToStringArray(Structure):
-    _fields_ = [("entries", POINTER(POINTER(CMapStringToStringArrayEntry))),
+    _fields_ = [("entries", POINTER(CMapStringToStringArrayEntry)),
                 ("count", c_int32)]
+
+    @classmethod
+    def from_repr(cls, repr):
+        input_data_as_list = list(repr)
+
+        map_entries = (CMapStringToStringArrayEntry * len(repr))()
+        map_entries[:] = [CMapStringToStringArrayEntry(e[0].encode('utf-8'), pointer(CStringArray.from_repr(e[1]))) for
+                          e in
+                          input_data_as_list]
+
+        return cls(
+            map_entries,
+            len(repr)
+        )
+
+    def into_repr(self):
+        number_of_entries = self.count
+        entries_list = [self.entries[i].into_repr() for i in range(number_of_entries)]
+        return dict(entries_list)
 
 
 class CProtocolHandler(Structure):
