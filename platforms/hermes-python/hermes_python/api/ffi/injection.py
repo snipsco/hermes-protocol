@@ -14,6 +14,9 @@ class InjectionFFI(object):
         self.use_json_api = use_json_api
         self._facade = POINTER(CInjectionFacade)()
 
+        # References to callbacks called from C
+        self._c_callback_subscribe_injection_status = []
+
     def initialize_facade(self, protocol_handler):
         hermes_protocol_handler_injection_facade(protocol_handler, byref(self._facade))
 
@@ -78,7 +81,6 @@ class InjectionFFI(object):
             self._c_callback_subscribe_injection_status[number_of_callbacks - 1])  # We retrieve the last callback we registered
 
         return self
-
 
 
 

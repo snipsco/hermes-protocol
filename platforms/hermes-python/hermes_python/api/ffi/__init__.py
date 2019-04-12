@@ -32,10 +32,12 @@ class FFI(object):
     def initialize_facades(self):
         self.dialogue.initialize_facade(self._protocol_handler)
         self.sound_feedback.initialize_facade(self._protocol_handler)
+        self.injection.initialize_facade(self._protocol_handler)
 
     def release_facades(self):
         self.dialogue.release_facade()
         self.sound_feedback.release_facade()
+        self.injection.release_facade()
 
     def release_connection(self):
         self._protocol_handler = POINTER(CProtocolHandler)()
