@@ -1,5 +1,8 @@
-from ctypes import c_char_p, pointer
+# coding: utf-8
+
 from hermes_python.ffi.ontology import CMapStringToStringArray, CMapStringToStringArrayEntry, CStringArray
+from hermes_python.ffi.ontology.injection import CInjectionRequestMessage
+from hermes_python.ontology.injection import AddInjectionRequest, InjectionRequestMessage
 
 
 def test_serde_CStringArray():
@@ -21,20 +24,21 @@ def test_serde_CMapStringToStringArrayEntry():
 
 def test_serde_CMapStringToStringArray():
     input_data = {'key1': ['hello', 'world', '🌍'], 'key2': ['hello', 'moon', '👽']}
-    input_data_as_list = list(input_data.items())
-
-    map_entries = (CMapStringToStringArrayEntry * len(input_data))()
-    test = [ CMapStringToStringArrayEntry(e[0].encode('utf-8'), pointer(CStringArray.from_repr(e[1]))) for e in input_data_as_list ]
-    map_entries[:] = test
-
-    serialized_data = CMapStringToStringArray(
-        map_entries,
-        len(input_data)
-    )
-
+    serialized_data = CMapStringToStringArray.from_repr(input_data)
     deserialized_data = serialized_data.into_repr()
     assert deserialized_data == input_data
 
 
+def test_serde_InjectionRequestMessage():
+    input_request_1 = AddInjectionRequest({"key": ["hello", "world", "✨"]})
+    input_request_2 = AddInjectionRequest({"key": ["hello", "moon", "👽"]})
+    operations = [input_request_1, input_request_2]
+    lexicon = {"key": ["i", "am a", "lexicon ⚠️"]}
 
+    request = InjectionRequestMessage(operations, lexicon)
+    serialized = CInjectionRequestMessage.from_repr(request)
+    deserialized = InjectionRequestMessage.from_c_repr(serialized)
 
+    assert request.lexicon == deserialized.lexicon
+    assert len(request.operations) == len(deserialized.operations)
+    assert request.operations[0].values == deserialized.operations[0].values

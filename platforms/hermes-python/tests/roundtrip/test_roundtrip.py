@@ -15,6 +15,9 @@ from hermes_python.ffi.ontology.dialogue import CSessionQueuedMessage, CSessionS
     CIntentNotRecognizedMessage, CContinueSessionMessage, CStartSessionMessageNotification, CStartSessionMessageAction, \
     CEndSessionMessage, CDialogueConfigureMessage
 
+from hermes_python.ontology.injection import InjectionRequestMessage, AddInjectionRequest
+from hermes_python.ffi.ontology.injection import CInjectionRequestMessage
+
 DYLIB_NAME = "libhermes_ffi_test" + (".dylib" if sys.platform == "darwin" else ".so")
 DYLIB_DIR = os.path.join(os.path.dirname(__file__), "./debug")
 DYLIB_PATH = glob(os.path.join(DYLIB_DIR, DYLIB_NAME))[0]
@@ -404,6 +407,25 @@ def test_hermes_ffi_test_round_trip_dialogue_configure_intent_array():
     )
 
     assert dialogue_configure_intent_array == round_trip_dialogue_configure_intent_array
+
+
+class TestInjectionRoundtrip(object):
+    def test_injection_request_message_roundtrip(self):
+
+        input_request_1 = AddInjectionRequest({"key": ["hello", "world", "✨"]})
+        input_request_2 = AddInjectionRequest({"key": ["hello", "moon", "👽"]})
+        operations = [input_request_1, input_request_2]
+        lexicon = {"key": ["i", "am a", "lexicon ⚠️"]}
+        injection_request = InjectionRequestMessage(operations, lexicon)
+
+        round_trip_injection_request = get_round_trip_data_structure(
+            injection_request,
+            hermes_python.ffi.ontology.injection.CInjectionRequestMessage,
+            hermes_python.ontology.injection.InjectionRequestMessage,
+            lib.hermes_ffi_test_round_trip_injection_request
+        )
+
+        assert injection_request == round_trip_injection_request
 
 
 """

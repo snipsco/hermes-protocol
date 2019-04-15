@@ -48,7 +48,7 @@ class InjectionFFI(object):
         )
         return self
 
-    def _call_foreign_function_no_arg(self, foreign_function_name): # TODO rename
+    def _call_foreign_function_no_arg(self, foreign_function_name):  # TODO rename
         if self.use_json_api:
             foreign_function_name = foreign_function_name + "_json"
 
@@ -78,20 +78,7 @@ class InjectionFFI(object):
 
         self._register_c_handler(
             'hermes_injection_subscribe_injection_status',
-            self._c_callback_subscribe_injection_status[number_of_callbacks - 1])  # We retrieve the last callback we registered
+            self._c_callback_subscribe_injection_status[
+                number_of_callbacks - 1])  # We retrieve the last callback we registered
 
         return self
-
-
-
-
-"""
-
-SNIPS_RESULT hermes_injection_publish_injection_request(const CInjectionFacade *facade,
-                                                        const CInjectionRequestMessage *message);
-
-SNIPS_RESULT hermes_injection_publish_injection_status_request(const CInjectionFacade *facade);
-
-SNIPS_RESULT hermes_injection_subscribe_injection_status(const CInjectionFacade *facade,
-                                                         void (*handler)(const CInjectionStatusMessage*, void*));
-"""

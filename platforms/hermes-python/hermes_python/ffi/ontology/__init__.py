@@ -45,8 +45,7 @@ class CMapStringToStringArray(Structure):
 
     @classmethod
     def from_repr(cls, repr):
-        input_data_as_list = list(repr)
-
+        input_data_as_list = list(repr.items())
         map_entries = (CMapStringToStringArrayEntry * len(repr))()
         map_entries[:] = [CMapStringToStringArrayEntry(e[0].encode('utf-8'), pointer(CStringArray.from_repr(e[1]))) for
                           e in
