@@ -15,3 +15,7 @@ class CSoundFeedbackFacade(Structure):
 
 class CInjectionFacade(Structure):
     _fields_ = [("facade", c_void_p)]
+
+
+class CTtsFacade(Structure):
+    _fields_ = [("facade", c_void_p)]
