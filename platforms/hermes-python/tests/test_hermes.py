@@ -32,38 +32,45 @@ def test_context_manager_enter_calls_ffi_api():
     h.ffi.release_connection.assert_called_once()
 
 
-@mock.patch("hermes_python.api.ffi.feedback.hermes_protocol_handler_sound_feedback_facade")
-@mock.patch("hermes_python.api.ffi.dialogue.hermes_protocol_handler_dialogue_facade")
-@mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
-def test_context_manager_enter(hermes_protocol_handler_new_mqtt, hermes_protocol_handler_dialogue_facade, hermes_protocol_handler_sound_feedback_facade):
-    with Hermes(HOST) as h:
-        pass
-
-    hermes_protocol_handler_new_mqtt.assert_called_once()
-    hermes_protocol_handler_dialogue_facade.assert_called_once()
-    hermes_protocol_handler_sound_feedback_facade.assert_called_once()
-
-
+@mock.patch("hermes_python.api.ffi.tts.hermes_drop_tts_facade")
+@mock.patch("hermes_python.api.ffi.tts.hermes_protocol_handler_tts_facade")
+@mock.patch("hermes_python.api.ffi.injection.hermes_drop_injection_facade")
+@mock.patch("hermes_python.api.ffi.injection.hermes_protocol_handler_injection_facade")
 @mock.patch("hermes_python.api.ffi.feedback.hermes_drop_sound_feedback_facade")
 @mock.patch("hermes_python.api.ffi.feedback.hermes_protocol_handler_sound_feedback_facade")
-@mock.patch("hermes_python.api.ffi.dialogue.hermes_protocol_handler_dialogue_facade")
 @mock.patch("hermes_python.api.ffi.dialogue.hermes_drop_dialogue_facade")
+@mock.patch("hermes_python.api.ffi.dialogue.hermes_protocol_handler_dialogue_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
-def test_context_manager_exit(hermes_protocol_handler_new_mqtt, hermes_drop_dialogue_facade, hermes_protocol_handler_dialogue_facade, hermes_protocol_handler_sound_feedback_facade, hermes_drop_sound_feedback_facade):
+def test_context_manager_enter_exit(hermes_protocol_handler_new_mqtt,
+                                    hermes_protocol_handler_dialogue_facade, hermes_drop_dialogue_facade,
+                                    hermes_protocol_handler_sound_feedback_facade, hermes_drop_sound_feedback_facade,
+                                    hermes_protocol_handler_injection_facade, hermes_drop_injection_facade,
+                                    hermes_protocol_handler_tts_facade, hermes_drop_tts_facade):
     with Hermes(HOST) as h:
         pass
+
     hermes_protocol_handler_new_mqtt.assert_called_once()
+
     hermes_protocol_handler_dialogue_facade.assert_called_once()
-    hermes_protocol_handler_sound_feedback_facade.assert_called_once()
     hermes_drop_dialogue_facade.assert_called_once()
+
+    hermes_protocol_handler_sound_feedback_facade.assert_called_once()
     hermes_drop_sound_feedback_facade.assert_called_once()
+
+    hermes_protocol_handler_injection_facade.assert_called_once()
+    hermes_drop_injection_facade.assert_called_once()
+
+    hermes_protocol_handler_tts_facade.assert_called_once()
+    hermes_drop_tts_facade.assert_called_once()
 
 
 @mock.patch("hermes_python.api.ffi.feedback.hermes_protocol_handler_sound_feedback_facade")
 @mock.patch("hermes_python.api.ffi.dialogue.hermes_protocol_handler_dialogue_facade")
 @mock.patch("hermes_python.api.ffi.dialogue.hermes_drop_dialogue_facade")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
-def test_context_manager_catches_exceptions(hermes_protocol_handler_new_mqtt, mocked_hermes_drop_dialogue_facade, hermes_protocol_handler_dialogue_facade, hermes_protocol_handler_sound_feedback_facade):
+def test_context_manager_catches_exceptions(hermes_protocol_handler_new_mqtt, mocked_hermes_drop_dialogue_facade,
+                                            hermes_protocol_handler_dialogue_facade,
+                                            hermes_protocol_handler_sound_feedback_facade):
     hermes_protocol_handler_dialogue_facade.side_effect = Exception("An exception occured!")
 
     with pytest.raises(Exception):
@@ -82,8 +89,8 @@ def test_subscribe_intent_correctly_registers_callback():
     h.__exit__(None, None, None)
     h.ffi.dialogue.register_subscribe_intent_handler.assert_called_once_with(DUMMY_INTENT_NAME, user_callback, h)
 
-def test_subscribe_intents_correctly_registers_callback():
 
+def test_subscribe_intents_correctly_registers_callback():
     def user_callback(hermes, intentMessage):
         pass
 
@@ -192,7 +199,9 @@ class TestContinueSession(object):
         h.ffi = mock.MagicMock()
 
         with h:
-            h.publish_continue_session("session_id", "Tell me what the missing slot is", ["intent1"], None, False, "missing_slot")
+            h.publish_continue_session("session_id", "Tell me what the missing slot is", ["intent1"], None, False,
+                                       "missing_slot")
 
-        continue_session_message = ContinueSessionMessage("session_id", "Tell me what the missing slot is", ["intent1"], None, False, "missing_slot")
+        continue_session_message = ContinueSessionMessage("session_id", "Tell me what the missing slot is", ["intent1"],
+                                                          None, False, "missing_slot")
         h.ffi.dialogue.publish_continue_session.assert_called_once_with(continue_session_message)

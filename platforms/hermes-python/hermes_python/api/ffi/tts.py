@@ -10,8 +10,8 @@ class TtsFFI(object):
         self.use_json_api = use_json_api
         self._facade = POINTER(CTtsFacade)()
 
-        def initialize_facade(self, protocol_handler):
-            hermes_protocol_handler_tts_facade(protocol_handler, byref(self._facade))
+    def initialize_facade(self, protocol_handler):
+        hermes_protocol_handler_tts_facade(protocol_handler, byref(self._facade))
 
     def release_facade(self):
         hermes_drop_tts_facade(self._facade)
@@ -37,4 +37,3 @@ class TtsFFI(object):
             message
         )
         return self
-

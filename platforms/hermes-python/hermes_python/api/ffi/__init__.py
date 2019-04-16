@@ -6,6 +6,7 @@ from ...ffi import utils, lib
 from .dialogue import DialogueFFI
 from .feedback import SoundFeedBackFFI
 from .injection import InjectionFFI
+from .tts import TtsFFI
 
 
 class FFI(object):
@@ -17,6 +18,7 @@ class FFI(object):
         self.dialogue = DialogueFFI(use_json_api)
         self.sound_feedback = SoundFeedBackFFI(use_json_api)
         self.injection = InjectionFFI(use_json_api)
+        self.tts = TtsFFI(use_json_api)
 
         self._protocol_handler = POINTER(CProtocolHandler)()
 
@@ -33,11 +35,13 @@ class FFI(object):
         self.dialogue.initialize_facade(self._protocol_handler)
         self.sound_feedback.initialize_facade(self._protocol_handler)
         self.injection.initialize_facade(self._protocol_handler)
+        self.tts.initialize_facade(self._protocol_handler)
 
     def release_facades(self):
         self.dialogue.release_facade()
         self.sound_feedback.release_facade()
         self.injection.release_facade()
+        self.tts.release_facade()
 
     def release_connection(self):
         self._protocol_handler = POINTER(CProtocolHandler)()
