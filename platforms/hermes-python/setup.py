@@ -25,15 +25,17 @@ class bdist_wheel(_bdist_wheel, object):
         return super(bdist_wheel, self).get_tag()
 
 
-PACKAGE_NAME = "hermes_python"
-ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
-PACKAGE_PATH = os.path.join(ROOT_PATH, PACKAGE_NAME)
-README = os.path.join(ROOT_PATH, "README.rst")
-HISTORY = os.path.join(ROOT_PATH, "documentation/source/HISTORY.rst")
-VERSION = "__version__"
 
-with io.open(os.path.join(PACKAGE_PATH, VERSION)) as f:
-    version = f.readline()
+PACKAGE_NAME = "hermes_python"
+here = os.path.dirname(os.path.abspath(__file__))
+PACKAGE_PATH = os.path.join(here, PACKAGE_NAME)
+README = os.path.join(here, "README.rst")
+HISTORY = os.path.join(here, "documentation/source/HISTORY.rst")
+VERSION = "__version__.py"
+
+with io.open(os.path.join(PACKAGE_PATH, VERSION), encoding="utf8") as f:
+    about = dict()
+    exec(f.read(), about)
 
 with io.open(README, "rt", encoding="utf8") as f:
     readme = f.read()
@@ -53,9 +55,9 @@ extras_require = {
 }
 
 setup(
-    name=PACKAGE_NAME,
-    version=version,
-    description='Python bindings for Snips Hermes Protocol',
+    name=about['__title__'],
+    version=about['__version__'],
+    description=about['__description__'],
     long_description=readme + history,
     author='Anthony Reinette',
     author_email='anthony.reinette@snips.ai',
@@ -77,7 +79,7 @@ setup(
     command_options={
         'documentation': {
             'project': ('setup.py', 'Hermes Python'),
-            'version': ('setup.py', version),
+            'version': ('setup.py', about['__version__']),
             'source_dir': ('setup.py', './documentation/source'),
             'build_dir': ('setup.py', './documentation/build'),
             'builder': ('setup.py', 'doctest rst')
