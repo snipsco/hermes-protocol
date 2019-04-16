@@ -171,7 +171,7 @@ impl CReprOf<HashMap<String, Vec<String>>> for CMapStringToStringArray {
             entries: Box::into_raw(
                 input
                     .into_iter()
-                    .map(|e| CMapStringToStringArrayEntry::c_repr_of(e).map(|c| c.into_raw_pointer()))
+                    .map(|e| CMapStringToStringArrayEntry::c_repr_of(e).map(RawPointerConverter::into_raw_pointer))
                     .collect::<Fallible<Vec<*const CMapStringToStringArrayEntry>>>()
                     .context("Could not convert map to C Repr")?
                     .into_boxed_slice(),

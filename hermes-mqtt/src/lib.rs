@@ -11,6 +11,7 @@ use log::*;
 
 use crate::topics::*;
 
+use rumqtt::PublishBuilder;
 pub use rumqtt::{MqttOptions, TlsOptions};
 
 lazy_static! {
@@ -40,7 +41,7 @@ impl MqttHandler {
         debug!("Publishing on MQTT topic '{}'", topic);
         self.mqtt_client
             .publish(topic)
-            .and_then(|p| p.send())
+            .and_then(PublishBuilder::send)
             .map_err(SyncFailure::new)?;
         Ok(())
     }
@@ -61,7 +62,7 @@ impl MqttHandler {
             self.mqtt_client
                 .publish(topic)
                 .map(|m| m.payload(p))
-                .and_then(|p| p.send())
+                .and_then(PublishBuilder::send)
                 .map_err(SyncFailure::new)
         })??;
         Ok(())
@@ -77,7 +78,7 @@ impl MqttHandler {
         self.mqtt_client
             .publish(topic)
             .map(|m| m.payload(payload))
-            .and_then(|p| p.send())
+            .and_then(PublishBuilder::send)
             .map_err(SyncFailure::new)?;
 
         Ok(())

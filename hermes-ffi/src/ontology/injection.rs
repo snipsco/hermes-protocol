@@ -67,7 +67,7 @@ impl CReprOf<Vec<hermes::EntityValue>> for CEntityValueArray {
             values: Box::into_raw(
                 input
                     .into_iter()
-                    .map(|e| CEntityValue::c_repr_of(e).map(|c| c.into_raw_pointer()))
+                    .map(|e| CEntityValue::c_repr_of(e).map(RawPointerConverter::into_raw_pointer))
                     .collect::<Fallible<Vec<_>>>()
                     .context("Could not convert map to C Repr")?
                     .into_boxed_slice(),
@@ -194,7 +194,7 @@ impl CReprOf<Vec<CInjectionRequest>> for CInjectionRequestOperations {
             operations: Box::into_raw(
                 input
                     .into_iter()
-                    .map(|e| CInjectionRequestOperation::c_repr_of(e).map(|c| c.into_raw_pointer()))
+                    .map(|e| CInjectionRequestOperation::c_repr_of(e).map(RawPointerConverter::into_raw_pointer))
                     .collect::<Fallible<Vec<*const CInjectionRequestOperation>>>()
                     .context("Could not convert map to C Repr")?
                     .into_boxed_slice(),
