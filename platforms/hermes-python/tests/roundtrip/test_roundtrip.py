@@ -18,7 +18,7 @@ from hermes_python.ffi.ontology.dialogue import CSessionQueuedMessage, CSessionS
     CIntentNotRecognizedMessage, CContinueSessionMessage, CStartSessionMessageNotification, CStartSessionMessageAction, \
     CEndSessionMessage, CDialogueConfigureMessage
 
-from hermes_python.ontology.injection import InjectionRequestMessage, AddInjectionRequest
+from hermes_python.ontology.injection import InjectionRequestMessage, AddInjectionRequest, AddFromVanillaInjectionRequest
 from hermes_python.ffi.ontology.injection import CInjectionRequestMessage
 
 from hermes_python.ontology.tts import RegisterSoundMessage
@@ -425,7 +425,7 @@ def test_hermes_ffi_test_round_trip_dialogue_configure_intent_array():
 
 def test_injection_request_message_roundtrip():
     input_request_1 = AddInjectionRequest({"key": ["hello", "world", "✨"]})
-    input_request_2 = AddInjectionRequest({"key": ["hello", "moon", "👽"]})
+    input_request_2 = AddFromVanillaInjectionRequest({"key": ["hello", "moon", "👽"]})
     operations = [input_request_1, input_request_2]
     lexicon = {"key": ["i", "am a", "lexicon ⚠️"]}
     injection_request = InjectionRequestMessage(operations, lexicon)

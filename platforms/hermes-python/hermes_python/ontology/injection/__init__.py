@@ -78,4 +78,5 @@ class AddFromVanillaInjectionRequest(InjectionRequestOperation):
 
     @classmethod
     def from_c_repr(cls, c_repr):
-        pass
+        values = c_repr.values.contents.into_repr()
+        return cls(values)
