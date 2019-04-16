@@ -9,6 +9,9 @@ from glob import glob
 import sys
 
 import hermes_python
+
+from hermes_python.ffi.ontology import CMapStringToStringArray
+
 from hermes_python.ontology.dialogue import IntentMessage, IntentClassifierResult, SlotMap, NluSlot, SlotValue, \
     CustomValue
 from hermes_python.ffi.ontology.dialogue import CSessionQueuedMessage, CSessionStartedMessage, CSessionEndedMessage, \
@@ -27,6 +30,12 @@ lib = cdll.LoadLibrary(DYLIB_PATH)
 
 class LibException(Exception):
     pass
+
+
+class MapStringToStringArray(object):  # This is just a helper class, just used in roundtrip tests. 
+    @classmethod
+    def from_c_repr(cls, c_repr):
+        return c_repr.into_repr()
 
 
 def dispatch_to_ffi_function(pointer_to_c_struct, c_struct_type):
@@ -82,7 +91,6 @@ def get_round_trip_data_structure(py_ontology_object_instance, C_Ontology_Type, 
 
     # Send it for round trip to Rust
     result = round_trip_function(pointer_c_repr, output_pointer)
-
     if result > 0:
         wrap_c_error()
 
@@ -409,9 +417,8 @@ def test_hermes_ffi_test_round_trip_dialogue_configure_intent_array():
     assert dialogue_configure_intent_array == round_trip_dialogue_configure_intent_array
 
 
-class TestInjectionRoundtrip(object):
+class TestInjectionRoundtrip():
     def test_injection_request_message_roundtrip(self):
-
         input_request_1 = AddInjectionRequest({"key": ["hello", "world", "✨"]})
         input_request_2 = AddInjectionRequest({"key": ["hello", "moon", "👽"]})
         operations = [input_request_1, input_request_2]
@@ -426,6 +433,19 @@ class TestInjectionRoundtrip(object):
         )
 
         assert injection_request == round_trip_injection_request
+
+
+class TestMapStringToStringArray():
+    def test_basic(self):
+        d = {"key1": ["value1", "value2"], "key2": ["👽", "🛸", "🌍"]}
+        round_trip_d = get_round_trip_data_structure(
+            d,
+            CMapStringToStringArray,
+            MapStringToStringArray,  # <- This class is just used for roundtrips.
+            lib.hermes_ffi_test_round_trip_map_string_to_string_array
+        )
+
+        assert d == round_trip_d
 
 
 """
