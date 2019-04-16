@@ -35,13 +35,12 @@ class CInjectionRequestOperations(Structure):
 
     @classmethod
     def from_repr(cls, repr):
-        operations = [CInjectionRequestOperation.from_repr(operation) for operation in repr]
+        operations = [pointer(CInjectionRequestOperation.from_repr(operation)) for operation in repr]
         count = len(repr)
-        array_of_operations = (CInjectionRequestOperation * count)()
+        array_of_operations = (POINTER(CInjectionRequestOperation) * count)()
         array_of_operations[:] = operations
-        ptr_to_array_of_operations = cast(array_of_operations, POINTER(CInjectionRequestOperation))
 
-        return cls(pointer(ptr_to_array_of_operations), count)
+        return cls(array_of_operations, count)
 
 
 class CInjectionRequestMessage(Structure):

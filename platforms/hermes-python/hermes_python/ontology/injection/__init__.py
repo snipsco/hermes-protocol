@@ -21,11 +21,14 @@ class InjectionRequestMessage(object):
         self.cross_language = cross_language
         self.id = id
 
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
+
     @classmethod
     def from_c_repr(cls, c_repr):
         number_of_operations = c_repr.operations.contents.count
-        c_operations_array_repr = c_repr.operations.contents.operations.contents
-        operations = [InjectionRequestOperation.from_c_repr(c_operations_array_repr[i]) for i in
+        c_operations_array_repr = c_repr.operations.contents.operations
+        operations = [InjectionRequestOperation.from_c_repr(c_operations_array_repr[i].contents) for i in
                       range(number_of_operations)]
 
         lexicon = c_repr.lexicon.contents.into_repr()
@@ -41,6 +44,9 @@ class InjectionRequestMessage(object):
 class InjectionRequestOperation(object):
     def __init__(self, values):
         self.values = values
+
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
 
     @classmethod
     def from_c_repr(cls, c_repr):

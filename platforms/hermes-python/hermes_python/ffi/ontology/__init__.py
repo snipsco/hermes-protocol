@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-from ctypes import c_char_p, c_int32, c_void_p, c_uint8, POINTER, Structure, pointer
+from ctypes import c_char_p, c_int32, c_void_p, c_uint8, POINTER, Structure, pointer, cast
 from enum import IntEnum
 
 
@@ -40,16 +40,14 @@ class CMapStringToStringArrayEntry(Structure):
 
 
 class CMapStringToStringArray(Structure):
-    _fields_ = [("entries", POINTER(CMapStringToStringArrayEntry)),
+    _fields_ = [("entries", POINTER(POINTER(CMapStringToStringArrayEntry))),
                 ("count", c_int32)]
 
     @classmethod
     def from_repr(cls, repr):
         input_data_as_list = list(repr.items())
-        map_entries = (CMapStringToStringArrayEntry * len(repr))()
-        map_entries[:] = [CMapStringToStringArrayEntry(e[0].encode('utf-8'), pointer(CStringArray.from_repr(e[1]))) for
-                          e in
-                          input_data_as_list]
+        map_entries = (POINTER(CMapStringToStringArrayEntry) * len(repr))()
+        map_entries[:] = [pointer(CMapStringToStringArrayEntry.from_repr(e)) for e in input_data_as_list]
 
         return cls(
             map_entries,
@@ -58,7 +56,7 @@ class CMapStringToStringArray(Structure):
 
     def into_repr(self):
         number_of_entries = self.count
-        entries_list = [self.entries[i].into_repr() for i in range(number_of_entries)]
+        entries_list = [self.entries[i].contents.into_repr() for i in range(number_of_entries)]
         return dict(entries_list)
 
 
