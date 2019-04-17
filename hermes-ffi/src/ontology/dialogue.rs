@@ -709,7 +709,7 @@ impl CReprOf<Vec<hermes::DialogueConfigureIntent>> for CDialogueConfigureIntentA
             entries: Box::into_raw(
                 input
                     .into_iter()
-                    .map(|e| CDialogueConfigureIntent::c_repr_of(e).map(|c| c.into_raw_pointer()))
+                    .map(|e| CDialogueConfigureIntent::c_repr_of(e).map(RawPointerConverter::into_raw_pointer))
                     .collect::<Fallible<Vec<_>>>()
                     .context("Could not convert map to C Repr")?
                     .into_boxed_slice(),

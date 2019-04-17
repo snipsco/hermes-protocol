@@ -195,7 +195,7 @@ impl CReprOf<Vec<hermes::AsrToken>> for CAsrTokenArray {
             entries: Box::into_raw(
                 input
                     .into_iter()
-                    .map(|e| CAsrToken::c_repr_of(e).map(|c| c.into_raw_pointer()))
+                    .map(|e| CAsrToken::c_repr_of(e).map(RawPointerConverter::into_raw_pointer))
                     .collect::<Fallible<Vec<_>>>()
                     .context("Could not convert map to C Repr")?
                     .into_boxed_slice(),
@@ -243,7 +243,7 @@ impl CReprOf<Vec<Vec<hermes::AsrToken>>> for CAsrTokenDoubleArray {
             entries: Box::into_raw(
                 input
                     .into_iter()
-                    .map(|e| CAsrTokenArray::c_repr_of(e).map(|c| c.into_raw_pointer()))
+                    .map(|e| CAsrTokenArray::c_repr_of(e).map(RawPointerConverter::into_raw_pointer))
                     .collect::<Fallible<Vec<_>>>()
                     .context("Could not convert map to C Repr")?
                     .into_boxed_slice(),

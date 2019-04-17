@@ -290,7 +290,7 @@ impl CReprOf<Vec<hermes::NluSlot>> for CNluSlotArray {
             entries: Box::into_raw(
                 input
                     .into_iter()
-                    .map(|e| CNluSlot::c_repr_of(e).map(|c| c.into_raw_pointer()))
+                    .map(|e| CNluSlot::c_repr_of(e).map(RawPointerConverter::into_raw_pointer))
                     .collect::<Fallible<Vec<_>>>()
                     .context("Could not convert map to C Repr")?
                     .into_boxed_slice(),
