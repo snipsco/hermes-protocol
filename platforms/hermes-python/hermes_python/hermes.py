@@ -259,6 +259,13 @@ class Hermes(object):
 
     def configure_dialogue(self, configure_message):
         # type: (DialogueConfiguration) -> Hermes
+        """
+        Publish configuration message for different aspects of the Dialogue system.
+
+        :param configure_message: DialogueConfiguration the configuration that will be sent to the dialogue Manager
+
+        :return: the current instance of Hermes to allow chaining.
+        """
         configure_dialogue_messages = configure_message.build()
 
         for conf in configure_dialogue_messages:
@@ -266,13 +273,29 @@ class Hermes(object):
 
         return self
 
-    def publish_enable_sound_feedback(self, site_message):
+    def enable_sound_feedback(self, site_message):
         # type: (SiteMessage) -> Hermes
+        """
+        Toggles on the sound feedback for the snips platform for a given site_id and optionally for a session_id defined in
+        the site_message.
+
+        :param site_message: SiteMessage where the sound feedback will be turned on.
+
+        :return: the current instance of Hermes to allow chaining.
+        """
         self.ffi.sound_feedback.publish_toggle_on(site_message)
         return self
 
-    def publish_disable_sound_feedback(self, site_message):
+    def disable_sound_feedback(self, site_message):
         # type: (SiteMessage) -> Hermes
+        """
+        Toggles off the sound feedback for the snips platform for a given site_id and optionally for a session_id defined in
+        the site_message.
+
+        :param site_message: SiteMessage where the sound feedback will be turned off.
+
+        :return: the current instance of Hermes to allow chaining.
+        """
         self.ffi.sound_feedback.publish_toggle_off(site_message)
         return self
 
