@@ -61,7 +61,7 @@ class InjectionRequestOperation(object):
 
 class AddInjectionRequest(InjectionRequestOperation):
     def __init__(self, values):
-        # type:(Enum, Mapping[Text, List[Text]]) -> None
+        # type:(Mapping[Text, List[Text]]) -> None
         self.kind = InjectionKind.ADD
         self.values = values
 
