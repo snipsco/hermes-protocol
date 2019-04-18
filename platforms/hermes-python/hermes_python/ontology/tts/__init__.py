@@ -14,7 +14,7 @@ class RegisterSoundMessage(object):
     def from_c_repr(cls, c_repr):
         sound_id = c_repr.sound_id.decode('utf-8')
         nb = c_repr.wav_sound_len
-        wav_sound = [c_repr.wav_sound[i] for i in range(nb)]
+        wav_sound = bytearray([c_repr.wav_sound[i] for i in range(nb)])
         return cls(sound_id, wav_sound)
 
     def into_c_repr(self):

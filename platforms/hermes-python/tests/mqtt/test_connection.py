@@ -11,7 +11,7 @@ from hermes_python.hermes import Hermes
 @pytest.fixture(scope="module")
 def mqtt_server():
     print("Starting MQTT Server")
-    mqtt_server = subprocess.Popen("mosquitto")
+    mqtt_server = subprocess.Popen("/usr/local/opt/mosquitto/sbin/mosquitto")
     time.sleep(1)  # Let's wait a bit before it's started
     yield mqtt_server
     print("Tearing down MQTT Server")
@@ -56,8 +56,8 @@ class TestPublishingMessages(object):
         site_message = SiteMessage("kitchen")
 
         with Hermes("localhost:1883") as h:
-            h.publish_enable_sound_feedback(site_message)
-            h.publish_disable_sound_feedback(site_message)
+            h.enable_sound_feedback(site_message)
+            h.disable_sound_feedback(site_message)
 
 
 def test_subscription_to_intent_message(mqtt_server):

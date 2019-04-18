@@ -1,4 +1,6 @@
 # coding: utf-8
+from __future__ import absolute_import
+from __future__ import unicode_literals
 import pytest
 import os
 
@@ -14,9 +16,9 @@ def wav_data():
     import wave
     wav = wave.open(os.path.join(os.path.dirname(__file__), "../data/test.wav"), mode="rb")
     nb_of_frames = wav.getnframes()
-    frames = wav.readframes(nb_of_frames)
+    frames = wav.readframes(nb_of_frames)  # in python2, the type is str, in py3 the type is bytes
     wav.close()
-    return list(frames)
+    return bytearray(frames)
 
 
 def test_serde_CStringArray():
@@ -64,4 +66,5 @@ def test_serde_RegisterSoundMessage(wav_data):
     serialized = CRegisterSoundMessage.from_repr(register_sound)
     deserialized = RegisterSoundMessage.from_c_repr(serialized)
 
+    assert deserialized.wav_sound == register_sound.wav_sound
     assert deserialized == register_sound
