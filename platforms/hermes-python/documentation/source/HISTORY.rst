@@ -1,6 +1,10 @@
 History
 ==========
 
+0.5.0 (2019-04-19)
+^^^^^^^^^^^^^^^^^^^
+* Adds APIs to enable and disable sound feedback. 
+
 0.4.1 (2019-03-29)
 ^^^^^^^^^^^^^^^^^^
 * Re-enables debugging of hermes-python with the `rust_logs_enabled` flag
