@@ -548,6 +548,28 @@ You can disable/enable intents with the following methods :
    hermes.configure_dialogue(dialogue_conf)
 
 
+Configuring Sound Feedback
+==========================
+
+By default, the snips platform notify the user of different events of
+its lifecycle with sound. It emits a sound when the wakeword is
+detected, or when the NLU engine (natural understanding engine) has
+successfuly extracted an intent from a spoken sentence.
+
+``hermes-python`` allows to disable this sound feedback
+programmatically, by sending a message to the snips platform,
+specifying the ``siteId`` where the sound feedback should be disabled.
+
+::
+
+   from hermes_python.hermes import Hermes
+   from hermes_python.ontology.feedback import SiteMessage
+
+   with Hermes("localhost:1883") as h:
+       h.disable_sound_feedback(SiteMessage("kitchen"))
+       h.start()
+
+
 Enabling Debugging
 ==================
 
