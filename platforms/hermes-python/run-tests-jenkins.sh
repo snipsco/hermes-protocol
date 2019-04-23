@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -x
 
 if ! [[ -z "$(ls -A hermes_python/dylib)" ]]; then
    echo "hermes_python/dylib should be empty. Aborting!" && exit 1
