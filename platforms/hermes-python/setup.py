@@ -41,7 +41,7 @@ class InstallPlatlib(install):
                 )
                 shutil.copy(BUILT_SHARED_OBJECT_PATH, DYLIB_PATH)
 
-        super().run()
+        install.run(self)
 
 
 class bdist_wheel(_bdist_wheel, object):
@@ -82,7 +82,7 @@ setup(
     long_description=readme + history,
     author='Anthony Reinette',
     author_email='anthony.reinette@snips.ai',
-    url=about['__url__'],
+    project_urls=about['__url__'],
     classifiers=[
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
