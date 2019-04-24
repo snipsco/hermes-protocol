@@ -7,3 +7,15 @@ class CTtsFacade(Structure):
 
 class CDialogueFacade(Structure):
     _fields_ = [("facade", c_void_p)]
+
+
+class CSoundFeedbackFacade(Structure):
+    _fields_ = [("facade", c_void_p)]
+
+
+class CInjectionFacade(Structure):
+    _fields_ = [("facade", c_void_p)]
+
+
+class CTtsFacade(Structure):
+    _fields_ = [("facade", c_void_p)]

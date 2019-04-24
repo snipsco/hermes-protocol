@@ -1,4 +1,4 @@
-#coding: utf-8
+# coding: utf-8
 import pytest
 import subprocess
 import time
@@ -7,51 +7,57 @@ from paho.mqtt.publish import single
 
 from hermes_python.hermes import Hermes
 
+
 @pytest.fixture(scope="module")
 def mqtt_server():
     print("Starting MQTT Server")
-    mqtt_server = subprocess.Popen("mosquitto")
+    mqtt_server = subprocess.Popen("/usr/local/opt/mosquitto/sbin/mosquitto")
     time.sleep(1)  # Let's wait a bit before it's started
     yield mqtt_server
     print("Tearing down MQTT Server")
     mqtt_server.kill()
 
 
-def test_publish_continue_session(mqtt_server):
-    with Hermes("localhost:1883") as h:
-        h.publish_continue_session("session_id", "text", [], None)
-        h.publish_continue_session("session_id", "text", ["intent_name"], None)
-        h.publish_continue_session("session_id", "text", ["intent_name"], "custom_data")
-        h.publish_continue_session("session_id", "text", ["intent_name"], "custom_data", True)
-        h.publish_continue_session("session_id", "text", ["intent_name"], "custom_data", True, "slot")
+class TestPublishingMessages(object):
+    def test_publish_continue_session(self, mqtt_server):
+        with Hermes("localhost:1883") as h:
+            h.publish_continue_session("session_id", "text", [], None)
+            h.publish_continue_session("session_id", "text", ["intent_name"], None)
+            h.publish_continue_session("session_id", "text", ["intent_name"], "custom_data")
+            h.publish_continue_session("session_id", "text", ["intent_name"], "custom_data", True)
+            h.publish_continue_session("session_id", "text", ["intent_name"], "custom_data", True, "slot")
 
+    def test_publish_end_session(self, mqtt_server):
+        with Hermes("localhost:1883") as h:
+            h.publish_end_session("session_id", "goodbye")
 
-def test_publish_end_session(mqtt_server):
-    with Hermes("localhost:1883") as h:
-        h.publish_end_session("session_id", "goodbye")
+    def test_publish_start_session_notification(self, mqtt_server):
+        with Hermes("localhost:1883") as h:
+            h.publish_start_session_notification("site_id", "initialization", None)
+            h.publish_start_session_notification("site_id", "initialization", "custom_data")
+            h.publish_start_session_notification("site_id", "initialization", "custom_data", "text")
 
+    def test_publish_start_session_action(self, mqtt_server):
+        with Hermes("localhost:1883") as h:
+            h.publish_start_session_action(None, None, [], False, False, None)
+            h.publish_start_session_action("site_id", None, [], False, False, None)
+            h.publish_start_session_action("site_id", "text", [], False, False, None)
+            h.publish_start_session_action("site_id", "text", [], False, False, "custom_data")
 
-def test_publish_start_session_notification(mqtt_server):
-    with Hermes("localhost:1883") as h:
-        h.publish_start_session_notification("site_id", "initialization", None)
-        h.publish_start_session_notification("site_id", "initialization", "custom_data")
-        h.publish_start_session_notification("site_id", "initialization", "custom_data", "text")
+    def test_configure_dialogue(self, mqtt_server):
+        from hermes_python.ontology.dialogue import DialogueConfiguration
+        conf = DialogueConfiguration()
 
+        with Hermes("localhost:1883") as h:
+            h.configure_dialogue(conf)
 
-def test_publish_start_session_action(mqtt_server):
-    with Hermes("localhost:1883") as h:
-        h.publish_start_session_action(None, None, [], False, False, None)
-        h.publish_start_session_action("site_id", None, [], False, False, None)
-        h.publish_start_session_action("site_id", "text", [], False, False, None)
-        h.publish_start_session_action("site_id", "text", [], False, False, "custom_data")
+    def test_publish_sound_feedback_toggle(self, mqtt_server):
+        from hermes_python.ontology.feedback import SiteMessage
+        site_message = SiteMessage("kitchen")
 
-
-def test_configure_dialogue(mqtt_server):
-    from hermes_python.ontology.dialogue import DialogueConfiguration
-    conf = DialogueConfiguration()
-
-    with Hermes("localhost:1883") as h:
-        h.configure_dialogue(conf)
+        with Hermes("localhost:1883") as h:
+            h.enable_sound_feedback(site_message)
+            h.disable_sound_feedback(site_message)
 
 
 def test_subscription_to_intent_message(mqtt_server):
@@ -64,4 +70,3 @@ def test_subscription_to_intent_message(mqtt_server):
         time.sleep(0.5)
 
     subscribe_intent_callback.assert_called_once()
-

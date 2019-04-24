@@ -9,11 +9,22 @@ from glob import glob
 import sys
 
 import hermes_python
+
+from hermes_python.ffi.ontology import CMapStringToStringArray
+
 from hermes_python.ontology.dialogue import IntentMessage, IntentClassifierResult, SlotMap, NluSlot, SlotValue, \
     CustomValue
 from hermes_python.ffi.ontology.dialogue import CSessionQueuedMessage, CSessionStartedMessage, CSessionEndedMessage, \
     CIntentNotRecognizedMessage, CContinueSessionMessage, CStartSessionMessageNotification, CStartSessionMessageAction, \
     CEndSessionMessage, CDialogueConfigureMessage
+
+from hermes_python.ontology.injection import InjectionRequestMessage, AddInjectionRequest, AddFromVanillaInjectionRequest
+from hermes_python.ffi.ontology.injection import CInjectionRequestMessage
+
+from hermes_python.ontology.tts import RegisterSoundMessage
+from hermes_python.ffi.ontology.tts import CRegisterSoundMessage
+
+from ..ffi.test_ontology import wav_data
 
 DYLIB_NAME = "libhermes_ffi_test" + (".dylib" if sys.platform == "darwin" else ".so")
 DYLIB_DIR = os.path.join(os.path.dirname(__file__), "./debug")
@@ -24,6 +35,12 @@ lib = cdll.LoadLibrary(DYLIB_PATH)
 
 class LibException(Exception):
     pass
+
+
+class MapStringToStringArray(object):  # This is just a helper class, just used in roundtrip tests.
+    @classmethod
+    def from_c_repr(cls, c_repr):
+        return c_repr.into_repr()
 
 
 def dispatch_to_ffi_function(pointer_to_c_struct, c_struct_type):
@@ -79,7 +96,6 @@ def get_round_trip_data_structure(py_ontology_object_instance, C_Ontology_Type, 
 
     # Send it for round trip to Rust
     result = round_trip_function(pointer_c_repr, output_pointer)
-
     if result > 0:
         wrap_c_error()
 
@@ -406,6 +422,48 @@ def test_hermes_ffi_test_round_trip_dialogue_configure_intent_array():
     assert dialogue_configure_intent_array == round_trip_dialogue_configure_intent_array
 
 
+
+def test_injection_request_message_roundtrip():
+    input_request_1 = AddInjectionRequest({"key": ["hello", "world", "✨"]})
+    input_request_2 = AddFromVanillaInjectionRequest({"key": ["hello", "moon", "👽"]})
+    operations = [input_request_1, input_request_2]
+    lexicon = {"key": ["i", "am a", "lexicon ⚠️"]}
+    injection_request = InjectionRequestMessage(operations, lexicon)
+
+    round_trip_injection_request = get_round_trip_data_structure(
+        injection_request,
+        hermes_python.ffi.ontology.injection.CInjectionRequestMessage,
+        hermes_python.ontology.injection.InjectionRequestMessage,
+        lib.hermes_ffi_test_round_trip_injection_request
+    )
+
+    assert injection_request == round_trip_injection_request
+
+
+class TestMapStringToStringArray(object):
+    def test_basic(self):
+        d = {"key1": ["value1", "value2"], "key2": ["👽", "🛸", "🌍"]}
+        round_trip_d = get_round_trip_data_structure(
+            d,
+            CMapStringToStringArray,
+            MapStringToStringArray,  # <- This class is just used for roundtrips.
+            lib.hermes_ffi_test_round_trip_map_string_to_string_array
+        )
+
+        assert d == round_trip_d
+
+def test_tts_register_sound_message_roundtrip(wav_data):
+    register_sound = RegisterSoundMessage("yolo.wav", wav_data)
+
+    round_trip_register_sound = get_round_trip_data_structure(
+        register_sound,
+        CRegisterSoundMessage,
+        RegisterSoundMessage,
+        lib.hermes_ffi_test_round_trip_register_sound
+    )
+
+    assert round_trip_register_sound == register_sound
+
 """
 def test_hermes_ffi_test_round_trip_intent():
     slot_value = SlotValue(1, CustomValue("hello :) 🎁"))
@@ -421,11 +479,4 @@ def test_hermes_ffi_test_round_trip_intent():
     )
 
     assert intent_message == round_trip_intent_message
-
-
-
-# TODO : Missing tests.
-
-def test_hermes_ffi_test_round_trip_intent_not_recognized():
-    pass
 """
