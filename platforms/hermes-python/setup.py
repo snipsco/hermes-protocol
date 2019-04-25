@@ -30,16 +30,18 @@ class InstallPlatlib(install):
         self.install_lib = self.install_platlib
 
     def run(self):
+        BUILT_SHARED_OBJECT_PATH = os.path.join(
+            os.path.normpath(os.path.join(here, "../..")),
+            "target/release/{}{}".format(SHARED_OBJECT_FILENAME, SHARED_OBJECT_EXTENSION)
+        )
+
         if not os.path.exists(SHARED_OBJECT_PATH):
-            return_code = subprocess.call(["cargo", "build", "-p", "hermes-mqtt-ffi", "--release"])
-            if return_code > 0:
-                raise Exception("Could not compile C bindings")
-            else:
-                BUILT_SHARED_OBJECT_PATH = os.path.join(
-                    os.path.normpath(os.path.join(here, "../..")),
-                    "target/release/{}{}".format(SHARED_OBJECT_FILENAME, SHARED_OBJECT_EXTENSION)
-                )
-                shutil.copy(BUILT_SHARED_OBJECT_PATH, DYLIB_PATH)
+            if not os.path.exists(BUILT_SHARED_OBJECT_PATH):
+                return_code = subprocess.call(["cargo", "build", "-p", "hermes-mqtt-ffi", "--release"])
+                if return_code > 0:
+                    raise Exception("Could not compile C bindings")
+
+            shutil.copy(BUILT_SHARED_OBJECT_PATH, DYLIB_PATH)
 
         install.run(self)
 
