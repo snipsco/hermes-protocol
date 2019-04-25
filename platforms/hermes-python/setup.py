@@ -4,15 +4,46 @@
 import io
 import os
 from setuptools import setup, find_packages
+import sys
+import subprocess
+import shutil
 
 from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
 from setuptools.command.install import install
+
+PACKAGE_NAME = "hermes_python"
+here = os.path.dirname(os.path.abspath(__file__))
+PACKAGE_PATH = os.path.join(here, PACKAGE_NAME)
+README = os.path.join(here, "README.rst")
+HISTORY = os.path.join(here, "documentation/source/HISTORY.rst")
+VERSION = "__version__.py"
+
+DYLIB_PATH = os.path.join(PACKAGE_PATH, "dylib")
+SHARED_OBJECT_FILENAME = "libhermes_mqtt_ffi"
+SHARED_OBJECT_EXTENSION = ".dylib" if sys.platform.startswith("darwin") else ".so"
+SHARED_OBJECT_PATH = os.path.join(DYLIB_PATH, SHARED_OBJECT_FILENAME + SHARED_OBJECT_EXTENSION)
 
 
 class InstallPlatlib(install):
     def finalize_options(self):
         install.finalize_options(self)
         self.install_lib = self.install_platlib
+
+    def run(self):
+        BUILT_SHARED_OBJECT_PATH = os.path.join(
+            os.path.normpath(os.path.join(here, "../..")),
+            "target/release/{}{}".format(SHARED_OBJECT_FILENAME, SHARED_OBJECT_EXTENSION)
+        )
+
+        if not os.path.exists(SHARED_OBJECT_PATH):
+            if not os.path.exists(BUILT_SHARED_OBJECT_PATH):
+                return_code = subprocess.call(["cargo", "build", "-p", "hermes-mqtt-ffi", "--release"])
+                if return_code > 0:
+                    raise Exception("Could not compile C bindings")
+
+            shutil.copy(BUILT_SHARED_OBJECT_PATH, DYLIB_PATH)
+
+        install.run(self)
 
 
 class bdist_wheel(_bdist_wheel, object):
@@ -24,14 +55,6 @@ class bdist_wheel(_bdist_wheel, object):
     def get_tag(self):
         return super(bdist_wheel, self).get_tag()
 
-
-
-PACKAGE_NAME = "hermes_python"
-here = os.path.dirname(os.path.abspath(__file__))
-PACKAGE_PATH = os.path.join(here, PACKAGE_NAME)
-README = os.path.join(here, "README.rst")
-HISTORY = os.path.join(here, "documentation/source/HISTORY.rst")
-VERSION = "__version__.py"
 
 with io.open(os.path.join(PACKAGE_PATH, VERSION), encoding="utf8") as f:
     about = dict()
@@ -61,7 +84,7 @@ setup(
     long_description=readme + history,
     author='Anthony Reinette',
     author_email='anthony.reinette@snips.ai',
-    url=about['__url__'],
+    project_urls=about['__url__'],
     classifiers=[
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
