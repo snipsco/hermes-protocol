@@ -81,8 +81,9 @@ function getPlatformName () {
 }
 
 
-if(skipOnSelfInstall) {
-    // Skipping post-install step on hermes-javascript self install.
+if(skipOnSelfInstall || process.env.HERMES_SKIP_SHARED_LIB) {
+    // Skipping post-install step on hermes-javascript self install or
+    // if the HERMES_SKIP_SHARED_LIB environment variable is set.
 } else {
     logger.cmd('- Checking platform support.')
     const platformName = getPlatformName()
