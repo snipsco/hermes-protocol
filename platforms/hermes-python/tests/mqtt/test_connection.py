@@ -11,7 +11,7 @@ from hermes_python.hermes import Hermes
 @pytest.fixture(scope="module")
 def mqtt_server():
     print("Starting MQTT Server")
-    mqtt_server = subprocess.Popen("/usr/local/opt/mosquitto/sbin/mosquitto")
+    mqtt_server = subprocess.Popen("mosquitto")
     time.sleep(1)  # Let's wait a bit before it's started
     yield mqtt_server
     print("Tearing down MQTT Server")
