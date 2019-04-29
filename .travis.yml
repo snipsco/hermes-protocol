@@ -25,6 +25,7 @@ rust:
   - nightly
 
 script:
+  - set -e
   - if [ "$TRAVIS_RUST_VERSION" == "stable" ]; then
       cargo fmt --all -- --check;
     fi
