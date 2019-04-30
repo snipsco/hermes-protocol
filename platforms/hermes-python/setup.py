@@ -140,7 +140,7 @@ class bdist_wheel(_bdist_wheel, HermesExtension):
         _bdist_wheel.run(self)
 
     def get_tag(self):
-        return super(bdist_wheel, self).get_tag()
+        return _bdist_wheel.get_tag(self)
 
 
 with io.open(os.path.join(PACKAGE_PATH, VERSION), encoding="utf8") as f:
