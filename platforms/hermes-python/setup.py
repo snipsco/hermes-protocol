@@ -1,7 +1,6 @@
 #! /usr/bin/env python
 # encoding: utf-8
 
-import colorama
 import io
 import os
 from setuptools import setup, find_packages
@@ -23,12 +22,12 @@ VERSION = "__version__.py"
 
 def log(level, msg):
     levels = {
-        'info': colorama.Fore.CYAN,
-        'warning': colorama.Fore.YELLOW,
-        'error': colorama.Fore.RED,
-        'success': colorama.Fore.GREEN
+        'info': '\033[36m',
+        'warning': '\033[33m',
+        'error': '\033[31m',
+        'success': '\033[32m'
     }
-    print(levels[level] + msg + colorama.Style.RESET_ALL)
+    print(levels[level] + msg + '\033[39m')
 
 class InstallPlatlib(install):
     def finalize_options(self):
