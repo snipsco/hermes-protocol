@@ -153,6 +153,9 @@ with io.open(README, "rt", encoding="utf8") as f:
 with io.open(HISTORY, "rt", encoding="utf8") as f:
     history = f.read()
 
+with io.open(os.path.join(here, "requirements/install.txt")) as f:
+    install_requires = f.read().strip().split('\n')
+
 packages = [p for p in find_packages() if "tests" not in p]
 
 extras_require = {
@@ -179,7 +182,7 @@ setup(
     download_url='',
     license='MIT',
     keywords=['snips'],
-    install_requires=['six', 'future', 'typing', 'enum34'],
+    install_requires=install_requires,
     test_suite="tests",
     extras_require=extras_require,
     packages=packages,
@@ -199,3 +202,4 @@ setup(
     zip_safe=False,
     include_package_data=True,
 )
+
