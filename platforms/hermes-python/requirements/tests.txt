@@ -1,7 +1,4 @@
+-r install.txt
 mock
 pytest
-coverage
-pytest-cov
-future
-typing
 paho-mqtt
