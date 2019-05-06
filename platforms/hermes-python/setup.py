@@ -29,10 +29,12 @@ def log(level, msg):
     }
     print(levels[level] + msg + '\033[39m')
 
+
 class InstallPlatlib(install):
     def finalize_options(self):
         install.finalize_options(self)
         self.install_lib = self.install_platlib
+
 
 class HermesExtension(Command):
     DYLIB_PATH = os.path.join(PACKAGE_PATH, "dylib")
@@ -52,7 +54,6 @@ class HermesExtension(Command):
     ]
 
     BUILD_HERMES_EXTENSION_COMMAND = ["cargo", "build", "-p", "hermes-mqtt-ffi", "--release"]
-
 
     def initialize_options(self):
         log("info", "preparing hermes extension building step")
@@ -115,8 +116,8 @@ class HermesExtension(Command):
 
         if os.path.samefile(self.include_extension, self.DYLIB_PATH):
             log("error", "got here")
-        
-	shutil.copy(self.include_extension, self.DYLIB_PATH)
+
+        shutil.copy(self.include_extension, self.DYLIB_PATH)
         log("success", "Copied {} -> {}".format(self.include_extension, self.DYLIB_PATH))
         log("warning", 10 * "=" + " End of Compiling Hermes Extension Step " + 10 * "=")
 
@@ -201,4 +202,3 @@ setup(
     zip_safe=False,
     include_package_data=True,
 )
-
