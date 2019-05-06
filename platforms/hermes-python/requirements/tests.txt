@@ -1,3 +1,4 @@
 -r install.txt
 mock
 pytest
+paho-mqtt
