@@ -17,9 +17,9 @@ mkdir -p tests/roundtrip/debug
 # Let's copy them to appropriate locations
 
 if [[ $(uname) == "Linux" ]]; then 
-    cp ../../target/release/libhermes_ffi_test.so tests/roundtrip/debug
+    cp ../../target/debug/libhermes_ffi_test.so tests/roundtrip/debug
 elif [[ $(uname) == "Darwin" ]]; then
-    cp ../../target/release/libhermes_ffi_test.dylib tests/roundtrip/debug
+    cp ../../rarget/debug/libhermes_ffi_test.dylib tests/roundtrip/debug
 fi
 
 virtualenv --python=python2.7 env27
