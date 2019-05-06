@@ -89,8 +89,9 @@ class HermesExtension(Command):
                     self.include_extension = self.SHARED_OBJECT_PATH
 
             else:
+                log("info", "Will look for pre-built extension at path : {}".format(self.include_extension))
                 if not os.path.exists(self.include_extension):  # We check that the provided extension exists
-                    raise Exception("the provided path to the compiled extension : {} doesn't exists ...")
+                    raise Exception("the provided path to the compiled extension : {} doesn't exists ...".format(self.include_extension))
 
             self.include_extension = os.path.normpath(self.include_extension)
         else:
@@ -114,9 +115,16 @@ class HermesExtension(Command):
                 log("success", "Done compiling hermes extension !")
                 self.include_extension = BUILT_SHARED_OBJECT_PATH
 
-        if not os.path.samefile(self.include_extension, self.SHARED_OBJECT_PATH):
+
+        if not os.path.exists(self.SHARED_OBJECT_PATH):
             shutil.copy(self.include_extension, self.DYLIB_PATH)
             log("success", "Copied {} -> {}".format(self.include_extension, self.DYLIB_PATH))
+        else:
+            if not os.path.samefile(self.include_extension, self.SHARED_OBJECT_PATH):
+                shutil.copy(self.include_extension, self.DYLIB_PATH)
+                log("success", "Copied {} -> {}".format(self.include_extension, self.DYLIB_PATH))
+            else:
+                log("success", "The file : {} is ready to be copied!".format(self.include_extension, self.DYLIB_PATH))
 
         log("warning", 10 * "=" + " End of Compiling Hermes Extension Step " + 10 * "=")
 
