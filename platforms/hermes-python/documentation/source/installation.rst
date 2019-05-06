@@ -32,3 +32,29 @@ The built wheels should be in ``platforms/hermes-python/dist``
 
 You can install those with pip : ``pip install platforms/hermes-python/dist/<your_wheel>.whl``
 
+Advanced wheel building
+=======================
+
+We define a new API for including pre-compiled shared objects when building a platform wheel. ::
+
+    python setup.py bdist_wheel
+
+This command will compile the ``hermes-mqtt-ffi`` Rust extension, copy them to an appropriate location, and include them in the wheel.
+
+We introduce a new command-line argument : ``include-extension`` which is a way to include an already compiled (in previous steps) ``hermes-mqtt-ffi`` extension in the wheel.
+
+Its usage is the following : ``include-extension=<default | the/path/to/your/extension.[so|dylib]>``
+
+For instance : ::
+
+    python setup.py bdist_wheel --include-extension=default
+
+The default value for ``include-extension`` will look up for pre-compiled extension in the default paths (in ``hermes-protocol/target/release/libhermes_mqtt_ffi.[dylib|so]`` and ``hermes-protocol/platforms/hermes-python/hermes_python/dylib``). ::
+
+    python setup.py bdist_wheel --include-extension=<the/path/to/your/extension.[so|dylib]>
+
+When doing x-compilation, you can also specify the target platform : ::
+
+    python setup.py bdist_wheel --include-extension=<the/path/to/your/extension.[so|dylib]> --plat-name=<the_platform_tag>
+
+
