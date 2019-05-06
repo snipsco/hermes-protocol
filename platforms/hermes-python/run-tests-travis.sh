@@ -24,7 +24,7 @@ fi
 
 virtualenv --python=python2.7 env27
 source env27/bin/activate 
-python setup.py bdist_wheel --include-extension=default
+python setup.py bdist_wheel --include-extension=../../target/debug/libhermes_mqtt_ffi.so
 pip install -r requirements/tests.txt
 py.test 
 
