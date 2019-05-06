@@ -16,7 +16,11 @@ mkdir -p tests/roundtrip/debug
 # The artifacts were generated in a previous stage of the build
 # Let's copy them to appropriate locations
 
-cp ../../target/release/libhermes_ffi_test.dylib tests/roundtrip/debug
+if [[ $(uname) == "Linux" ]]; then 
+    cp ../../target/release/libhermes_ffi_test.so tests/roundtrip/debug
+elif [[ $(uname) == "Darwin" ]]; then
+    cp ../../target/release/libhermes_ffi_test.dylib tests/roundtrip/debug
+fi
 
 virtualenv --python=python2.7 env27
 source env27/bin/activate 
