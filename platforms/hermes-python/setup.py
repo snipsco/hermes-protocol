@@ -114,11 +114,10 @@ class HermesExtension(Command):
                 log("success", "Done compiling hermes extension !")
                 self.include_extension = BUILT_SHARED_OBJECT_PATH
 
-        if os.path.samefile(self.include_extension, self.DYLIB_PATH):
-            log("error", "got here")
+        if not os.path.samefile(self.include_extension, self.SHARED_OBJECT_PATH):
+            shutil.copy(self.include_extension, self.DYLIB_PATH)
+            log("success", "Copied {} -> {}".format(self.include_extension, self.DYLIB_PATH))
 
-        shutil.copy(self.include_extension, self.DYLIB_PATH)
-        log("success", "Copied {} -> {}".format(self.include_extension, self.DYLIB_PATH))
         log("warning", 10 * "=" + " End of Compiling Hermes Extension Step " + 10 * "=")
 
 
