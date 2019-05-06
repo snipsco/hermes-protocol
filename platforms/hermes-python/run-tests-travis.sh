@@ -16,7 +16,7 @@ mkdir -p tests/roundtrip/debug
 # The artifacts were generated in a previous stage of the build
 # Let's copy them to appropriate locations
 
-cp ../../target/debug/libhermes_ffi_test.dylib tests/roundtrip/debug
+cp ../../target/release/libhermes_ffi_test.dylib tests/roundtrip/debug
 
 virtualenv --python=python2.7 env27
 source env27/bin/activate 
