@@ -1,5 +1,12 @@
 History
 ==========
+0.5.2 (2019-05-07)
+^^^^^^^^^^^^^^^^^^
+* Fixes nullable fields in Dialogue ontology and brings more type annotations
+
+0.5.1 (2019-05-06)
+^^^^^^^^^^^^^^^^^^
+* introduces new (cli) API to build python wheel that include pre-compiled hermes-mqtt-ffi extension.
 
 0.5.0 (2019-04-19)
 ^^^^^^^^^^^^^^^^^^^
