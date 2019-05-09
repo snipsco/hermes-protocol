@@ -125,7 +125,8 @@ class SessionStartedMessage(object):
         :param session_id: Session identifier that was started.
         :param custom_data: Custom data provided in the start session request on.
         :param site_id:  Site where the user interaction is taking place.
-        :param reactivated_from_session_id: This optional field indicates this session is a reactivation of a previously
+        :param reactivated_from_session_id: NOT IMPLEMENTED YET. This feature is coming soon.
+        This optional field indicates this session is a reactivation of a previously
         ended session. This is for example provided when the user continues talking to the platform without saying the
         hotword again after a session was ended.
         """
