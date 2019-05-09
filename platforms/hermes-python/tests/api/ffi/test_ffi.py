@@ -42,8 +42,8 @@ def test_establish_connection_calls_api_subsets(hermes_protocol_handler_new_mqtt
     ffi.injection.initialize_facade.assert_called_once()
     ffi.tts.initialize_facade.assert_called_once()
 
-
-def test_release_connection_calls_api_subsets():
+@mock.patch("hermes_python.api.ffi.hermes_destroy_mqtt_protocol_handler")
+def test_release_connection_calls_api_subsets(hermes_destroy_mqtt_protocol_handler):
     ffi = FFI()
 
     # Here, you have to mock every API subset of Hermes Protocol
@@ -57,8 +57,11 @@ def test_release_connection_calls_api_subsets():
     ffi.dialogue.release_facade.assert_called_once()
     ffi.sound_feedback.release_facade.assert_called_once()
 
+    hermes_destroy_mqtt_protocol_handler.assert_called_once()
+
 
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
+@mock.patch("hermes_python.api.ffi.hermes_destroy_mqtt_protocol_handler")
 @mock.patch("hermes_python.api.ffi.DialogueFFI")
 @mock.patch("hermes_python.api.ffi.SoundFeedBackFFI")
 @mock.patch("hermes_python.api.ffi.InjectionFFI")
@@ -69,6 +72,7 @@ class ConnectionTest(object):
                                                 injectionFFI,
                                                 soundfeedbackFFI,
                                                 dialogueFFI,
+                                                hermes_destroy_mqtt_protocol_handler,
                                                 hermes_protocol_handler_new_mqtt):
         ffi = FFI()
         mqtt_opts = MqttOptions()
@@ -77,12 +81,14 @@ class ConnectionTest(object):
         hermes_protocol_handler_new_mqtt.assert_called_once()
         ffi.dialogue.initialize_facade.assert_called_once()
         ffi.sound_feedback.initialize_facade.assert_called_once()
+        hermes_destroy_mqtt_protocol_handler.assert_called_once()
 
     def test_release_connection_sucessful(self,
                                           ttsFFI,
                                           injectionFFI,
                                           soundfeedbackFFI,
                                           dialogueFFI,
+                                          hermes_destroy_mqtt_protocol_handler,
                                           hermes_protocol_handler_new_mqtt):
         ffi = FFI()
         mqtt_opts = MqttOptions()
@@ -96,6 +102,8 @@ class ConnectionTest(object):
         ffi.dialogue.release_facade.assert_called_once()
         ffi.sound_feedback.initialize_facade.assert_called_once()
         ffi.sound_feedback.release_facade.assert_called_once()
+
+        hermes_destroy_mqtt_protocol_handler.assert_called_once()
 
 
 

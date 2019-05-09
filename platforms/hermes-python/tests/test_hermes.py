@@ -40,8 +40,10 @@ def test_context_manager_enter_calls_ffi_api():
 @mock.patch("hermes_python.api.ffi.feedback.hermes_protocol_handler_sound_feedback_facade")
 @mock.patch("hermes_python.api.ffi.dialogue.hermes_drop_dialogue_facade")
 @mock.patch("hermes_python.api.ffi.dialogue.hermes_protocol_handler_dialogue_facade")
+@mock.patch("hermes_python.api.ffi.hermes_destroy_mqtt_protocol_handler")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
 def test_context_manager_enter_exit(hermes_protocol_handler_new_mqtt,
+                                    hermes_destroy_mqtt_protocol_handler,
                                     hermes_protocol_handler_dialogue_facade, hermes_drop_dialogue_facade,
                                     hermes_protocol_handler_sound_feedback_facade, hermes_drop_sound_feedback_facade,
                                     hermes_protocol_handler_injection_facade, hermes_drop_injection_facade,
@@ -62,6 +64,8 @@ def test_context_manager_enter_exit(hermes_protocol_handler_new_mqtt,
 
     hermes_protocol_handler_tts_facade.assert_called_once()
     hermes_drop_tts_facade.assert_called_once()
+
+    hermes_destroy_mqtt_protocol_handler.assert_called_once()
 
 
 @mock.patch("hermes_python.api.ffi.feedback.hermes_protocol_handler_sound_feedback_facade")

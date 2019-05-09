@@ -1,6 +1,6 @@
 from ctypes import POINTER, c_char_p, byref
 from ...ffi.ontology import CProtocolHandler, CMqttOptions
-from ...ffi.utils import hermes_protocol_handler_new_mqtt_with_options
+from ...ffi.utils import hermes_protocol_handler_new_mqtt_with_options, hermes_destroy_mqtt_protocol_handler
 from ...ffi import utils, lib
 
 from .dialogue import DialogueFFI
@@ -44,7 +44,7 @@ class FFI(object):
         self.tts.release_facade()
 
     def release_connection(self):
-        utils.hermes_destroy_mqtt_protocol_handler(self._protocol_handler)
+        hermes_destroy_mqtt_protocol_handler(self._protocol_handler)
         self._protocol_handler = POINTER(CProtocolHandler)()
         self.release_facades()
 
