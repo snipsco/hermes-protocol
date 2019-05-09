@@ -11,6 +11,7 @@ from ..ontology import MqttOptions
 
 hermes_protocol_handler_new_mqtt = wrap_library_call(lib.hermes_protocol_handler_new_mqtt)
 hermes_protocol_handler_new_mqtt_with_options = wrap_library_call(lib.hermes_protocol_handler_new_mqtt_with_options)
+hermes_destroy_mqtt_protocol_handler = wrap_library_call(lib.hermes_destroy_mqtt_protocol_handler)
 
 # dialogue
 hermes_protocol_handler_dialogue_facade = wrap_library_call(lib.hermes_protocol_handler_dialogue_facade)

@@ -44,6 +44,7 @@ class FFI(object):
         self.tts.release_facade()
 
     def release_connection(self):
+        utils.hermes_destroy_mqtt_protocol_handler(self._protocol_handler)
         self._protocol_handler = POINTER(CProtocolHandler)()
         self.release_facades()
 
