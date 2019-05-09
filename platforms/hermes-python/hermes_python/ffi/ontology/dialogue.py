@@ -26,7 +26,7 @@ class CContinueSessionMessage(Structure):
     @classmethod
     def build(cls, session_id, text, intent_filter, custom_data, slot=None, send_intent_not_recognized=False):
         session_id = session_id.encode('utf-8')
-        text = text.encode('utf-8') if text else None
+        text = text.encode('utf-8')
         intent_filter = [intent_filter_item.encode('utf-8') for intent_filter_item in intent_filter]
 
         c_intent_filter = CStringArray()
