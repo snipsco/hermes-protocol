@@ -1,5 +1,5 @@
 __title__ = 'hermes_python'
-__version__ = '0.5.2'
+__version__ = '0.6.0'
 __description__ = 'Python bindings for Snips Hermes Protocol'
 __url__ = {
     'Documentation': 'https://hermespython.readthedocs.io/en/latest/',

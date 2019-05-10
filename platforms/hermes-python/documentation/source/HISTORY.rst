@@ -1,5 +1,8 @@
 History
 ==========
+0.6.0 (2019-05-10)
+* Introduces `register_sound` API
+
 0.5.2 (2019-05-07)
 ^^^^^^^^^^^^^^^^^^
 * Fixes nullable fields in Dialogue ontology and brings more type annotations
