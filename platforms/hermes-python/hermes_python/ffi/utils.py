@@ -56,6 +56,7 @@ hermes_injection_subscribe_injection_status = wrap_library_call(lib.hermes_injec
 
 # TTS
 hermes_protocol_handler_tts_facade = wrap_library_call(lib.hermes_protocol_handler_tts_facade)
+hermes_tts_publish_register_sound = wrap_library_call(lib.hermes_tts_publish_register_sound)
 
 # Freeing facades
 hermes_drop_asr_backend_facade = wrap_library_call(lib.hermes_drop_asr_backend_facade)

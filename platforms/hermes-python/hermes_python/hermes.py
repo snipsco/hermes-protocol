@@ -12,6 +12,7 @@ from .ontology.dialogue import ContinueSessionMessage, EndSessionMessage, StartS
     SessionInitAction, SessionStartedMessage, IntentMessage, SessionQueuedMessage, SessionEndedMessage, \
     DialogueConfiguration, IntentNotRecognizedMessage
 from .ontology.feedback import SiteMessage
+from .ontology.tts import RegisterSoundMessage
 from .api.ffi import FFI
 
 import threading
@@ -297,6 +298,17 @@ class Hermes(object):
         :return: the current instance of Hermes to allow chaining.
         """
         self.ffi.sound_feedback.publish_toggle_off(site_message)
+        return self
+
+    def register_sound(self, sound):
+        # type: (RegisterSoundMessage) -> Hermes
+        """
+        Register a sound that can later be played by the TTS.
+
+        :param sound: a sound to be played by the TTS.
+        :return: the current instance of Hermes to allow chaining.
+        """
+        self.ffi.tts.publish_register_sound(sound)
         return self
 
     def start(self):
