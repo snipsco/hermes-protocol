@@ -5,6 +5,7 @@ import pytest
 from hermes_python.hermes import Hermes
 from hermes_python.ontology import MqttOptions
 from hermes_python.ontology.dialogue import StartSessionMessage, SessionInitNotification, ContinueSessionMessage
+from hermes_python.ontology.injection import InjectionRequestMessage
 
 HOST = "localhost"
 DUMMY_INTENT_NAME = "INTENT"
@@ -209,3 +210,38 @@ class TestContinueSession(object):
         continue_session_message = ContinueSessionMessage("session_id", "Tell me what the missing slot is", ["intent1"],
                                                           None, False, "missing_slot")
         h.ffi.dialogue.publish_continue_session.assert_called_once_with(continue_session_message)
+
+
+class TestInjection(object):
+    def test_requesting_injection_status(self):
+        h = Hermes(HOST)
+        h.ffi = mock.MagicMock()
+
+
+        with h:
+            h.request_injection_status()
+
+        h.ffi.injection.publish_injection_status_request.assert_called_once()
+
+    def test_correctly_subscribing_to_injection_status(self):
+        def injection_request_cb(callback, injection_status):
+            pass
+
+        h = Hermes(HOST)
+        h.ffi = mock.MagicMock()
+
+        with h:
+            h.subscribe_injection_status(injection_request_cb)
+
+        h.ffi.injection.register_subscribe_injection_status.assert_called_once_with(injection_request_cb, h)
+
+    def test_correctly_requesting_injection(self):
+        h = Hermes(HOST)
+        h.ffi = mock.MagicMock()
+
+        injection_request = InjectionRequestMessage([], dict())
+
+        with h:
+            h.request_injection(injection_request)
+
+        h.ffi.injection.publish_injection_request.assert_called_once_with(injection_request)
