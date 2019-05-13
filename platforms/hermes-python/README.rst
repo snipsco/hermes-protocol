@@ -585,6 +585,10 @@ You can disable/enable intents with the following methods :
 Configuring Sound Feedback
 ==========================
 
+
+Enabling and disabling sound feedback
+-------------------------------------
+
 By default, the snips platform notify the user of different events of
 its lifecycle with sound. It emits a sound when the wakeword is
 detected, or when the NLU engine (natural understanding engine) has
@@ -602,6 +606,48 @@ specifying the ``siteId`` where the sound feedback should be disabled.
    with Hermes("localhost:1883") as h:
        h.disable_sound_feedback(SiteMessage("kitchen"))
        h.start()
+
+
+Making the TTS play custom sounds
+---------------------------------
+
+The snips-platform allows you to register custom sounds which can be
+played later by the TTS engine.
+
+``hermes-python`` allows you to register sounds on the fly, by
+specifying a string identifier for the sound, and providing a ``wav``
+file.
+
+For instance, let’s say that your assistant tells a bad joke and that
+you want to play a *ba dum tss* sound at the end of the punchline.
+
+::
+
+   from builtins import bytearray
+   from hermes_python.hermes import Hermes
+   from hermes_python.ontology.tts import RegisterSoundMessage
+
+   # Step 1 : We read a wav file
+   def read_wav_data():
+       with open('ba_dum_tss.wav', 'rb') as f:
+           read_data = f.read()
+       return bytearray(read_data)
+
+
+   # Step 2 : We register a sound that will be named "bad_joke"
+   sound = RegisterSoundMessage("bad_joke", read_wav_data())
+
+   def callback(hermes, intent_message):
+       hermes.publish_end_session(intent_message.session_id, "A very bad joke ... [[sound:bad_joke]]")  # Step 4 : You play your registered sound
+
+   with Hermes("localhost:1883") as h:
+       h.connect()\
+           .register_sound(sound)\    # Step 3 : You register your custom sound
+           .subscribe_intents(callback)\
+           .start()
+
+In the TTS string, when you specify the sound you want to play, you
+need to follow the syntax : ``[[sound:<your_sound_id>]]``
 
 
 Enabling Debugging

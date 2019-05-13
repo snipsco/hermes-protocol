@@ -13,12 +13,9 @@ from hermes_python.ontology.tts import RegisterSoundMessage
 
 @pytest.fixture(scope="package")
 def wav_data():
-    import wave
-    wav = wave.open(os.path.join(os.path.dirname(__file__), "../data/test.wav"), mode="rb")
-    nb_of_frames = wav.getnframes()
-    frames = wav.readframes(nb_of_frames)  # in python2, the type is str, in py3 the type is bytes
-    wav.close()
-    return bytearray(frames)
+    with open(os.path.join(os.path.dirname(__file__), "../data/test.wav"), 'rb') as f:
+        read_data = f.read()
+    return bytearray(read_data)
 
 
 def test_serde_CStringArray():
