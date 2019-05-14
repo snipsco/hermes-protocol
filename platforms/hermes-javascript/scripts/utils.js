@@ -18,8 +18,20 @@ const LIB_EXTENSION = {
     win32:  '.dll'
 }[process.platform]
 
+const LIB_NAME = {
+    linux:  'libhermes_mqtt_ffi',
+    linux2: 'libhermes_mqtt_ffi',
+    sunos:  'libhermes_mqtt_ffi',
+    solaris: 'libhermes_mqtt_ffi',
+    freebsd: 'libhermes_mqtt_ffi',
+    openbsd: 'libhermes_mqtt_ffi',
+    darwin: 'libhermes_mqtt_ffi',
+    mac:    'libhermes_mqtt_ffi',
+    win32:  'hermes_mqtt_ffi.dll'
+}[process.platform]
+
 const LIB_PATH = baseFolder =>
-    path.join(baseFolder, 'target/release/libhermes_mqtt_ffi' + LIB_EXTENSION)
+    path.join(baseFolder, 'target/release/' + LIB_NAME + LIB_EXTENSION)
 const LIB_DIST = path.join(__dirname, '../libhermes_mqtt_ffi' + LIB_EXTENSION)
 
 const errorStyle = chalk.bold.red
