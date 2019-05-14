@@ -213,27 +213,28 @@ class TestContinueSession(object):
 
 
 class TestInjection(object):
-    def test_requesting_injection_status(self):
-        h = Hermes(HOST)
-        h.ffi = mock.MagicMock()
-
-
-        with h:
-            h.request_injection_status()
-
-        h.ffi.injection.publish_injection_status_request.assert_called_once()
-
-    def test_correctly_subscribing_to_injection_status(self):
-        def injection_request_cb(callback, injection_status):
-            pass
-
-        h = Hermes(HOST)
-        h.ffi = mock.MagicMock()
-
-        with h:
-            h.subscribe_injection_status(injection_request_cb)
-
-        h.ffi.injection.register_subscribe_injection_status.assert_called_once_with(injection_request_cb, h)
+    # These tests are disabled as long as the injection API is stabilized.
+    # def test_requesting_injection_status(self):
+    #     h = Hermes(HOST)
+    #     h.ffi = mock.MagicMock()
+    #
+    #
+    #     with h:
+    #         h.request_injection_status()
+    #
+    #     h.ffi.injection.publish_injection_status_request.assert_called_once()
+    #
+    # def test_correctly_subscribing_to_injection_status(self):
+    #     def injection_request_cb(callback, injection_status):
+    #         pass
+    #
+    #     h = Hermes(HOST)
+    #     h.ffi = mock.MagicMock()
+    #
+    #     with h:
+    #         h.subscribe_injection_status(injection_request_cb)
+    #
+    #     h.ffi.injection.register_subscribe_injection_status.assert_called_once_with(injection_request_cb, h)
 
     def test_correctly_requesting_injection(self):
         h = Hermes(HOST)
