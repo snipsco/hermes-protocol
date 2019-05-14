@@ -349,7 +349,7 @@ class Hermes(object):
     #     return self
 
     def request_injection(self, injection_request):
-        # type: (InjectionRequest) -> Hermes
+        # type: (InjectionRequestMessage) -> Hermes
         """
         Publishes an injection request to the platform.
 

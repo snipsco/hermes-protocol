@@ -14,7 +14,7 @@ class InjectionStatusMessage(object):
 
 class InjectionRequestMessage(object):
     def __init__(self, operations, lexicon=dict(), cross_language=None, id=None):
-         # type: (List[InjectionRequestOperation], Mapping[Text, List[Text]], Optional[Text], Optional[Text]) -> None
+        # type: (List[InjectionRequestOperation], Mapping[Text, List[Text]], Optional[Text], Optional[Text]) -> None
         self.operations = operations
         self.lexicon = lexicon
         self.cross_language = cross_language
@@ -38,11 +38,6 @@ class InjectionRequestMessage(object):
 
     def into_c_repr(self):
         return CInjectionRequestMessage.from_repr(self)
-
-    @classmethod
-    def from_operations(cls, operations):
-        # type(List[InjectionRequestOperation]) -> InjectionRequestMessage
-        return cls(operations)
 
 
 class InjectionRequestOperation(object):
