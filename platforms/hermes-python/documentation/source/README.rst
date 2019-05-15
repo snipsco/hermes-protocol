@@ -26,13 +26,15 @@ Build details
 Creating macOS wheels
 ---------------------
 
-The build script : ``build_scripts/build_macos_wheels.sh`` uses ``pyenv`` to generate ``hermes-python``
-wheels for different versions of python.
+The build script : ``build_scripts/build_macos_wheels.sh`` uses ``pyenv`` 
+to generate ``hermes-python`` wheels for different versions of python.
 
 To be able to run it, you need to :
 
 * install pyenv : brew install pyenv. Then follow the additional steps detailled
-* you then have to install python at different versions: ``pyenv install --list`` to list the available version to install
-* Before installing and building the different python version from sources, install the required dependencies : `Link here <https://github.com/pyenv/pyenv/wiki />`_
+* you then have to install python at different versions: 
+``pyenv install --list`` to list the available version to install
+* Before installing and building the different python version from sources, 
+install the required dependencies : `Link here <https://github.com/pyenv/pyenv/wiki />`_
 
 That's it !
