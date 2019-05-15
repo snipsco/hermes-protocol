@@ -1,3 +1,12 @@
+## [0.3.8](https://github.com/snipsco/hermes-protocol/compare/js/0.3.7...0.3.8) (2019-05-14)
+
+
+### Bug Fixes
+
+* **postinstall:** handle different lib name for windows users ([6e86721](https://github.com/snipsco/hermes-protocol/commit/6e86721))
+
+
+
 ## [0.3.7](https://github.com/snipsco/hermes-protocol/compare/js/0.3.6...0.3.7) (2019-03-27)
 
 
