@@ -2,7 +2,6 @@ from typing import Optional, Text, List, Mapping
 from ...ffi.ontology.injection import InjectionKind, CInjectionRequestMessage, CInjectionRequestOperation
 
 
-
 class InjectionStatusMessage(object):
     def __init__(self, last_injection_date):
         self.last_injection_date = last_injection_date
@@ -14,7 +13,7 @@ class InjectionStatusMessage(object):
 
 
 class InjectionRequestMessage(object):
-    def __init__(self, operations, lexicon, cross_language=None, id=None):
+    def __init__(self, operations, lexicon=dict(), cross_language=None, id=None):
         # type: (List[InjectionRequestOperation], Mapping[Text, List[Text]], Optional[Text], Optional[Text]) -> None
         self.operations = operations
         self.lexicon = lexicon

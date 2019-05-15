@@ -1,6 +1,10 @@
 History
 ==========
 
+0.7.0 (2019-05-14)
+------------------
+* Introduces Entities Injection API.
+
 0.6.1 (2019-05-10)
 ------------------
 * Introduces `register_sound` API
