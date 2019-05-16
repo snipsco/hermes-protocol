@@ -7,3 +7,4 @@ payloads
 /experiments.js
 libhermes_*.dylib
 /docs
+/types

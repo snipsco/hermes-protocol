@@ -21,11 +21,12 @@
     "start": "npm run lint && npm run clean && npm run build && npm run test && npm run documentation",
     "lint": "eslint --ext .js,.ts src",
     "lint:fix": "eslint --ext .js,.ts --fix src",
-    "build": "npm run build:sources && npm run build:declarations",
+    "build": "npm run build:sources && npm run build:declarations && npm run build:types",
     "build:sources": "tsc",
     "build:declarations": "tsc -d --emitDeclarationOnly --allowJs false",
+    "build:types": "tsc -p tsconfig.types.json",
     "build:hermes": "node scripts/make.js",
-    "clean": "rimraf dist",
+    "clean": "rimraf dist && rimraf types",
     "postinstall": "node scripts/postinstall.js",
     "test": "npm run test:mqtt",
     "test:mqtt": "npm run test:roundtrip:json && npm run test:mqtt:json && npm run test:mqtt:tls",
@@ -43,6 +44,7 @@
   "license": "(MIT OR Apache-2.0)",
   "files": [
     "dist",
+    "types",
     "scripts"
   ],
   "dependencies": {
