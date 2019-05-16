@@ -1,3 +1,8 @@
+## [0.3.9](https://github.com/snipsco/hermes-protocol/compare/js/0.3.8...0.3.9) (2019-05-16)
+
+* **Chore**: Types and enums have their specific import location now: `import { /* ... */ } from 'hermes-javascript/type'`
+
+
 ## [0.3.8](https://github.com/snipsco/hermes-protocol/compare/js/0.3.7...0.3.8) (2019-05-14)
 
 
