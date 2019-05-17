@@ -6,8 +6,8 @@ use failure::Fallible;
 use failure::ResultExt;
 use ffi_utils::*;
 
-use crate::asr::CAsrTokenDoubleArray;
-use crate::nlu::{CNluIntentClassifierResult, CNluSlotArray};
+use crate::ontology::asr::CAsrTokenDoubleArray;
+use crate::ontology::nlu::{CNluIntentClassifierResult, CNluSlotArray};
 
 #[repr(C)]
 #[derive(Debug)]
