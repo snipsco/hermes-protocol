@@ -1,3 +1,12 @@
+## [0.3.11](https://github.com/snipsco/hermes-protocol/compare/js/0.3.10...0.3.11) (2019-05-18)
+
+
+### Bug Fixes
+
+* **js:** prevent potential tiny memory leak ([d148945](https://github.com/snipsco/hermes-protocol/commit/d148945))
+
+
+
 ## [0.3.10](https://github.com/snipsco/hermes-protocol/compare/js/0.3.9...0.3.10) (2019-05-17)
 
 
