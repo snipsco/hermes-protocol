@@ -1,6 +1,8 @@
+#[cfg(feature = "structures")]
 pub mod ontology;
 mod protocol_handler;
 
+#[cfg(feature = "structures")]
 pub use crate::ontology::*;
 pub use crate::protocol_handler::*;
 

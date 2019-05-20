@@ -7,7 +7,7 @@ use failure::ResultExt;
 use ffi_utils::*;
 use snips_nlu_ontology_ffi_macros::*;
 
-use crate::asr::CAsrTokenArray;
+use crate::ontology::asr::CAsrTokenArray;
 
 #[repr(C)]
 #[derive(Debug)]
