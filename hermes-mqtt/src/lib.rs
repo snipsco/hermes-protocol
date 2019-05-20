@@ -296,10 +296,10 @@ macro_rules! impl_component_facades_for {
                 )
             }
 
-            fn subscribe_loaded(&self, handler: Callback0) -> Fallible<()> {
-                self.mqtt_handler.subscribe(
+            fn subscribe_loaded(&self, handler: Callback<LoadMessage>) -> Fallible<()> {
+                self.mqtt_handler.subscribe_payload(
                     &HermesTopic::Component(None, self.component, ComponentCommand::Loaded),
-                    move || handler.call(),
+                    move |p| handler.call(p),
                 )
             }
         }
@@ -326,12 +326,10 @@ macro_rules! impl_component_facades_for {
                 )
             }
 
-            fn publish_loaded(&self) -> Fallible<()> {
-                self.mqtt_handler.publish(&HermesTopic::Component(
-                    None,
-                    self.component,
-                    ComponentCommand::Loaded,
-                ))
+            fn publish_loaded(&self, loaded: LoadMessage) -> Fallible<()> {
+                self.mqtt_handler.publish_payload(
+                    &HermesTopic::Component(None, self.component, ComponentCommand::Loaded),
+                    loaded)
             }
         }
     };
@@ -416,10 +414,10 @@ macro_rules! impl_identifiable_component_facades_for {
                 )
             }
 
-            fn subscribe_loaded(&self, site_id: String, handler: Callback0) -> Fallible<()> {
-                self.mqtt_handler.subscribe(
+            fn subscribe_loaded(&self, site_id: String, handler: Callback<LoadMessage>) -> Fallible<()> {
+                self.mqtt_handler.subscribe_payload(
                     &HermesTopic::Component(Some(site_id), self.component, ComponentCommand::Loaded),
-                    move || handler.call(),
+                    move |p| handler.call(p),
                 )
             }
         }
@@ -446,12 +444,11 @@ macro_rules! impl_identifiable_component_facades_for {
                 )
             }
 
-            fn publish_loaded(&self, site_id: String) -> Fallible<()> {
-                self.mqtt_handler.publish(&HermesTopic::Component(
-                    Some(site_id),
-                    self.component,
-                    ComponentCommand::Loaded,
-                ))
+            fn publish_loaded(&self, site_id: String, loaded: LoadMessage) -> Fallible<()> {
+                self.mqtt_handler.publish_payload(
+                    &HermesTopic::Component(Some(site_id), self.component, ComponentCommand::Loaded),
+                    loaded,
+                )
             }
         }
     };
@@ -513,7 +510,7 @@ impl SoundFeedbackBackendFacade for MqttToggleableFacade {}
 impl AsrFacade for MqttToggleableComponentFacade {
     p!(publish_start_listening<AsrStartListeningMessage> &HermesTopic::Asr(AsrCommand::StartListening););
     p!(publish_stop_listening<SiteMessage> &HermesTopic::Asr(AsrCommand::StopListening););
-    p!(publish_reload &HermesTopic::Asr(AsrCommand::Reload););
+    p!(publish_reload<LoadMessage> &HermesTopic::Asr(AsrCommand::Reload););
     s!(subscribe_text_captured<TextCapturedMessage> &HermesTopic::Asr(AsrCommand::TextCaptured););
     s!(subscribe_partial_text_captured<TextCapturedMessage> &HermesTopic::Asr(AsrCommand::PartialTextCaptured););
 }
@@ -521,7 +518,7 @@ impl AsrFacade for MqttToggleableComponentFacade {
 impl AsrBackendFacade for MqttToggleableComponentFacade {
     s!(subscribe_start_listening<AsrStartListeningMessage> &HermesTopic::Asr(AsrCommand::StartListening););
     s!(subscribe_stop_listening<SiteMessage> &HermesTopic::Asr(AsrCommand::StopListening););
-    s!(subscribe_reload &HermesTopic::Asr(AsrCommand::Reload););
+    s!(subscribe_reload<LoadMessage> &HermesTopic::Asr(AsrCommand::Reload););
     p!(publish_text_captured<TextCapturedMessage> &HermesTopic::Asr(AsrCommand::TextCaptured););
     p!(publish_partial_text_captured<TextCapturedMessage> &HermesTopic::Asr(AsrCommand::PartialTextCaptured););
 }
@@ -552,7 +549,7 @@ impl TtsBackendFacade for MqttComponentFacade {
 impl NluFacade for MqttComponentFacade {
     p!(publish_query<NluQueryMessage> &HermesTopic::Nlu(NluCommand::Query););
     p!(publish_partial_query<NluSlotQueryMessage> &HermesTopic::Nlu(NluCommand::PartialQuery););
-    p!(publish_reload &HermesTopic::Nlu(NluCommand::Reload););
+    p!(publish_reload<LoadMessage> &HermesTopic::Nlu(NluCommand::Reload););
     s!(subscribe_slot_parsed<NluSlotMessage> &HermesTopic::Nlu(NluCommand::SlotParsed););
     s!(subscribe_intent_parsed<NluIntentMessage> &HermesTopic::Nlu(NluCommand::IntentParsed););
     s!(subscribe_intent_not_recognized<NluIntentNotRecognizedMessage> &HermesTopic::Nlu(NluCommand::IntentNotRecognized););
@@ -561,7 +558,7 @@ impl NluFacade for MqttComponentFacade {
 impl NluBackendFacade for MqttComponentFacade {
     s!(subscribe_query<NluQueryMessage> &HermesTopic::Nlu(NluCommand::Query););
     s!(subscribe_partial_query<NluSlotQueryMessage> &HermesTopic::Nlu(NluCommand::PartialQuery););
-    s!(subscribe_reload &HermesTopic::Nlu(NluCommand::Reload););
+    s!(subscribe_reload<LoadMessage> &HermesTopic::Nlu(NluCommand::Reload););
     p!(publish_slot_parsed<NluSlotMessage> &HermesTopic::Nlu(NluCommand::SlotParsed););
     p!(publish_intent_parsed<NluIntentMessage> &HermesTopic::Nlu(NluCommand::IntentParsed););
     p!(publish_intent_not_recognized<NluIntentNotRecognizedMessage> &HermesTopic::Nlu(NluCommand::IntentNotRecognized););

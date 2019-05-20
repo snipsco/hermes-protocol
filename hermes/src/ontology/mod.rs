@@ -81,3 +81,12 @@ where
     String::deserialize(deserializer)
         .and_then(|string| base64::decode(&string).map_err(|err| Error::custom(err.to_string())))
 }
+
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LoadMessage {
+    /// Optional id associated to a reload operation of a component
+    pub load_id: Option<String>,
+}
+
+

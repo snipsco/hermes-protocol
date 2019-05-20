@@ -54,3 +54,4 @@ pub struct TextCapturedMessage {
 }
 
 impl<'de> HermesMessage<'de> for TextCapturedMessage {}
+

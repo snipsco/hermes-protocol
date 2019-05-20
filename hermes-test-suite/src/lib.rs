@@ -279,7 +279,8 @@ macro_rules! t_component {
                         $f.subscribe_error <= ErrorMessage | $f_back.publish_error
                         with ErrorMessage { session_id: Some("123abc".into()), error: "some error".into(), context: None };);
                 t!(loaded_works:
-                        $f.subscribe_loaded <= $f_back.publish_loaded);
+                        $f.subscribe_loaded <= LoadMessage | $f_back.publish_loaded
+                        with LoadMessage { load_id: Some("abc".into()) }; );
             }
         };
     }
@@ -298,7 +299,8 @@ macro_rules! t_identifiable_component {
                         $f.subscribe_error { "identifier".to_string() } <= ErrorMessage | $f_back.publish_error
                         with ErrorMessage { session_id: Some("123abc".into()), error: "some error".into(), context: None };);
                 t!(loaded_works:
-                        $f.subscribe_loaded { "identifier".to_string() } <= $f_back.publish_loaded);
+                        $f.subscribe_loaded { "identifier".to_string() } <= LoadMessage | $f_back.publish_loaded
+                        with LoadMessage { load_id: Some("abc".into()) }; );
             }
         };
     }
@@ -360,7 +362,8 @@ macro_rules! test_suite {
                     asr_backend.subscribe_stop_listening <= SiteMessage | asr.publish_stop_listening
                     with SiteMessage { session_id: Some("abc".into()), site_id: "some site".into() };);
         t!(asr_reload:
-                    asr_backend.subscribe_reload <= asr.publish_reload);
+                    asr_backend.subscribe_reload <= LoadMessage | asr.publish_reload
+                    with LoadMessage { load_id: Some("abc".into()) }; );
 
         t_component!(tts_component: tts_backend | tts);
         t!(tts_say_works:
@@ -396,7 +399,8 @@ macro_rules! test_suite {
                     nlu.subscribe_intent_not_recognized <= NluIntentNotRecognizedMessage | nlu_backend.publish_intent_not_recognized
                     with NluIntentNotRecognizedMessage { id: None, input: "hello world".into(), session_id: Some("abc".into()), confidence_score: 0.5 };);
         t!(nlu_reload:
-                    nlu_backend.subscribe_reload <= nlu.publish_reload);
+                    nlu_backend.subscribe_reload <= LoadMessage | nlu.publish_reload
+                    with LoadMessage { load_id: Some("abc".into()) }; );
 
         t_identifiable_component!(audio_server_component: audio_server_backend | audio_server);
         t_identifiable_toggleable!(audio_server_toggeable: audio_server_backend | audio_server);

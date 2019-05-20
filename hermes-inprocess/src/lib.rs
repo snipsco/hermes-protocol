@@ -283,6 +283,8 @@ struct ComponentError<T: Debug> {
 #[derive(Debug)]
 struct ComponentLoaded<T: Debug> {
     component: T,
+    loaded: LoadMessage,
+
 }
 
 impl<T: Send + Sync + Debug + Copy + 'static> ComponentFacade for InProcessComponent<T> {
@@ -300,8 +302,8 @@ impl<T: Send + Sync + Debug + Copy + 'static> ComponentFacade for InProcessCompo
         subscribe!(self, ComponentError<T> { error }, handler)
     }
 
-    fn subscribe_loaded(&self, handler: Callback0) -> Fallible<()> {
-        subscribe!(self, ComponentLoaded<T>, handler)
+    fn subscribe_loaded(&self, handler: Callback<LoadMessage>) -> Fallible<()> {
+        subscribe!(self, ComponentLoaded<T> { loaded }, handler)
     }
 }
 
@@ -326,8 +328,9 @@ impl<T: Send + Sync + Debug + Copy + 'static> ComponentBackendFacade for InProce
         self.publish(component_error)
     }
 
-    fn publish_loaded(&self) -> Fallible<()> {
+    fn publish_loaded(&self, loaded: LoadMessage) -> Fallible<()> {
         self.publish(ComponentLoaded {
+            loaded,
             component: self.component,
         })
     }
@@ -357,6 +360,7 @@ struct IdentifiableComponentError<T: Debug> {
 struct IdentifiableComponentLoaded<T: Debug> {
     site_id: String,
     component: T,
+    loaded: LoadMessage,
 }
 
 impl<T: Send + Sync + Debug + Copy + 'static> IdentifiableComponentFacade for InProcessComponent<T> {
@@ -376,8 +380,8 @@ impl<T: Send + Sync + Debug + Copy + 'static> IdentifiableComponentFacade for In
         subscribe_filter!(self, IdentifiableComponentError<T> { error }, handler, site_id, |it| &it.site_id)
     }
 
-    fn subscribe_loaded(&self, site_id: String, handler: Callback0) -> Fallible<()> {
-        subscribe_filter!(self, IdentifiableComponentLoaded<T>, handler, site_id)
+    fn subscribe_loaded(&self, site_id: String, handler: Callback<LoadMessage>) -> Fallible<()> {
+        subscribe_filter!(self, IdentifiableComponentLoaded<T> { loaded }, handler, site_id, |it| &it.site_id)
     }
 }
 
@@ -404,12 +408,13 @@ impl<T: Send + Sync + Debug + Copy + 'static> IdentifiableComponentBackendFacade
         self.publish(component_error)
     }
 
-    fn publish_loaded(&self, site_id: String) -> Fallible<()> {
-        let version_request = IdentifiableComponentLoaded {
+    fn publish_loaded(&self, site_id: String, loaded: LoadMessage) -> Fallible<()> {
+        let component_loaded = IdentifiableComponentLoaded {
             site_id,
             component: self.component,
+            loaded
         };
-        self.publish(version_request)
+        self.publish(component_loaded)
     }
 }
 
@@ -482,7 +487,9 @@ struct NluIntentNotRecognized {
 }
 
 #[derive(Debug)]
-struct NluReload {}
+struct NluReload {
+    reload: LoadMessage,
+}
 
 impl NluFacade for InProcessComponent<Nlu> {
     fn publish_query(&self, query: NluQueryMessage) -> Fallible<()> {
@@ -493,8 +500,8 @@ impl NluFacade for InProcessComponent<Nlu> {
         self.publish(NluPartialQuery { query })
     }
 
-    fn publish_reload(&self) -> Fallible<()> {
-        self.publish(NluReload {})
+    fn publish_reload(&self, reload: LoadMessage) -> Fallible<()> {
+        self.publish(NluReload { reload })
     }
 
     fn subscribe_slot_parsed(&self, handler: Callback<NluSlotMessage>) -> Fallible<()> {
@@ -519,8 +526,8 @@ impl NluBackendFacade for InProcessComponent<Nlu> {
         subscribe!(self, NluPartialQuery { query }, handler)
     }
 
-    fn subscribe_reload(&self, handler: Callback0) -> Fallible<()> {
-        subscribe!(self, NluReload, handler)
+    fn subscribe_reload(&self, handler: Callback<LoadMessage>) -> Fallible<()> {
+        subscribe!(self, NluReload { reload }, handler)
     }
 
     fn publish_slot_parsed(&self, slot: NluSlotMessage) -> Fallible<()> {
@@ -663,7 +670,9 @@ struct AsrStopListening {
 }
 
 #[derive(Debug)]
-struct AsrReload {}
+struct AsrReload {
+    reload: LoadMessage,
+}
 
 #[derive(Debug)]
 struct AsrTextCaptured {
@@ -684,8 +693,8 @@ impl AsrFacade for InProcessComponent<Asr> {
         self.publish(AsrStopListening { site })
     }
 
-    fn publish_reload(&self) -> Fallible<()> {
-        self.publish(AsrReload {})
+    fn publish_reload(&self, reload: LoadMessage) -> Fallible<()> {
+        self.publish(AsrReload { reload })
     }
 
     fn subscribe_text_captured(&self, handler: Callback<TextCapturedMessage>) -> Fallible<()> {
@@ -706,8 +715,8 @@ impl AsrBackendFacade for InProcessComponent<Asr> {
         subscribe!(self, AsrStopListening { site }, handler)
     }
 
-    fn subscribe_reload(&self, handler: Callback0) -> Fallible<()> {
-        subscribe!(self, AsrReload, handler)
+    fn subscribe_reload(&self, handler: Callback<LoadMessage>) -> Fallible<()> {
+        subscribe!(self, AsrReload { reload }, handler)
     }
 
     fn publish_text_captured(&self, text_captured: TextCapturedMessage) -> Fallible<()> {
