@@ -88,5 +88,3 @@ pub struct LoadMessage {
     /// Optional id associated to a reload operation of a component
     pub load_id: Option<String>,
 }
-
-

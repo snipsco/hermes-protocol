@@ -284,7 +284,6 @@ struct ComponentError<T: Debug> {
 struct ComponentLoaded<T: Debug> {
     component: T,
     loaded: LoadMessage,
-
 }
 
 impl<T: Send + Sync + Debug + Copy + 'static> ComponentFacade for InProcessComponent<T> {
@@ -411,8 +410,8 @@ impl<T: Send + Sync + Debug + Copy + 'static> IdentifiableComponentBackendFacade
     fn publish_loaded(&self, site_id: String, loaded: LoadMessage) -> Fallible<()> {
         let component_loaded = IdentifiableComponentLoaded {
             site_id,
+            loaded,
             component: self.component,
-            loaded
         };
         self.publish(component_loaded)
     }
