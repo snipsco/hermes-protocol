@@ -88,3 +88,13 @@ pub struct LoadMessage {
     /// Optional id associated to a reload operation of a component
     pub load_id: Option<String>,
 }
+
+impl<'de> HermesMessage<'de> for LoadMessage {}
+
+impl Default for LoadMessage {
+    fn default() -> Self {
+        Self {
+            load_id: None,
+        }
+    }
+}
