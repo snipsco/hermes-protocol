@@ -24,6 +24,17 @@ pub use self::vad::*;
 
 pub trait HermesMessage<'de>: fmt::Debug + Deserialize<'de> + Serialize {}
 
+#[derive(Serialize, Deserialize, PartialEq, PartialOrd, Debug, Clone)]
+pub enum SnipsComponent {
+    Asr,
+    Nlu,
+    Dialogue,
+    Hotword,
+    Injection,
+    Tts,
+    AudioServer
+}
+
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SiteMessage {
@@ -86,15 +97,20 @@ where
 #[serde(rename_all = "camelCase")]
 pub struct LoadMessage {
     /// Optional id associated to a reload operation of a component
+    pub component: SnipsComponent,
     pub load_id: Option<String>,
 }
 
 impl<'de> HermesMessage<'de> for LoadMessage {}
 
-impl Default for LoadMessage {
-    fn default() -> Self {
-        Self {
-            load_id: None,
-        }
-    }
+
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SiteLoadMessage {
+    /// Optional id associated to a reload operation of a component
+    pub component: SnipsComponent,
+    pub load_id: Option<String>,
+    pub site_id: String
 }
+
+impl<'de> HermesMessage<'de> for SiteLoadMessage {}

@@ -280,7 +280,7 @@ macro_rules! t_component {
                         with ErrorMessage { session_id: Some("123abc".into()), error: "some error".into(), context: None };);
                 t!(loaded_works:
                         $f.subscribe_loaded <= LoadMessage | $f_back.publish_loaded
-                        with LoadMessage { load_id: Some("abc".into()) }; );
+                        with LoadMessage { component: SnipsComponent::Asr, load_id: Some("abc".into()) }; );
             }
         };
     }
@@ -299,8 +299,8 @@ macro_rules! t_identifiable_component {
                         $f.subscribe_error { "identifier".to_string() } <= ErrorMessage | $f_back.publish_error
                         with ErrorMessage { session_id: Some("123abc".into()), error: "some error".into(), context: None };);
                 t!(loaded_works:
-                        $f.subscribe_loaded { "identifier".to_string() } <= LoadMessage | $f_back.publish_loaded
-                        with LoadMessage { load_id: Some("abc".into()) }; );
+                        $f.subscribe_loaded { "identifier".to_string() } <= SiteLoadMessage | $f_back.publish_loaded
+                        with SiteLoadMessage { component: SnipsComponent::Asr, site_id: "site".into(), load_id: Some("abc".into()) }; );
             }
         };
     }
@@ -363,7 +363,7 @@ macro_rules! test_suite {
                     with SiteMessage { session_id: Some("abc".into()), site_id: "some site".into() };);
         t!(asr_reload:
                     asr_backend.subscribe_reload <= LoadMessage | asr.publish_reload
-                    with LoadMessage { load_id: Some("abc".into()) }; );
+                    with LoadMessage { component: SnipsComponent::Asr, load_id: Some("abc".into()) }; );
 
         t_component!(tts_component: tts_backend | tts);
         t!(tts_say_works:
@@ -400,7 +400,7 @@ macro_rules! test_suite {
                     with NluIntentNotRecognizedMessage { id: None, input: "hello world".into(), session_id: Some("abc".into()), confidence_score: 0.5 };);
         t!(nlu_reload:
                     nlu_backend.subscribe_reload <= LoadMessage | nlu.publish_reload
-                    with LoadMessage { load_id: Some("abc".into()) }; );
+                    with LoadMessage { component: SnipsComponent::Asr, load_id: Some("abc".into()) }; );
 
         t_identifiable_component!(audio_server_component: audio_server_backend | audio_server);
         t_identifiable_toggleable!(audio_server_toggeable: audio_server_backend | audio_server);

@@ -70,7 +70,7 @@ pub trait IdentifiableComponentFacade: Send + Sync {
     fn publish_version_request(&self, id: String) -> Fallible<()>;
     fn subscribe_version(&self, id: String, handler: Callback<VersionMessage>) -> Fallible<()>;
     fn subscribe_error(&self, id: String, handler: Callback<ErrorMessage>) -> Fallible<()>;
-    fn subscribe_loaded(&self, id: String, handler: Callback<LoadMessage>) -> Fallible<()>;
+    fn subscribe_loaded(&self, id: String, handler: Callback<SiteLoadMessage>) -> Fallible<()>;
 }
 
 /// A generic facade all components must use to publish their errors and versions (when requested)
@@ -86,7 +86,7 @@ pub trait IdentifiableComponentBackendFacade: Send + Sync {
     fn subscribe_version_request(&self, id: String, handler: Callback0) -> Fallible<()>;
     fn publish_version(&self, id: String, version: VersionMessage) -> Fallible<()>;
     fn publish_error(&self, id: String, error: ErrorMessage) -> Fallible<()>;
-    fn publish_loaded(&self, id: String, loaded: LoadMessage) -> Fallible<()>;
+    fn publish_loaded(&self, id: String, loaded: SiteLoadMessage) -> Fallible<()>;
 }
 
 /// A facade to interact with a component that can be toggled on an off at a specific site

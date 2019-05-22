@@ -359,7 +359,7 @@ struct IdentifiableComponentError<T: Debug> {
 struct IdentifiableComponentLoaded<T: Debug> {
     site_id: String,
     component: T,
-    loaded: LoadMessage,
+    loaded: SiteLoadMessage,
 }
 
 impl<T: Send + Sync + Debug + Copy + 'static> IdentifiableComponentFacade for InProcessComponent<T> {
@@ -379,7 +379,7 @@ impl<T: Send + Sync + Debug + Copy + 'static> IdentifiableComponentFacade for In
         subscribe_filter!(self, IdentifiableComponentError<T> { error }, handler, site_id, |it| &it.site_id)
     }
 
-    fn subscribe_loaded(&self, site_id: String, handler: Callback<LoadMessage>) -> Fallible<()> {
+    fn subscribe_loaded(&self, site_id: String, handler: Callback<SiteLoadMessage>) -> Fallible<()> {
         subscribe_filter!(self, IdentifiableComponentLoaded<T> { loaded }, handler, site_id, |it| &it.site_id)
     }
 }
@@ -407,7 +407,7 @@ impl<T: Send + Sync + Debug + Copy + 'static> IdentifiableComponentBackendFacade
         self.publish(component_error)
     }
 
-    fn publish_loaded(&self, site_id: String, loaded: LoadMessage) -> Fallible<()> {
+    fn publish_loaded(&self, site_id: String, loaded: SiteLoadMessage) -> Fallible<()> {
         let component_loaded = IdentifiableComponentLoaded {
             site_id,
             loaded,

@@ -414,7 +414,7 @@ macro_rules! impl_identifiable_component_facades_for {
                 )
             }
 
-            fn subscribe_loaded(&self, site_id: String, handler: Callback<LoadMessage>) -> Fallible<()> {
+            fn subscribe_loaded(&self, site_id: String, handler: Callback<SiteLoadMessage>) -> Fallible<()> {
                 self.mqtt_handler.subscribe_payload(
                     &HermesTopic::Component(Some(site_id), self.component, ComponentCommand::Loaded),
                     move |p| handler.call(p),
@@ -444,7 +444,7 @@ macro_rules! impl_identifiable_component_facades_for {
                 )
             }
 
-            fn publish_loaded(&self, site_id: String, loaded: LoadMessage) -> Fallible<()> {
+            fn publish_loaded(&self, site_id: String, loaded: SiteLoadMessage) -> Fallible<()> {
                 self.mqtt_handler.publish_payload(
                     &HermesTopic::Component(Some(site_id), self.component, ComponentCommand::Loaded),
                     loaded,
