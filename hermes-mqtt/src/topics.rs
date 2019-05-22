@@ -88,7 +88,8 @@ impl HermesTopic {
             (Some(site_id), Some("loaded"), None) => Some(HermesTopic::Component(
                 Some(site_id.to_string()),
                 Component::AudioServer,
-                ComponentCommand::Loaded)),
+                ComponentCommand::Loaded,
+            )),
             _ => None,
         }
     }
@@ -182,7 +183,8 @@ impl HermesTopic {
             (Some(site_id), Some("loaded")) => Some(HermesTopic::Component(
                 Some(site_id.to_string()),
                 Component::Hotword,
-                ComponentCommand::Loaded)),
+                ComponentCommand::Loaded,
+            )),
             _ => None,
         }
     }

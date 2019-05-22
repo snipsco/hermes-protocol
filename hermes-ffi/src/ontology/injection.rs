@@ -321,7 +321,7 @@ impl CReprOf<hermes::InjectionCompleteMessage> for CInjectionCompleteMessage {
 impl AsRust<hermes::InjectionCompleteMessage> for CInjectionCompleteMessage {
     fn as_rust(&self) -> Fallible<hermes::InjectionCompleteMessage> {
         let request_id = create_optional_rust_string_from!(self.request_id);
-        Ok(hermes::InjectionCompleteMessage{ request_id })
+        Ok(hermes::InjectionCompleteMessage { request_id })
     }
 }
 

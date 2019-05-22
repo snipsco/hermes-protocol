@@ -1,17 +1,7 @@
 use std::fmt;
 
 use semver;
-
 use serde::{Deserialize, Serialize};
-
-pub mod asr;
-pub mod audio_server;
-pub mod dialogue;
-pub mod hotword;
-pub mod injection;
-pub mod nlu;
-pub mod tts;
-pub mod vad;
 
 pub use self::asr::*;
 pub use self::audio_server::*;
@@ -21,6 +11,15 @@ pub use self::injection::*;
 pub use self::nlu::*;
 pub use self::tts::*;
 pub use self::vad::*;
+
+pub mod asr;
+pub mod audio_server;
+pub mod dialogue;
+pub mod hotword;
+pub mod injection;
+pub mod nlu;
+pub mod tts;
+pub mod vad;
 
 pub trait HermesMessage<'de>: fmt::Debug + Deserialize<'de> + Serialize {}
 
@@ -33,7 +32,7 @@ pub enum SnipsComponent {
     Hotword,
     Injection,
     Tts,
-    AudioServer
+    AudioServer,
 }
 
 impl fmt::Display for SnipsComponent {
@@ -111,21 +110,23 @@ where
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoadMessage {
-    /// Optional id associated to a reload operation of a component
+    /// The Snips component that was loaded
     pub component: SnipsComponent,
+    /// Optional id associated to a reload operation of a component
     pub load_id: Option<String>,
 }
 
 impl<'de> HermesMessage<'de> for LoadMessage {}
 
-
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SiteLoadMessage {
+    /// The site concerned
+    pub site_id: String,
     /// Optional id associated to a reload operation of a component
-    pub component: SnipsComponent,
     pub load_id: Option<String>,
-    pub site_id: String
+    /// The Snips component that was loaded
+    pub component: SnipsComponent,
 }
 
 impl<'de> HermesMessage<'de> for SiteLoadMessage {}

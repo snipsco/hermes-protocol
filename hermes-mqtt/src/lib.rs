@@ -329,7 +329,8 @@ macro_rules! impl_component_facades_for {
             fn publish_loaded(&self, loaded: LoadMessage) -> Fallible<()> {
                 self.mqtt_handler.publish_payload(
                     &HermesTopic::Component(None, self.component, ComponentCommand::Loaded),
-                    loaded)
+                    loaded,
+                )
             }
         }
     };
