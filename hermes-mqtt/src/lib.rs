@@ -421,7 +421,7 @@ macro_rules! impl_identifiable_component_facades_for {
                 )
             }
 
-            fn subscribe_all_loaded(&self, handler: Callback<LoadMessage>) -> Fallible<()> {
+            fn subscribe_all_loaded(&self, handler: Callback<SiteLoadMessage>) -> Fallible<()> {
                 self.mqtt_handler.subscribe_payload(
                     &HermesTopic::Component(Some("+".to_string()), self.component, ComponentCommand::Loaded),
                     move |p| handler.call(p),

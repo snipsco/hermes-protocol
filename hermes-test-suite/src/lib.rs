@@ -304,7 +304,7 @@ macro_rules! t_identifiable_component {
                 t!(all_loaded_works:
                         ManyToOne
                         $f.subscribe_all_loaded <= SiteLoadMessage | $f_back.publish_loaded { "identifier".into() }
-                        with SiteLoadMessage { component: SnipsComponent::Asr, load_id: Some("abc".into()) }; );
+                        with SiteLoadMessage { component: SnipsComponent::Asr, site_id: "identifier".into(), load_id: Some("abc".into()) }; );
             }
         };
     }
