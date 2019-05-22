@@ -420,6 +420,13 @@ macro_rules! impl_identifiable_component_facades_for {
                     move |p| handler.call(p),
                 )
             }
+
+            fn subscribe_all_loaded(&self, handler: Callback<LoadMessage>) -> Fallible<()> {
+                self.mqtt_handler.subscribe_payload(
+                    &HermesTopic::Component(Some("+".to_string()), self.component, ComponentCommand::Loaded),
+                    move |p| handler.call(p),
+                )
+            }
         }
 
         impl IdentifiableComponentBackendFacade for $t {

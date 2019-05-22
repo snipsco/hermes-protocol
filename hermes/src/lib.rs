@@ -71,6 +71,7 @@ pub trait IdentifiableComponentFacade: Send + Sync {
     fn subscribe_version(&self, id: String, handler: Callback<VersionMessage>) -> Fallible<()>;
     fn subscribe_error(&self, id: String, handler: Callback<ErrorMessage>) -> Fallible<()>;
     fn subscribe_loaded(&self, id: String, handler: Callback<SiteLoadMessage>) -> Fallible<()>;
+    fn subscribe_all_loaded(&self, handler: Callback<SiteLoadMessage>) -> Fallible<()>;
 }
 
 /// A generic facade all components must use to publish their errors and versions (when requested)

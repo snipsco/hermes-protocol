@@ -301,6 +301,10 @@ macro_rules! t_identifiable_component {
                 t!(loaded_works:
                         $f.subscribe_loaded { "identifier".to_string() } <= SiteLoadMessage | $f_back.publish_loaded
                         with SiteLoadMessage { component: SnipsComponent::Asr, site_id: "site".into(), load_id: Some("abc".into()) }; );
+                t!(all_loaded_works:
+                        ManyToOne
+                        $f.subscribe_all_loaded <= SiteLoadMessage | $f_back.publish_loaded { "identifier".into() }
+                        with SiteLoadMessage { component: SnipsComponent::Asr, load_id: Some("abc".into()) }; );
             }
         };
     }
