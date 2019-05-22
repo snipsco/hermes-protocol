@@ -25,6 +25,7 @@ pub use self::vad::*;
 pub trait HermesMessage<'de>: fmt::Debug + Deserialize<'de> + Serialize {}
 
 #[derive(Serialize, Deserialize, PartialEq, PartialOrd, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub enum SnipsComponent {
     Asr,
     Nlu,
@@ -33,6 +34,20 @@ pub enum SnipsComponent {
     Injection,
     Tts,
     AudioServer
+}
+
+impl fmt::Display for SnipsComponent {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            SnipsComponent::Asr => write!(f, "Asr"),
+            SnipsComponent::Nlu => write!(f, "Nlu"),
+            SnipsComponent::Dialogue => write!(f, "Dialogue"),
+            SnipsComponent::Hotword => write!(f, "Hotword"),
+            SnipsComponent::Injection => write!(f, "Injection"),
+            SnipsComponent::Tts => write!(f, "Tts"),
+            SnipsComponent::AudioServer => write!(f, "Audio Server"),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
