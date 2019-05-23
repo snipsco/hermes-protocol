@@ -453,9 +453,16 @@ mod tests {
     }
 
     #[test]
-    fn round_injection_status() {
+    fn round_trip_injection_status() {
         round_trip_test::<_, CInjectionStatusMessage>(hermes::InjectionStatusMessage {
             last_injection_date: Some(Utc.ymd(2014, 11, 28).and_hms(12, 0, 9)),
+        });
+    }
+
+    #[test]
+    fn round_trip_injection_complete() {
+        round_trip_test::<_, CInjectionCompleteMessage>(hermes::InjectionCompleteMessage {
+            request_id: Some("identifier".to_string())
         });
     }
 
