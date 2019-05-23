@@ -23,32 +23,6 @@ pub mod vad;
 
 pub trait HermesMessage<'de>: fmt::Debug + Deserialize<'de> + Serialize {}
 
-#[derive(Serialize, Deserialize, PartialEq, PartialOrd, Debug, Clone)]
-#[serde(rename_all = "camelCase")]
-pub enum SnipsComponent {
-    Asr,
-    Nlu,
-    Dialogue,
-    Hotword,
-    Injection,
-    Tts,
-    AudioServer,
-}
-
-impl fmt::Display for SnipsComponent {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            SnipsComponent::Asr => write!(f, "Asr"),
-            SnipsComponent::Nlu => write!(f, "Nlu"),
-            SnipsComponent::Dialogue => write!(f, "Dialogue"),
-            SnipsComponent::Hotword => write!(f, "Hotword"),
-            SnipsComponent::Injection => write!(f, "Injection"),
-            SnipsComponent::Tts => write!(f, "Tts"),
-            SnipsComponent::AudioServer => write!(f, "Audio Server"),
-        }
-    }
-}
-
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SiteMessage {
@@ -109,24 +83,27 @@ where
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct LoadMessage {
-    /// The Snips component that was loaded
-    pub component: SnipsComponent,
-    /// Optional id associated to a reload operation of a component
-    pub load_id: Option<String>,
+pub struct LoadedForSiteMessage {
+    /// The site concerned
+    pub site_id: String,
 }
 
-impl<'de> HermesMessage<'de> for LoadMessage {}
+impl<'de> HermesMessage<'de> for LoadedForSiteMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct SiteLoadMessage {
-    /// The site concerned
-    pub site_id: String,
-    /// Optional id associated to a reload operation of a component
-    pub load_id: Option<String>,
-    /// The Snips component that was loaded
-    pub component: SnipsComponent,
+pub struct ReloadRequestMessage {
+    /// Id associated to a reload request operation of a component
+    pub id: String,
 }
 
-impl<'de> HermesMessage<'de> for SiteLoadMessage {}
+impl<'de> HermesMessage<'de> for ReloadRequestMessage {}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ReloadedMessage {
+    /// Id associated to a reload operation of a component
+    pub id: String,
+}
+
+impl<'de> HermesMessage<'de> for ReloadedMessage {}

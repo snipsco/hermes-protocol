@@ -279,8 +279,7 @@ macro_rules! t_component {
                         $f.subscribe_error <= ErrorMessage | $f_back.publish_error
                         with ErrorMessage { session_id: Some("123abc".into()), error: "some error".into(), context: None };);
                 t!(loaded_works:
-                        $f.subscribe_loaded <= LoadMessage | $f_back.publish_loaded
-                        with LoadMessage { component: SnipsComponent::Asr, load_id: Some("abc".into()) }; );
+                        $f.subscribe_loaded <= $f_back.publish_loaded);
             }
         };
     }
@@ -299,12 +298,12 @@ macro_rules! t_identifiable_component {
                         $f.subscribe_error { "identifier".to_string() } <= ErrorMessage | $f_back.publish_error
                         with ErrorMessage { session_id: Some("123abc".into()), error: "some error".into(), context: None };);
                 t!(loaded_works:
-                        $f.subscribe_loaded { "identifier".to_string() } <= SiteLoadMessage | $f_back.publish_loaded
-                        with SiteLoadMessage { component: SnipsComponent::Asr, site_id: "site".into(), load_id: Some("abc".into()) }; );
+                        $f.subscribe_loaded { "identifier".to_string() } <= LoadedForSiteMessage | $f_back.publish_loaded
+                        with LoadedForSiteMessage { site_id: "site_id".into() }; );
                 t!(all_loaded_works:
                         ManyToOne
-                        $f.subscribe_all_loaded <= SiteLoadMessage | $f_back.publish_loaded { "identifier".into() }
-                        with SiteLoadMessage { component: SnipsComponent::Asr, site_id: "identifier".into(), load_id: Some("abc".into()) }; );
+                        $f.subscribe_all_loaded <= LoadedForSiteMessage | $f_back.publish_loaded
+                        with LoadedForSiteMessage { site_id: "site_id".into() }; );
             }
         };
     }
@@ -366,8 +365,11 @@ macro_rules! test_suite {
                     asr_backend.subscribe_stop_listening <= SiteMessage | asr.publish_stop_listening
                     with SiteMessage { session_id: Some("abc".into()), site_id: "some site".into() };);
         t!(asr_reload:
-                    asr_backend.subscribe_reload <= LoadMessage | asr.publish_reload
-                    with LoadMessage { component: SnipsComponent::Asr, load_id: Some("abc".into()) }; );
+                    asr_backend.subscribe_reload <= ReloadRequestMessage | asr.publish_reload
+                    with ReloadRequestMessage { id: "abc".into() }; );
+        t!(asr_reloaded:
+                    asr.subscribe_reloaded <= ReloadedMessage | asr_backend.publish_reloaded
+                    with ReloadedMessage { id: "abc".into() }; );
 
         t_component!(tts_component: tts_backend | tts);
         t!(tts_say_works:
@@ -403,8 +405,11 @@ macro_rules! test_suite {
                     nlu.subscribe_intent_not_recognized <= NluIntentNotRecognizedMessage | nlu_backend.publish_intent_not_recognized
                     with NluIntentNotRecognizedMessage { id: None, input: "hello world".into(), session_id: Some("abc".into()), confidence_score: 0.5 };);
         t!(nlu_reload:
-                    nlu_backend.subscribe_reload <= LoadMessage | nlu.publish_reload
-                    with LoadMessage { component: SnipsComponent::Asr, load_id: Some("abc".into()) }; );
+                    nlu_backend.subscribe_reload <= ReloadRequestMessage | nlu.publish_reload
+                    with ReloadRequestMessage { id: "abc".into() }; );
+        t!(nlu_reloaded:
+                    nlu.subscribe_reloaded <= ReloadedMessage | nlu_backend.publish_reloaded
+                    with ReloadedMessage { id: "abc".into() }; );
 
         t_identifiable_component!(audio_server_component: audio_server_backend | audio_server);
         t_identifiable_toggleable!(audio_server_toggeable: audio_server_backend | audio_server);
