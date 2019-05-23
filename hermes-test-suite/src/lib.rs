@@ -302,7 +302,7 @@ macro_rules! t_identifiable_component {
                         with LoadedForSiteMessage { site_id: "site_id".into() }; );
                 t!(all_loaded_works:
                         ManyToOne
-                        $f.subscribe_all_loaded <= LoadedForSiteMessage | $f_back.publish_loaded
+                        $f.subscribe_all_loaded <= LoadedForSiteMessage | $f_back.publish_loaded { "site_id".into() }
                         with LoadedForSiteMessage { site_id: "site_id".into() }; );
             }
         };

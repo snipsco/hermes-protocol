@@ -453,13 +453,9 @@ macro_rules! impl_identifiable_component_facades_for {
                 )
             }
 
-            fn publish_loaded(&self, loaded: LoadedForSiteMessage) -> Fallible<()> {
+            fn publish_loaded(&self, site_id: String, loaded: LoadedForSiteMessage) -> Fallible<()> {
                 self.mqtt_handler.publish_payload(
-                    &HermesTopic::Component(
-                        Some(loaded.site_id.clone()),
-                        self.component,
-                        ComponentCommand::Loaded,
-                    ),
+                    &HermesTopic::Component(Some(site_id), self.component, ComponentCommand::Loaded),
                     loaded,
                 )
             }

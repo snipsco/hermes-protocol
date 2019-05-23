@@ -87,7 +87,7 @@ pub trait IdentifiableComponentBackendFacade: Send + Sync {
     fn subscribe_version_request(&self, id: String, handler: Callback0) -> Fallible<()>;
     fn publish_version(&self, id: String, version: VersionMessage) -> Fallible<()>;
     fn publish_error(&self, id: String, error: ErrorMessage) -> Fallible<()>;
-    fn publish_loaded(&self, loaded: LoadedForSiteMessage) -> Fallible<()>;
+    fn publish_loaded(&self, id: String, loaded: LoadedForSiteMessage) -> Fallible<()>;
 }
 
 /// A facade to interact with a component that can be toggled on an off at a specific site
