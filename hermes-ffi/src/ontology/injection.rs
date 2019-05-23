@@ -462,7 +462,7 @@ mod tests {
     #[test]
     fn round_trip_injection_complete() {
         round_trip_test::<_, CInjectionCompleteMessage>(hermes::InjectionCompleteMessage {
-            request_id: Some("identifier".to_string())
+            request_id: Some("identifier".to_string()),
         });
     }
 

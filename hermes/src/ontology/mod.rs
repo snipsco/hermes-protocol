@@ -107,3 +107,20 @@ pub struct ReloadedMessage {
 }
 
 impl<'de> HermesMessage<'de> for ReloadedMessage {}
+
+
+impl From<ReloadRequestMessage> for ReloadedMessage {
+    fn from(req: ReloadRequestMessage) -> Self {
+        Self {
+            id: req.id
+        }
+    }
+}
+
+impl From<&ReloadRequestMessage> for ReloadedMessage {
+    fn from(req: &ReloadRequestMessage) -> Self {
+        Self {
+            id: req.id.clone()
+        }
+    }
+}
