@@ -1,3 +1,26 @@
+## [0.3.11](https://github.com/snipsco/hermes-protocol/compare/js/0.3.10...0.3.11) (2019-05-18)
+
+
+### Bug Fixes
+
+* **js:** prevent potential tiny memory leak ([d148945](https://github.com/snipsco/hermes-protocol/commit/d148945))
+
+
+
+## [0.3.10](https://github.com/snipsco/hermes-protocol/compare/js/0.3.9...0.3.10) (2019-05-17)
+
+
+### Bug Fixes
+
+* **dialog flow:** returning an object did not actually impact the message ([802d0b6](https://github.com/snipsco/hermes-protocol/commit/802d0b6))
+
+
+
+## [0.3.9](https://github.com/snipsco/hermes-protocol/compare/js/0.3.8...0.3.9) (2019-05-16)
+
+* **Chore**: Types and enums have their specific import location now: `import { /* ... */ } from 'hermes-javascript/type'`
+
+
 ## [0.3.8](https://github.com/snipsco/hermes-protocol/compare/js/0.3.7...0.3.8) (2019-05-14)
 
 

@@ -421,14 +421,14 @@ it(`[dialog] should perform one round of dialog flow at least ${robustnessIterat
     const intentJson = require('./messages/Intent.json')
     const sessionEndedJson = require('./messages/SessionEnded.json')
 
-    dialog.flow('anIntent', (msg, flow) => {
+    dialog.flow('anIntent_1', (msg, flow) => {
       expect(msg).toMatchObject(intentJson)
       flow.end()
     })
 
     client.subscribe('hermes/dialogueManager/continueSession', () => {
       client.subscribe('hermes/dialogueManager/endSession', () => {
-        client.publish('hermes/intent/anIntent', JSON.stringify(intentJson))
+        client.publish('hermes/intent/anIntent_1', JSON.stringify(intentJson))
       })
     })
     client.on('message', topic => {
@@ -436,7 +436,7 @@ it(`[dialog] should perform one round of dialog flow at least ${robustnessIterat
         client.publish('hermes/dialogueManager/sessionEnded', JSON.stringify(sessionEndedJson))
         if(++counter >= robustnessIterations)
           return resolve()
-        client.publish('hermes/intent/anIntent', JSON.stringify(intentJson))
+        client.publish('hermes/intent/anIntent_1', JSON.stringify(intentJson))
       }
     })
   })
@@ -452,38 +452,43 @@ it(`[dialog] should perform at least ${robustnessIterations} rounds of dialog fl
       expect(msg).toMatchObject(intentJson)
       if(++counter >= robustnessIterations) {
         flow.end()
+        return 'bye'
       } else {
-        flow.continue('anIntent', loop, { slotFiller: 'slot' })
+        flow.continue('anIntent_2', loop, { slotFiller: 'slot' })
+        return {
+          text: 'continue',
+          customData: 'custom thing'
+        }
       }
     }
-    dialog.flow('anIntent', loop)
+    dialog.flow('anIntent_2', loop)
 
     client.subscribe('hermes/dialogueManager/continueSession', () => {
       client.subscribe('hermes/dialogueManager/endSession', () => {
-        client.publish('hermes/intent/anIntent', JSON.stringify(intentJson))
+        client.publish('hermes/intent/anIntent_2', JSON.stringify(intentJson))
       })
     })
     client.on('message', (topic: string, messageBuffer: Buffer) => {
       let message
       try { message = JSON.parse(messageBuffer.toString()) } catch (e) { message = null }
       if(topic === 'hermes/dialogueManager/continueSession') {
-        expect({
-          customData: null,
+        expect(message).toMatchObject({
+          customData: 'custom thing',
           intentFilter: [
-            'anIntent',
+            'anIntent_2',
           ],
           sendIntentNotRecognized: false,
           sessionId: '677a2717-7ac8-44f8-9013-db2222f7923d',
           slot: 'slot',
-          text: '',
-        }).toMatchObject(message)
-        return client.publish('hermes/intent/anIntent', JSON.stringify(intentJson))
+          text: 'continue',
+        })
+        return client.publish('hermes/intent/anIntent_2', JSON.stringify(intentJson))
       }
       if(topic === 'hermes/dialogueManager/endSession') {
-        expect({
+        expect(message).toMatchObject({
           sessionId: '677a2717-7ac8-44f8-9013-db2222f7923d',
-          text: ''
-        }).toMatchObject(message)
+          text: 'bye'
+        })
         client.unsubscribe('hermes/dialogueManager/continueSession')
         client.unsubscribe('hermes/dialogueManager/endSession')
         client.publish('hermes/dialogueManager/sessionEnded', JSON.stringify(sessionEndedJson))

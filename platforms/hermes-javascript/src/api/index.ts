@@ -19,7 +19,7 @@ export * from './types'
  * Hermes javascript is an high level API that allows you to
  * subscribe and send Snips messages using the Hermes protocol.
  *
- * **Important: do not instanciate this class more than once!**
+ * **Important: do not instantiate this class more than once!**
  */
 export class Hermes {
 
@@ -29,7 +29,7 @@ export class Hermes {
      * **Important: Each call to this function will open the hermes shared library
      * and bind hermes-javascript to it. It is an expensive operation.**
      *
-     * @param options - Options used to instanciate a new Hermes object.
+     * @param options - Options used to instantiate a new Hermes object.
      */
     constructor(options: HermesOptions = {}) {
 

@@ -72,6 +72,8 @@ export default class DialogFlow {
         let messageOptions: Partial<EndSessionMessage & ContinueSessionMessage> = {}
         if(typeof options === 'string') {
             messageOptions = { text: options }
+        } else if (typeof options === 'object') {
+            messageOptions = options
         }
         if(this.ended) {
             // End the session.
