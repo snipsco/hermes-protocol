@@ -105,7 +105,7 @@ pub extern "C" fn hermes_ffi_test_round_trip_injection_request(
 }
 
 #[no_mangle]
-pub extern "C" fn hermes_ffi_test_round_trip_injection_complete_message(
+pub extern "C" fn hermes_ffi_test_round_trip_injection_complete(
     input: *const hermes_ffi::CInjectionCompleteMessage,
     output: *mut *const hermes_ffi::CInjectionCompleteMessage,
 ) -> ffi_utils::SNIPS_RESULT {

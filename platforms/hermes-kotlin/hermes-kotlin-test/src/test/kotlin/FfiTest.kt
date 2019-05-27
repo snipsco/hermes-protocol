@@ -1,21 +1,5 @@
-import ai.snips.hermes.AsrDecodingDuration
-import ai.snips.hermes.AsrToken
-import ai.snips.hermes.AsrTokenRange
-import ai.snips.hermes.ContinueSessionMessage
-import ai.snips.hermes.DialogueConfigureIntent
-import ai.snips.hermes.DialogueConfigureMessage
-import ai.snips.hermes.EndSessionMessage
+import ai.snips.hermes.*
 import ai.snips.hermes.InjectionKind.Add
-import ai.snips.hermes.InjectionOperation
-import ai.snips.hermes.InjectionRequestMessage
-import ai.snips.hermes.IntentClassifierResult
-import ai.snips.hermes.IntentMessage
-import ai.snips.hermes.IntentNotRecognizedMessage
-import ai.snips.hermes.SessionInit
-import ai.snips.hermes.SessionQueuedMessage
-import ai.snips.hermes.Slot
-import ai.snips.hermes.StartSessionMessage
-import ai.snips.hermes.TextCapturedMessage
 import ai.snips.hermes.test.HermesTest
 import ai.snips.nlu.ontology.Range
 import ai.snips.nlu.ontology.SlotValue
@@ -137,6 +121,16 @@ class FfiTest {
         assertThat(HermesTest().roundTripInjectionRequest(input2)).isEqualTo(input2)
         //json is a bit tricky to deserialize properly
         //assertThat(HermesTest().roundTripInjectionRequestJson(input2)).isEqualTo(input2)
+    }
+
+    @Test
+    fun roundTripInjectionComplete() {
+        val input = InjectionCompleteMessage(
+                requestId = "foobar"
+        )
+
+        assertThat(HermesTest().roundTripInjectionComplete(input)).isEqualTo(input)
+        assertThat(HermesTest().roundTripInjectionCompleteJson(input)).isEqualTo(input)
     }
 
     @Test
