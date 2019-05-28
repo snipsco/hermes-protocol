@@ -110,6 +110,15 @@ pub struct ComponentLoadedMessage {
 
 impl<'de> HermesMessage<'de> for ComponentLoadedMessage {}
 
+impl Default for ComponentLoadedMessage {
+    fn default() -> Self {
+        Self {
+            id: None,
+            reloaded: false,
+        }
+    }
+}
+
 impl From<RequestComponentReloadMessage> for ComponentLoadedMessage {
     fn from(req: RequestComponentReloadMessage) -> Self {
         Self {
