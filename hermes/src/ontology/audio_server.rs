@@ -17,6 +17,26 @@ pub struct PlayBytesMessage {
 
 impl<'de> HermesMessage<'de> for PlayBytesMessage {}
 
+/// This message is used to request the audio server to play a part of a sound
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PlayBytesStreamingMessage {
+    /// The play request identifier. This identifier will be passed to subsequent chunks along the
+    /// chain
+    pub play_bytes_id: String,
+    /// The bytes of the chunk to play (should be a regular wav with header)
+    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
+    pub bytes: Vec<u8>,
+    /// The site where the audio should be played
+    pub site_id: String,
+    /// The number of the chunk in the chain
+    pub chunk_nbr: u32,
+    /// Boolean signaling if this is the last audio chunk of the chain
+    pub is_last_chunk: bool,
+}
+
+impl<'de> HermesMessage<'de> for PlayBytesStreamingMessage {}
+
 /// This message is used for the audio streaming on the snips platform. It is used both for normal
 /// streaming and replay streaming.
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]

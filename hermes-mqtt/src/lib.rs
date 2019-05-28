@@ -560,6 +560,9 @@ impl AudioServerFacade for MqttToggleableComponentFacade {
         { bytes.wav_bytes });
     s!(subscribe_play_finished<PlayFinishedMessage>(site_id: String) { &HermesTopic::AudioServer(Some(site_id), AudioServerCommand::PlayFinished) });
     s!(subscribe_all_play_finished<PlayFinishedMessage> &HermesTopic::AudioServer(Some("+".into()), AudioServerCommand::PlayFinished););
+    p_bin!(publish_play_bytes_streaming(play_bytes_streaming_message: PlayBytesStreamingMessage)
+       { &HermesTopic::AudioServer(Some(play_bytes_streaming_message.site_id.clone()), AudioServerCommand::PlayBytesStreaming(play_bytes_streaming_message.play_bytes_id.clone(), play_bytes_streaming_message.chunk_nbr.to_string(), if play_bytes_streaming_message.is_last_chunk { "t".to_string() } else { "f".to_string() })) }
+       { play_bytes_streaming_message.bytes });
 }
 
 impl AudioServerBackendFacade for MqttToggleableComponentFacade {
@@ -587,6 +590,22 @@ impl AudioServerBackendFacade for MqttToggleableComponentFacade {
                 }
             });
     p!(publish_play_finished(message: PlayFinishedMessage) { &HermesTopic::AudioServer(Some(message.site_id.clone()), AudioServerCommand::PlayFinished) });
+    s_bin!(subscribe_play_bytes_streaming<PlayBytesStreamingMessage>(site_id: String) { &HermesTopic::AudioServer(Some(site_id), AudioServerCommand::PlayBytesStreaming("+".into(), "+".into(), "#".into())) }
+            |topic, bytes| {
+                if let HermesTopic::AudioServer(Some(ref site_id), AudioServerCommand::PlayBytesStreaming(ref play_bytes_id, ref chunk_nbr, ref is_last_chunk)) = *topic {
+                    PlayBytesStreamingMessage { site_id: site_id.to_owned(), play_bytes_id: play_bytes_id.to_owned(), chunk_nbr: chunk_nbr.parse().expect("chunk_nbr is supposed to be properly formatted"), is_last_chunk: is_last_chunk == "t", bytes: bytes.into()}
+                } else {
+                    unreachable!()
+                }
+            });
+    s_bin!(subscribe_all_play_bytes_streaming<PlayBytesStreamingMessage> { &HermesTopic::AudioServer(Some("+".into()), AudioServerCommand::PlayBytesStreaming("+".into(), "+".into(), "#".into())) }
+           |topic, bytes| {
+                if let HermesTopic::AudioServer(Some(ref site_id), AudioServerCommand::PlayBytesStreaming(ref play_bytes_id, ref chunk_nbr, ref is_last_chunk)) = *topic {
+                    PlayBytesStreamingMessage { site_id: site_id.to_owned(), play_bytes_id: play_bytes_id.to_owned(), chunk_nbr: chunk_nbr.parse().expect("chunk_nbr is supposed to be properly formatted"), is_last_chunk: is_last_chunk == "t", bytes: bytes.into()}
+                } else {
+                    unreachable!()
+                }
+           });
 }
 
 impl DialogueFacade for MqttToggleableComponentFacade {
