@@ -83,39 +83,47 @@ where
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct LoadedForSiteMessage {
+pub struct ComponentLoadedOnSiteMessage {
     /// The site concerned
     pub site_id: String,
 }
 
-impl<'de> HermesMessage<'de> for LoadedForSiteMessage {}
+impl<'de> HermesMessage<'de> for ComponentLoadedOnSiteMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ReloadRequestMessage {
+pub struct RequestComponentReloadMessage {
     /// Id associated to a reload request operation of a component
     pub id: String,
 }
 
-impl<'de> HermesMessage<'de> for ReloadRequestMessage {}
+impl<'de> HermesMessage<'de> for RequestComponentReloadMessage {}
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ReloadedMessage {
-    /// Id associated to a reload operation of a component
-    pub id: String,
+pub struct ComponentLoadedMessage {
+    /// Optional id associated to a load/reload operation for a component
+    pub id: Option<String>,
+    /// boolean that indicates if the component was reloaded or if it's its initial load.
+    pub reloaded: bool,
 }
 
-impl<'de> HermesMessage<'de> for ReloadedMessage {}
+impl<'de> HermesMessage<'de> for ComponentLoadedMessage {}
 
-impl From<ReloadRequestMessage> for ReloadedMessage {
-    fn from(req: ReloadRequestMessage) -> Self {
-        Self { id: req.id }
+impl From<RequestComponentReloadMessage> for ComponentLoadedMessage {
+    fn from(req: RequestComponentReloadMessage) -> Self {
+        Self {
+            id: Some(req.id),
+            reloaded: true,
+        }
     }
 }
 
-impl From<&ReloadRequestMessage> for ReloadedMessage {
-    fn from(req: &ReloadRequestMessage) -> Self {
-        Self { id: req.id.clone() }
+impl From<&RequestComponentReloadMessage> for ComponentLoadedMessage {
+    fn from(req: &RequestComponentReloadMessage) -> Self {
+        Self {
+            id: Some(req.id.clone()),
+            reloaded: true,
+        }
     }
 }

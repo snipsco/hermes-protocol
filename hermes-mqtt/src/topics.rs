@@ -53,7 +53,6 @@ impl HermesTopic {
             Some("version") => Some(HermesTopic::Component(None, Component::Asr, ComponentCommand::Version)),
             Some("error") => Some(HermesTopic::Component(None, Component::Asr, ComponentCommand::Error)),
             Some("loaded") => Some(HermesTopic::Component(None, Component::Asr, ComponentCommand::Loaded)),
-            Some("reloaded") => Some(HermesTopic::Component(None, Component::Asr, ComponentCommand::Reloaded)),
             _ => None,
         }
     }
@@ -217,7 +216,6 @@ impl HermesTopic {
             Some("version") => Some(HermesTopic::Component(None, Component::Nlu, ComponentCommand::Version)),
             Some("error") => Some(HermesTopic::Component(None, Component::Nlu, ComponentCommand::Error)),
             Some("loaded") => Some(HermesTopic::Component(None, Component::Nlu, ComponentCommand::Loaded)),
-            Some("reloaded") => Some(HermesTopic::Component(None, Component::Nlu, ComponentCommand::Reloaded)),
             _ => None,
         }
     }
@@ -421,7 +419,6 @@ pub enum AsrCommand {
     TextCaptured,
     PartialTextCaptured,
     Reload,
-    Reloaded,
 }
 
 impl ToPath for AsrCommand {}
@@ -454,7 +451,6 @@ pub enum NluCommand {
     IntentParsed,
     IntentNotRecognized,
     Reload,
-    Reloaded,
 }
 
 impl ToPath for NluCommand {}
@@ -515,7 +511,6 @@ pub enum ComponentCommand {
     Version,
     Error,
     Loaded,
-    Reloaded,
 }
 
 impl ToPath for ComponentCommand {}
@@ -655,10 +650,6 @@ mod tests {
                 "hermes/asr/loaded",
             ),
             (
-                HermesTopic::Component(None, Component::Asr, ComponentCommand::Reloaded),
-                "hermes/asr/reloaded",
-            ),
-            (
                 HermesTopic::AudioServer(None, AudioServerCommand::ToggleOn),
                 "hermes/audioServer/toggleOn",
             ),
@@ -760,10 +751,6 @@ mod tests {
             (
                 HermesTopic::Component(None, Component::Nlu, ComponentCommand::Loaded),
                 "hermes/nlu/loaded",
-            ),
-            (
-                HermesTopic::Component(None, Component::Nlu, ComponentCommand::Reloaded),
-                "hermes/nlu/reloaded",
             ),
             (
                 HermesTopic::Injection(InjectionCommand::Perform),

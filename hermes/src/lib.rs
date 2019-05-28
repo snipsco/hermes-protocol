@@ -62,7 +62,7 @@ pub trait ComponentFacade: Send + Sync {
     fn publish_version_request(&self) -> Fallible<()>;
     fn subscribe_version(&self, handler: Callback<VersionMessage>) -> Fallible<()>;
     fn subscribe_error(&self, handler: Callback<ErrorMessage>) -> Fallible<()>;
-    fn subscribe_loaded(&self, handler: Callback0) -> Fallible<()>;
+    fn subscribe_component_loaded(&self, handler: Callback<ComponentLoadedMessage>) -> Fallible<()>;
 }
 
 /// A generic facade used to interact with a component
@@ -70,8 +70,8 @@ pub trait IdentifiableComponentFacade: Send + Sync {
     fn publish_version_request(&self, id: String) -> Fallible<()>;
     fn subscribe_version(&self, id: String, handler: Callback<VersionMessage>) -> Fallible<()>;
     fn subscribe_error(&self, id: String, handler: Callback<ErrorMessage>) -> Fallible<()>;
-    fn subscribe_loaded(&self, id: String, handler: Callback<LoadedForSiteMessage>) -> Fallible<()>;
-    fn subscribe_all_loaded(&self, handler: Callback<LoadedForSiteMessage>) -> Fallible<()>;
+    fn subscribe_component_loaded(&self, id: String, handler: Callback<ComponentLoadedOnSiteMessage>) -> Fallible<()>;
+    fn subscribe_components_loaded(&self, handler: Callback<ComponentLoadedOnSiteMessage>) -> Fallible<()>;
 }
 
 /// A generic facade all components must use to publish their errors and versions (when requested)
@@ -79,7 +79,7 @@ pub trait ComponentBackendFacade: Send + Sync {
     fn subscribe_version_request(&self, handler: Callback0) -> Fallible<()>;
     fn publish_version(&self, version: VersionMessage) -> Fallible<()>;
     fn publish_error(&self, error: ErrorMessage) -> Fallible<()>;
-    fn publish_loaded(&self) -> Fallible<()>;
+    fn publish_component_loaded(&self, component_loaded: ComponentLoadedMessage) -> Fallible<()>;
 }
 
 /// A generic facade all components must use to publish their errors and versions (when requested)
@@ -87,7 +87,7 @@ pub trait IdentifiableComponentBackendFacade: Send + Sync {
     fn subscribe_version_request(&self, id: String, handler: Callback0) -> Fallible<()>;
     fn publish_version(&self, id: String, version: VersionMessage) -> Fallible<()>;
     fn publish_error(&self, id: String, error: ErrorMessage) -> Fallible<()>;
-    fn publish_loaded(&self, id: String, loaded: LoadedForSiteMessage) -> Fallible<()>;
+    fn publish_component_loaded(&self, id: String, component_loaded: ComponentLoadedOnSiteMessage) -> Fallible<()>;
 }
 
 /// A facade to interact with a component that can be toggled on an off at a specific site
@@ -155,8 +155,7 @@ pub trait SoundFeedbackBackendFacade: IdentifiableToggleableBackendFacade {}
 pub trait AsrFacade: ComponentFacade + ToggleableFacade {
     fn publish_start_listening(&self, start: AsrStartListeningMessage) -> Fallible<()>;
     fn publish_stop_listening(&self, site: SiteMessage) -> Fallible<()>;
-    fn publish_reload(&self, reload: ReloadRequestMessage) -> Fallible<()>;
-    fn subscribe_reloaded(&self, handler: Callback<ReloadedMessage>) -> Fallible<()>;
+    fn publish_component_reload(&self, component_reload: RequestComponentReloadMessage) -> Fallible<()>;
     fn subscribe_text_captured(&self, handler: Callback<TextCapturedMessage>) -> Fallible<()>;
     fn subscribe_partial_text_captured(&self, handler: Callback<TextCapturedMessage>) -> Fallible<()>;
 }
@@ -166,8 +165,7 @@ pub trait AsrFacade: ComponentFacade + ToggleableFacade {
 pub trait AsrBackendFacade: ComponentBackendFacade + ToggleableBackendFacade {
     fn subscribe_start_listening(&self, handler: Callback<AsrStartListeningMessage>) -> Fallible<()>;
     fn subscribe_stop_listening(&self, handler: Callback<SiteMessage>) -> Fallible<()>;
-    fn subscribe_reload(&self, handler: Callback<ReloadRequestMessage>) -> Fallible<()>;
-    fn publish_reloaded(&self, reloaded: ReloadedMessage) -> Fallible<()>;
+    fn subscribe_component_reload(&self, handler: Callback<RequestComponentReloadMessage>) -> Fallible<()>;
     fn publish_text_captured(&self, text_captured: TextCapturedMessage) -> Fallible<()>;
     fn publish_partial_text_captured(&self, text_captured: TextCapturedMessage) -> Fallible<()>;
 }
@@ -190,8 +188,7 @@ pub trait TtsBackendFacade: ComponentBackendFacade {
 pub trait NluFacade: ComponentFacade {
     fn publish_query(&self, query: NluQueryMessage) -> Fallible<()>;
     fn publish_partial_query(&self, query: NluSlotQueryMessage) -> Fallible<()>;
-    fn publish_reload(&self, reload: ReloadRequestMessage) -> Fallible<()>;
-    fn subscribe_reloaded(&self, handler: Callback<ReloadedMessage>) -> Fallible<()>;
+    fn publish_component_reload(&self, component_reload: RequestComponentReloadMessage) -> Fallible<()>;
     fn subscribe_slot_parsed(&self, handler: Callback<NluSlotMessage>) -> Fallible<()>;
     fn subscribe_intent_parsed(&self, handler: Callback<NluIntentMessage>) -> Fallible<()>;
     fn subscribe_intent_not_recognized(&self, handler: Callback<NluIntentNotRecognizedMessage>) -> Fallible<()>;
@@ -202,8 +199,7 @@ pub trait NluFacade: ComponentFacade {
 pub trait NluBackendFacade: ComponentBackendFacade {
     fn subscribe_query(&self, handler: Callback<NluQueryMessage>) -> Fallible<()>;
     fn subscribe_partial_query(&self, handler: Callback<NluSlotQueryMessage>) -> Fallible<()>;
-    fn subscribe_reload(&self, handler: Callback<ReloadRequestMessage>) -> Fallible<()>;
-    fn publish_reloaded(&self, reloaded: ReloadedMessage) -> Fallible<()>;
+    fn subscribe_component_reload(&self, handler: Callback<RequestComponentReloadMessage>) -> Fallible<()>;
     fn publish_slot_parsed(&self, slot: NluSlotMessage) -> Fallible<()>;
     fn publish_intent_parsed(&self, intent: NluIntentMessage) -> Fallible<()>;
     fn publish_intent_not_recognized(&self, status: NluIntentNotRecognizedMessage) -> Fallible<()>;
