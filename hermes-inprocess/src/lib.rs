@@ -729,7 +729,7 @@ struct AudioServerReplayResponse {
 
 #[derive(Debug)]
 struct AudioServerPlayBytesStreaming {
-    bytes: PlayBytesStreamingMessage,
+    bytes: StreamBytesMessage,
 }
 
 impl AudioServerFacade for InProcessComponent<AudioServer> {
@@ -757,9 +757,9 @@ impl AudioServerFacade for InProcessComponent<AudioServer> {
         subscribe_filter!(self, AudioServerReplayResponse { frame }, handler, site_id)
     }
 
-    fn publish_play_bytes_streaming(&self, bytes_streaming_message: PlayBytesStreamingMessage) -> Fallible<()> {
+    fn publish_stream_bytes(&self, stream_bytes_message: StreamBytesMessage) -> Fallible<()> {
         self.publish(AudioServerPlayBytesStreaming {
-            bytes: bytes_streaming_message,
+            bytes: stream_bytes_message,
         })
     }
 }
@@ -789,15 +789,11 @@ impl AudioServerBackendFacade for InProcessComponent<AudioServer> {
         self.publish(AudioServerReplayResponse { frame })
     }
 
-    fn subscribe_play_bytes_streaming(
-        &self,
-        site_id: String,
-        handler: Callback<PlayBytesStreamingMessage>,
-    ) -> Fallible<()> {
+    fn subscribe_stream_bytes(&self, site_id: String, handler: Callback<StreamBytesMessage>) -> Fallible<()> {
         subscribe_filter!(self, AudioServerPlayBytesStreaming { bytes }, handler, site_id)
     }
 
-    fn subscribe_all_play_bytes_streaming(&self, handler: Callback<PlayBytesStreamingMessage>) -> Fallible<()> {
+    fn subscribe_all_stream_bytes(&self, handler: Callback<StreamBytesMessage>) -> Fallible<()> {
         subscribe!(self, AudioServerPlayBytesStreaming { bytes }, handler)
     }
 }

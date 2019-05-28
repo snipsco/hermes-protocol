@@ -440,7 +440,11 @@ pub enum AudioServerCommand {
     PlayFinished,
     ToggleOn,
     ToggleOff,
-    PlayBytesStreaming(String, String, String),
+    StreamBytes {
+        stream_id: String,
+        chunk_number: String,
+        is_last_chunk: String,
+    },
 }
 
 impl fmt::Display for AudioServerCommand {
@@ -453,9 +457,11 @@ impl fmt::Display for AudioServerCommand {
             AudioServerCommand::PlayFinished => "playFinished".to_owned(),
             AudioServerCommand::ToggleOn => "toggleOn".to_owned(),
             AudioServerCommand::ToggleOff => "toggleOff".to_owned(),
-            AudioServerCommand::PlayBytesStreaming(ref id, ref nbr, ref is_last_chunk) => {
-                format!("playBytesStreaming/{}/{}/{}", id, nbr, is_last_chunk)
-            }
+            AudioServerCommand::StreamBytes {
+                ref stream_id,
+                ref chunk_number,
+                ref is_last_chunk,
+            } => format!("playBytesStreaming/{}/{}/{}", stream_id, chunk_number, is_last_chunk),
         };
         write!(f, "{}", subpath)
     }
