@@ -1,27 +1,30 @@
 use std::fmt::Debug;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex, Weak};
 
 use failure::Fallible;
-use hermes::*;
 use log::*;
 
+use hermes::*;
+
 pub struct InProcessHermesProtocolHandler {
-    bus: Mutex<ripb::Bus>,
+    subscribers: Arc<Mutex<Vec<Arc<ripb::Subscriber>>>>,
+    bus: Arc<Mutex<ripb::Bus>>,
 }
 
 impl InProcessHermesProtocolHandler {
     pub fn new() -> Self {
         Self {
-            bus: Mutex::new(ripb::Bus::new()),
+            subscribers: Arc::new(Mutex::new(Vec::new())),
+            bus: Arc::new(Mutex::new(ripb::Bus::new())),
         }
     }
 
     fn get_handler<T: Send + Sync + Debug>(&self, component: T) -> Box<InProcessComponent<T>> {
-        let bus = self.bus.lock().unwrap().clone();
         Box::new(InProcessComponent {
             component,
-            bus: Mutex::new(bus),
+            bus: Arc::downgrade(&self.bus),
             subscriber: Mutex::new(None),
+            subscribers: Arc::clone(&self.subscribers),
         })
     }
 }
@@ -114,21 +117,9 @@ impl std::fmt::Display for InProcessHermesProtocolHandler {
 
 struct InProcessComponent<T: Send + Sync + Debug> {
     component: T,
-    bus: Mutex<ripb::Bus>,
-    subscriber: Mutex<Option<ripb::Subscriber>>,
-}
-
-impl<T: Send + Sync + Debug> Drop for InProcessComponent<T> {
-    fn drop(&mut self) {
-        // dropping a ripb subscriber removes its subscriptions it. As we don't have unsubscription
-        // mechanic in hermes (yet) and there are quite a lot of parts in the code where we just
-        // drop the facade after subscribing, let's just forget the subscriber for now.
-        if let Ok(mut subscriber) = self.subscriber.lock() {
-            if let Some(subscriber) = subscriber.take() {
-                std::mem::forget(subscriber)
-            }
-        }
-    }
+    bus: Weak<Mutex<ripb::Bus>>,
+    subscriber: Mutex<Option<Arc<ripb::Subscriber>>>,
+    subscribers: Arc<Mutex<Vec<Arc<ripb::Subscriber>>>>,
 }
 
 impl<T: Send + Sync + Debug> InProcessComponent<T> {
@@ -138,15 +129,43 @@ impl<T: Send + Sync + Debug> InProcessComponent<T> {
     }
 
     fn publish_quiet<M: ripb::Message + Debug + 'static>(&self, message: M) -> Fallible<()> {
-        let bus = self.bus.lock().map_err(PoisonLock::from)?;
+        let bus = self
+            .bus
+            .upgrade()
+            .ok_or_else(|| failure::format_err!("bus was killed"))?;
+        let bus = bus.lock().map_err(PoisonLock::from)?;
         bus.publish(message);
         Ok(())
     }
 
-    fn subscribe0<M: ripb::Message + 'static>(&self, callback: Callback0) -> Fallible<()> {
+    fn ensure_has_subscriber(&self) -> Fallible<()> {
         let mut subscriber = self.subscriber.lock().map_err(PoisonLock::from)?;
-        let subscriber = subscriber.get_or_insert_with(|| self.bus.lock().unwrap().create_subscriber());
-        subscriber.on_message(move |_: &M| callback.call());
+        if subscriber.is_none() {
+            let result = Arc::new(
+                self.bus
+                    .upgrade()
+                    .ok_or_else(|| failure::format_err!("bus was killed"))?
+                    .lock()
+                    .unwrap()
+                    .create_subscriber(),
+            );
+            self.subscribers
+                .lock()
+                .map_err(PoisonLock::from)?
+                .push(Arc::clone(&result));
+            *subscriber = Some(result);
+        }
+        Ok(())
+    }
+
+    fn subscribe0<M: ripb::Message + 'static>(&self, callback: Callback0) -> Fallible<()> {
+        self.ensure_has_subscriber()?;
+        self.subscriber
+            .lock()
+            .map_err(PoisonLock::from)?
+            .as_ref()
+            .unwrap()
+            .on_message(move |_: &M| callback.call())?;
         Ok(())
     }
 
@@ -156,9 +175,13 @@ impl<T: Send + Sync + Debug> InProcessComponent<T> {
         P: 'static,
         C: Fn(&M) -> &P + Send + 'static,
     {
-        let mut subscriber = self.subscriber.lock().map_err(PoisonLock::from)?;
-        let subscriber = subscriber.get_or_insert_with(|| self.bus.lock().unwrap().create_subscriber());
-        subscriber.on_message(move |m: &M| callback.call(converter(m)));
+        self.ensure_has_subscriber()?;
+        self.subscriber
+            .lock()
+            .map_err(PoisonLock::from)?
+            .as_ref()
+            .unwrap()
+            .on_message(move |m: &M| callback.call(converter(m)))?;
         Ok(())
     }
 
@@ -167,13 +190,17 @@ impl<T: Send + Sync + Debug> InProcessComponent<T> {
         M: ripb::Message + 'static,
         F: Fn(&M) -> bool + Send + 'static,
     {
-        let mut subscriber = self.subscriber.lock().map_err(PoisonLock::from)?;
-        let subscriber = subscriber.get_or_insert_with(|| self.bus.lock().unwrap().create_subscriber());
-        subscriber.on_message(move |m: &M| {
-            if filter(m) {
-                callback.call()
-            }
-        });
+        self.ensure_has_subscriber()?;
+        self.subscriber
+            .lock()
+            .map_err(PoisonLock::from)?
+            .as_ref()
+            .unwrap()
+            .on_message(move |m: &M| {
+                if filter(m) {
+                    callback.call()
+                }
+            })?;
         Ok(())
     }
 
@@ -184,13 +211,17 @@ impl<T: Send + Sync + Debug> InProcessComponent<T> {
         C: Fn(&M) -> &P + Send + 'static,
         F: Fn(&M) -> bool + Send + 'static,
     {
-        let mut subscriber = self.subscriber.lock().map_err(PoisonLock::from)?;
-        let subscriber = subscriber.get_or_insert_with(|| self.bus.lock().unwrap().create_subscriber());
-        subscriber.on_message(move |m: &M| {
-            if filter(m) {
-                callback.call(converter(m))
-            }
-        });
+        self.ensure_has_subscriber()?;
+        self.subscriber
+            .lock()
+            .map_err(PoisonLock::from)?
+            .as_ref()
+            .unwrap()
+            .on_message(move |m: &M| {
+                if filter(m) {
+                    callback.call(converter(m))
+                }
+            })?;
         Ok(())
     }
 }
@@ -956,9 +987,9 @@ impl InjectionBackendFacade for InProcessComponent<Injection> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     use std::rc::Rc;
+
+    use super::*;
 
     fn create_handlers() -> (Rc<InProcessHermesProtocolHandler>, Rc<InProcessHermesProtocolHandler>) {
         let handler = Rc::new(InProcessHermesProtocolHandler::new());
