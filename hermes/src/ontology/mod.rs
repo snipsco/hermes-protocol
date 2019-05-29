@@ -84,6 +84,10 @@ where
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ComponentLoadedOnSiteMessage {
+    /// Optional id associated to a load/reload operation for a component
+    pub id: Option<String>,
+    /// boolean that indicates if the component was reloaded or if it's its initial load.
+    pub reloaded: bool,
     /// The site concerned
     pub site_id: String,
 }

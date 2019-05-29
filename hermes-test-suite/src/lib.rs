@@ -280,7 +280,7 @@ macro_rules! t_component {
                         with ErrorMessage { session_id: Some("123abc".into()), error: "some error".into(), context: None };);
                 t!(component_loaded_works:
                         $f.subscribe_component_loaded <= ComponentLoadedMessage | $f_back.publish_component_loaded
-                        with ComponentLoadedMessage { id: Some("123abc".into()), reloaded: false};);
+                        with ComponentLoadedMessage { id: Some("123abc".into()), reloaded: false };);
             }
         };
     }
@@ -300,11 +300,11 @@ macro_rules! t_identifiable_component {
                         with ErrorMessage { session_id: Some("123abc".into()), error: "some error".into(), context: None };);
                 t!(component_loaded_works:
                         $f.subscribe_component_loaded { "identifier".to_string() } <= ComponentLoadedOnSiteMessage | $f_back.publish_component_loaded
-                        with ComponentLoadedOnSiteMessage { site_id: "site_id".into() }; );
+                        with ComponentLoadedOnSiteMessage { id: Some("id".into()), reloaded: false, site_id: "site_id".into() }; );
                 t!(components_loaded_works:
                         ManyToOne
                         $f.subscribe_components_loaded <= ComponentLoadedOnSiteMessage | $f_back.publish_component_loaded { "site_id".into() }
-                        with ComponentLoadedOnSiteMessage { site_id: "site_id".into() }; );
+                        with ComponentLoadedOnSiteMessage { id: Some("id".into()), reloaded: false, site_id: "site_id".into() }; );
             }
         };
     }
