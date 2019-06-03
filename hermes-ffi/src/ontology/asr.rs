@@ -11,7 +11,7 @@ pub struct CAsrStartListeningMessage {
     pub site_id: *const libc::c_char,
     /// Nullable
     pub session_id: *const libc::c_char,
-    pub start_signal_ms: libc::int64_t, // -1 mean None
+    pub start_signal_ms: i64, // -1 mean None
 }
 
 unsafe impl Sync for CAsrStartListeningMessage {}
@@ -146,8 +146,8 @@ impl AsRust<hermes::AsrDecodingDuration> for CAsrDecodingDuration {
 pub struct CAsrToken {
     pub value: *const libc::c_char,
     pub confidence: f32,
-    pub range_start: libc::int32_t,
-    pub range_end: libc::int32_t,
+    pub range_start: i32,
+    pub range_end: i32,
     pub time: CAsrDecodingDuration,
 }
 
@@ -156,8 +156,8 @@ impl CReprOf<hermes::AsrToken> for CAsrToken {
         Ok(Self {
             value: convert_to_c_string!(input.value),
             confidence: input.confidence,
-            range_start: input.range_start as libc::int32_t,
-            range_end: input.range_end as libc::int32_t,
+            range_start: input.range_start as i32,
+            range_end: input.range_end as i32,
             time: CAsrDecodingDuration::c_repr_of(input.time)?,
         })
     }

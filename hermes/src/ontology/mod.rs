@@ -78,7 +78,6 @@ where
     D: serde::Deserializer<'de>,
 {
     use serde::de::Error;
-    use serde::Deserialize;
     String::deserialize(deserializer)
         .and_then(|string| base64::decode(&string).map_err(|err| Error::custom(err.to_string())))
 }
