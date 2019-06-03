@@ -567,7 +567,7 @@ impl AudioServerFacade for MqttToggleableComponentFacade {
                AudioServerCommand::StreamBytes {
                    stream_id: stream_bytes_message.stream_id.clone(),
                    chunk_number: stream_bytes_message.chunk_number.to_string(),
-                   is_last_chunk: if stream_bytes_message.is_last_chunk { "0".to_string() } else { "1".to_string() }})
+                   is_last_chunk: if stream_bytes_message.is_last_chunk { "1".to_string() } else { "0".to_string() }})
        }
        { stream_bytes_message.bytes });
 }
@@ -604,7 +604,7 @@ impl AudioServerBackendFacade for MqttToggleableComponentFacade {
                 AudioServerCommand::StreamBytes {
                     stream_id:"+".into(),
                     chunk_number:"+".into(),
-                    is_last_chunk:"#".into()
+                    is_last_chunk:"+".into()
                 }
             )
         }
@@ -622,7 +622,7 @@ impl AudioServerBackendFacade for MqttToggleableComponentFacade {
                 unreachable!()
             }
             });
-    s_bin!(subscribe_all_stream_bytes<StreamBytesMessage> { &HermesTopic::AudioServer(Some("+".into()), AudioServerCommand::StreamBytes{stream_id:"+".into(), chunk_number:"+".into(), is_last_chunk:"#".into()}) }
+    s_bin!(subscribe_all_stream_bytes<StreamBytesMessage> { &HermesTopic::AudioServer(Some("+".into()), AudioServerCommand::StreamBytes{stream_id:"+".into(), chunk_number:"+".into(), is_last_chunk:"+".into()}) }
            |topic, bytes| {
                 if let HermesTopic::AudioServer(Some(ref site_id), AudioServerCommand::StreamBytes{ref stream_id, ref chunk_number, ref is_last_chunk}) = *topic {
                     StreamBytesMessage {
@@ -630,7 +630,7 @@ impl AudioServerBackendFacade for MqttToggleableComponentFacade {
                         stream_id: stream_id.to_owned(),
                         chunk_number: chunk_number.parse()
                             .expect("chunk_nbr is supposed to be properly formatted"),
-                        is_last_chunk: is_last_chunk == "1",
+                        is_last_chunk: is_last_chunk != "0",
                         bytes: bytes.into()
                     }
                 } else {
