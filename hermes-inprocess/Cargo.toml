@@ -6,7 +6,7 @@ edition = "2018"
 
 [dependencies]
 failure = "0.1"
-ripb = { git="https://github.com/snipsco/ripb", rev="1d87849" }
+ripb = "0.3"
 hermes = { path = "../hermes" }
 hermes-test-suite = { path = "../hermes-test-suite" }
 log = "0.4"
