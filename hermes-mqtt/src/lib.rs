@@ -570,6 +570,8 @@ impl AudioServerFacade for MqttToggleableComponentFacade {
                    is_last_chunk: if stream_bytes_message.is_last_chunk { "1".to_string() } else { "0".to_string() }})
        }
        { stream_bytes_message.bytes });
+    s!(subscribe_stream_finished<StreamFinishedMessage>(site_id: String) { &HermesTopic::AudioServer(Some(site_id), AudioServerCommand::StreamFinished) });
+    s!(subscribe_all_stream_finished<StreamFinishedMessage> &HermesTopic::AudioServer(Some("+".into()), AudioServerCommand::StreamFinished););
 }
 
 impl AudioServerBackendFacade for MqttToggleableComponentFacade {
@@ -637,6 +639,7 @@ impl AudioServerBackendFacade for MqttToggleableComponentFacade {
                     unreachable!()
                 }
            });
+    p!(publish_stream_finished(message: StreamFinishedMessage) { &HermesTopic::AudioServer(Some(message.site_id.clone()), AudioServerCommand::StreamFinished) });
 }
 
 impl DialogueFacade for MqttToggleableComponentFacade {

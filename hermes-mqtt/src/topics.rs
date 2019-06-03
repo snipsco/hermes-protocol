@@ -445,6 +445,7 @@ pub enum AudioServerCommand {
         chunk_number: String,
         is_last_chunk: String,
     },
+    StreamFinished,
 }
 
 impl fmt::Display for AudioServerCommand {
@@ -462,6 +463,7 @@ impl fmt::Display for AudioServerCommand {
                 ref chunk_number,
                 ref is_last_chunk,
             } => format!("playBytesStreaming/{}/{}/{}", stream_id, chunk_number, is_last_chunk),
+            AudioServerCommand::StreamFinished => "streamFinished".to_owned(),
         };
         write!(f, "{}", subpath)
     }

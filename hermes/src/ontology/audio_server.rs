@@ -138,6 +138,16 @@ pub struct PlayFinishedMessage {
     pub site_id: String,
 }
 
+/// This message is send by the audio server when a audio stream has finished playing
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct StreamFinishedMessage {
+    /// The id of the `StreamBytesMessage` which bytes finished playing
+    pub id: String,
+    /// The site where the sound was played
+    pub site_id: String,
+}
+
 impl<'de> HermesMessage<'de> for PlayFinishedMessage {}
 
 fn as_base64<S>(bytes: &[u8], serializer: S) -> Result<S::Ok, S::Error>
