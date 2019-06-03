@@ -501,6 +501,8 @@ pub enum InjectionCommand {
     Status,
     StatusRequest,
     Complete,
+    ResetRequest,
+    ResetComplete,
 }
 
 impl ToPath for InjectionCommand {}
@@ -767,6 +769,14 @@ mod tests {
             (
                 HermesTopic::Injection(InjectionCommand::Complete),
                 "hermes/injection/complete",
+            ),
+            (
+                HermesTopic::Injection(InjectionCommand::ResetRequest),
+                "hermes/injection/resetRequest",
+            ),
+            (
+                HermesTopic::Injection(InjectionCommand::ResetComplete),
+                "hermes/injection/resetComplete",
             ),
             (
                 HermesTopic::Component(None, Component::Injection, ComponentCommand::VersionRequest),
