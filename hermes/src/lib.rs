@@ -208,6 +208,9 @@ pub trait AudioServerFacade: IdentifiableComponentFacade + IdentifiableToggleabl
     fn subscribe_audio_frame(&self, site_id: String, handler: Callback<AudioFrameMessage>) -> Fallible<()>;
     fn publish_replay_request(&self, request: ReplayRequestMessage) -> Fallible<()>;
     fn subscribe_replay_response(&self, site_id: String, handler: Callback<AudioFrameMessage>) -> Fallible<()>;
+    fn publish_stream_bytes(&self, play_bytes_streaming_message: StreamBytesMessage) -> Fallible<()>;
+    fn subscribe_stream_finished(&self, site_id: String, handler: Callback<StreamFinishedMessage>) -> Fallible<()>;
+    fn subscribe_all_stream_finished(&self, handler: Callback<StreamFinishedMessage>) -> Fallible<()>;
 }
 
 /// The facade the audio server must use to receive its orders and advertise when it has finished
@@ -218,6 +221,9 @@ pub trait AudioServerBackendFacade: IdentifiableComponentBackendFacade + Identif
     fn publish_audio_frame(&self, frame: AudioFrameMessage) -> Fallible<()>;
     fn subscribe_replay_request(&self, site_id: String, handler: Callback<ReplayRequestMessage>) -> Fallible<()>;
     fn publish_replay_response(&self, frame: AudioFrameMessage) -> Fallible<()>;
+    fn subscribe_stream_bytes(&self, site_id: String, handler: Callback<StreamBytesMessage>) -> Fallible<()>;
+    fn subscribe_all_stream_bytes(&self, handler: Callback<StreamBytesMessage>) -> Fallible<()>;
+    fn publish_stream_finished(&self, status: StreamFinishedMessage) -> Fallible<()>;
 }
 
 /// The facade to use to interact with the dialogue manager, this is the principal interface that a

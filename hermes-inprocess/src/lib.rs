@@ -758,6 +758,16 @@ struct AudioServerReplayResponse {
     frame: AudioFrameMessage,
 }
 
+#[derive(Debug)]
+struct AudioServerStreamBytes {
+    bytes: StreamBytesMessage,
+}
+
+#[derive(Debug)]
+struct AudioServerStreamFinished {
+    status: StreamFinishedMessage,
+}
+
 impl AudioServerFacade for InProcessComponent<AudioServer> {
     fn publish_play_bytes(&self, bytes: PlayBytesMessage) -> Fallible<()> {
         self.publish(AudioServerPlayBytes { bytes })
@@ -781,6 +791,20 @@ impl AudioServerFacade for InProcessComponent<AudioServer> {
 
     fn subscribe_replay_response(&self, site_id: String, handler: Callback<AudioFrameMessage>) -> Fallible<()> {
         subscribe_filter!(self, AudioServerReplayResponse { frame }, handler, site_id)
+    }
+
+    fn publish_stream_bytes(&self, stream_bytes_message: StreamBytesMessage) -> Fallible<()> {
+        self.publish(AudioServerStreamBytes {
+            bytes: stream_bytes_message,
+        })
+    }
+
+    fn subscribe_stream_finished(&self, site_id: String, handler: Callback<StreamFinishedMessage>) -> Fallible<()> {
+        subscribe_filter!(self, AudioServerStreamFinished { status }, handler, site_id)
+    }
+
+    fn subscribe_all_stream_finished(&self, handler: Callback<StreamFinishedMessage>) -> Fallible<()> {
+        subscribe!(self, AudioServerStreamFinished { status }, handler)
     }
 }
 
@@ -807,6 +831,18 @@ impl AudioServerBackendFacade for InProcessComponent<AudioServer> {
 
     fn publish_replay_response(&self, frame: AudioFrameMessage) -> Fallible<()> {
         self.publish(AudioServerReplayResponse { frame })
+    }
+
+    fn subscribe_stream_bytes(&self, site_id: String, handler: Callback<StreamBytesMessage>) -> Fallible<()> {
+        subscribe_filter!(self, AudioServerStreamBytes { bytes }, handler, site_id)
+    }
+
+    fn subscribe_all_stream_bytes(&self, handler: Callback<StreamBytesMessage>) -> Fallible<()> {
+        subscribe!(self, AudioServerStreamBytes { bytes }, handler)
+    }
+
+    fn publish_stream_finished(&self, status: StreamFinishedMessage) -> Fallible<()> {
+        self.publish(AudioServerStreamFinished { status })
     }
 }
 
