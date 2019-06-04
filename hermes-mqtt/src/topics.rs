@@ -774,11 +774,11 @@ mod tests {
             ),
             (
                 HermesTopic::Injection(InjectionCommand::ResetRequest),
-                "hermes/injection/resetRequest",
+                "hermes/injection/reset/perform",
             ),
             (
                 HermesTopic::Injection(InjectionCommand::ResetComplete),
-                "hermes/injection/resetComplete",
+                "hermes/injection/reset/complete",
             ),
             (
                 HermesTopic::Component(None, Component::Injection, ComponentCommand::VersionRequest),
