@@ -270,6 +270,8 @@ impl HermesTopic {
                 Component::Injection,
                 ComponentCommand::Loaded,
             )),
+            Some("resetRequest") => Some(Injection(ResetRequest)),
+            Some("resetComplete") => Some(Injection(ResetComplete)),
             _ => None,
         }
     }
