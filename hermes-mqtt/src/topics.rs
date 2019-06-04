@@ -4,6 +4,10 @@ use strum_macros::ToString;
 
 pub trait ToPath: ToString {
     fn as_path(&self) -> String {
+        self.as_path_default()
+    }
+
+    fn as_path_default(&self) -> String {
         let raw_path = self.to_string();
         let mut c = raw_path.chars();
 
@@ -270,8 +274,11 @@ impl HermesTopic {
                 Component::Injection,
                 ComponentCommand::Loaded,
             )),
-            Some("resetRequest") => Some(Injection(ResetRequest)),
-            Some("resetComplete") => Some(Injection(ResetComplete)),
+            Some("reset") => match comps.next() {
+                Some("perform") => Some(Injection(ResetRequest)),
+                Some("complete") => Some(Injection(ResetComplete)),
+                _ => None,
+            },
             _ => None,
         }
     }
@@ -507,7 +514,15 @@ pub enum InjectionCommand {
     ResetComplete,
 }
 
-impl ToPath for InjectionCommand {}
+impl ToPath for InjectionCommand {
+    fn as_path(&self) -> String {
+        match &self {
+            InjectionCommand::ResetRequest => "reset/perform".into(),
+            InjectionCommand::ResetComplete => "reset/complete".into(),
+            _ => self.as_path_default(),
+        }
+    }
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, ToString)]
 pub enum ComponentCommand {
