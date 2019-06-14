@@ -830,7 +830,7 @@ impl AudioServerBackendFacade for InProcessComponent<AudioServer> {
     }
 
     fn publish_replay_response(&self, frame: AudioFrameMessage) -> Fallible<()> {
-        self.publish(AudioServerReplayResponse { frame })
+        self.publish_quiet(AudioServerReplayResponse { frame })
     }
 
     fn subscribe_stream_bytes(&self, site_id: String, handler: Callback<StreamBytesMessage>) -> Fallible<()> {
