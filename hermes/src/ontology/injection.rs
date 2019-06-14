@@ -86,6 +86,24 @@ pub struct InjectionCompleteMessage {
 
 impl<'de> HermesMessage<'de> for InjectionCompleteMessage {}
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InjectionResetRequestMessage {
+    /// The id of the `InjectionResetRequestMessage`
+    pub request_id: Option<String>,
+}
+
+impl<'de> HermesMessage<'de> for InjectionResetRequestMessage {}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InjectionResetCompleteMessage {
+    /// The id of the `InjectionResetRequestMessage`
+    pub request_id: Option<String>,
+}
+
+impl<'de> HermesMessage<'de> for InjectionResetCompleteMessage {}
+
 #[cfg(test)]
 mod test {
     use super::*;

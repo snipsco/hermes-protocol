@@ -1053,6 +1053,16 @@ struct InjectionComplete {
     message: InjectionCompleteMessage,
 }
 
+#[derive(Debug)]
+struct InjectionResetPerform {
+    request: InjectionResetRequestMessage,
+}
+
+#[derive(Debug)]
+struct InjectionResetComplete {
+    message: InjectionResetCompleteMessage,
+}
+
 impl InjectionFacade for InProcessComponent<Injection> {
     fn publish_injection_request(&self, request: InjectionRequestMessage) -> Fallible<()> {
         self.publish(InjectionPerform { request })
@@ -1062,12 +1072,20 @@ impl InjectionFacade for InProcessComponent<Injection> {
         self.publish(InjectionStatusRequest {})
     }
 
+    fn publish_injection_reset_request(&self, request: InjectionResetRequestMessage) -> Fallible<()> {
+        self.publish(InjectionResetPerform { request })
+    }
+
     fn subscribe_injection_status(&self, handler: Callback<InjectionStatusMessage>) -> Fallible<()> {
         subscribe!(self, InjectionStatus { status }, handler)
     }
 
     fn subscribe_injection_complete(&self, handler: Callback<InjectionCompleteMessage>) -> Fallible<()> {
         subscribe!(self, InjectionComplete { message }, handler)
+    }
+
+    fn subscribe_injection_reset_complete(&self, handler: Callback<InjectionResetCompleteMessage>) -> Fallible<()> {
+        subscribe!(self, InjectionResetComplete { message }, handler)
     }
 }
 
@@ -1080,12 +1098,20 @@ impl InjectionBackendFacade for InProcessComponent<Injection> {
         subscribe!(self, InjectionStatusRequest, handler)
     }
 
+    fn subscribe_injection_reset_request(&self, handler: Callback<InjectionResetRequestMessage>) -> Fallible<()> {
+        subscribe!(self, InjectionResetPerform { request }, handler)
+    }
+
     fn publish_injection_status(&self, status: InjectionStatusMessage) -> Fallible<()> {
         self.publish(InjectionStatus { status })
     }
 
     fn publish_injection_complete(&self, message: InjectionCompleteMessage) -> Fallible<()> {
         self.publish(InjectionComplete { message })
+    }
+
+    fn publish_injection_reset_complete(&self, message: InjectionResetCompleteMessage) -> Fallible<()> {
+        self.publish(InjectionResetComplete { message })
     }
 }
 

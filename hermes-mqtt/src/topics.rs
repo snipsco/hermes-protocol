@@ -4,6 +4,10 @@ use strum_macros::ToString;
 
 pub trait ToPath: ToString {
     fn as_path(&self) -> String {
+        self.as_path_default()
+    }
+
+    fn as_path_default(&self) -> String {
         let raw_path = self.to_string();
         let mut c = raw_path.chars();
 
@@ -270,6 +274,11 @@ impl HermesTopic {
                 Component::Injection,
                 ComponentCommand::Loaded,
             )),
+            Some("reset") => match comps.next() {
+                Some("perform") => Some(Injection(ResetRequest)),
+                Some("complete") => Some(Injection(ResetComplete)),
+                _ => None,
+            },
             _ => None,
         }
     }
@@ -501,9 +510,19 @@ pub enum InjectionCommand {
     Status,
     StatusRequest,
     Complete,
+    ResetRequest,
+    ResetComplete,
 }
 
-impl ToPath for InjectionCommand {}
+impl ToPath for InjectionCommand {
+    fn as_path(&self) -> String {
+        match &self {
+            InjectionCommand::ResetRequest => "reset/perform".into(),
+            InjectionCommand::ResetComplete => "reset/complete".into(),
+            _ => self.as_path_default(),
+        }
+    }
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, ToString)]
 pub enum ComponentCommand {
@@ -767,6 +786,14 @@ mod tests {
             (
                 HermesTopic::Injection(InjectionCommand::Complete),
                 "hermes/injection/complete",
+            ),
+            (
+                HermesTopic::Injection(InjectionCommand::ResetRequest),
+                "hermes/injection/reset/perform",
+            ),
+            (
+                HermesTopic::Injection(InjectionCommand::ResetComplete),
+                "hermes/injection/reset/complete",
             ),
             (
                 HermesTopic::Component(None, Component::Injection, ComponentCommand::VersionRequest),

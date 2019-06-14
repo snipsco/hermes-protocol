@@ -488,5 +488,11 @@ macro_rules! test_suite {
         t!(injection_complete:
                     injection.subscribe_injection_complete <= InjectionCompleteMessage | injection_backend.publish_injection_complete
                     with InjectionCompleteMessage { request_id: Some("some id".into()) };);
+        t!(injection_reset_request:
+                    injection_backend.subscribe_injection_reset_request <= InjectionResetRequestMessage | injection.publish_injection_reset_request
+                    with InjectionResetRequestMessage { request_id: Some("abc".into()) };);
+        t!(injection_reset_complete:
+                    injection.subscribe_injection_reset_complete <= InjectionResetCompleteMessage | injection_backend.publish_injection_reset_complete
+                    with InjectionResetCompleteMessage { request_id: Some("abc".into()) };);
     };
 }

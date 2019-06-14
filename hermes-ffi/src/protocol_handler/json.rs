@@ -118,8 +118,10 @@ macro_rules! generate_json_c_symbols {
 
             $crate::generate_facade_publish_json!(hermes_injection_publish_injection_request_json = CInjectionFacade: publish_injection_request());
             $crate::generate_facade_publish_json!(hermes_injection_publish_injection_status_request_json = CInjectionFacade: publish_injection_status_request);
+            $crate::generate_facade_publish_json!(hermes_injection_publish_injection_reset_request_json = CInjectionFacade: publish_injection_reset_request());
             $crate::generate_facade_subscribe_json!(hermes_injection_subscribe_injection_status_json = CInjectionFacade: subscribe_injection_status());
             $crate::generate_facade_subscribe_json!(hermes_injection_subscribe_injection_complete_json = CInjectionFacade: subscribe_injection_complete());
+            $crate::generate_facade_subscribe_json!(hermes_injection_subscribe_injection_reset_complete_json = CInjectionFacade: subscribe_injection_reset_complete());
 
             #[cfg(feature = "full_bindings")]
             pub mod full_bindings {

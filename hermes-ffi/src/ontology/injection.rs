@@ -325,6 +325,64 @@ impl AsRust<hermes::InjectionCompleteMessage> for CInjectionCompleteMessage {
     }
 }
 
+#[repr(C)]
+#[derive(Debug)]
+pub struct CInjectionResetRequestMessage {
+    pub request_id: *const libc::c_char,
+}
+
+unsafe impl Sync for CInjectionResetRequestMessage {}
+
+impl Drop for CInjectionResetRequestMessage {
+    fn drop(&mut self) {
+        take_back_nullable_c_string!(self.request_id);
+    }
+}
+
+impl CReprOf<hermes::InjectionResetRequestMessage> for CInjectionResetRequestMessage {
+    fn c_repr_of(message: hermes::InjectionResetRequestMessage) -> Fallible<Self> {
+        Ok(Self {
+            request_id: convert_to_nullable_c_string!(message.request_id),
+        })
+    }
+}
+
+impl AsRust<hermes::InjectionResetRequestMessage> for CInjectionResetRequestMessage {
+    fn as_rust(&self) -> Fallible<hermes::InjectionResetRequestMessage> {
+        let request_id = create_optional_rust_string_from!(self.request_id);
+        Ok(hermes::InjectionResetRequestMessage { request_id })
+    }
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct CInjectionResetCompleteMessage {
+    pub request_id: *const libc::c_char,
+}
+
+unsafe impl Sync for CInjectionResetCompleteMessage {}
+
+impl Drop for CInjectionResetCompleteMessage {
+    fn drop(&mut self) {
+        take_back_nullable_c_string!(self.request_id);
+    }
+}
+
+impl CReprOf<hermes::InjectionResetCompleteMessage> for CInjectionResetCompleteMessage {
+    fn c_repr_of(message: hermes::InjectionResetCompleteMessage) -> Fallible<Self> {
+        Ok(Self {
+            request_id: convert_to_nullable_c_string!(message.request_id),
+        })
+    }
+}
+
+impl AsRust<hermes::InjectionResetCompleteMessage> for CInjectionResetCompleteMessage {
+    fn as_rust(&self) -> Fallible<hermes::InjectionResetCompleteMessage> {
+        let request_id = create_optional_rust_string_from!(self.request_id);
+        Ok(hermes::InjectionResetCompleteMessage { request_id })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::super::tests::round_trip_test;
@@ -464,6 +522,20 @@ mod tests {
         round_trip_test::<_, CInjectionCompleteMessage>(hermes::InjectionCompleteMessage {
             request_id: Some("identifier".to_string()),
         });
+    }
+
+    #[test]
+    fn round_trip_injection_reset_request() {
+        round_trip_test::<_, CInjectionResetRequestMessage>(hermes::InjectionResetRequestMessage {
+            request_id: Some("some id".to_string()),
+        })
+    }
+
+    #[test]
+    fn round_trip_injection_reset_complete() {
+        round_trip_test::<_, CInjectionResetCompleteMessage>(hermes::InjectionResetCompleteMessage {
+            request_id: Some("some id".to_string()),
+        })
     }
 
 }
