@@ -278,6 +278,9 @@ macro_rules! t_component {
                 t!(error_works:
                         $f.subscribe_error <= ErrorMessage | $f_back.publish_error
                         with ErrorMessage { session_id: Some("123abc".into()), error: "some error".into(), context: None };);
+                t!(component_loaded_works:
+                        $f.subscribe_component_loaded <= ComponentLoadedMessage | $f_back.publish_component_loaded
+                        with ComponentLoadedMessage { id: Some("123abc".into()), reloaded: false };);
             }
         };
     }
@@ -295,6 +298,13 @@ macro_rules! t_identifiable_component {
                 t!(error_works:
                         $f.subscribe_error { "identifier".to_string() } <= ErrorMessage | $f_back.publish_error
                         with ErrorMessage { session_id: Some("123abc".into()), error: "some error".into(), context: None };);
+                t!(component_loaded_works:
+                        $f.subscribe_component_loaded { "identifier".to_string() } <= ComponentLoadedOnSiteMessage | $f_back.publish_component_loaded
+                        with ComponentLoadedOnSiteMessage { id: Some("id".into()), reloaded: false, site_id: "site_id".into() }; );
+                t!(components_loaded_works:
+                        ManyToOne
+                        $f.subscribe_components_loaded <= ComponentLoadedOnSiteMessage | $f_back.publish_component_loaded { "site_id".into() }
+                        with ComponentLoadedOnSiteMessage { id: Some("id".into()), reloaded: false, site_id: "site_id".into() }; );
             }
         };
     }
@@ -356,7 +366,8 @@ macro_rules! test_suite {
                     asr_backend.subscribe_stop_listening <= SiteMessage | asr.publish_stop_listening
                     with SiteMessage { session_id: Some("abc".into()), site_id: "some site".into() };);
         t!(asr_reload:
-                asr_backend.subscribe_reload <= asr.publish_reload);
+                    asr_backend.subscribe_component_reload <= RequestComponentReloadMessage | asr.publish_component_reload
+                    with RequestComponentReloadMessage { id: "abc".into() }; );
 
         t_component!(tts_component: tts_backend | tts);
         t!(tts_say_works:
@@ -392,7 +403,8 @@ macro_rules! test_suite {
                     nlu.subscribe_intent_not_recognized <= NluIntentNotRecognizedMessage | nlu_backend.publish_intent_not_recognized
                     with NluIntentNotRecognizedMessage { id: None, input: "hello world".into(), session_id: Some("abc".into()), confidence_score: 0.5 };);
         t!(nlu_reload:
-                    nlu_backend.subscribe_reload <= nlu.publish_reload);
+                    nlu_backend.subscribe_component_reload <= RequestComponentReloadMessage | nlu.publish_component_reload
+                    with RequestComponentReloadMessage { id: "abc".into() }; );
 
         t_identifiable_component!(audio_server_component: audio_server_backend | audio_server);
         t_identifiable_toggleable!(audio_server_toggeable: audio_server_backend | audio_server);
@@ -473,5 +485,8 @@ macro_rules! test_suite {
         t!(injection_status:
                     injection.subscribe_injection_status <= InjectionStatusMessage | injection_backend.publish_injection_status
                     with InjectionStatusMessage { last_injection_date: Some($crate::now()) };);
+        t!(injection_complete:
+                    injection.subscribe_injection_complete <= InjectionCompleteMessage | injection_backend.publish_injection_complete
+                    with InjectionCompleteMessage { request_id: Some("some id".into()) };);
     };
 }

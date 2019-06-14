@@ -5,6 +5,7 @@ import ai.snips.hermes.ContinueSessionMessage
 import ai.snips.hermes.DialogueConfigureMessage
 import ai.snips.hermes.EndSessionMessage
 import ai.snips.hermes.InjectionRequestMessage
+import ai.snips.hermes.InjectionCompleteMessage
 import ai.snips.hermes.IntentMessage
 import ai.snips.hermes.IntentNotRecognizedMessage
 import ai.snips.hermes.SessionEndedMessage
@@ -19,6 +20,7 @@ import ai.snips.hermes.ffi.CContinueSessionMessage
 import ai.snips.hermes.ffi.CDialogueConfigureMessage
 import ai.snips.hermes.ffi.CEndSessionMessage
 import ai.snips.hermes.ffi.CInjectionRequestMessage
+import ai.snips.hermes.ffi.CInjectionCompleteMessage
 import ai.snips.hermes.ffi.CIntentMessage
 import ai.snips.hermes.ffi.CIntentNotRecognizedMessage
 import ai.snips.hermes.ffi.CMapStringToStringArray
@@ -31,6 +33,7 @@ import com.sun.jna.Library
 import com.sun.jna.Native
 import com.sun.jna.Pointer
 import com.sun.jna.ptr.PointerByReference
+import kotlin.reflect.jvm.internal.impl.protobuf.ByteString
 
 
 class HermesTest {
@@ -90,6 +93,13 @@ class HermesTest {
                       INSTANCE::hermes_ffi_test_round_trip_injection_request,
                       { CInjectionRequestMessage(it).toInjectionRequestMessage() },
                       INSTANCE::hermes_drop_injection_request_message)
+
+    fun roundTripInjectionComplete(input: InjectionCompleteMessage) =
+            roundTrip(input,
+                      CInjectionCompleteMessage.Companion::fromInjectionCompleteMessage,
+                      INSTANCE::hermes_ffi_test_round_trip_injection_complete,
+                      { CInjectionCompleteMessage(it).toInjectionCompleteMessage() },
+                      INSTANCE::hermes_drop_injection_complete_message)
 
     fun roundTripMapStringToStringArray(input: Map<String, List<String>>) =
             roundTrip(input,
@@ -176,6 +186,9 @@ class HermesTest {
     fun roundTripInjectionRequestJson(input: InjectionRequestMessage) =
             roundTripJson(input, INSTANCE::hermes_ffi_test_round_trip_injection_request_json)
 
+    fun roundTripInjectionCompleteJson(input: InjectionCompleteMessage) =
+            roundTripJson(input, INSTANCE::hermes_ffi_test_round_trip_injection_complete_json)
+
     fun roundTripTextCapturedJson(input: TextCapturedMessage) =
             roundTripJson(input, INSTANCE::hermes_ffi_test_round_trip_text_captured_json)
 
@@ -202,6 +215,7 @@ class HermesTest {
         fun hermes_ffi_test_round_trip_intent(input: CIntentMessage, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_intent_not_recognized(input: CIntentNotRecognizedMessage, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_injection_request(input: CInjectionRequestMessage, output: PointerByReference): Int
+        fun hermes_ffi_test_round_trip_injection_complete(input: CInjectionCompleteMessage, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_map_string_to_string_array(input: CMapStringToStringArray, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_asr_token(input: CAsrToken, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_asr_token_array(input: CAsrTokenArray, output: PointerByReference): Int
@@ -219,6 +233,7 @@ class HermesTest {
         fun hermes_ffi_test_round_trip_continue_session_json(input: String, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_end_session_json(input: String, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_injection_request_json(input: String, output: PointerByReference): Int
+        fun hermes_ffi_test_round_trip_injection_complete_json(input: String, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_text_captured_json(input: String, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_dialogue_configure_json(input: String, output: PointerByReference): Int
 
@@ -237,6 +252,7 @@ class HermesTest {
         fun hermes_drop_intent_message(ptr: Pointer): Int
         fun hermes_drop_intent_not_recognized_message(ptr: Pointer): Int
         fun hermes_drop_injection_request_message(ptr: Pointer): Int
+        fun hermes_drop_injection_complete_message(ptr: Pointer): Int
         fun hermes_drop_text_captured_message(ptr: Pointer): Int
         fun hermes_drop_dialogue_configure_message(ptr: Pointer): Int
     }

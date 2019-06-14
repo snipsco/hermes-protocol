@@ -106,6 +106,7 @@ macro_rules! generate_structures_c_symbols {
             $crate::generate_facade_publish!(hermes_injection_publish_injection_request = CInjectionFacade: publish_injection_request(CInjectionRequestMessage));
             $crate::generate_facade_publish!(hermes_injection_publish_injection_status_request = CInjectionFacade: publish_injection_status_request());
             $crate::generate_facade_subscribe!(hermes_injection_subscribe_injection_status = CInjectionFacade: subscribe_injection_status(|CInjectionStatusMessage|));
+            $crate::generate_facade_subscribe!(hermes_injection_subscribe_injection_complete = CInjectionFacade: subscribe_injection_complete(|CInjectionCompleteMessage|));
 
             $crate::generate_facade_publish!(hermes_tts_publish_register_sound = CTtsFacade: publish_register_sound(CRegisterSoundMessage));
 
@@ -117,6 +118,7 @@ macro_rules! generate_structures_c_symbols {
             $crate::generate_destroy!(hermes_drop_version_message for CVersionMessage);
             $crate::generate_destroy!(hermes_drop_error_message for CErrorMessage);
             $crate::generate_destroy!(hermes_drop_injection_status_message for CInjectionStatusMessage);
+            $crate::generate_destroy!(hermes_drop_injection_complete_message for CInjectionCompleteMessage);
 
             #[cfg(feature = "full_bindings")]
             pub mod full_bindings {

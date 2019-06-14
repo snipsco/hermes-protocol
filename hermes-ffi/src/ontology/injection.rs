@@ -296,6 +296,35 @@ impl AsRust<hermes::InjectionStatusMessage> for CInjectionStatusMessage {
     }
 }
 
+#[repr(C)]
+#[derive(Debug)]
+pub struct CInjectionCompleteMessage {
+    pub request_id: *const libc::c_char,
+}
+
+unsafe impl Sync for CInjectionCompleteMessage {}
+
+impl Drop for CInjectionCompleteMessage {
+    fn drop(&mut self) {
+        take_back_nullable_c_string!(self.request_id);
+    }
+}
+
+impl CReprOf<hermes::InjectionCompleteMessage> for CInjectionCompleteMessage {
+    fn c_repr_of(message: hermes::InjectionCompleteMessage) -> Fallible<Self> {
+        Ok(Self {
+            request_id: convert_to_nullable_c_string!(message.request_id),
+        })
+    }
+}
+
+impl AsRust<hermes::InjectionCompleteMessage> for CInjectionCompleteMessage {
+    fn as_rust(&self) -> Fallible<hermes::InjectionCompleteMessage> {
+        let request_id = create_optional_rust_string_from!(self.request_id);
+        Ok(hermes::InjectionCompleteMessage { request_id })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::super::tests::round_trip_test;
@@ -424,9 +453,16 @@ mod tests {
     }
 
     #[test]
-    fn round_injection_status() {
+    fn round_trip_injection_status() {
         round_trip_test::<_, CInjectionStatusMessage>(hermes::InjectionStatusMessage {
             last_injection_date: Some(Utc.ymd(2014, 11, 28).and_hms(12, 0, 9)),
+        });
+    }
+
+    #[test]
+    fn round_trip_injection_complete() {
+        round_trip_test::<_, CInjectionCompleteMessage>(hermes::InjectionCompleteMessage {
+            request_id: Some("identifier".to_string()),
         });
     }
 

@@ -1,17 +1,7 @@
 use std::fmt;
 
 use semver;
-
 use serde::{Deserialize, Serialize};
-
-pub mod asr;
-pub mod audio_server;
-pub mod dialogue;
-pub mod hotword;
-pub mod injection;
-pub mod nlu;
-pub mod tts;
-pub mod vad;
 
 pub use self::asr::*;
 pub use self::audio_server::*;
@@ -21,6 +11,15 @@ pub use self::injection::*;
 pub use self::nlu::*;
 pub use self::tts::*;
 pub use self::vad::*;
+
+pub mod asr;
+pub mod audio_server;
+pub mod dialogue;
+pub mod hotword;
+pub mod injection;
+pub mod nlu;
+pub mod tts;
+pub mod vad;
 
 pub trait HermesMessage<'de>: fmt::Debug + Deserialize<'de> + Serialize {}
 
@@ -80,4 +79,64 @@ where
     use serde::de::Error;
     String::deserialize(deserializer)
         .and_then(|string| base64::decode(&string).map_err(|err| Error::custom(err.to_string())))
+}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ComponentLoadedOnSiteMessage {
+    /// Optional id associated to a load/reload operation for a component
+    pub id: Option<String>,
+    /// boolean that indicates if the component was reloaded or if it's its initial load.
+    pub reloaded: bool,
+    /// The site concerned
+    pub site_id: String,
+}
+
+impl<'de> HermesMessage<'de> for ComponentLoadedOnSiteMessage {}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RequestComponentReloadMessage {
+    /// Id associated to a reload request operation of a component
+    pub id: String,
+}
+
+impl<'de> HermesMessage<'de> for RequestComponentReloadMessage {}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ComponentLoadedMessage {
+    /// Optional id associated to a load/reload operation for a component
+    pub id: Option<String>,
+    /// boolean that indicates if the component was reloaded or if it's its initial load.
+    pub reloaded: bool,
+}
+
+impl<'de> HermesMessage<'de> for ComponentLoadedMessage {}
+
+impl Default for ComponentLoadedMessage {
+    fn default() -> Self {
+        Self {
+            id: None,
+            reloaded: false,
+        }
+    }
+}
+
+impl From<RequestComponentReloadMessage> for ComponentLoadedMessage {
+    fn from(req: RequestComponentReloadMessage) -> Self {
+        Self {
+            id: Some(req.id),
+            reloaded: true,
+        }
+    }
+}
+
+impl From<&RequestComponentReloadMessage> for ComponentLoadedMessage {
+    fn from(req: &RequestComponentReloadMessage) -> Self {
+        Self {
+            id: Some(req.id.clone()),
+            reloaded: true,
+        }
+    }
 }
