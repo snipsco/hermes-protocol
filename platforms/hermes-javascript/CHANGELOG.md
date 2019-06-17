@@ -1,3 +1,12 @@
+## [0.3.12](https://github.com/snipsco/hermes-protocol/compare/js/0.3.11...0.3.12) (2019-06-17)
+
+
+### Bug Fixes
+
+* **postinstall:** bad raspbian os check ([f77553c](https://github.com/snipsco/hermes-protocol/commit/f77553c))
+
+
+
 ## [0.3.11](https://github.com/snipsco/hermes-protocol/compare/js/0.3.10...0.3.11) (2019-05-18)
 
 
