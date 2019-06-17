@@ -47,9 +47,10 @@ function osIsRaspbian () {
     if(!fs.existsSync('/etc/os-release'))
         return false
     return (
-        fs
-            .readFileSync('/etc/os-release', 'utf-8')
-            .indexOf('NAME="Raspbian' >= 0)
+        (
+            fs.readFileSync('/etc/os-release', 'utf-8')
+              .indexOf('NAME="Raspbian')
+        ) >= 0
     )
 }
 
