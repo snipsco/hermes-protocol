@@ -74,9 +74,15 @@ impl<'de> HermesMessage<'de> for NluIntentNotRecognizedMessage {}
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NluSlot {
+    //FIXME V2.0: Remove this redundant struct
     #[serde(flatten)]
     pub nlu_slot: snips_nlu_ontology::Slot,
 }
+
+pub use snips_nlu_ontology::{
+    AmountOfMoneyValue, DurationValue, InstantTimeValue, NumberValue, OrdinalValue, PercentageValue, Slot, SlotValue,
+    StringValue, TemperatureValue, TimeIntervalValue,
+};
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
