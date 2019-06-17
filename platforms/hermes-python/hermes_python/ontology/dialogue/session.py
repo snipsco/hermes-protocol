@@ -7,7 +7,7 @@ from typing import List, Optional
 from hermes_python.ontology import HermesComponent
 from hermes_python.ffi.ontology.dialogue import CStartSessionMessageAction, CStartSessionMessageNotification, \
     CSessionInitAction, CSessionInitNotification, CEndSessionMessage, CContinueSessionMessage, \
-    CSessionTermination, SNIPS_SESSION_TERMINATION_TYPE
+    SNIPS_SESSION_TERMINATION_TYPE
 
 
 class SessionInit(object):
@@ -228,40 +228,60 @@ class SessionQueuedMessage(object):
 
 
 class SessionTerminationType(object):
-    pass
+    def __init__(self):
+        self.component = None
+
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
 
 
 class SessionTerminationTypeNominal(SessionTerminationType):
-    pass
+    def into_c_repr(self):
+        # type:() -> SNIPS_SESSION_TERMINATION_TYPE
+        return SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_NOMINAL
 
 
 class SessionTerminationTypeSiteUnavailable(SessionTerminationType):
-    pass
+    def into_c_repr(self):
+        # type:() -> SNIPS_SESSION_TERMINATION_TYPE
+        return SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_SITE_UNAVAILABLE
 
 
 class SessionTerminationTypeAbortedByUser(SessionTerminationType):
-    pass
-
+    def into_c_repr(self):
+        # type:() -> SNIPS_SESSION_TERMINATION_TYPE
+        return SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_ABORTED_BY_USER
 
 class SessionTerminationTypeIntentNotRecognized(SessionTerminationType):
-    pass
-
+    def into_c_repr(self):
+        # type:() -> SNIPS_SESSION_TERMINATION_TYPE
+        return SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_INTENT_NOT_RECOGNIZED
 
 class SessionTerminationTypeTimeOut(SessionTerminationType):
     def __init__(self, component):
         # type: (HermesComponent) -> None
         self.component = component
+        SessionTerminationType.__init__(self)
+
+    def into_c_repr(self):
+        # type:() -> SNIPS_SESSION_TERMINATION_TYPE
+        return SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_TIMEOUT
 
 
 class SessionTerminationTypeError(SessionTerminationType):
     def __init__(self, error):
         # type: (str) -> None
         self.error = error
+        SessionTerminationType.__init__(self)
+
+    def into_c_repr(self):
+        # type:() -> SNIPS_SESSION_TERMINATION_TYPE
+        return SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_ERROR
 
 
 class SessionTermination(object):
-    def __init__(self, termination_type, data, component):
-        # type: (SessionTerminationType, str, SnipsHermesComponent) -> None
+    def __init__(self, termination_type, data):
+        # type: (SessionTerminationType, str) -> None
         """
         :param termination_type:
         :param data: the reason why the session was ended
@@ -272,23 +292,25 @@ class SessionTermination(object):
     @classmethod
     def from_c_repr(cls, c_repr):
         # type: (CSessionTermination) -> SessionTermination
-        if c_repr.termination_type is SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_NOMINAL:
+        data = c_repr.data.decode('utf-8') if c_repr.data else None
+
+        if SNIPS_SESSION_TERMINATION_TYPE(c_repr.termination_type) is SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_NOMINAL:
             termination_type = SessionTerminationTypeNominal()
-        elif c_repr.termination_type is SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_SITE_UNAVAILABLE:
+        elif SNIPS_SESSION_TERMINATION_TYPE(c_repr.termination_type) is SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_SITE_UNAVAILABLE:
             termination_type = SessionTerminationTypeSiteUnavailable()
-        elif c_repr.termination_type is SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_ABORTED_BY_USER:
+        elif SNIPS_SESSION_TERMINATION_TYPE(c_repr.termination_type) is SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_ABORTED_BY_USER:
             termination_type = SessionTerminationTypeAbortedByUser()
-        elif c_repr.termination_type is SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_INTENT_NOT_RECOGNIZED:
+        elif SNIPS_SESSION_TERMINATION_TYPE(c_repr.termination_type) is SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_INTENT_NOT_RECOGNIZED:
             termination_type = SessionTerminationTypeIntentNotRecognized()
-        elif c_repr.termination_type is SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_TIMEOUT:
+        elif SNIPS_SESSION_TERMINATION_TYPE(c_repr.termination_type) is SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_TIMEOUT:
             component = HermesComponent.from_c_repr(c_repr.component)
             termination_type = SessionTerminationTypeTimeOut(component)
-        elif c_repr.termination_type is SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_ERROR:
-            termination_type = SessionTerminationTypeError(None)
+        elif SNIPS_SESSION_TERMINATION_TYPE(c_repr.termination_type) is SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_ERROR:
+            termination_type = SessionTerminationTypeError(data)
         else:
             raise Exception("Bad value type. Got : {}".format(c_repr.termination_type))
 
-        data = c_repr.data.decode('utf-8') if c_repr.data else None
+
         return cls(termination_type, data)
 
     def __eq__(self, other):

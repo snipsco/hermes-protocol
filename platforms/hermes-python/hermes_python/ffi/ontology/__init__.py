@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 
 from ctypes import c_char_p, c_int32, c_void_p, c_uint8, POINTER, Structure, pointer, cast
 from enum import IntEnum
-from hermes_python.ontology import HermesComponent
+
 
 
 class CStringArray(Structure):

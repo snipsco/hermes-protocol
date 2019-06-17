@@ -18,7 +18,8 @@ from hermes_python.ffi.ontology.dialogue import CSessionQueuedMessage, CSessionS
     CIntentNotRecognizedMessage, CContinueSessionMessage, CStartSessionMessageNotification, CStartSessionMessageAction, \
     CEndSessionMessage, CDialogueConfigureMessage
 
-from hermes_python.ontology.injection import InjectionRequestMessage, AddInjectionRequest, AddFromVanillaInjectionRequest
+from hermes_python.ontology.injection import InjectionRequestMessage, AddInjectionRequest, \
+    AddFromVanillaInjectionRequest
 from hermes_python.ffi.ontology.injection import CInjectionRequestMessage
 
 from hermes_python.ontology.tts import RegisterSoundMessage
@@ -136,9 +137,9 @@ def test_hermes_ffi_test_round_trip_session_started():
 
 
 class TestSessionEndedRoundTrip(object):
-    def test_hermes_ffi_test_round_trip_session_ended_for_error(self):  # TODO : Move Termination type to dedicated enum
-        SNIPS_SESSION_TERMINATION_TYPE_ERROR = 6
-        session_termination = hermes_python.ontology.dialogue.SessionTermination(SNIPS_SESSION_TERMINATION_TYPE_ERROR,
+    def test_hermes_ffi_test_round_trip_session_ended_for_error(self):
+        session_termination_type_error = hermes_python.ontology.dialogue.SessionTerminationTypeError("dataé")
+        session_termination = hermes_python.ontology.dialogue.SessionTermination(session_termination_type_error,
                                                                                  "dataé")
         session_ended_message = hermes_python.ontology.dialogue.SessionEndedMessage("session_id", "custom_data",
                                                                                     "site_id",
@@ -154,9 +155,9 @@ class TestSessionEndedRoundTrip(object):
         assert session_ended_message.termination == round_trip_session_ended_message.termination
         assert session_ended_message == round_trip_session_ended_message
 
-    def test_hermes_ffi_test_round_trip_session_ended(self):  # TODO : Move Termination type to dedicated enum
-        SNIPS_SESSION_TERMINATION_TYPE_NOMINAL = 1
-        session_termination = hermes_python.ontology.dialogue.SessionTermination(SNIPS_SESSION_TERMINATION_TYPE_NOMINAL,
+    def test_hermes_ffi_test_round_trip_session_ended(self):
+        session_termination_type_nominal = hermes_python.ontology.dialogue.SessionTerminationTypeNominal()
+        session_termination = hermes_python.ontology.dialogue.SessionTermination(session_termination_type_nominal,
                                                                                  None)
         session_ended_message = hermes_python.ontology.dialogue.SessionEndedMessage("session_id", "custom_data",
                                                                                     "site_id",
@@ -422,7 +423,6 @@ def test_hermes_ffi_test_round_trip_dialogue_configure_intent_array():
     assert dialogue_configure_intent_array == round_trip_dialogue_configure_intent_array
 
 
-
 def test_injection_request_message_roundtrip():
     input_request_1 = AddInjectionRequest({"key": ["hello", "world", "✨"]})
     input_request_2 = AddFromVanillaInjectionRequest({"key": ["hello", "moon", "👽"]})
@@ -452,6 +452,7 @@ class TestMapStringToStringArray(object):
 
         assert d == round_trip_d
 
+
 def test_tts_register_sound_message_roundtrip(wav_data):
     register_sound = RegisterSoundMessage("yolo.wav", wav_data)
 
@@ -463,6 +464,7 @@ def test_tts_register_sound_message_roundtrip(wav_data):
     )
 
     assert round_trip_register_sound == register_sound
+
 
 """
 def test_hermes_ffi_test_round_trip_intent():

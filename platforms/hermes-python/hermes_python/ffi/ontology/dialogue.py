@@ -3,9 +3,7 @@ from ctypes import c_char_p, c_int32, c_int64, c_int, c_float, c_uint8, c_void_p
 from enum import IntEnum
 
 from ..ontology import CStringArray, SlotValueType, Grain, Precision, SNIPS_HERMES_COMPONENT
-from hermes_python.ontology.dialogue import SessionTermination, SessionTerminationType, SessionTerminationTypeError, \
-    SessionTerminationTypeTimeOut, SessionTerminationTypeIntentNotRecognized, SessionTerminationTypeAbortedByUser, \
-    SessionTerminationTypeSiteUnavailable, SessionTerminationTypeNominal
+
 
 class CSayMessage(Structure):
     _fields_ = [("text", c_char_p),
@@ -344,34 +342,18 @@ class SNIPS_SESSION_TERMINATION_TYPE(IntEnum):
     SNIPS_SESSION_TERMINATION_TYPE_TIMEOUT = 5
     SNIPS_SESSION_TERMINATION_TYPE_ERROR = 6
 
-    @classmethod
-    def from_repr(cls, repr):
-        # type:(SessionTerminationType) -> SNIPS_SESSION_TERMINATION_TYPE
-        if repr is SessionTerminationTypeNominal:
-            return SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_NOMINAL
-        elif repr is SessionTerminationTypeSiteUnavailable:
-            return SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_SITE_UNAVAILABLE
-        elif repr is SessionTerminationTypeAbortedByUser:
-            return SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_ABORTED_BY_USER
-        elif repr is SessionTerminationTypeIntentNotRecognized:
-            return SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_INTENT_NOT_RECOGNIZED
-        elif repr is SessionTerminationTypeTimeOut:
-            return SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_TIMEOUT
-        elif repr is SessionTerminationTypeError:
-            return SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_ERROR
-        else:
-            raise Exception("Unhandled SessionTerminationType ...")
-
-
 
 class CSessionTermination(Structure):
-    _fields_ = [("termination_type", SNIPS_SESSION_TERMINATION_TYPE),
+    _fields_ = [("termination_type", c_int),
                 ("data", c_char_p),
-                ("component", SNIPS_HERMES_COMPONENT)]
+                ("component", c_int)]
+
+    _enum_types_ = [("termination_type", SNIPS_SESSION_TERMINATION_TYPE),
+                    ("component", SNIPS_HERMES_COMPONENT)]
 
     @classmethod
     def build(cls, termination_type, data, component):
-        termination_type = SNIPS_SESSION_TERMINATION_TYPE.from_repr(termination_type)
+        termination_type = termination_type.into_c_repr()
         data = data.encode('utf-8') if data else None
         component = SNIPS_HERMES_COMPONENT.from_repr(component)
         return cls(termination_type, data, component)
@@ -379,7 +361,7 @@ class CSessionTermination(Structure):
     @classmethod
     def from_repr(cls, repr):
         # type:(SessionTermination) -> CSessionTermination
-        component = repr.termination_type.component if repr.termination_type is SessionTerminationTypeTimeOut else None
+        component = repr.termination_type.component if repr.termination_type.component else None
         return cls.build(repr.termination_type, repr.data, component)
 
 
