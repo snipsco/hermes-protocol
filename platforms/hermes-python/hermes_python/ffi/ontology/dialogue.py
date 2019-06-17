@@ -1,6 +1,11 @@
 from ctypes import c_char_p, c_int32, c_int64, c_int, c_float, c_uint8, c_void_p, POINTER, pointer, Structure, c_double,\
     byref, cast
-from ..ontology import CStringArray, SlotValueType, Grain, Precision
+from enum import IntEnum
+
+from ..ontology import CStringArray, SlotValueType, Grain, Precision, SNIPS_HERMES_COMPONENT
+from hermes_python.ontology.dialogue import SessionTermination, SessionTerminationType, SessionTerminationTypeError, \
+    SessionTerminationTypeTimeOut, SessionTerminationTypeIntentNotRecognized, SessionTerminationTypeAbortedByUser, \
+    SessionTerminationTypeSiteUnavailable, SessionTerminationTypeNominal
 
 class CSayMessage(Structure):
     _fields_ = [("text", c_char_p),
@@ -331,18 +336,51 @@ class CIntentMessage(Structure):
         return cls.build(repr.session_id, repr.custom_data, repr.site_id, repr.input, c_intent_classifier_result, c_slots)
 
 
-class CSessionTermination(Structure):
-    _fields_ = [("termination_type", c_int),
-                ("data", c_char_p)]
-
-    @classmethod
-    def build(cls, termination_type, data):
-        data = data.encode('utf-8') if data else None
-        return cls(termination_type, data)
+class SNIPS_SESSION_TERMINATION_TYPE(IntEnum):
+    SNIPS_SESSION_TERMINATION_TYPE_NOMINAL = 1
+    SNIPS_SESSION_TERMINATION_TYPE_SITE_UNAVAILABLE = 2
+    SNIPS_SESSION_TERMINATION_TYPE_ABORTED_BY_USER = 3
+    SNIPS_SESSION_TERMINATION_TYPE_INTENT_NOT_RECOGNIZED = 4
+    SNIPS_SESSION_TERMINATION_TYPE_TIMEOUT = 5
+    SNIPS_SESSION_TERMINATION_TYPE_ERROR = 6
 
     @classmethod
     def from_repr(cls, repr):
-        return cls.build(repr.termination_type, repr.data)
+        # type:(SessionTerminationType) -> SNIPS_SESSION_TERMINATION_TYPE
+        if repr is SessionTerminationTypeNominal:
+            return SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_NOMINAL
+        elif repr is SessionTerminationTypeSiteUnavailable:
+            return SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_SITE_UNAVAILABLE
+        elif repr is SessionTerminationTypeAbortedByUser:
+            return SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_ABORTED_BY_USER
+        elif repr is SessionTerminationTypeIntentNotRecognized:
+            return SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_INTENT_NOT_RECOGNIZED
+        elif repr is SessionTerminationTypeTimeOut:
+            return SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_TIMEOUT
+        elif repr is SessionTerminationTypeError:
+            return SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_ERROR
+        else:
+            raise Exception("Unhandled SessionTerminationType ...")
+
+
+
+class CSessionTermination(Structure):
+    _fields_ = [("termination_type", SNIPS_SESSION_TERMINATION_TYPE),
+                ("data", c_char_p),
+                ("component", SNIPS_HERMES_COMPONENT)]
+
+    @classmethod
+    def build(cls, termination_type, data, component):
+        termination_type = SNIPS_SESSION_TERMINATION_TYPE.from_repr(termination_type)
+        data = data.encode('utf-8') if data else None
+        component = SNIPS_HERMES_COMPONENT.from_repr(component)
+        return cls(termination_type, data, component)
+
+    @classmethod
+    def from_repr(cls, repr):
+        # type:(SessionTermination) -> CSessionTermination
+        component = repr.termination_type.component if repr.termination_type is SessionTerminationTypeTimeOut else None
+        return cls.build(repr.termination_type, repr.data, component)
 
 
 class CSessionEndedMessage(Structure):
