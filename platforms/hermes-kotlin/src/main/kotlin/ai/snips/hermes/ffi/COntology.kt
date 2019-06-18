@@ -7,6 +7,7 @@ import ai.snips.hermes.ContinueSessionMessage
 import ai.snips.hermes.DialogueConfigureIntent
 import ai.snips.hermes.DialogueConfigureMessage
 import ai.snips.hermes.EndSessionMessage
+import ai.snips.hermes.HermesComponent
 import ai.snips.hermes.InjectionKind
 import ai.snips.hermes.InjectionKind.Add
 import ai.snips.hermes.InjectionOperation
@@ -43,6 +44,21 @@ import com.sun.jna.Memory
 import com.sun.jna.Pointer
 import com.sun.jna.Structure
 import kotlin.Byte.Companion
+
+
+class SNIPS_HERMES_COMPONENT {
+    companion object {
+        const val NONE = -1
+        const val AUDIO_SERVER = 1
+        const val HOTWORD = 2
+        const val ASR = 3
+        const val NLU = 4
+        const val DIALOGUE = 5
+        const val TTS = 6
+        const val INJECTION = 7
+        const val CLIENT_APP = 8
+    }
+}
 
 class CStringArray(p: Pointer?) : Structure(p), Structure.ByReference {
     companion object {
@@ -486,15 +502,27 @@ class CSessionTermination : Structure(), Structure.ByValue {
     var termination_type: Int? = null
     @JvmField
     var data: Pointer? = null
+    @JvmField
+    var component: Int? = null
 
-    override fun getFieldOrder() = listOf("termination_type", "data")
+    override fun getFieldOrder() = listOf("termination_type", "data", "component")
 
     fun toSessionTermination(): SessionTermination = when (termination_type!!) {
         NOMINAL -> Nominal
         SITE_UNAVAILABLE -> SiteUnAvailable
         ABORTED_BY_USER -> AbortedByUser
         INTENT_NOT_RECOGNIZED -> IntenNotRecognized
-        TIMEOUT -> Timeout
+        TIMEOUT -> when (component!!) {
+            SNIPS_HERMES_COMPONENT.AUDIO_SERVER -> Timeout(component = HermesComponent.AudioServer)
+            SNIPS_HERMES_COMPONENT.HOTWORD -> Timeout(component = HermesComponent.Hotword)
+            SNIPS_HERMES_COMPONENT.ASR -> Timeout(component = HermesComponent.Asr)
+            SNIPS_HERMES_COMPONENT.NLU -> Timeout(component = HermesComponent.Nlu)
+            SNIPS_HERMES_COMPONENT.DIALOGUE -> Timeout(component = HermesComponent.Dialogue)
+            SNIPS_HERMES_COMPONENT.TTS -> Timeout(component = HermesComponent.Tts)
+            SNIPS_HERMES_COMPONENT.INJECTION -> Timeout(component = HermesComponent.Injection)
+            SNIPS_HERMES_COMPONENT.CLIENT_APP -> Timeout(component = HermesComponent.ClientApp)
+            else -> throw java.lang.IllegalArgumentException("unknown value type $component")
+        }
         ERROR -> Error(error = data.readString())
         else -> throw IllegalArgumentException("unknown value type $data")
     }
