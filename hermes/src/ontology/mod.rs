@@ -66,7 +66,7 @@ pub struct ErrorMessage {
 impl<'de> HermesMessage<'de> for ErrorMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
-#[serde(tag = "reason", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
 pub enum HermesComponent {
     AudioServer,
     Hotword,
