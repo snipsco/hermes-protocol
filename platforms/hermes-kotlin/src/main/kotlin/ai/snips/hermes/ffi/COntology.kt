@@ -28,6 +28,7 @@ import ai.snips.hermes.SessionStartedMessage
 import ai.snips.hermes.SessionTermination
 import ai.snips.hermes.SessionTermination.AbortedByUser
 import ai.snips.hermes.SessionTermination.Error
+import ai.snips.hermes.SessionTermination.IntentNotRecognized
 import ai.snips.hermes.SessionTermination.IntenNotRecognized
 import ai.snips.hermes.SessionTermination.Nominal
 import ai.snips.hermes.SessionTermination.SiteUnAvailable
@@ -43,7 +44,6 @@ import ai.snips.nlu.ontology.ffi.toPointer
 import com.sun.jna.Memory
 import com.sun.jna.Pointer
 import com.sun.jna.Structure
-import kotlin.Byte.Companion
 
 
 class SNIPS_HERMES_COMPONENT {
@@ -547,7 +547,7 @@ class CSessionTermination : Structure(), Structure.ByValue {
         NOMINAL -> Nominal
         SITE_UNAVAILABLE -> SiteUnAvailable
         ABORTED_BY_USER -> AbortedByUser
-        INTENT_NOT_RECOGNIZED -> IntenNotRecognized
+        INTENT_NOT_RECOGNIZED -> IntenNotRecognized // TODO : change to IntenT
         TIMEOUT -> Timeout(component = when (component!!) {
             SNIPS_HERMES_COMPONENT.AUDIO_SERVER -> HermesComponent.AudioServer
             SNIPS_HERMES_COMPONENT.HOTWORD -> HermesComponent.Hotword

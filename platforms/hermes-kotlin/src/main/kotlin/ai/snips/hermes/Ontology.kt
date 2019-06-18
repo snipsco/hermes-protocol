@@ -151,6 +151,7 @@ sealed class SessionTermination(val reason: SessionTermination.Type) {
     object SiteUnAvailable : SessionTermination(SessionTermination.Type.SITE_UNAVAILABLE)
     object AbortedByUser : SessionTermination(SessionTermination.Type.ABORTED_BY_USER)
     object IntenNotRecognized : SessionTermination(SessionTermination.Type.INTENT_NOT_RECOGNIZED)
+    object IntentNotRecognized : SessionTermination(SessionTermination.Type.INTENT_NOT_RECOGNIZED)
 
     @Parcel(BEAN)
     data class Error @ParcelConstructor constructor(

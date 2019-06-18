@@ -181,6 +181,15 @@ class FfiTest {
         )
 
         assertThat(HermesTest().roundTripSessionEnded(input_3)).isEqualTo(input_3)
+
+        val input_4 = SessionEndedMessage(
+                "some session id",
+                "some custom data",
+                SessionTermination.IntenNotRecognized,
+                "some site id"
+        )
+
+        assertThat(HermesTest().roundTripSessionEnded(input_4)).isEqualTo(input_4)
     }
 
     @Test
