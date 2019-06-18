@@ -11,6 +11,7 @@ import ai.snips.hermes.IntentNotRecognizedMessage
 import ai.snips.hermes.SessionEndedMessage
 import ai.snips.hermes.SessionQueuedMessage
 import ai.snips.hermes.SessionStartedMessage
+import ai.snips.hermes.SessionTermination
 import ai.snips.hermes.StartSessionMessage
 import ai.snips.hermes.TextCapturedMessage
 import ai.snips.hermes.ffi.CAsrToken
@@ -24,6 +25,8 @@ import ai.snips.hermes.ffi.CInjectionCompleteMessage
 import ai.snips.hermes.ffi.CIntentMessage
 import ai.snips.hermes.ffi.CIntentNotRecognizedMessage
 import ai.snips.hermes.ffi.CMapStringToStringArray
+import ai.snips.hermes.ffi.CSessionEndedMessage
+import ai.snips.hermes.ffi.CSessionTermination
 import ai.snips.hermes.ffi.CStartSessionMessage
 import ai.snips.hermes.ffi.CTextCapturedMessage
 import ai.snips.hermes.test.HermesTest.HermesTestLib.Companion.INSTANCE
@@ -144,6 +147,13 @@ class HermesTest {
                       { CDialogueConfigureMessage(it).toDialogueConfigureMessage() },
                       INSTANCE::hermes_drop_dialogue_configure_message)
 
+    fun roundTripSessionEndedMessage(input: SessionEndedMessage) =
+        roundTrip(input,
+                  CSessionEndedMessage.Companion::fromSessionEndedMessage,
+                  INSTANCE::hermes_ffi_test_round_trip_session_ended,
+                  { CSessionEndedMessage(it).toSessionEndedMessage() },
+                  INSTANCE::hermes_drop_session_ended_message)
+
     fun <T, U> roundTrip(input: T,
                          toCConverter: (T) -> U,
                          roundTrip: (U, PointerByReference) -> Int,
@@ -222,6 +232,7 @@ class HermesTest {
         fun hermes_ffi_test_round_trip_asr_token_double_array(input: CAsrTokenDoubleArray, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_text_captured(input: CTextCapturedMessage, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_dialogue_configure(input: CDialogueConfigureMessage, output: PointerByReference): Int
+        fun hermes_ffi_test_round_trip_session_ended(input: CSessionEndedMessage, output: PointerByReference) : Int
 
 
         fun hermes_ffi_test_round_trip_session_queued_json(input: String, output: PointerByReference): Int
@@ -255,5 +266,6 @@ class HermesTest {
         fun hermes_drop_injection_complete_message(ptr: Pointer): Int
         fun hermes_drop_text_captured_message(ptr: Pointer): Int
         fun hermes_drop_dialogue_configure_message(ptr: Pointer): Int
+        fun hermes_drop_session_ended_message(ptr: Pointer) : Int
     }
 }

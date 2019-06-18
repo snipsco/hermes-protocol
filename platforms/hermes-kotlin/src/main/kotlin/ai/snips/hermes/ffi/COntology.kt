@@ -57,6 +57,17 @@ class SNIPS_HERMES_COMPONENT {
         const val TTS = 6
         const val INJECTION = 7
         const val CLIENT_APP = 8
+
+        fun fromHermesComponent(component: HermesComponent) : Int = when (component) {
+            HermesComponent.AudioServer -> AUDIO_SERVER
+            HermesComponent.Hotword -> HOTWORD
+            HermesComponent.Asr -> ASR
+            HermesComponent.Nlu -> NLU
+            HermesComponent.Dialogue -> DIALOGUE
+            HermesComponent.Tts -> TTS
+            HermesComponent.Injection -> INJECTION
+            HermesComponent.ClientApp -> CLIENT_APP
+        }
     }
 }
 
@@ -496,6 +507,29 @@ class CSessionTermination : Structure(), Structure.ByValue {
         const val INTENT_NOT_RECOGNIZED = 4
         const val TIMEOUT = 5
         const val ERROR = 6
+
+        @JvmStatic
+        fun fromSessionTermination(input: SessionTermination) = when(input) {
+                is Timeout -> CSessionTermination().apply {
+                    termination_type = TIMEOUT
+                    data = null
+                    component = SNIPS_HERMES_COMPONENT.fromHermesComponent(input.component)
+                }
+                is Error -> CSessionTermination().apply {
+                    termination_type = ERROR
+                    data = input.error.toPointer()
+                    component = null
+                }
+                else -> CSessionTermination().apply {
+                    termination_type = when(input) {
+                        is Nominal -> NOMINAL
+                        is SiteUnAvailable -> SITE_UNAVAILABLE
+                        is AbortedByUser -> ABORTED_BY_USER
+                        is IntenNotRecognized -> INTENT_NOT_RECOGNIZED
+                        else -> throw IllegalArgumentException("got unexpected termination type $input")
+                    }
+                }
+        }
     }
 
     @JvmField
@@ -521,14 +555,24 @@ class CSessionTermination : Structure(), Structure.ByValue {
             SNIPS_HERMES_COMPONENT.TTS -> Timeout(component = HermesComponent.Tts)
             SNIPS_HERMES_COMPONENT.INJECTION -> Timeout(component = HermesComponent.Injection)
             SNIPS_HERMES_COMPONENT.CLIENT_APP -> Timeout(component = HermesComponent.ClientApp)
-            else -> throw java.lang.IllegalArgumentException("unknown value type $component")
+            else -> throw IllegalArgumentException("got unexpected component type $component")
         }
         ERROR -> Error(error = data.readString())
         else -> throw IllegalArgumentException("unknown value type $data")
     }
 }
 
-class CSessionEndedMessage(p: Pointer) : Structure(p), Structure.ByReference {
+class CSessionEndedMessage(p: Pointer?) : Structure(p), Structure.ByReference {
+    companion object {
+        @JvmStatic
+        fun fromSessionEndedMessage(input: SessionEndedMessage) = CSessionEndedMessage(null).apply {
+            session_id = input.sessionId.toPointer()
+            custom_data = input.customData?.toPointer()
+            termination = CSessionTermination.fromSessionTermination(input.termination)
+            site_id = input.siteId.toPointer()
+        }
+    }
+
     @JvmField
     var session_id: Pointer? = null
     @JvmField
