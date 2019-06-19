@@ -15,7 +15,8 @@ import {
     InjectionRequestMessage,
     RegisterSoundMessage,
     DialogueConfigureMessage,
-    TextCapturedMessage
+    TextCapturedMessage,
+    component
 } from '../../dist'
 
 // Rust round trip tests
@@ -315,8 +316,23 @@ describe('It should perform json round-trips on messages', () => {
             siteId: 'Site id'
         }
 
+        const sessionEndedMessageComponent: SessionEndedMessage = {
+            sessionId: 'Session id',
+            customData: 'Custom data',
+            termination: {
+                reason: Dialog.enums.terminationType.timeout,
+                component: component.asr
+            },
+            siteId: 'Site id'
+        }
+
         roundTrip({
             data: sessionEndedMessage,
+            FFIFunctionName: 'hermes_ffi_test_round_trip_session_ended_json'
+        })
+
+        roundTrip({
+            data: sessionEndedMessageComponent,
             FFIFunctionName: 'hermes_ffi_test_round_trip_session_ended_json'
         })
     })

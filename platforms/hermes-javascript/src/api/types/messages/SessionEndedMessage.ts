@@ -1,4 +1,4 @@
-import { terminationType } from '../enums'
+import { terminationType, component } from '../enums'
 
 export interface SessionEndedMessage {
     /** Id of the session that ended. */
@@ -13,5 +13,7 @@ export interface SessionEndedMessage {
         reason: terminationType,
         /** If there was an error, the error description. */
         error?: string
+        /** If there was a timeout, the component that timeouted. */
+        component?: component
     }
 }
