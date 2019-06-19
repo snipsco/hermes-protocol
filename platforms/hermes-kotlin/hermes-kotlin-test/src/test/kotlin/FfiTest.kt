@@ -162,7 +162,7 @@ class FfiTest {
                 "some site id"
         )
 
-        assertThat(HermesTest().roundTripSessionEndedMessage(input_1)).isEqualTo(input_1)
+        assertThat(HermesTest().roundTripSessionEnded(input_1)).isEqualTo(input_1)
 
         val input_2 = SessionEndedMessage(
                 "some session id",
@@ -171,7 +171,7 @@ class FfiTest {
                 "some site id"
         )
 
-        assertThat(HermesTest().roundTripSessionEndedMessage(input_2)).isEqualTo(input_2)
+        assertThat(HermesTest().roundTripSessionEnded(input_2)).isEqualTo(input_2)
 
         val input_3 = SessionEndedMessage(
                 "some session id",
@@ -180,7 +180,7 @@ class FfiTest {
                 "some site id"
         )
 
-        assertThat(HermesTest().roundTripSessionEndedMessage(input_3)).isEqualTo(input_3)
+        assertThat(HermesTest().roundTripSessionEnded(input_3)).isEqualTo(input_3)
     }
 
     @Test
