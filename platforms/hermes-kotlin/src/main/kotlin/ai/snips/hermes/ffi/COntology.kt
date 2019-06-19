@@ -528,6 +528,8 @@ class CSessionTermination : Structure(), Structure.ByValue {
                         is IntenNotRecognized -> INTENT_NOT_RECOGNIZED
                         else -> throw IllegalArgumentException("got unexpected termination type $input")
                     }
+                    data = null
+                    component = null
                 }
         }
     }
@@ -546,17 +548,17 @@ class CSessionTermination : Structure(), Structure.ByValue {
         SITE_UNAVAILABLE -> SiteUnAvailable
         ABORTED_BY_USER -> AbortedByUser
         INTENT_NOT_RECOGNIZED -> IntenNotRecognized
-        TIMEOUT -> when (component!!) {
-            SNIPS_HERMES_COMPONENT.AUDIO_SERVER -> Timeout(component = HermesComponent.AudioServer)
-            SNIPS_HERMES_COMPONENT.HOTWORD -> Timeout(component = HermesComponent.Hotword)
-            SNIPS_HERMES_COMPONENT.ASR -> Timeout(component = HermesComponent.Asr)
-            SNIPS_HERMES_COMPONENT.NLU -> Timeout(component = HermesComponent.Nlu)
-            SNIPS_HERMES_COMPONENT.DIALOGUE -> Timeout(component = HermesComponent.Dialogue)
-            SNIPS_HERMES_COMPONENT.TTS -> Timeout(component = HermesComponent.Tts)
-            SNIPS_HERMES_COMPONENT.INJECTION -> Timeout(component = HermesComponent.Injection)
-            SNIPS_HERMES_COMPONENT.CLIENT_APP -> Timeout(component = HermesComponent.ClientApp)
+        TIMEOUT -> Timeout(component = when (component!!) {
+            SNIPS_HERMES_COMPONENT.AUDIO_SERVER -> HermesComponent.AudioServer
+            SNIPS_HERMES_COMPONENT.HOTWORD -> HermesComponent.Hotword
+            SNIPS_HERMES_COMPONENT.ASR -> HermesComponent.Asr
+            SNIPS_HERMES_COMPONENT.NLU -> HermesComponent.Nlu
+            SNIPS_HERMES_COMPONENT.DIALOGUE -> HermesComponent.Dialogue
+            SNIPS_HERMES_COMPONENT.TTS -> HermesComponent.Tts
+            SNIPS_HERMES_COMPONENT.INJECTION -> HermesComponent.Injection
+            SNIPS_HERMES_COMPONENT.CLIENT_APP -> HermesComponent.ClientApp
             else -> throw IllegalArgumentException("got unexpected component type $component")
-        }
+        })
         ERROR -> Error(error = data.readString())
         else -> throw IllegalArgumentException("unknown value type $data")
     }

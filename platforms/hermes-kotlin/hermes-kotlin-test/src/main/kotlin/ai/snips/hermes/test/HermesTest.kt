@@ -147,7 +147,7 @@ class HermesTest {
                       { CDialogueConfigureMessage(it).toDialogueConfigureMessage() },
                       INSTANCE::hermes_drop_dialogue_configure_message)
 
-    fun roundTripSessionEndedMessage(input: SessionEndedMessage) =
+    fun roundTripSessionEnded(input: SessionEndedMessage) =
         roundTrip(input,
                   CSessionEndedMessage.Companion::fromSessionEndedMessage,
                   INSTANCE::hermes_ffi_test_round_trip_session_ended,
