@@ -7,7 +7,7 @@ from typing import List, Optional
 from hermes_python.ontology import HermesComponent
 from hermes_python.ffi.ontology.dialogue import CStartSessionMessageAction, CStartSessionMessageNotification, \
     CSessionInitAction, CSessionInitNotification, CEndSessionMessage, CContinueSessionMessage, \
-    SNIPS_SESSION_TERMINATION_TYPE
+    SNIPS_SESSION_TERMINATION_TYPE, CSessionTermination
 
 
 class SessionInit(object):
@@ -295,7 +295,7 @@ class SessionTermination(object):
         data = c_repr.data.decode('utf-8') if c_repr.data else None
 
         if SNIPS_SESSION_TERMINATION_TYPE(c_repr.termination_type) is SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_NOMINAL:
-            termination_type = SessionTerminationTypeNominal()
+            termination_type = SessionTerminationTypeNominal() # type: SessionTerminationType
         elif SNIPS_SESSION_TERMINATION_TYPE(c_repr.termination_type) is SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_SITE_UNAVAILABLE:
             termination_type = SessionTerminationTypeSiteUnavailable()
         elif SNIPS_SESSION_TERMINATION_TYPE(c_repr.termination_type) is SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_ABORTED_BY_USER:
@@ -309,7 +309,6 @@ class SessionTermination(object):
             termination_type = SessionTerminationTypeError(data)
         else:
             raise Exception("Bad value type. Got : {}".format(c_repr.termination_type))
-
 
         return cls(termination_type, data)
 
