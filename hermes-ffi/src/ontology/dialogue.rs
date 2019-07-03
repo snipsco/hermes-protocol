@@ -6,8 +6,8 @@ use failure::Fallible;
 use failure::ResultExt;
 use ffi_utils::*;
 
-use crate::asr::CAsrTokenDoubleArray;
-use crate::nlu::{CNluIntentClassifierResult, CNluSlotArray};
+use crate::ontology::asr::CAsrTokenDoubleArray;
+use crate::ontology::nlu::{CNluIntentClassifierResult, CNluSlotArray};
 
 #[repr(C)]
 #[derive(Debug)]
@@ -20,6 +20,8 @@ pub struct CIntentMessage {
     pub intent: *const CNluIntentClassifierResult,
     /// Nullable
     pub slots: *const CNluSlotArray,
+    ///// Nullable
+    //pub speaker_hypotheses: *const CSpeakerIdArray,
     /// Nullable, the first array level represents the asr invocation, the second one the tokens
     pub asr_tokens: *const CAsrTokenDoubleArray,
     /// Note: this value is optional. Any value not in [0,1] should be ignored.
@@ -47,6 +49,11 @@ impl CReprOf<hermes::IntentMessage> for CIntentMessage {
             } else {
                 null()
             },
+            /*speaker_hypotheses: if let Some(speaker_hypotheses) = input.speaker_hypotheses {
+                CSpeakerIdArray::c_repr_of(speaker_hypotheses)?.into_raw_pointer()
+            } else {
+                null()
+            },*/
             asr_tokens: if let Some(asr_tokens) = input.asr_tokens {
                 CAsrTokenDoubleArray::c_repr_of(asr_tokens)?.into_raw_pointer()
             } else {
@@ -68,6 +75,12 @@ impl AsRust<hermes::IntentMessage> for CIntentMessage {
             custom_data: create_optional_rust_string_from!(self.custom_data),
             site_id: create_rust_string_from!(self.site_id),
             input: create_rust_string_from!(self.input),
+            speaker_hypotheses: None, /* match unsafe { self.speaker_hypotheses.as_ref() } {
+                                          Some(speaker_hypotheses) => {
+                                              Some(unsafe { CSpeakerIdArray::raw_borrow(speaker_hypotheses)? }.as_rust()?)
+                                          }
+                                          None => None,
+                                      }*/
             asr_tokens: if self.asr_tokens.is_null() {
                 None
             } else {
@@ -97,6 +110,9 @@ impl Drop for CIntentMessage {
         if !self.asr_tokens.is_null() {
             let _ = unsafe { CAsrTokenDoubleArray::drop_raw_pointer(self.asr_tokens) };
         }
+        /*if !self.speaker_hypotheses.is_null() {
+            let _ = unsafe { CSpeakerIdArray::drop_raw_pointer(self.speaker_hypotheses) };
+        }*/
     }
 }
 
@@ -109,6 +125,8 @@ pub struct CIntentNotRecognizedMessage {
     pub input: *const libc::c_char,
     /// Nullable
     pub custom_data: *const libc::c_char,
+    ///// Nullable
+    //pub speaker_hypotheses: *const CSpeakerIdArray,
     pub confidence_score: libc::c_float,
 }
 
@@ -120,6 +138,11 @@ impl CReprOf<hermes::IntentNotRecognizedMessage> for CIntentNotRecognizedMessage
             site_id: convert_to_c_string!(input.site_id),
             session_id: convert_to_c_string!(input.session_id),
             input: convert_to_nullable_c_string!(input.input),
+            /*speaker_hypotheses: if let Some(speaker_hypotheses) = input.speaker_hypotheses {
+                CSpeakerIdArray::c_repr_of(speaker_hypotheses)?.into_raw_pointer()
+            } else {
+                null()
+            },*/
             custom_data: convert_to_nullable_c_string!(input.custom_data),
             confidence_score: input.confidence_score,
         })
@@ -132,6 +155,12 @@ impl AsRust<hermes::IntentNotRecognizedMessage> for CIntentNotRecognizedMessage 
             site_id: create_rust_string_from!(self.site_id),
             session_id: create_rust_string_from!(self.session_id),
             input: create_optional_rust_string_from!(self.input),
+            speaker_hypotheses: None, /* match unsafe { self.speaker_hypotheses.as_ref() } {
+                                          Some(speaker_hypotheses) => {
+                                              Some(unsafe { CSpeakerIdArray::raw_borrow(speaker_hypotheses)? }.as_rust()?)
+                                          }
+                                          None => None,
+                                      }*/
             custom_data: create_optional_rust_string_from!(self.custom_data),
             confidence_score: self.confidence_score,
         })
@@ -144,6 +173,9 @@ impl Drop for CIntentNotRecognizedMessage {
         take_back_c_string!(self.session_id);
         take_back_nullable_c_string!(self.input);
         take_back_nullable_c_string!(self.custom_data);
+        /*if !self.speaker_hypotheses.is_null() {
+            let _ = unsafe { CSpeakerIdArray::drop_raw_pointer(self.speaker_hypotheses) };
+        }*/
     }
 }
 
@@ -803,6 +835,7 @@ mod tests {
             site_id: "siteid".into(),
             custom_data: Some("custom".into()),
             session_id: "session id".into(),
+            speaker_hypotheses: None,
             input: Some("some text".into()),
             confidence_score: 0.5,
         });
@@ -811,6 +844,7 @@ mod tests {
             site_id: "siteid".into(),
             custom_data: None,
             session_id: "session id".into(),
+            speaker_hypotheses: None,
             input: None,
             confidence_score: 0.5,
         });
@@ -1048,6 +1082,7 @@ mod tests {
             custom_data: Some("a custom datum".to_string()),
             site_id: "a site id".to_string(),
             input: "What's the weather in Guadeloupe ?".to_string(),
+            speaker_hypotheses: None,
             asr_tokens: Some(asr_token_double_array),
             asr_confidence: Some(0.7),
             intent: hermes::nlu::NluIntentClassifierResult {

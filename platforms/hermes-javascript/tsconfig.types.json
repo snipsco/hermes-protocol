@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "esModuleInterop": true,
+        "target": "es6",
+        "noImplicitAny": false,
+        "moduleResolution": "node",
+        "sourceMap": true,
+        "outDir": "types",
+        "declaration": true,
+        "allowJs": false,
+        "baseUrl": ".",
+        "strict": true,
+        "lib": ["es2017"]
+    },
+    "include": [
+        "src/api/types/**/*"
+    ]
+}

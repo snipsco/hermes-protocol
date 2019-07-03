@@ -55,7 +55,7 @@ Building from source
 If you want to use ``hermes-python`` on platforms that are not
 supported, you have to manually compile the wheel.
 
-You need to have *rust* installed :
+You need to have ``rust`` and ``cargo`` installed :
 
 ``curl https://sh.rustup.rs -sSf``
 
@@ -65,14 +65,6 @@ Clone, the ``hermes-protocol`` repository :
 
    git clone git@github.com:snipsco/hermes-protocol.git
    cd hermes-protocol
-
-You need to compile the dynamically linked shared object library :
-
-::
-
-   mkdir -p platforms/hermes-python/target
-   CARGO_TARGET_DIR=platforms/hermes-python/target cargo rustc --lib --manifest-path hermes-mqtt-ffi/Cargo.toml --release -- --crate-type cdylib
-   mv platforms/hermes-python/target/release/libhermes_mqtt_ffi.dylib platforms/hermes-python/hermes_python/dylib/
 
 You can then build the wheel :
 
@@ -86,6 +78,48 @@ The built wheels should be in ``platforms/hermes-python/dist``
 
 You can install those with pip : ``pip install
 platforms/hermes-python/dist/<your_wheel>.whl``
+
+
+Advanced wheel building
+***********************
+
+We define a new API for including pre-compiled shared objects when
+building a platform wheel.
+
+::
+
+   python setup.py bdist_wheel
+
+This command will compile the ``hermes-mqtt-ffi`` Rust extension, copy
+them to an appropriate location, and include them in the wheel.
+
+We introduce a new command-line argument : ``include-extension`` which
+is a way to include an already compiled (in previous steps)
+``hermes-mqtt-ffi`` extension in the wheel.
+
+Its usage is the following : ``include-extension=<default |
+the/path/to/your/extension.[so|dylib]>``
+
+For instance :
+
+::
+
+   python setup.py bdist_wheel --include-extension=default
+
+The default value for ``include-extension`` will look up for
+pre-compiled extension in the default paths (in
+``hermes-protocol/target/release/libhermes_mqtt_ffi.[dylib|so]`` and
+``hermes-protocol/platforms/hermes-python/hermes_python/dylib``).
+
+::
+
+   python setup.py bdist_wheel --include-extension=<the/path/to/your/extension.[so|dylib]>
+
+When doing x-compilation, you can also specify the target platform :
+
+::
+
+   python setup.py bdist_wheel --include-extension=<the/path/to/your/extension.[so|dylib]> --plat-name=<the_platform_tag>
 
 
 Tutorial
@@ -451,6 +485,84 @@ end-user.
            .start()
 
 
+Dynamic Vocabulary using Entities Injection
+===========================================
+
+Please refer to the `official documentation
+<https://docs.snips.ai/articles/platform/nlu/dynamic-vocabulary>`_ for
+further information.
+
+Sometimes, you want to extend your voice assistant with new vocabulary
+it hasn’t seen when it was trained. For instance, let’s say that you
+have a bookstore voice assistant, that you update every week with new
+book titles that came out.
+
+The snips platform comes with the **Entities Injection** feature,
+which allows you to update both the ASR and the NLU models directly on
+the device to understand new vocabulary.
+
+Each intent within an assistant may contain some slots, and each slot
+has a specific type that we call an entity. If you have a book_title
+entity that contains a list of book titles in the inventory of your
+book store, Entities Injection lets you add new titles to this list.
+
+To inject new entity values, you have multiple operations at your
+disposal :
+
+* ``add`` adds the list of values that you provide to the existing
+   entity values.
+
+* ``addFromVanilla`` removes all the previously injected values to
+   the entity, and then, adds the list of values provided. Note that
+   the entity values coming from the console will be kept.
+
+Let’s see how an injection would be performed by the action code :
+
+::
+
+   from hermes_python.hermes import Hermes
+   from hermes_python.ontology.injection import InjectionRequestMessage, AddInjectionRequest, AddFromVanillaInjectionRequest
+
+   def retrieve_new_book_releases():
+       return ["The Half-Blood Prince", "The Deathly Hallows"]
+
+
+   def retrieve_book_inventory():
+       return ["The Philosopher's Stone", "The Chamber of Secrets", "The Prisoner of Azkaban", "The Goblet of Fire",
+               "The Order of the Phoenix", "The Half-Blood Prince", "The Deathly Hallows"]
+
+
+   # First example : We just add weekly releases
+
+   operations =  [
+       AddInjectionRequest({"book_titles" : retrieve_new_book_releases() }),
+   ]
+
+   request1 = InjectionRequestMessage(operations)
+
+   with Hermes("localhost:1883") as h:
+       h.request_injection(request1)
+
+
+   # Second example : We reset all the previously injected values of the book_title entity, and then, adds the list of values provided
+
+   operations =  [
+       AddInjectionRequest({"book_titles" : retrieve_book_inventory() }),
+   ]
+
+   request2 = InjectionRequestMessage(operations)
+
+   with Hermes("localhost:1883") as h:
+       h.request_injection(request2)
+
+**Careful**, performing an entity injection is a CPU and memory
+intensive task. You should not trigger multiple injection tasks at the
+same time on devices with limited computing power.
+
+You can monitor the progress of your injection request with
+``snips-watch -vvv``.
+
+
 Configuring MQTT options
 ========================
 
@@ -551,6 +663,10 @@ You can disable/enable intents with the following methods :
 Configuring Sound Feedback
 ==========================
 
+
+Enabling and disabling sound feedback
+-------------------------------------
+
 By default, the snips platform notify the user of different events of
 its lifecycle with sound. It emits a sound when the wakeword is
 detected, or when the NLU engine (natural understanding engine) has
@@ -568,6 +684,48 @@ specifying the ``siteId`` where the sound feedback should be disabled.
    with Hermes("localhost:1883") as h:
        h.disable_sound_feedback(SiteMessage("kitchen"))
        h.start()
+
+
+Making the TTS play custom sounds
+---------------------------------
+
+The snips-platform allows you to register custom sounds which can be
+played later by the TTS engine.
+
+``hermes-python`` allows you to register sounds on the fly, by
+specifying a string identifier for the sound, and providing a ``wav``
+file.
+
+For instance, let’s say that your assistant tells a bad joke and that
+you want to play a *ba dum tss* sound at the end of the punchline.
+
+::
+
+   from builtins import bytearray
+   from hermes_python.hermes import Hermes
+   from hermes_python.ontology.tts import RegisterSoundMessage
+
+   # Step 1 : We read a wav file
+   def read_wav_data():
+       with open('ba_dum_tss.wav', 'rb') as f:
+           read_data = f.read()
+       return bytearray(read_data)
+
+
+   # Step 2 : We register a sound that will be named "bad_joke"
+   sound = RegisterSoundMessage("bad_joke", read_wav_data())
+
+   def callback(hermes, intent_message):
+       hermes.publish_end_session(intent_message.session_id, "A very bad joke ... [[sound:bad_joke]]")  # Step 4 : You play your registered sound
+
+   with Hermes("localhost:1883") as h:
+       h.connect()\
+           .register_sound(sound)\    # Step 3 : You register your custom sound
+           .subscribe_intents(callback)\
+           .start()
+
+In the TTS string, when you specify the sound you want to play, you
+need to follow the syntax : ``[[sound:<your_sound_id>]]``
 
 
 Enabling Debugging
@@ -597,11 +755,20 @@ variable : ``RUST_LOG=TRACE python your_script.py``.
 Release Checklist
 *****************
 
-Everytime you need to perform a release, do the following steps : - [
-] Commit all changes to the project for said release - [ ] Write all
-the changes introduced in the Changelog (source/HISTORY.rst file) and
-commit it - [ ] Run tests - [ ] Build the documentation and commit the
-README.rst - [ ] Bump the version and commit it - [ ] Upload to PyPI
+Everytime you need to perform a release, do the following steps :
+
+* [ ] Commit all changes to the project for said release
+
+* [ ] Write all the changes introduced in the Changelog
+   (source/HISTORY.rst file) and commit it
+
+* [ ] Run tests
+
+* [ ] Build the documentation and commit the README.rst
+
+* [ ] Bump the version and commit it
+
+* [ ] Upload to PyPI
 
 
 Build details
@@ -620,11 +787,11 @@ To be able to run it, you need to :
 * install pyenv : brew install pyenv. Then follow the additional
    steps detailled
 
-* you then have to install python at different versions:  ``pyenv
-   install --list`` to list the available version to install
+* you then have to install python at different versions:
 
-* Before installing and building the different python version from
-   sources, install the required dependencies : `Link here
-   <https://github.com/pyenv/pyenv/wiki/>`_
+``pyenv install --list`` to list the available version to install *
+Before installing and building the different python version from
+sources, install the required dependencies : `Link here
+<https://github.com/pyenv/pyenv/wiki/>`_
 
 That’s it !

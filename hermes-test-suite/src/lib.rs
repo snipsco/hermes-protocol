@@ -278,6 +278,9 @@ macro_rules! t_component {
                 t!(error_works:
                         $f.subscribe_error <= ErrorMessage | $f_back.publish_error
                         with ErrorMessage { session_id: Some("123abc".into()), error: "some error".into(), context: None };);
+                t!(component_loaded_works:
+                        $f.subscribe_component_loaded <= ComponentLoadedMessage | $f_back.publish_component_loaded
+                        with ComponentLoadedMessage { id: Some("123abc".into()), reloaded: false };);
             }
         };
     }
@@ -295,6 +298,13 @@ macro_rules! t_identifiable_component {
                 t!(error_works:
                         $f.subscribe_error { "identifier".to_string() } <= ErrorMessage | $f_back.publish_error
                         with ErrorMessage { session_id: Some("123abc".into()), error: "some error".into(), context: None };);
+                t!(component_loaded_works:
+                        $f.subscribe_component_loaded { "identifier".to_string() } <= ComponentLoadedOnSiteMessage | $f_back.publish_component_loaded
+                        with ComponentLoadedOnSiteMessage { id: Some("id".into()), reloaded: false, site_id: "site_id".into() }; );
+                t!(components_loaded_works:
+                        ManyToOne
+                        $f.subscribe_components_loaded <= ComponentLoadedOnSiteMessage | $f_back.publish_component_loaded { "site_id".into() }
+                        with ComponentLoadedOnSiteMessage { id: Some("id".into()), reloaded: false, site_id: "site_id".into() }; );
             }
         };
     }
@@ -345,10 +355,10 @@ macro_rules! test_suite {
         t_toggleable!(asr_toggleable: asr_backend | asr);
         t!(asr_text_captured_works:
                     asr.subscribe_text_captured <= TextCapturedMessage | asr_backend.publish_text_captured
-                    with TextCapturedMessage { text: "hello world".into(), tokens: Some(vec![ AsrToken { value: "hello".into(), confidence: 1., range_start: 0, range_end: 4, time: AsrDecodingDuration { start: 0.0, end: 2.0 } }, ]), likelihood: 0.5, seconds: 4.2, site_id: "Some site".into(), session_id: Some("123abc".into()) };);
+                    with TextCapturedMessage { text: "hello world".into(), tokens: Some(vec![ AsrToken { value: "hello".into(), confidence: 1., range_start: 0, range_end: 4, time: AsrDecodingDuration { start: 0.0, end: 2.0 } }, ]), likelihood: 0.5, seconds: 4.2, site_id: "Some site".into(), speaker_hypotheses: None, session_id: Some("123abc".into()) };);
         t!(asr_partial_text_captured_works:
                     asr.subscribe_partial_text_captured <= TextCapturedMessage | asr_backend.publish_partial_text_captured
-                    with TextCapturedMessage { text: "hello world".into(), tokens: Some(vec![ AsrToken { value: "hello".into(), confidence: 1., range_start: 0, range_end: 4, time: AsrDecodingDuration { start: 0.0, end: 2.0 } }, AsrToken { value: "world".into(), confidence: 1., range_start: 5, range_end: 9, time: AsrDecodingDuration { start: 2.0, end: 4.0 } }, ]), likelihood: 0.5, seconds: 4.2, site_id: "Some site".into(), session_id: Some("123abc".into()) };);
+                    with TextCapturedMessage { text: "hello world".into(), tokens: Some(vec![ AsrToken { value: "hello".into(), confidence: 1., range_start: 0, range_end: 4, time: AsrDecodingDuration { start: 0.0, end: 2.0 } }, AsrToken { value: "world".into(), confidence: 1., range_start: 5, range_end: 9, time: AsrDecodingDuration { start: 2.0, end: 4.0 } }, ]), likelihood: 0.5, seconds: 4.2, site_id: "Some site".into(), speaker_hypotheses: Some(vec![SpeakerId { name: Some("toto".into()), confidence: 0.9}]), session_id: Some("123abc".into()) };);
         t!(asr_start_listening:
                     asr_backend.subscribe_start_listening <= AsrStartListeningMessage | asr.publish_start_listening
                     with AsrStartListeningMessage { session_id: Some("abc".into()), site_id: "some site".into(), start_signal_ms: Some(12) };);
@@ -356,7 +366,8 @@ macro_rules! test_suite {
                     asr_backend.subscribe_stop_listening <= SiteMessage | asr.publish_stop_listening
                     with SiteMessage { session_id: Some("abc".into()), site_id: "some site".into() };);
         t!(asr_reload:
-                asr_backend.subscribe_reload <= asr.publish_reload);
+                    asr_backend.subscribe_component_reload <= RequestComponentReloadMessage | asr.publish_component_reload
+                    with RequestComponentReloadMessage { id: "abc".into() }; );
 
         t_component!(tts_component: tts_backend | tts);
         t!(tts_say_works:
@@ -392,7 +403,8 @@ macro_rules! test_suite {
                     nlu.subscribe_intent_not_recognized <= NluIntentNotRecognizedMessage | nlu_backend.publish_intent_not_recognized
                     with NluIntentNotRecognizedMessage { id: None, input: "hello world".into(), session_id: Some("abc".into()), confidence_score: 0.5 };);
         t!(nlu_reload:
-                    nlu_backend.subscribe_reload <= nlu.publish_reload);
+                    nlu_backend.subscribe_component_reload <= RequestComponentReloadMessage | nlu.publish_component_reload
+                    with RequestComponentReloadMessage { id: "abc".into() }; );
 
         t_identifiable_component!(audio_server_component: audio_server_backend | audio_server);
         t_identifiable_toggleable!(audio_server_toggeable: audio_server_backend | audio_server);
@@ -440,14 +452,14 @@ macro_rules! test_suite {
                     with SessionQueuedMessage { session_id: "some id".into(), custom_data: None, site_id: "some site".into() };);
         t!(dialogue_intents_works:
                     dialogue.subscribe_intents <= IntentMessage | dialogue_backend.publish_intent
-                    with IntentMessage { site_id: "some site".into(), session_id: "some id".into(), custom_data: None, input: "hello world".into(), asr_tokens: None, asr_confidence: None, intent: NluIntentClassifierResult { intent_name: "my intent".into(), confidence_score: 0.73 }, slots: vec![] };);
+                    with IntentMessage { site_id: "some site".into(), session_id: "some id".into(), custom_data: None, input: "hello world".into(), asr_tokens: None, asr_confidence: None, intent: NluIntentClassifierResult { intent_name: "my intent".into(), confidence_score: 0.73 }, speaker_hypotheses: None, slots: vec![] };);
         t!(dialogue_intent_works:
                     OneToMany
                     dialogue.subscribe_intent { "my intent".into() } <= IntentMessage | dialogue_backend.publish_intent
-                    with IntentMessage { site_id: "some site".into(), session_id: "some id".into(), custom_data: None, input: "hello world".into(), asr_tokens: Some(vec![vec![AsrToken { value: "hello".into(), confidence: 1., range_start: 0, range_end: 4, time: AsrDecodingDuration { start: 0.0, end: 2.0 } }, AsrToken { value: "world".into(), confidence: 1., range_start: 5, range_end: 9, time: AsrDecodingDuration { start: 2.0, end: 4.0 } },]]), asr_confidence: Some(0.5),intent: NluIntentClassifierResult { intent_name: "my intent".into(), confidence_score: 0.73 }, slots: vec![] };);
+                    with IntentMessage { site_id: "some site".into(), session_id: "some id".into(), custom_data: None, input: "hello world".into(), asr_tokens: Some(vec![vec![AsrToken { value: "hello".into(), confidence: 1., range_start: 0, range_end: 4, time: AsrDecodingDuration { start: 0.0, end: 2.0 } }, AsrToken { value: "world".into(), confidence: 1., range_start: 5, range_end: 9, time: AsrDecodingDuration { start: 2.0, end: 4.0 } },]]), asr_confidence: Some(0.5),intent: NluIntentClassifierResult { intent_name: "my intent".into(), confidence_score: 0.73 }, speaker_hypotheses: Some(vec![SpeakerId { name: Some("toto".into()), confidence: 0.9}]), slots: vec![] };);
         t!(dialogue_intent_not_recognized_works:
                     dialogue.subscribe_intent_not_recognized <= IntentNotRecognizedMessage | dialogue_backend.publish_intent_not_recognized
-                    with IntentNotRecognizedMessage { site_id: "some site".into(), session_id: "some id".into(), custom_data: None, input: Some("hello world".into()), confidence_score: 0.5 };);
+                    with IntentNotRecognizedMessage { site_id: "some site".into(), session_id: "some id".into(), custom_data: None, input: Some("hello world".into()), speaker_hypotheses: None, confidence_score: 0.5 };);
         t!(dialogue_session_ended_works:
                     dialogue.subscribe_session_ended <= SessionEndedMessage | dialogue_backend.publish_session_ended
                     with SessionEndedMessage { site_id: "some site".into(), session_id: "some id".into(), custom_data: None, termination: SessionTerminationType::Nominal };);
@@ -473,5 +485,14 @@ macro_rules! test_suite {
         t!(injection_status:
                     injection.subscribe_injection_status <= InjectionStatusMessage | injection_backend.publish_injection_status
                     with InjectionStatusMessage { last_injection_date: Some($crate::now()) };);
+        t!(injection_complete:
+                    injection.subscribe_injection_complete <= InjectionCompleteMessage | injection_backend.publish_injection_complete
+                    with InjectionCompleteMessage { request_id: Some("some id".into()) };);
+        t!(injection_reset_request:
+                    injection_backend.subscribe_injection_reset_request <= InjectionResetRequestMessage | injection.publish_injection_reset_request
+                    with InjectionResetRequestMessage { request_id: Some("abc".into()) };);
+        t!(injection_reset_complete:
+                    injection.subscribe_injection_reset_complete <= InjectionResetCompleteMessage | injection_backend.publish_injection_reset_complete
+                    with InjectionResetCompleteMessage { request_id: Some("abc".into()) };);
     };
 }

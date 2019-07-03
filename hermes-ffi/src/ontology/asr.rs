@@ -11,7 +11,7 @@ pub struct CAsrStartListeningMessage {
     pub site_id: *const libc::c_char,
     /// Nullable
     pub session_id: *const libc::c_char,
-    pub start_signal_ms: libc::int64_t, // -1 mean None
+    pub start_signal_ms: i64, // -1 mean None
 }
 
 unsafe impl Sync for CAsrStartListeningMessage {}
@@ -64,6 +64,8 @@ pub struct CTextCapturedMessage {
     pub site_id: *const libc::c_char,
     /// Nullable
     pub session_id: *const libc::c_char,
+    ///// Nullable
+    //pub speaker_hypotheses: *const CSpeakerIdArray,
 }
 
 unsafe impl Sync for CTextCapturedMessage {}
@@ -87,6 +89,11 @@ impl CReprOf<hermes::TextCapturedMessage> for CTextCapturedMessage {
             seconds: input.seconds,
             site_id: convert_to_c_string!(input.site_id),
             session_id: convert_to_nullable_c_string!(input.session_id),
+            /*speaker_hypotheses: if let Some(speaker_hypotheses) = input.speaker_hypotheses {
+                CSpeakerIdArray::c_repr_of(speaker_hypotheses)?.into_raw_pointer()
+            } else {
+                null()
+            },*/
         })
     }
 }
@@ -103,6 +110,12 @@ impl AsRust<hermes::TextCapturedMessage> for CTextCapturedMessage {
             seconds: self.seconds,
             site_id: create_rust_string_from!(self.site_id),
             session_id: create_optional_rust_string_from!(self.session_id),
+            speaker_hypotheses: /* match unsafe { self.speaker_hypotheses.as_ref() } {
+                Some(speaker_hypotheses) => {
+                    Some(unsafe { CSpeakerIdArray::raw_borrow(speaker_hypotheses)? }.as_rust()?)
+                }
+                None => None,
+            }*/ None,
         })
     }
 }
@@ -113,6 +126,9 @@ impl Drop for CTextCapturedMessage {
         take_back_c_string!(self.site_id);
         take_back_nullable_c_string!(self.session_id);
         let _ = unsafe { CAsrTokenArray::drop_raw_pointer(self.tokens) };
+        /*if !self.speaker_hypotheses.is_null() {
+            let _ = unsafe { CSpeakerIdArray::drop_raw_pointer(self.speaker_hypotheses) };
+        }*/
     }
 }
 
@@ -146,8 +162,8 @@ impl AsRust<hermes::AsrDecodingDuration> for CAsrDecodingDuration {
 pub struct CAsrToken {
     pub value: *const libc::c_char,
     pub confidence: f32,
-    pub range_start: libc::int32_t,
-    pub range_end: libc::int32_t,
+    pub range_start: i32,
+    pub range_end: i32,
     pub time: CAsrDecodingDuration,
 }
 
@@ -156,8 +172,8 @@ impl CReprOf<hermes::AsrToken> for CAsrToken {
         Ok(Self {
             value: convert_to_c_string!(input.value),
             confidence: input.confidence,
-            range_start: input.range_start as libc::int32_t,
-            range_end: input.range_end as libc::int32_t,
+            range_start: input.range_start as i32,
+            range_end: input.range_end as i32,
             time: CAsrDecodingDuration::c_repr_of(input.time)?,
         })
     }
@@ -274,6 +290,86 @@ impl Drop for CAsrTokenDoubleArray {
 
             for e in tokens.iter() {
                 let _ = CAsrTokenArray::drop_raw_pointer(*e);
+            }
+        }
+    }
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct CSpeakerId {
+    pub name: *const libc::c_char,
+    pub confidence: f32,
+}
+
+impl CReprOf<hermes::SpeakerId> for CSpeakerId {
+    fn c_repr_of(input: hermes::SpeakerId) -> Fallible<Self> {
+        Ok(Self {
+            name: convert_to_nullable_c_string!(input.name),
+            confidence: input.confidence,
+        })
+    }
+}
+
+impl AsRust<hermes::SpeakerId> for CSpeakerId {
+    fn as_rust(&self) -> Fallible<hermes::SpeakerId> {
+        Ok(hermes::SpeakerId {
+            name: create_optional_rust_string_from!(self.name),
+            confidence: self.confidence,
+        })
+    }
+}
+
+impl Drop for CSpeakerId {
+    fn drop(&mut self) {
+        take_back_nullable_c_string!(self.name)
+    }
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct CSpeakerIdArray {
+    pub entries: *const *const CSpeakerId,
+    pub count: libc::c_int,
+}
+
+impl CReprOf<Vec<hermes::SpeakerId>> for CSpeakerIdArray {
+    fn c_repr_of(input: Vec<hermes::SpeakerId>) -> Fallible<Self> {
+        let array = Self {
+            count: input.len() as _,
+            entries: Box::into_raw(
+                input
+                    .into_iter()
+                    .map(|e| CSpeakerId::c_repr_of(e).map(|c| c.into_raw_pointer()))
+                    .collect::<Fallible<Vec<_>>>()
+                    .context("Could not convert map to C Repr")?
+                    .into_boxed_slice(),
+            ) as *const *const _,
+        };
+        Ok(array)
+    }
+}
+
+impl AsRust<Vec<hermes::SpeakerId>> for CSpeakerIdArray {
+    fn as_rust(&self) -> Fallible<Vec<hermes::SpeakerId>> {
+        let mut result = Vec::with_capacity(self.count as usize);
+
+        for e in unsafe { slice::from_raw_parts(self.entries, self.count as usize) } {
+            result.push(unsafe { CSpeakerId::raw_borrow(*e) }?.as_rust()?);
+        }
+        Ok(result)
+    }
+}
+
+impl Drop for CSpeakerIdArray {
+    fn drop(&mut self) {
+        unsafe {
+            let tokens = Box::from_raw(std::slice::from_raw_parts_mut(
+                self.entries as *mut *mut CSpeakerId,
+                self.count as usize,
+            ));
+            for e in tokens.iter() {
+                let _ = CSpeakerId::drop_raw_pointer(*e);
             }
         }
     }

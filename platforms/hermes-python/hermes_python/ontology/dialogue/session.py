@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from builtins import object
 from six.moves import range
+from typing import List, Optional
 
 from hermes_python.ffi.ontology.dialogue import CStartSessionMessageAction, CStartSessionMessageNotification, \
     CSessionInitAction, CSessionInitNotification, CEndSessionMessage, CContinueSessionMessage
@@ -12,8 +13,9 @@ class SessionInit(object):
 
 class SessionInitAction(SessionInit):
     def __init__(self, text=None, intent_filter=list(), can_be_enqueued=True, send_intent_not_recognized=False):
+        # type:(Optional[str], Optional[List[str]], bool, bool) -> None
         """
-        :param text: A text to say to the user
+        :param text: An optional text to say to the user
         :param intent_filter: An optional list of intent name to restrict the parsing of the user response to
         :param can_be_enqueued: An optional boolean to indicate if the session can be enqueued if it can't be started
         immediately (ie there is another running session on the site). The default value is true
@@ -56,6 +58,7 @@ class SessionInitAction(SessionInit):
 
 class SessionInitNotification(SessionInit):
     def __init__(self, text=""):
+        # type:(str) -> None
         """
         The session doesn't expect a response from the user.
         If the session cannot be started, it will enqueued.
@@ -115,13 +118,17 @@ class StartSessionMessage(object):
 
 class SessionStartedMessage(object):
     def __init__(self, session_id, custom_data, site_id, reactivated_from_session_id):
+        # type: (str, Optional[str], str, Optional[str]) -> None
         """
         A message that the handler receives from the Dialogue Manager when a session is started.
 
         :param session_id: Session identifier that was started.
         :param custom_data: Custom data provided in the start session request on.
         :param site_id:  Site where the user interaction is taking place.
-        :param reactivated_from_session_id: This field is left blank voluntarily.
+        :param reactivated_from_session_id: NOT IMPLEMENTED YET. This feature is coming soon.
+        This optional field indicates this session is a reactivation of a previously
+        ended session. This is for example provided when the user continues talking to the platform without saying the
+        hotword again after a session was ended.
         """
         self.session_id = session_id
         self.custom_data = custom_data
@@ -130,9 +137,9 @@ class SessionStartedMessage(object):
 
     @classmethod
     def from_c_repr(cls, c_repr):
-        session_id = c_repr.session_id.decode('utf-8') if c_repr.session_id else None
+        session_id = c_repr.session_id.decode('utf-8')
         custom_data = c_repr.custom_data.decode('utf-8') if c_repr.custom_data else None
-        site_id = c_repr.site_id.decode('utf-8') if c_repr.site_id else None
+        site_id = c_repr.site_id.decode('utf-8')
         reactivated_from_session_id = c_repr.reactivated_from_session_id.decode('utf-8') if c_repr.reactivated_from_session_id else None
         return cls(session_id, custom_data, site_id, reactivated_from_session_id)
 
@@ -142,7 +149,7 @@ class SessionStartedMessage(object):
 
 class EndSessionMessage(object):
     def __init__(self, session_id, text=None):
-        # type: (str, str) -> None
+        # type: (str, Optional[str]) -> None
         """
         :param session_id: The id of the session to end
         :param text: An optional text to say to the user before ending the session
@@ -155,7 +162,7 @@ class EndSessionMessage(object):
 
     @classmethod
     def from_c_repr(cls, c_repr):
-        session_id = c_repr.session_id.decode('utf-8') if c_repr.session_id else None
+        session_id = c_repr.session_id.decode('utf-8')
         text = c_repr.text.decode('utf-8') if c_repr.text else None
         return cls(session_id, text)
 
@@ -165,6 +172,7 @@ class EndSessionMessage(object):
 
 class SessionEndedMessage(object):
     def __init__(self, session_id, custom_data, site_id, termination):
+        # type: (str, Optional[str], str, SessionTermination) -> None
         """
         A message that the handler receives from the Dialogue Manager when a session is ended.
 
@@ -192,6 +200,7 @@ class SessionEndedMessage(object):
 
 class SessionQueuedMessage(object):
     def __init__(self, session_id, custom_data, site_id):
+        # type: (str, Optional[str], str) -> None
         """
         A message that the handler receives from the Dialogue Manager when a session is queued.
 
@@ -236,6 +245,7 @@ class SessionTermination(object):
 
 class ContinueSessionMessage(object):
     def __init__(self, session_id, text, intent_filter, custom_data, send_intent_not_recognized, slot=None):
+        # type: (str, str, List[str], Optional[str], bool, Optional[str]) -> None
         """
         :param session_id: Identifier of the dialogue session during which this intent was parsed.
         :param text:
@@ -283,6 +293,7 @@ class ContinueSessionMessage(object):
 
 class IntentNotRecognizedMessage(object):
     def __init__(self, site_id, session_id, input, custom_data, confidence_score):
+        # type: (str, str, Optional[str], Optional[str], float) -> None
         """
         A message that the handler receives from the Dialogue manager when an intent is not recognized and that the
         session was initialized with the intent_not_recognized flag turned on.

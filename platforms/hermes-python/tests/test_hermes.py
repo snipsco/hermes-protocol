@@ -5,6 +5,7 @@ import pytest
 from hermes_python.hermes import Hermes
 from hermes_python.ontology import MqttOptions
 from hermes_python.ontology.dialogue import StartSessionMessage, SessionInitNotification, ContinueSessionMessage
+from hermes_python.ontology.injection import InjectionRequestMessage
 
 HOST = "localhost"
 DUMMY_INTENT_NAME = "INTENT"
@@ -40,8 +41,10 @@ def test_context_manager_enter_calls_ffi_api():
 @mock.patch("hermes_python.api.ffi.feedback.hermes_protocol_handler_sound_feedback_facade")
 @mock.patch("hermes_python.api.ffi.dialogue.hermes_drop_dialogue_facade")
 @mock.patch("hermes_python.api.ffi.dialogue.hermes_protocol_handler_dialogue_facade")
+@mock.patch("hermes_python.api.ffi.hermes_destroy_mqtt_protocol_handler")
 @mock.patch("hermes_python.api.ffi.hermes_protocol_handler_new_mqtt_with_options")
 def test_context_manager_enter_exit(hermes_protocol_handler_new_mqtt,
+                                    hermes_destroy_mqtt_protocol_handler,
                                     hermes_protocol_handler_dialogue_facade, hermes_drop_dialogue_facade,
                                     hermes_protocol_handler_sound_feedback_facade, hermes_drop_sound_feedback_facade,
                                     hermes_protocol_handler_injection_facade, hermes_drop_injection_facade,
@@ -62,6 +65,8 @@ def test_context_manager_enter_exit(hermes_protocol_handler_new_mqtt,
 
     hermes_protocol_handler_tts_facade.assert_called_once()
     hermes_drop_tts_facade.assert_called_once()
+
+    hermes_destroy_mqtt_protocol_handler.assert_called_once()
 
 
 @mock.patch("hermes_python.api.ffi.feedback.hermes_protocol_handler_sound_feedback_facade")
@@ -205,3 +210,39 @@ class TestContinueSession(object):
         continue_session_message = ContinueSessionMessage("session_id", "Tell me what the missing slot is", ["intent1"],
                                                           None, False, "missing_slot")
         h.ffi.dialogue.publish_continue_session.assert_called_once_with(continue_session_message)
+
+
+class TestInjection(object):
+    # These tests are disabled as long as the injection API is stabilized.
+    # def test_requesting_injection_status(self):
+    #     h = Hermes(HOST)
+    #     h.ffi = mock.MagicMock()
+    #
+    #
+    #     with h:
+    #         h.request_injection_status()
+    #
+    #     h.ffi.injection.publish_injection_status_request.assert_called_once()
+    #
+    # def test_correctly_subscribing_to_injection_status(self):
+    #     def injection_request_cb(callback, injection_status):
+    #         pass
+    #
+    #     h = Hermes(HOST)
+    #     h.ffi = mock.MagicMock()
+    #
+    #     with h:
+    #         h.subscribe_injection_status(injection_request_cb)
+    #
+    #     h.ffi.injection.register_subscribe_injection_status.assert_called_once_with(injection_request_cb, h)
+
+    def test_correctly_requesting_injection(self):
+        h = Hermes(HOST)
+        h.ffi = mock.MagicMock()
+
+        injection_request = InjectionRequestMessage([], dict())
+
+        with h:
+            h.request_injection(injection_request)
+
+        h.ffi.injection.publish_injection_request.assert_called_once_with(injection_request)

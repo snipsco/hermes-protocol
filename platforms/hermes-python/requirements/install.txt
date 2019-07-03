@@ -1,1 +1,4 @@
-git+https://github.com/snipsco-forks/setuptools-rust.git@develop
+six
+future
+typing
+enum34

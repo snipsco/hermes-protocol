@@ -12,6 +12,8 @@ from .ontology.dialogue import ContinueSessionMessage, EndSessionMessage, StartS
     SessionInitAction, SessionStartedMessage, IntentMessage, SessionQueuedMessage, SessionEndedMessage, \
     DialogueConfiguration, IntentNotRecognizedMessage
 from .ontology.feedback import SiteMessage
+from .ontology.tts import RegisterSoundMessage
+from .ontology.injection import InjectionStatusMessage, InjectionRequestMessage
 from .api.ffi import FFI
 
 import threading
@@ -297,6 +299,68 @@ class Hermes(object):
         :return: the current instance of Hermes to allow chaining.
         """
         self.ffi.sound_feedback.publish_toggle_off(site_message)
+        return self
+
+    def register_sound(self, sound):
+        # type: (RegisterSoundMessage) -> Hermes
+        """
+        Register a sound that can later be played by the TTS.
+
+        :param sound: a sound to be played by the TTS.
+        :return: the current instance of Hermes to allow chaining.
+        """
+        self.ffi.tts.publish_register_sound(sound)
+        return self
+
+    # This method is disabled as long as the injection API is stabilized
+    # def subscribe_injection_status(self, injection_status_callback):
+    #     # type: (Callable[[Hermes, InjectionStatusMessage], None]) -> Hermes
+    #     """
+    #     Registers a callback that will be triggered after a injection status message was requested.
+    #
+    #     Note that you have to request the status of the injection via the `request_injection_status` method of hermes.
+    #
+    #     The callback will be called with the following parameters :
+    #         - hermes: the current instance of the Hermes object
+    #         - injection_status : An object that gives you the date of the latest succesful injection.
+    #
+    #     :param injection_status_callback: the callback executed following a injection status request.
+    #     :return: the current instance of Hermes to allow chaining.
+    #     """
+    #     self.ffi.injection.register_subscribe_injection_status(
+    #         injection_status_callback,
+    #         self
+    #     )
+    #     return self
+
+    # This method is disabled as long as the injection API is stabilized
+    # def request_injection_status(self):
+    #     # type: () -> Hermes
+    #     """
+    #     Publishes a injection status request to the platform.
+    #
+    #     Note that this function is asynchronous, and that you retrieve the results of this call if you register a
+    #     callback with the `subscribe_injection_status` method.
+    #
+    #
+    #     :return: the current instance of Hermes to allow chaining.
+    #     """
+    #     self.ffi.injection.publish_injection_status_request()
+    #     return self
+
+    def request_injection(self, injection_request):
+        # type: (InjectionRequestMessage) -> Hermes
+        """
+        Publishes an injection request to the platform.
+
+        Note that this function is asynchronous. You can check the status of the injection by registering a injection
+        status callback with the `subscribe_injection_status` method of `hermes` and by requesting the status of the
+        injection with the `request_injection_status` method of `hermes`.
+
+        :param injection_request: An object that contains the different injection requests operations.
+        :return: the current instance of Hermes to allow chaining.
+        """
+        self.ffi.injection.publish_injection_request(injection_request)
         return self
 
     def start(self):

@@ -39,6 +39,7 @@ export default class ApiSubset {
     protected call: FFIFunctionCall
     public destroy() {}
     private listeners = new Map()
+    private ffiCallbacks = new Map()
     protected options: HermesOptions
     protected facade: Buffer | null = null
     protected subscribeEvents: { [key: string]: SubscribeEventDescriptor } = {}
@@ -93,7 +94,7 @@ export default class ApiSubset {
                 callback
             ]
             // Prevent GC
-            process.on('exit', function() { callback })
+            this.ffiCallbacks.set(eventName, callback)
             this.call(fullEventName, this.facade, ...args)
         }
         listeners.push(listener)

@@ -105,7 +105,10 @@ macro_rules! generate_structures_c_symbols {
 
             $crate::generate_facade_publish!(hermes_injection_publish_injection_request = CInjectionFacade: publish_injection_request(CInjectionRequestMessage));
             $crate::generate_facade_publish!(hermes_injection_publish_injection_status_request = CInjectionFacade: publish_injection_status_request());
+            $crate::generate_facade_publish!(hermes_injection_publish_injection_reset_request = CInjectionFacade: publish_injection_reset_request(CInjectionResetRequestMessage));
             $crate::generate_facade_subscribe!(hermes_injection_subscribe_injection_status = CInjectionFacade: subscribe_injection_status(|CInjectionStatusMessage|));
+            $crate::generate_facade_subscribe!(hermes_injection_subscribe_injection_complete = CInjectionFacade: subscribe_injection_complete(|CInjectionCompleteMessage|));
+            $crate::generate_facade_subscribe!(hermes_injection_subscribe_injection_reset_complete = CInjectionFacade: subscribe_injection_reset_complete(|CInjectionResetCompleteMessage|));
 
             $crate::generate_facade_publish!(hermes_tts_publish_register_sound = CTtsFacade: publish_register_sound(CRegisterSoundMessage));
 
@@ -117,6 +120,8 @@ macro_rules! generate_structures_c_symbols {
             $crate::generate_destroy!(hermes_drop_version_message for CVersionMessage);
             $crate::generate_destroy!(hermes_drop_error_message for CErrorMessage);
             $crate::generate_destroy!(hermes_drop_injection_status_message for CInjectionStatusMessage);
+            $crate::generate_destroy!(hermes_drop_injection_complete_message for CInjectionCompleteMessage);
+            $crate::generate_destroy!(hermes_drop_injection_reset_complete_message for CInjectionResetCompleteMessage);
 
             #[cfg(feature = "full_bindings")]
             pub mod full_bindings {
@@ -196,6 +201,7 @@ macro_rules! generate_structures_c_symbols {
                 $crate::generate_destroy!(hermes_drop_end_session_message for CEndSessionMessage);
                 $crate::generate_destroy!(hermes_drop_dialogue_configure_message for CDialogueConfigureMessage);
                 $crate::generate_destroy!(hermes_drop_injection_request_message for CInjectionRequestMessage);
+                $crate::generate_destroy!(hermes_drop_injection_reset_request_message for CInjectionResetRequestMessage);
                 $crate::generate_destroy!(hermes_drop_register_sound_message for CRegisterSoundMessage);
             }
         }

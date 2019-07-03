@@ -313,6 +313,72 @@ from the end-user.
             .start()
 
 
+Dynamic Vocabulary using Entities Injection
+-------------------------------------------
+
+Please refer to the `official documentation <https://docs.snips.ai/articles/platform/nlu/dynamic-vocabulary>`_ for further information.
+
+Sometimes, you want to extend your voice assistant with new vocabulary it hasn't seen when it was trained.
+For instance, let's say that you have a bookstore voice assistant, that you update every week with new book titles that came out.
+
+The snips platform comes with the **Entities Injection** feature, which allows you to update both the ASR and the NLU models
+directly on the device to understand new vocabulary.
+
+Each intent within an assistant may contain some slots, and each slot has a specific type that we call an entity.
+If you have a book_title entity that contains a list of book titles in the inventory of your book store,
+Entities Injection lets you add new titles to this list.
+
+To inject new entity values, you have multiple operations at your disposal :
+
+* ``add`` adds the list of values that you provide to the existing entity values.
+* ``addFromVanilla`` removes all the previously injected values to the entity, and then, adds the list of values provided. Note that the entity values coming from the console will be kept.
+
+Let's see how an injection would be performed by the action code :
+
+::
+
+    from hermes_python.hermes import Hermes
+    from hermes_python.ontology.injection import InjectionRequestMessage, AddInjectionRequest, AddFromVanillaInjectionRequest
+
+    def retrieve_new_book_releases():
+        return ["The Half-Blood Prince", "The Deathly Hallows"]
+
+
+    def retrieve_book_inventory():
+        return ["The Philosopher's Stone", "The Chamber of Secrets", "The Prisoner of Azkaban", "The Goblet of Fire",
+                "The Order of the Phoenix", "The Half-Blood Prince", "The Deathly Hallows"]
+
+
+    # First example : We just add weekly releases
+
+    operations =  [
+        AddInjectionRequest({"book_titles" : retrieve_new_book_releases() }),
+    ]
+
+    request1 = InjectionRequestMessage(operations)
+
+    with Hermes("localhost:1883") as h:
+        h.request_injection(request1)
+
+
+    # Second example : We reset all the previously injected values of the book_title entity, and then, adds the list of values provided
+
+    operations =  [
+        AddInjectionRequest({"book_titles" : retrieve_book_inventory() }),
+    ]
+
+    request2 = InjectionRequestMessage(operations)
+
+    with Hermes("localhost:1883") as h:
+        h.request_injection(request2)
+
+
+
+**Careful**, performing an entity injection is a CPU and memory intensive task. You should not trigger multiple injection
+tasks at the same time on devices with limited computing power.
+
+You can monitor the progress of your injection request with ``snips-watch -vvv``.
+
 
 Configuring MQTT options
 ------------------------
@@ -397,6 +463,9 @@ You can disable/enable intents with the following methods :
 Configuring Sound Feedback
 --------------------------
 
+Enabling and disabling sound feedback
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 By default, the snips platform notify the user of different events of its lifecycle with sound.
 It emits a sound when the wakeword is detected, or when the NLU engine (natural understanding engine) has successfuly
 extracted an intent from a spoken sentence.
@@ -413,6 +482,45 @@ specifying the ``siteId`` where the sound feedback should be disabled.
         h.disable_sound_feedback(SiteMessage("kitchen"))
         h.start()
 
+
+Making the TTS play custom sounds
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The snips-platform allows you to register custom sounds which can be played later by the TTS engine.
+
+``hermes-python`` allows you to register sounds on the fly, by specifying a string identifier for the sound, and providing
+a ``wav`` file.
+
+For instance, let's say that your assistant tells a bad joke and that you want to play a *ba dum tss* sound at the end
+of the punchline.
+
+::
+
+    from builtins import bytearray
+    from hermes_python.hermes import Hermes
+    from hermes_python.ontology.tts import RegisterSoundMessage
+
+    # Step 1 : We read a wav file
+    def read_wav_data():
+        with open('ba_dum_tss.wav', 'rb') as f:
+            read_data = f.read()
+        return bytearray(read_data)
+
+
+    # Step 2 : We register a sound that will be named "bad_joke"
+    sound = RegisterSoundMessage("bad_joke", read_wav_data())
+
+    def callback(hermes, intent_message):
+        hermes.publish_end_session(intent_message.session_id, "A very bad joke ... [[sound:bad_joke]]")  # Step 4 : You play your registered sound
+
+    with Hermes("localhost:1883") as h:
+        h.connect()\
+            .register_sound(sound)\    # Step 3 : You register your custom sound
+            .subscribe_intents(callback)\
+            .start()
+
+
+In the TTS string, when you specify the sound you want to play, you need to follow the syntax : ``[[sound:<your_sound_id>]]``
 
 Enabling Debugging
 ------------------

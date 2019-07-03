@@ -295,6 +295,13 @@ macro_rules! impl_component_facades_for {
                     move |p| handler.call(p),
                 )
             }
+
+            fn subscribe_component_loaded(&self, handler: Callback<ComponentLoadedMessage>) -> Fallible<()> {
+                self.mqtt_handler.subscribe_payload(
+                    &HermesTopic::Component(None, self.component, ComponentCommand::Loaded),
+                    move |p| handler.call(p),
+                )
+            }
         }
 
         impl ComponentBackendFacade for $t {
@@ -316,6 +323,13 @@ macro_rules! impl_component_facades_for {
                 self.mqtt_handler.publish_payload(
                     &HermesTopic::Component(None, self.component, ComponentCommand::Error),
                     error,
+                )
+            }
+
+            fn publish_component_loaded(&self, component_loaded: ComponentLoadedMessage) -> Fallible<()> {
+                self.mqtt_handler.publish_payload(
+                    &HermesTopic::Component(None, self.component, ComponentCommand::Loaded),
+                    component_loaded,
                 )
             }
         }
@@ -400,6 +414,24 @@ macro_rules! impl_identifiable_component_facades_for {
                     move |p| handler.call(p),
                 )
             }
+
+            fn subscribe_component_loaded(
+                &self,
+                site_id: String,
+                handler: Callback<ComponentLoadedOnSiteMessage>,
+            ) -> Fallible<()> {
+                self.mqtt_handler.subscribe_payload(
+                    &HermesTopic::Component(Some(site_id), self.component, ComponentCommand::Loaded),
+                    move |p| handler.call(p),
+                )
+            }
+
+            fn subscribe_components_loaded(&self, handler: Callback<ComponentLoadedOnSiteMessage>) -> Fallible<()> {
+                self.mqtt_handler.subscribe_payload(
+                    &HermesTopic::Component(Some("+".to_string()), self.component, ComponentCommand::Loaded),
+                    move |p| handler.call(p),
+                )
+            }
         }
 
         impl IdentifiableComponentBackendFacade for $t {
@@ -421,6 +453,13 @@ macro_rules! impl_identifiable_component_facades_for {
                 self.mqtt_handler.publish_payload(
                     &HermesTopic::Component(Some(site_id), self.component, ComponentCommand::Error),
                     error,
+                )
+            }
+
+            fn publish_component_loaded(&self, site_id: String, loaded: ComponentLoadedOnSiteMessage) -> Fallible<()> {
+                self.mqtt_handler.publish_payload(
+                    &HermesTopic::Component(Some(site_id), self.component, ComponentCommand::Loaded),
+                    loaded,
                 )
             }
         }
@@ -483,7 +522,7 @@ impl SoundFeedbackBackendFacade for MqttToggleableFacade {}
 impl AsrFacade for MqttToggleableComponentFacade {
     p!(publish_start_listening<AsrStartListeningMessage> &HermesTopic::Asr(AsrCommand::StartListening););
     p!(publish_stop_listening<SiteMessage> &HermesTopic::Asr(AsrCommand::StopListening););
-    p!(publish_reload &HermesTopic::Asr(AsrCommand::Reload););
+    p!(publish_component_reload<RequestComponentReloadMessage> &HermesTopic::Asr(AsrCommand::Reload););
     s!(subscribe_text_captured<TextCapturedMessage> &HermesTopic::Asr(AsrCommand::TextCaptured););
     s!(subscribe_partial_text_captured<TextCapturedMessage> &HermesTopic::Asr(AsrCommand::PartialTextCaptured););
 }
@@ -491,7 +530,7 @@ impl AsrFacade for MqttToggleableComponentFacade {
 impl AsrBackendFacade for MqttToggleableComponentFacade {
     s!(subscribe_start_listening<AsrStartListeningMessage> &HermesTopic::Asr(AsrCommand::StartListening););
     s!(subscribe_stop_listening<SiteMessage> &HermesTopic::Asr(AsrCommand::StopListening););
-    s!(subscribe_reload &HermesTopic::Asr(AsrCommand::Reload););
+    s!(subscribe_component_reload<RequestComponentReloadMessage> &HermesTopic::Asr(AsrCommand::Reload););
     p!(publish_text_captured<TextCapturedMessage> &HermesTopic::Asr(AsrCommand::TextCaptured););
     p!(publish_partial_text_captured<TextCapturedMessage> &HermesTopic::Asr(AsrCommand::PartialTextCaptured););
 }
@@ -522,7 +561,7 @@ impl TtsBackendFacade for MqttComponentFacade {
 impl NluFacade for MqttComponentFacade {
     p!(publish_query<NluQueryMessage> &HermesTopic::Nlu(NluCommand::Query););
     p!(publish_partial_query<NluSlotQueryMessage> &HermesTopic::Nlu(NluCommand::PartialQuery););
-    p!(publish_reload &HermesTopic::Nlu(NluCommand::Reload););
+    p!(publish_component_reload<RequestComponentReloadMessage> &HermesTopic::Nlu(NluCommand::Reload););
     s!(subscribe_slot_parsed<NluSlotMessage> &HermesTopic::Nlu(NluCommand::SlotParsed););
     s!(subscribe_intent_parsed<NluIntentMessage> &HermesTopic::Nlu(NluCommand::IntentParsed););
     s!(subscribe_intent_not_recognized<NluIntentNotRecognizedMessage> &HermesTopic::Nlu(NluCommand::IntentNotRecognized););
@@ -531,7 +570,7 @@ impl NluFacade for MqttComponentFacade {
 impl NluBackendFacade for MqttComponentFacade {
     s!(subscribe_query<NluQueryMessage> &HermesTopic::Nlu(NluCommand::Query););
     s!(subscribe_partial_query<NluSlotQueryMessage> &HermesTopic::Nlu(NluCommand::PartialQuery););
-    s!(subscribe_reload &HermesTopic::Nlu(NluCommand::Reload););
+    s!(subscribe_component_reload<RequestComponentReloadMessage> &HermesTopic::Nlu(NluCommand::Reload););
     p!(publish_slot_parsed<NluSlotMessage> &HermesTopic::Nlu(NluCommand::SlotParsed););
     p!(publish_intent_parsed<NluIntentMessage> &HermesTopic::Nlu(NluCommand::IntentParsed););
     p!(publish_intent_not_recognized<NluIntentNotRecognizedMessage> &HermesTopic::Nlu(NluCommand::IntentNotRecognized););
@@ -560,6 +599,18 @@ impl AudioServerFacade for MqttToggleableComponentFacade {
         { bytes.wav_bytes });
     s!(subscribe_play_finished<PlayFinishedMessage>(site_id: String) { &HermesTopic::AudioServer(Some(site_id), AudioServerCommand::PlayFinished) });
     s!(subscribe_all_play_finished<PlayFinishedMessage> &HermesTopic::AudioServer(Some("+".into()), AudioServerCommand::PlayFinished););
+    p_bin!(publish_stream_bytes(stream_bytes_message: StreamBytesMessage)
+       {
+           &HermesTopic::AudioServer(
+               Some(stream_bytes_message.site_id.clone()),
+               AudioServerCommand::StreamBytes {
+                   stream_id: stream_bytes_message.stream_id.clone(),
+                   chunk_number: stream_bytes_message.chunk_number.to_string(),
+                   is_last_chunk: if stream_bytes_message.is_last_chunk { "1".to_string() } else { "0".to_string() }})
+       }
+       { stream_bytes_message.bytes });
+    s!(subscribe_stream_finished<StreamFinishedMessage>(site_id: String) { &HermesTopic::AudioServer(Some(site_id), AudioServerCommand::StreamFinished) });
+    s!(subscribe_all_stream_finished<StreamFinishedMessage> &HermesTopic::AudioServer(Some("+".into()), AudioServerCommand::StreamFinished););
 }
 
 impl AudioServerBackendFacade for MqttToggleableComponentFacade {
@@ -587,6 +638,47 @@ impl AudioServerBackendFacade for MqttToggleableComponentFacade {
                 }
             });
     p!(publish_play_finished(message: PlayFinishedMessage) { &HermesTopic::AudioServer(Some(message.site_id.clone()), AudioServerCommand::PlayFinished) });
+    s_bin!(subscribe_stream_bytes<StreamBytesMessage>(site_id: String)
+        {
+            &HermesTopic::AudioServer(
+                Some(site_id),
+                AudioServerCommand::StreamBytes {
+                    stream_id:"+".into(),
+                    chunk_number:"+".into(),
+                    is_last_chunk:"+".into()
+                }
+            )
+        }
+        |topic, bytes| {
+            if let HermesTopic::AudioServer(Some(ref site_id), AudioServerCommand::StreamBytes {ref stream_id, ref chunk_number, ref is_last_chunk}) = *topic {
+                StreamBytesMessage {
+                    site_id: site_id.to_owned(),
+                    stream_id: stream_id.to_owned(),
+                    chunk_number: chunk_number.parse()
+                        .expect("chunk_nbr is supposed to be properly formatted"),
+                    is_last_chunk: is_last_chunk == "1",
+                    bytes: bytes.into()
+                }
+            } else {
+                unreachable!()
+            }
+            });
+    s_bin!(subscribe_all_stream_bytes<StreamBytesMessage> { &HermesTopic::AudioServer(Some("+".into()), AudioServerCommand::StreamBytes{stream_id:"+".into(), chunk_number:"+".into(), is_last_chunk:"+".into()}) }
+           |topic, bytes| {
+                if let HermesTopic::AudioServer(Some(ref site_id), AudioServerCommand::StreamBytes{ref stream_id, ref chunk_number, ref is_last_chunk}) = *topic {
+                    StreamBytesMessage {
+                        site_id: site_id.to_owned(),
+                        stream_id: stream_id.to_owned(),
+                        chunk_number: chunk_number.parse()
+                            .expect("chunk_nbr is supposed to be properly formatted"),
+                        is_last_chunk: is_last_chunk != "0",
+                        bytes: bytes.into()
+                    }
+                } else {
+                    unreachable!()
+                }
+           });
+    p!(publish_stream_finished(message: StreamFinishedMessage) { &HermesTopic::AudioServer(Some(message.site_id.clone()), AudioServerCommand::StreamFinished) });
 }
 
 impl DialogueFacade for MqttToggleableComponentFacade {
@@ -617,13 +709,19 @@ impl DialogueBackendFacade for MqttToggleableComponentFacade {
 impl InjectionFacade for MqttComponentFacade {
     p!(publish_injection_request<InjectionRequestMessage> &HermesTopic::Injection(InjectionCommand::Perform););
     p!(publish_injection_status_request &HermesTopic::Injection(InjectionCommand::StatusRequest););
+    p!(publish_injection_reset_request<InjectionResetRequestMessage> &HermesTopic::Injection(InjectionCommand::ResetRequest););
     s!(subscribe_injection_status<InjectionStatusMessage> &HermesTopic::Injection(InjectionCommand::Status););
+    s!(subscribe_injection_complete<InjectionCompleteMessage> &HermesTopic::Injection(InjectionCommand::Complete););
+    s!(subscribe_injection_reset_complete<InjectionResetCompleteMessage> &HermesTopic::Injection(InjectionCommand::ResetComplete););
 }
 
 impl InjectionBackendFacade for MqttComponentFacade {
     s!(subscribe_injection_request<InjectionRequestMessage> &HermesTopic::Injection(InjectionCommand::Perform););
     s!(subscribe_injection_status_request &HermesTopic::Injection(InjectionCommand::StatusRequest););
+    s!(subscribe_injection_reset_request<InjectionResetRequestMessage> &HermesTopic::Injection(InjectionCommand::ResetRequest););
     p!(publish_injection_status<InjectionStatusMessage> &HermesTopic::Injection(InjectionCommand::Status););
+    p!(publish_injection_complete<InjectionCompleteMessage> &HermesTopic::Injection(InjectionCommand::Complete););
+    p!(publish_injection_reset_complete<InjectionResetCompleteMessage> &HermesTopic::Injection(InjectionCommand::ResetComplete););
 }
 
 impl MqttHermesProtocolHandler {

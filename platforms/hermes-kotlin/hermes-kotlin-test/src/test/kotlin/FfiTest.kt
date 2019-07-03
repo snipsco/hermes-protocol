@@ -5,6 +5,7 @@ import ai.snips.hermes.ContinueSessionMessage
 import ai.snips.hermes.DialogueConfigureIntent
 import ai.snips.hermes.DialogueConfigureMessage
 import ai.snips.hermes.EndSessionMessage
+import ai.snips.hermes.InjectionCompleteMessage
 import ai.snips.hermes.InjectionKind.Add
 import ai.snips.hermes.InjectionOperation
 import ai.snips.hermes.InjectionRequestMessage
@@ -137,6 +138,16 @@ class FfiTest {
         assertThat(HermesTest().roundTripInjectionRequest(input2)).isEqualTo(input2)
         //json is a bit tricky to deserialize properly
         //assertThat(HermesTest().roundTripInjectionRequestJson(input2)).isEqualTo(input2)
+    }
+
+    @Test
+    fun roundTripInjectionComplete() {
+        val input = InjectionCompleteMessage(
+                requestId = "foobar"
+        )
+
+        assertThat(HermesTest().roundTripInjectionComplete(input)).isEqualTo(input)
+        assertThat(HermesTest().roundTripInjectionCompleteJson(input)).isEqualTo(input)
     }
 
     @Test

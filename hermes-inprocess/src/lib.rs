@@ -1,27 +1,30 @@
 use std::fmt::Debug;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex, Weak};
 
 use failure::Fallible;
-use hermes::*;
 use log::*;
 
+use hermes::*;
+
 pub struct InProcessHermesProtocolHandler {
-    bus: Mutex<ripb::Bus>,
+    subscribers: Arc<Mutex<Vec<Arc<ripb::Subscriber>>>>,
+    bus: Arc<Mutex<ripb::Bus>>,
 }
 
 impl InProcessHermesProtocolHandler {
     pub fn new() -> Self {
         Self {
-            bus: Mutex::new(ripb::Bus::new()),
+            subscribers: Arc::new(Mutex::new(Vec::new())),
+            bus: Arc::new(Mutex::new(ripb::Bus::new())),
         }
     }
 
     fn get_handler<T: Send + Sync + Debug>(&self, component: T) -> Box<InProcessComponent<T>> {
-        let bus = self.bus.lock().unwrap().clone();
         Box::new(InProcessComponent {
             component,
-            bus: Mutex::new(bus),
+            bus: Arc::downgrade(&self.bus),
             subscriber: Mutex::new(None),
+            subscribers: Arc::clone(&self.subscribers),
         })
     }
 }
@@ -114,21 +117,9 @@ impl std::fmt::Display for InProcessHermesProtocolHandler {
 
 struct InProcessComponent<T: Send + Sync + Debug> {
     component: T,
-    bus: Mutex<ripb::Bus>,
-    subscriber: Mutex<Option<ripb::Subscriber>>,
-}
-
-impl<T: Send + Sync + Debug> Drop for InProcessComponent<T> {
-    fn drop(&mut self) {
-        // dropping a ripb subscriber removes its subscriptions it. As we don't have unsubscription
-        // mechanic in hermes (yet) and there are quite a lot of parts in the code where we just
-        // drop the facade after subscribing, let's just forget the subscriber for now.
-        if let Ok(mut subscriber) = self.subscriber.lock() {
-            if let Some(subscriber) = subscriber.take() {
-                std::mem::forget(subscriber)
-            }
-        }
-    }
+    bus: Weak<Mutex<ripb::Bus>>,
+    subscriber: Mutex<Option<Arc<ripb::Subscriber>>>,
+    subscribers: Arc<Mutex<Vec<Arc<ripb::Subscriber>>>>,
 }
 
 impl<T: Send + Sync + Debug> InProcessComponent<T> {
@@ -138,15 +129,43 @@ impl<T: Send + Sync + Debug> InProcessComponent<T> {
     }
 
     fn publish_quiet<M: ripb::Message + Debug + 'static>(&self, message: M) -> Fallible<()> {
-        let bus = self.bus.lock().map_err(PoisonLock::from)?;
+        let bus = self
+            .bus
+            .upgrade()
+            .ok_or_else(|| failure::format_err!("bus was killed"))?;
+        let bus = bus.lock().map_err(PoisonLock::from)?;
         bus.publish(message);
         Ok(())
     }
 
-    fn subscribe0<M: ripb::Message + 'static>(&self, callback: Callback0) -> Fallible<()> {
+    fn ensure_has_subscriber(&self) -> Fallible<()> {
         let mut subscriber = self.subscriber.lock().map_err(PoisonLock::from)?;
-        let subscriber = subscriber.get_or_insert_with(|| self.bus.lock().unwrap().create_subscriber());
-        subscriber.on_message(move |_: &M| callback.call());
+        if subscriber.is_none() {
+            let result = Arc::new(
+                self.bus
+                    .upgrade()
+                    .ok_or_else(|| failure::format_err!("bus was killed"))?
+                    .lock()
+                    .unwrap()
+                    .create_subscriber(),
+            );
+            self.subscribers
+                .lock()
+                .map_err(PoisonLock::from)?
+                .push(Arc::clone(&result));
+            *subscriber = Some(result);
+        }
+        Ok(())
+    }
+
+    fn subscribe0<M: ripb::Message + 'static>(&self, callback: Callback0) -> Fallible<()> {
+        self.ensure_has_subscriber()?;
+        self.subscriber
+            .lock()
+            .map_err(PoisonLock::from)?
+            .as_ref()
+            .unwrap()
+            .on_message(move |_: &M| callback.call())?;
         Ok(())
     }
 
@@ -156,9 +175,13 @@ impl<T: Send + Sync + Debug> InProcessComponent<T> {
         P: 'static,
         C: Fn(&M) -> &P + Send + 'static,
     {
-        let mut subscriber = self.subscriber.lock().map_err(PoisonLock::from)?;
-        let subscriber = subscriber.get_or_insert_with(|| self.bus.lock().unwrap().create_subscriber());
-        subscriber.on_message(move |m: &M| callback.call(converter(m)));
+        self.ensure_has_subscriber()?;
+        self.subscriber
+            .lock()
+            .map_err(PoisonLock::from)?
+            .as_ref()
+            .unwrap()
+            .on_message(move |m: &M| callback.call(converter(m)))?;
         Ok(())
     }
 
@@ -167,13 +190,17 @@ impl<T: Send + Sync + Debug> InProcessComponent<T> {
         M: ripb::Message + 'static,
         F: Fn(&M) -> bool + Send + 'static,
     {
-        let mut subscriber = self.subscriber.lock().map_err(PoisonLock::from)?;
-        let subscriber = subscriber.get_or_insert_with(|| self.bus.lock().unwrap().create_subscriber());
-        subscriber.on_message(move |m: &M| {
-            if filter(m) {
-                callback.call()
-            }
-        });
+        self.ensure_has_subscriber()?;
+        self.subscriber
+            .lock()
+            .map_err(PoisonLock::from)?
+            .as_ref()
+            .unwrap()
+            .on_message(move |m: &M| {
+                if filter(m) {
+                    callback.call()
+                }
+            })?;
         Ok(())
     }
 
@@ -184,13 +211,17 @@ impl<T: Send + Sync + Debug> InProcessComponent<T> {
         C: Fn(&M) -> &P + Send + 'static,
         F: Fn(&M) -> bool + Send + 'static,
     {
-        let mut subscriber = self.subscriber.lock().map_err(PoisonLock::from)?;
-        let subscriber = subscriber.get_or_insert_with(|| self.bus.lock().unwrap().create_subscriber());
-        subscriber.on_message(move |m: &M| {
-            if filter(m) {
-                callback.call(converter(m))
-            }
-        });
+        self.ensure_has_subscriber()?;
+        self.subscriber
+            .lock()
+            .map_err(PoisonLock::from)?
+            .as_ref()
+            .unwrap()
+            .on_message(move |m: &M| {
+                if filter(m) {
+                    callback.call(converter(m))
+                }
+            })?;
         Ok(())
     }
 }
@@ -249,17 +280,29 @@ struct ComponentError<T: Debug> {
     component: T,
 }
 
+#[derive(Debug)]
+struct ComponentLoaded<T: Debug> {
+    component_loaded: ComponentLoadedMessage,
+    component: T,
+}
+
 impl<T: Send + Sync + Debug + Copy + 'static> ComponentFacade for InProcessComponent<T> {
     fn publish_version_request(&self) -> Fallible<()> {
         self.publish(ComponentVersionRequest {
             component: self.component,
         } as ComponentVersionRequest<T>)
     }
+
     fn subscribe_version(&self, handler: Callback<VersionMessage>) -> Fallible<()> {
         subscribe!(self, ComponentVersion<T> { version }, handler)
     }
+
     fn subscribe_error(&self, handler: Callback<ErrorMessage>) -> Fallible<()> {
         subscribe!(self, ComponentError<T> { error }, handler)
+    }
+
+    fn subscribe_component_loaded(&self, handler: Callback<ComponentLoadedMessage>) -> Fallible<()> {
+        subscribe!(self, ComponentLoaded<T> { component_loaded }, handler)
     }
 }
 
@@ -283,6 +326,13 @@ impl<T: Send + Sync + Debug + Copy + 'static> ComponentBackendFacade for InProce
         };
         self.publish(component_error)
     }
+
+    fn publish_component_loaded(&self, component_loaded: ComponentLoadedMessage) -> Fallible<()> {
+        self.publish(ComponentLoaded {
+            component_loaded,
+            component: self.component,
+        })
+    }
 }
 
 #[derive(Debug)]
@@ -305,6 +355,13 @@ struct IdentifiableComponentError<T: Debug> {
     component: T,
 }
 
+#[derive(Debug)]
+struct IdentifiableComponentLoaded<T: Debug> {
+    site_id: String,
+    component_loaded: ComponentLoadedOnSiteMessage,
+    component: T,
+}
+
 impl<T: Send + Sync + Debug + Copy + 'static> IdentifiableComponentFacade for InProcessComponent<T> {
     fn publish_version_request(&self, site_id: String) -> Fallible<()> {
         let version_request = IdentifiableComponentVersionRequest {
@@ -320,6 +377,18 @@ impl<T: Send + Sync + Debug + Copy + 'static> IdentifiableComponentFacade for In
 
     fn subscribe_error(&self, site_id: String, handler: Callback<ErrorMessage>) -> Fallible<()> {
         subscribe_filter!(self, IdentifiableComponentError<T> { error }, handler, site_id, |it| &it.site_id)
+    }
+
+    fn subscribe_component_loaded(
+        &self,
+        site_id: String,
+        handler: Callback<ComponentLoadedOnSiteMessage>,
+    ) -> Fallible<()> {
+        subscribe_filter!(self, IdentifiableComponentLoaded<T> { component_loaded }, handler, site_id, |it| &it.site_id)
+    }
+
+    fn subscribe_components_loaded(&self, handler: Callback<ComponentLoadedOnSiteMessage>) -> Fallible<()> {
+        subscribe!(self, IdentifiableComponentLoaded<T> { component_loaded }, handler)
     }
 }
 
@@ -344,6 +413,19 @@ impl<T: Send + Sync + Debug + Copy + 'static> IdentifiableComponentBackendFacade
             component: self.component,
         };
         self.publish(component_error)
+    }
+
+    fn publish_component_loaded(
+        &self,
+        site_id: String,
+        component_loaded: ComponentLoadedOnSiteMessage,
+    ) -> Fallible<()> {
+        let component_loaded = IdentifiableComponentLoaded {
+            site_id,
+            component_loaded,
+            component: self.component,
+        };
+        self.publish(component_loaded)
     }
 }
 
@@ -416,7 +498,9 @@ struct NluIntentNotRecognized {
 }
 
 #[derive(Debug)]
-struct NluReload {}
+struct NluReload {
+    component_reload: RequestComponentReloadMessage,
+}
 
 impl NluFacade for InProcessComponent<Nlu> {
     fn publish_query(&self, query: NluQueryMessage) -> Fallible<()> {
@@ -427,8 +511,8 @@ impl NluFacade for InProcessComponent<Nlu> {
         self.publish(NluPartialQuery { query })
     }
 
-    fn publish_reload(&self) -> Fallible<()> {
-        self.publish(NluReload {})
+    fn publish_component_reload(&self, component_reload: RequestComponentReloadMessage) -> Fallible<()> {
+        self.publish(NluReload { component_reload })
     }
 
     fn subscribe_slot_parsed(&self, handler: Callback<NluSlotMessage>) -> Fallible<()> {
@@ -453,8 +537,8 @@ impl NluBackendFacade for InProcessComponent<Nlu> {
         subscribe!(self, NluPartialQuery { query }, handler)
     }
 
-    fn subscribe_reload(&self, handler: Callback0) -> Fallible<()> {
-        subscribe!(self, NluReload, handler)
+    fn subscribe_component_reload(&self, handler: Callback<RequestComponentReloadMessage>) -> Fallible<()> {
+        subscribe!(self, NluReload { component_reload }, handler)
     }
 
     fn publish_slot_parsed(&self, slot: NluSlotMessage) -> Fallible<()> {
@@ -597,7 +681,9 @@ struct AsrStopListening {
 }
 
 #[derive(Debug)]
-struct AsrReload {}
+struct AsrReload {
+    component_reload: RequestComponentReloadMessage,
+}
 
 #[derive(Debug)]
 struct AsrTextCaptured {
@@ -618,8 +704,8 @@ impl AsrFacade for InProcessComponent<Asr> {
         self.publish(AsrStopListening { site })
     }
 
-    fn publish_reload(&self) -> Fallible<()> {
-        self.publish(AsrReload {})
+    fn publish_component_reload(&self, component_reload: RequestComponentReloadMessage) -> Fallible<()> {
+        self.publish(AsrReload { component_reload })
     }
 
     fn subscribe_text_captured(&self, handler: Callback<TextCapturedMessage>) -> Fallible<()> {
@@ -640,8 +726,8 @@ impl AsrBackendFacade for InProcessComponent<Asr> {
         subscribe!(self, AsrStopListening { site }, handler)
     }
 
-    fn subscribe_reload(&self, handler: Callback0) -> Fallible<()> {
-        subscribe!(self, AsrReload, handler)
+    fn subscribe_component_reload(&self, handler: Callback<RequestComponentReloadMessage>) -> Fallible<()> {
+        subscribe!(self, AsrReload { component_reload }, handler)
     }
 
     fn publish_text_captured(&self, text_captured: TextCapturedMessage) -> Fallible<()> {
@@ -727,6 +813,16 @@ struct AudioServerReplayResponse {
     frame: AudioFrameMessage,
 }
 
+#[derive(Debug)]
+struct AudioServerStreamBytes {
+    bytes: StreamBytesMessage,
+}
+
+#[derive(Debug)]
+struct AudioServerStreamFinished {
+    status: StreamFinishedMessage,
+}
+
 impl AudioServerFacade for InProcessComponent<AudioServer> {
     fn publish_play_bytes(&self, bytes: PlayBytesMessage) -> Fallible<()> {
         self.publish(AudioServerPlayBytes { bytes })
@@ -750,6 +846,20 @@ impl AudioServerFacade for InProcessComponent<AudioServer> {
 
     fn subscribe_replay_response(&self, site_id: String, handler: Callback<AudioFrameMessage>) -> Fallible<()> {
         subscribe_filter!(self, AudioServerReplayResponse { frame }, handler, site_id)
+    }
+
+    fn publish_stream_bytes(&self, stream_bytes_message: StreamBytesMessage) -> Fallible<()> {
+        self.publish(AudioServerStreamBytes {
+            bytes: stream_bytes_message,
+        })
+    }
+
+    fn subscribe_stream_finished(&self, site_id: String, handler: Callback<StreamFinishedMessage>) -> Fallible<()> {
+        subscribe_filter!(self, AudioServerStreamFinished { status }, handler, site_id)
+    }
+
+    fn subscribe_all_stream_finished(&self, handler: Callback<StreamFinishedMessage>) -> Fallible<()> {
+        subscribe!(self, AudioServerStreamFinished { status }, handler)
     }
 }
 
@@ -775,7 +885,19 @@ impl AudioServerBackendFacade for InProcessComponent<AudioServer> {
     }
 
     fn publish_replay_response(&self, frame: AudioFrameMessage) -> Fallible<()> {
-        self.publish(AudioServerReplayResponse { frame })
+        self.publish_quiet(AudioServerReplayResponse { frame })
+    }
+
+    fn subscribe_stream_bytes(&self, site_id: String, handler: Callback<StreamBytesMessage>) -> Fallible<()> {
+        subscribe_filter!(self, AudioServerStreamBytes { bytes }, handler, site_id)
+    }
+
+    fn subscribe_all_stream_bytes(&self, handler: Callback<StreamBytesMessage>) -> Fallible<()> {
+        subscribe!(self, AudioServerStreamBytes { bytes }, handler)
+    }
+
+    fn publish_stream_finished(&self, status: StreamFinishedMessage) -> Fallible<()> {
+        self.publish(AudioServerStreamFinished { status })
     }
 }
 
@@ -926,6 +1048,21 @@ struct InjectionStatus {
 #[derive(Debug)]
 struct InjectionStatusRequest {}
 
+#[derive(Debug)]
+struct InjectionComplete {
+    message: InjectionCompleteMessage,
+}
+
+#[derive(Debug)]
+struct InjectionResetPerform {
+    request: InjectionResetRequestMessage,
+}
+
+#[derive(Debug)]
+struct InjectionResetComplete {
+    message: InjectionResetCompleteMessage,
+}
+
 impl InjectionFacade for InProcessComponent<Injection> {
     fn publish_injection_request(&self, request: InjectionRequestMessage) -> Fallible<()> {
         self.publish(InjectionPerform { request })
@@ -935,8 +1072,20 @@ impl InjectionFacade for InProcessComponent<Injection> {
         self.publish(InjectionStatusRequest {})
     }
 
+    fn publish_injection_reset_request(&self, request: InjectionResetRequestMessage) -> Fallible<()> {
+        self.publish(InjectionResetPerform { request })
+    }
+
     fn subscribe_injection_status(&self, handler: Callback<InjectionStatusMessage>) -> Fallible<()> {
         subscribe!(self, InjectionStatus { status }, handler)
+    }
+
+    fn subscribe_injection_complete(&self, handler: Callback<InjectionCompleteMessage>) -> Fallible<()> {
+        subscribe!(self, InjectionComplete { message }, handler)
+    }
+
+    fn subscribe_injection_reset_complete(&self, handler: Callback<InjectionResetCompleteMessage>) -> Fallible<()> {
+        subscribe!(self, InjectionResetComplete { message }, handler)
     }
 }
 
@@ -949,16 +1098,28 @@ impl InjectionBackendFacade for InProcessComponent<Injection> {
         subscribe!(self, InjectionStatusRequest, handler)
     }
 
+    fn subscribe_injection_reset_request(&self, handler: Callback<InjectionResetRequestMessage>) -> Fallible<()> {
+        subscribe!(self, InjectionResetPerform { request }, handler)
+    }
+
     fn publish_injection_status(&self, status: InjectionStatusMessage) -> Fallible<()> {
         self.publish(InjectionStatus { status })
+    }
+
+    fn publish_injection_complete(&self, message: InjectionCompleteMessage) -> Fallible<()> {
+        self.publish(InjectionComplete { message })
+    }
+
+    fn publish_injection_reset_complete(&self, message: InjectionResetCompleteMessage) -> Fallible<()> {
+        self.publish(InjectionResetComplete { message })
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     use std::rc::Rc;
+
+    use super::*;
 
     fn create_handlers() -> (Rc<InProcessHermesProtocolHandler>, Rc<InProcessHermesProtocolHandler>) {
         let handler = Rc::new(InProcessHermesProtocolHandler::new());

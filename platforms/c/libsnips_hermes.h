@@ -419,6 +419,10 @@ typedef struct {
 } CErrorMessage;
 
 typedef struct {
+  const char *request_id;
+} CInjectionCompleteMessage;
+
+typedef struct {
   const void *facade;
   void *user_data;
 } CInjectionFacade;
@@ -704,6 +708,8 @@ SNIPS_RESULT hermes_drop_dialogue_facade(const CDialogueFacade *cstruct);
 
 SNIPS_RESULT hermes_drop_error_message(const CErrorMessage *cstruct);
 
+SNIPS_RESULT hermes_drop_injection_complete_message(const CInjectionCompleteMessage *cstruct);
+
 SNIPS_RESULT hermes_drop_injection_facade(const CInjectionFacade *cstruct);
 
 SNIPS_RESULT hermes_drop_injection_status_message(const CInjectionStatusMessage *cstruct);
@@ -736,6 +742,9 @@ SNIPS_RESULT hermes_injection_publish_injection_request(const CInjectionFacade *
                                                         const CInjectionRequestMessage *message);
 
 SNIPS_RESULT hermes_injection_publish_injection_status_request(const CInjectionFacade *facade);
+
+SNIPS_RESULT hermes_injection_subscribe_injection_complete(const CInjectionFacade *facade,
+                                                           void (*handler)(const CInjectionCompleteMessage*, void*));
 
 SNIPS_RESULT hermes_injection_subscribe_injection_status(const CInjectionFacade *facade,
                                                          void (*handler)(const CInjectionStatusMessage*, void*));

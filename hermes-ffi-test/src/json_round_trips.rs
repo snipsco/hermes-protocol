@@ -72,6 +72,21 @@ round_trip_json!(
 );
 
 round_trip_json!(
+    hermes_ffi_test_round_trip_injection_complete_json,
+    hermes::InjectionCompleteMessage
+);
+
+round_trip_json!(
+    hermes_ffi_test_round_trip_injection_reset_request_json,
+    hermes::InjectionResetRequestMessage
+);
+
+round_trip_json!(
+    hermes_ffi_test_round_trip_injection_reset_complete_json,
+    hermes::InjectionResetCompleteMessage
+);
+
+round_trip_json!(
     hermes_ffi_test_round_trip_register_sound_json,
     hermes::RegisterSoundMessage
 );
