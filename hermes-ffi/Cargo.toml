@@ -18,9 +18,9 @@ hermes = { path = "../hermes" }
 lazy_static = { version="1.0" }
 libc = "0.2"
 serde_json = { version = "1.0", optional = true }
-snips-nlu-ontology-ffi-macros = { git = "https://github.com/snipsco/snips-nlu-ontology", tag = "0.64.6" }
+snips-nlu-ontology-ffi-macros = { git = "https://github.com/snipsco/snips-nlu-ontology", tag = "0.64.7" }
 env_logger = "0.6"
 
 [dev-dependencies]
 spectral = "0.6"
-snips-nlu-ontology = { git = "https://github.com/snipsco/snips-nlu-ontology", tag = "0.64.6" }
+snips-nlu-ontology = { git = "https://github.com/snipsco/snips-nlu-ontology", tag = "0.64.7" }
