@@ -64,32 +64,53 @@ impl HermesTopic {
     fn parse_audio_server<'a, It: Iterator<Item = &'a str>>(mut comps: It) -> Option<HermesTopic> {
         use self::AudioServerCommand::*;
         use self::HermesTopic::AudioServer;
-        match (comps.next(), comps.next(), comps.next()) {
-            (Some("toggleOn"), None, None) => Some(AudioServer(None, ToggleOn)),
-            (Some("toggleOff"), None, None) => Some(AudioServer(None, ToggleOff)),
-            (Some(site_id), Some("audioFrame"), None) => Some(AudioServer(Some(site_id.into()), AudioFrame)),
-            (Some(site_id), Some("replayRequest"), None) => Some(AudioServer(Some(site_id.into()), ReplayRequest)),
-            (Some(site_id), Some("replayResponse"), None) => Some(AudioServer(Some(site_id.into()), ReplayResponse)),
-            (Some(site_id), Some("playBytes"), Some(file)) => {
+        match (comps.next(), comps.next(), comps.next(), comps.next(), comps.next()) {
+            (Some("toggleOn"), None, None, None, None) => Some(AudioServer(None, ToggleOn)),
+            (Some("toggleOff"), None, None, None, None) => Some(AudioServer(None, ToggleOff)),
+            (Some(site_id), Some("audioFrame"), None, None, None) => {
+                Some(AudioServer(Some(site_id.into()), AudioFrame))
+            }
+            (Some(site_id), Some("replayRequest"), None, None, None) => {
+                Some(AudioServer(Some(site_id.into()), ReplayRequest))
+            }
+            (Some(site_id), Some("replayResponse"), None, None, None) => {
+                Some(AudioServer(Some(site_id.into()), ReplayResponse))
+            }
+            (Some(site_id), Some("playBytes"), Some(file), None, None) => {
                 Some(AudioServer(Some(site_id.into()), PlayBytes(file.into())))
             }
-            (Some(site_id), Some("playFinished"), None) => Some(AudioServer(Some(site_id.into()), PlayFinished)),
-            (Some(site_id), Some("versionRequest"), None) => Some(HermesTopic::Component(
+            (Some(site_id), Some("playFinished"), None, None, None) => {
+                Some(AudioServer(Some(site_id.into()), PlayFinished))
+            }
+            (Some(site_id), Some("playBytesStreaming"), Some(stream_id), Some(chunk_number), Some(is_last_chunk)) => {
+                Some(AudioServer(
+                    Some(site_id.into()),
+                    StreamBytes {
+                        stream_id: stream_id.into(),
+                        chunk_number: chunk_number.into(),
+                        is_last_chunk: is_last_chunk.into(),
+                    },
+                ))
+            }
+            (Some(site_id), Some("streamFinished"), None, None, None) => {
+                Some(AudioServer(Some(site_id.into()), StreamFinished))
+            }
+            (Some(site_id), Some("versionRequest"), None, None, None) => Some(HermesTopic::Component(
                 Some(site_id.to_string()),
                 Component::AudioServer,
                 ComponentCommand::VersionRequest,
             )),
-            (Some(site_id), Some("version"), None) => Some(HermesTopic::Component(
+            (Some(site_id), Some("version"), None, None, None) => Some(HermesTopic::Component(
                 Some(site_id.to_string()),
                 Component::AudioServer,
                 ComponentCommand::Version,
             )),
-            (Some(site_id), Some("error"), None) => Some(HermesTopic::Component(
+            (Some(site_id), Some("error"), None, None, None) => Some(HermesTopic::Component(
                 Some(site_id.to_string()),
                 Component::AudioServer,
                 ComponentCommand::Error,
             )),
-            (Some(site_id), Some("loaded"), None) => Some(HermesTopic::Component(
+            (Some(site_id), Some("loaded"), None, None, None) => Some(HermesTopic::Component(
                 Some(site_id.to_string()),
                 Component::AudioServer,
                 ComponentCommand::Loaded,
