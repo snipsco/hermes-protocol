@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 from builtins import object
+from enum import IntEnum
 from six.moves import range
 from typing import List, Optional
 
+from hermes_python.ontology import HermesComponent
 from hermes_python.ffi.ontology.dialogue import CStartSessionMessageAction, CStartSessionMessageNotification, \
-    CSessionInitAction, CSessionInitNotification, CEndSessionMessage, CContinueSessionMessage
+    CSessionInitAction, CSessionInitNotification, CEndSessionMessage, CContinueSessionMessage, \
+    SNIPS_SESSION_TERMINATION_TYPE, CSessionTermination
 
 
 class SessionInit(object):
@@ -140,7 +143,8 @@ class SessionStartedMessage(object):
         session_id = c_repr.session_id.decode('utf-8')
         custom_data = c_repr.custom_data.decode('utf-8') if c_repr.custom_data else None
         site_id = c_repr.site_id.decode('utf-8')
-        reactivated_from_session_id = c_repr.reactivated_from_session_id.decode('utf-8') if c_repr.reactivated_from_session_id else None
+        reactivated_from_session_id = c_repr.reactivated_from_session_id.decode(
+            'utf-8') if c_repr.reactivated_from_session_id else None
         return cls(session_id, custom_data, site_id, reactivated_from_session_id)
 
     def __eq__(self, other):
@@ -187,7 +191,7 @@ class SessionEndedMessage(object):
         self.termination = termination
 
     def __eq__(self, other):
-            return self.__dict__ == other.__dict__
+        return self.__dict__ == other.__dict__
 
     @classmethod
     def from_c_repr(cls, c_repr):
@@ -223,10 +227,62 @@ class SessionQueuedMessage(object):
         return self.__dict__ == other.__dict__
 
 
+class SessionTerminationType(object):
+    def __init__(self):
+        self.component = None
+
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
+
+
+class SessionTerminationTypeNominal(SessionTerminationType):
+    def into_c_repr(self):
+        # type:() -> SNIPS_SESSION_TERMINATION_TYPE
+        return SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_NOMINAL
+
+
+class SessionTerminationTypeSiteUnavailable(SessionTerminationType):
+    def into_c_repr(self):
+        # type:() -> SNIPS_SESSION_TERMINATION_TYPE
+        return SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_SITE_UNAVAILABLE
+
+
+class SessionTerminationTypeAbortedByUser(SessionTerminationType):
+    def into_c_repr(self):
+        # type:() -> SNIPS_SESSION_TERMINATION_TYPE
+        return SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_ABORTED_BY_USER
+
+class SessionTerminationTypeIntentNotRecognized(SessionTerminationType):
+    def into_c_repr(self):
+        # type:() -> SNIPS_SESSION_TERMINATION_TYPE
+        return SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_INTENT_NOT_RECOGNIZED
+
+class SessionTerminationTypeTimeOut(SessionTerminationType):
+    def __init__(self, component):
+        # type: (HermesComponent) -> None
+        self.component = component
+        SessionTerminationType.__init__(self)
+
+    def into_c_repr(self):
+        # type:() -> SNIPS_SESSION_TERMINATION_TYPE
+        return SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_TIMEOUT
+
+
+class SessionTerminationTypeError(SessionTerminationType):
+    def __init__(self, error):
+        # type: (str) -> None
+        self.error = error
+        SessionTerminationType.__init__(self)
+
+    def into_c_repr(self):
+        # type:() -> SNIPS_SESSION_TERMINATION_TYPE
+        return SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_ERROR
+
+
 class SessionTermination(object):
     def __init__(self, termination_type, data):
+        # type: (SessionTerminationType, str) -> None
         """
-
         :param termination_type:
         :param data: the reason why the session was ended
         """
@@ -235,8 +291,25 @@ class SessionTermination(object):
 
     @classmethod
     def from_c_repr(cls, c_repr):
-        termination_type = c_repr.termination_type
+        # type: (CSessionTermination) -> SessionTermination
         data = c_repr.data.decode('utf-8') if c_repr.data else None
+
+        if SNIPS_SESSION_TERMINATION_TYPE(c_repr.termination_type) is SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_NOMINAL:
+            termination_type = SessionTerminationTypeNominal() # type: SessionTerminationType
+        elif SNIPS_SESSION_TERMINATION_TYPE(c_repr.termination_type) is SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_SITE_UNAVAILABLE:
+            termination_type = SessionTerminationTypeSiteUnavailable()
+        elif SNIPS_SESSION_TERMINATION_TYPE(c_repr.termination_type) is SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_ABORTED_BY_USER:
+            termination_type = SessionTerminationTypeAbortedByUser()
+        elif SNIPS_SESSION_TERMINATION_TYPE(c_repr.termination_type) is SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_INTENT_NOT_RECOGNIZED:
+            termination_type = SessionTerminationTypeIntentNotRecognized()
+        elif SNIPS_SESSION_TERMINATION_TYPE(c_repr.termination_type) is SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_TIMEOUT:
+            component = HermesComponent.from_c_repr(c_repr.component)
+            termination_type = SessionTerminationTypeTimeOut(component)
+        elif SNIPS_SESSION_TERMINATION_TYPE(c_repr.termination_type) is SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_ERROR:
+            termination_type = SessionTerminationTypeError(data)
+        else:
+            raise Exception("Bad value type. Got : {}".format(c_repr.termination_type))
+
         return cls(termination_type, data)
 
     def __eq__(self, other):
@@ -288,7 +361,8 @@ class ContinueSessionMessage(object):
         return cls(session_id, text, intent_filter, custom_data, send_intent_not_recognized, slot)
 
     def into_c_repr(self):
-        return CContinueSessionMessage.build(self.session_id, self.text, self.intent_filter, self.custom_data, self.slot, self.send_intent_not_recognized)
+        return CContinueSessionMessage.build(self.session_id, self.text, self.intent_filter, self.custom_data,
+                                             self.slot, self.send_intent_not_recognized)
 
 
 class IntentNotRecognizedMessage(object):

@@ -6,14 +6,17 @@ import ai.snips.hermes.DialogueConfigureIntent
 import ai.snips.hermes.DialogueConfigureMessage
 import ai.snips.hermes.EndSessionMessage
 import ai.snips.hermes.InjectionCompleteMessage
+import ai.snips.hermes.HermesComponent
 import ai.snips.hermes.InjectionKind.Add
 import ai.snips.hermes.InjectionOperation
 import ai.snips.hermes.InjectionRequestMessage
 import ai.snips.hermes.IntentClassifierResult
 import ai.snips.hermes.IntentMessage
 import ai.snips.hermes.IntentNotRecognizedMessage
+import ai.snips.hermes.SessionEndedMessage
 import ai.snips.hermes.SessionInit
 import ai.snips.hermes.SessionQueuedMessage
+import ai.snips.hermes.SessionTermination
 import ai.snips.hermes.Slot
 import ai.snips.hermes.StartSessionMessage
 import ai.snips.hermes.TextCapturedMessage
@@ -148,6 +151,36 @@ class FfiTest {
 
         assertThat(HermesTest().roundTripInjectionComplete(input)).isEqualTo(input)
         assertThat(HermesTest().roundTripInjectionCompleteJson(input)).isEqualTo(input)
+    }
+
+    @Test
+    fun roundTripSessionEnded() {
+        val input_1 = SessionEndedMessage(
+                "some session id",
+                "some custom data",
+                SessionTermination.AbortedByUser,
+                "some site id"
+        )
+
+        assertThat(HermesTest().roundTripSessionEnded(input_1)).isEqualTo(input_1)
+
+        val input_2 = SessionEndedMessage(
+                "some session id",
+                "some custom data",
+                SessionTermination.Error(error = "some error"),
+                "some site id"
+        )
+
+        assertThat(HermesTest().roundTripSessionEnded(input_2)).isEqualTo(input_2)
+
+        val input_3 = SessionEndedMessage(
+                "some session id",
+                "some custom data",
+                SessionTermination.Timeout(component = HermesComponent.ClientApp),
+                "some site id"
+        )
+
+        assertThat(HermesTest().roundTripSessionEnded(input_3)).isEqualTo(input_3)
     }
 
     @Test

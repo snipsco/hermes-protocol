@@ -7,6 +7,7 @@ import ai.snips.hermes.ContinueSessionMessage
 import ai.snips.hermes.DialogueConfigureIntent
 import ai.snips.hermes.DialogueConfigureMessage
 import ai.snips.hermes.EndSessionMessage
+import ai.snips.hermes.HermesComponent
 import ai.snips.hermes.InjectionKind
 import ai.snips.hermes.InjectionKind.Add
 import ai.snips.hermes.InjectionOperation
@@ -43,6 +44,32 @@ import com.sun.jna.Memory
 import com.sun.jna.Pointer
 import com.sun.jna.Structure
 import kotlin.Byte.Companion
+
+
+class SNIPS_HERMES_COMPONENT {
+    companion object {
+        const val NONE = -1
+        const val AUDIO_SERVER = 1
+        const val HOTWORD = 2
+        const val ASR = 3
+        const val NLU = 4
+        const val DIALOGUE = 5
+        const val TTS = 6
+        const val INJECTION = 7
+        const val CLIENT_APP = 8
+
+        fun fromHermesComponent(component: HermesComponent) : Int = when (component) {
+            HermesComponent.AudioServer -> AUDIO_SERVER
+            HermesComponent.Hotword -> HOTWORD
+            HermesComponent.Asr -> ASR
+            HermesComponent.Nlu -> NLU
+            HermesComponent.Dialogue -> DIALOGUE
+            HermesComponent.Tts -> TTS
+            HermesComponent.Injection -> INJECTION
+            HermesComponent.ClientApp -> CLIENT_APP
+        }
+    }
+}
 
 class CStringArray(p: Pointer?) : Structure(p), Structure.ByReference {
     companion object {
@@ -480,27 +507,74 @@ class CSessionTermination : Structure(), Structure.ByValue {
         const val INTENT_NOT_RECOGNIZED = 4
         const val TIMEOUT = 5
         const val ERROR = 6
+
+        @JvmStatic
+        fun fromSessionTermination(input: SessionTermination) = when(input) {
+                is Timeout -> CSessionTermination().apply {
+                    termination_type = TIMEOUT
+                    data = null
+                    component = SNIPS_HERMES_COMPONENT.fromHermesComponent(input.component)
+                }
+                is Error -> CSessionTermination().apply {
+                    termination_type = ERROR
+                    data = input.error.toPointer()
+                    component = null
+                }
+                else -> CSessionTermination().apply {
+                    termination_type = when(input) {
+                        is Nominal -> NOMINAL
+                        is SiteUnAvailable -> SITE_UNAVAILABLE
+                        is AbortedByUser -> ABORTED_BY_USER
+                        is IntenNotRecognized -> INTENT_NOT_RECOGNIZED
+                        else -> throw IllegalArgumentException("got unexpected termination type $input")
+                    }
+                    data = null
+                    component = null
+                }
+        }
     }
 
     @JvmField
     var termination_type: Int? = null
     @JvmField
     var data: Pointer? = null
+    @JvmField
+    var component: Int? = null
 
-    override fun getFieldOrder() = listOf("termination_type", "data")
+    override fun getFieldOrder() = listOf("termination_type", "data", "component")
 
     fun toSessionTermination(): SessionTermination = when (termination_type!!) {
         NOMINAL -> Nominal
         SITE_UNAVAILABLE -> SiteUnAvailable
         ABORTED_BY_USER -> AbortedByUser
         INTENT_NOT_RECOGNIZED -> IntenNotRecognized
-        TIMEOUT -> Timeout
+        TIMEOUT -> Timeout(component = when (component!!) {
+            SNIPS_HERMES_COMPONENT.AUDIO_SERVER -> HermesComponent.AudioServer
+            SNIPS_HERMES_COMPONENT.HOTWORD -> HermesComponent.Hotword
+            SNIPS_HERMES_COMPONENT.ASR -> HermesComponent.Asr
+            SNIPS_HERMES_COMPONENT.NLU -> HermesComponent.Nlu
+            SNIPS_HERMES_COMPONENT.DIALOGUE -> HermesComponent.Dialogue
+            SNIPS_HERMES_COMPONENT.TTS -> HermesComponent.Tts
+            SNIPS_HERMES_COMPONENT.INJECTION -> HermesComponent.Injection
+            SNIPS_HERMES_COMPONENT.CLIENT_APP -> HermesComponent.ClientApp
+            else -> throw IllegalArgumentException("got unexpected component type $component")
+        })
         ERROR -> Error(error = data.readString())
         else -> throw IllegalArgumentException("unknown value type $data")
     }
 }
 
-class CSessionEndedMessage(p: Pointer) : Structure(p), Structure.ByReference {
+class CSessionEndedMessage(p: Pointer?) : Structure(p), Structure.ByReference {
+    companion object {
+        @JvmStatic
+        fun fromSessionEndedMessage(input: SessionEndedMessage) = CSessionEndedMessage(null).apply {
+            session_id = input.sessionId.toPointer()
+            custom_data = input.customData?.toPointer()
+            termination = CSessionTermination.fromSessionTermination(input.termination)
+            site_id = input.siteId.toPointer()
+        }
+    }
+
     @JvmField
     var session_id: Pointer? = null
     @JvmField

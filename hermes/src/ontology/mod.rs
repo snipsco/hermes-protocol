@@ -65,6 +65,19 @@ pub struct ErrorMessage {
 
 impl<'de> HermesMessage<'de> for ErrorMessage {}
 
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum HermesComponent {
+    AudioServer,
+    Hotword,
+    Asr,
+    Nlu,
+    Dialogue,
+    Tts,
+    Injection,
+    ClientApp,
+}
+
 fn as_base64<S>(bytes: &[u8], serializer: S) -> Result<S::Ok, S::Error>
 where
     S: serde::Serializer,

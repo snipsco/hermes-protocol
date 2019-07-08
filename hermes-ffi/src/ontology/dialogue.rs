@@ -553,6 +553,52 @@ impl Drop for CEndSessionMessage {
 
 #[repr(C)]
 #[derive(Debug)]
+pub enum SNIPS_HERMES_COMPONENT {
+    SNIPS_HERMES_COMPONENT_NONE = -1,
+    SNIPS_HERMES_COMPONENT_AUDIO_SERVER = 1,
+    SNIPS_HERMES_COMPONENT_HOTWORD = 2,
+    SNIPS_HERMES_COMPONENT_ASR = 3,
+    SNIPS_HERMES_COMPONENT_NLU = 4,
+    SNIPS_HERMES_COMPONENT_DIALOGUE = 5,
+    SNIPS_HERMES_COMPONENT_TTS = 6,
+    SNIPS_HERMES_COMPONENT_INJECTION = 7,
+    SNIPS_HERMES_COMPONENT_CLIENT_APP = 8,
+}
+
+impl From<Option<hermes::HermesComponent>> for SNIPS_HERMES_COMPONENT {
+    fn from(component: Option<hermes::HermesComponent>) -> Self {
+        match component {
+            None => SNIPS_HERMES_COMPONENT::SNIPS_HERMES_COMPONENT_NONE,
+            Some(hermes::HermesComponent::AudioServer) => SNIPS_HERMES_COMPONENT::SNIPS_HERMES_COMPONENT_AUDIO_SERVER,
+            Some(hermes::HermesComponent::Hotword) => SNIPS_HERMES_COMPONENT::SNIPS_HERMES_COMPONENT_HOTWORD,
+            Some(hermes::HermesComponent::Asr) => SNIPS_HERMES_COMPONENT::SNIPS_HERMES_COMPONENT_ASR,
+            Some(hermes::HermesComponent::Nlu) => SNIPS_HERMES_COMPONENT::SNIPS_HERMES_COMPONENT_NLU,
+            Some(hermes::HermesComponent::Dialogue) => SNIPS_HERMES_COMPONENT::SNIPS_HERMES_COMPONENT_DIALOGUE,
+            Some(hermes::HermesComponent::Tts) => SNIPS_HERMES_COMPONENT::SNIPS_HERMES_COMPONENT_TTS,
+            Some(hermes::HermesComponent::Injection) => SNIPS_HERMES_COMPONENT::SNIPS_HERMES_COMPONENT_INJECTION,
+            Some(hermes::HermesComponent::ClientApp) => SNIPS_HERMES_COMPONENT::SNIPS_HERMES_COMPONENT_CLIENT_APP,
+        }
+    }
+}
+
+impl AsRust<Option<hermes::HermesComponent>> for SNIPS_HERMES_COMPONENT {
+    fn as_rust(&self) -> Fallible<Option<hermes::HermesComponent>> {
+        Ok(match self {
+            SNIPS_HERMES_COMPONENT::SNIPS_HERMES_COMPONENT_NONE => None,
+            SNIPS_HERMES_COMPONENT::SNIPS_HERMES_COMPONENT_AUDIO_SERVER => Some(hermes::HermesComponent::AudioServer),
+            SNIPS_HERMES_COMPONENT::SNIPS_HERMES_COMPONENT_HOTWORD => Some(hermes::HermesComponent::Hotword),
+            SNIPS_HERMES_COMPONENT::SNIPS_HERMES_COMPONENT_ASR => Some(hermes::HermesComponent::Asr),
+            SNIPS_HERMES_COMPONENT::SNIPS_HERMES_COMPONENT_NLU => Some(hermes::HermesComponent::Nlu),
+            SNIPS_HERMES_COMPONENT::SNIPS_HERMES_COMPONENT_DIALOGUE => Some(hermes::HermesComponent::Dialogue),
+            SNIPS_HERMES_COMPONENT::SNIPS_HERMES_COMPONENT_TTS => Some(hermes::HermesComponent::Tts),
+            SNIPS_HERMES_COMPONENT::SNIPS_HERMES_COMPONENT_INJECTION => Some(hermes::HermesComponent::Injection),
+            SNIPS_HERMES_COMPONENT::SNIPS_HERMES_COMPONENT_CLIENT_APP => Some(hermes::HermesComponent::ClientApp),
+        })
+    }
+}
+
+#[repr(C)]
+#[derive(Debug)]
 pub enum SNIPS_SESSION_TERMINATION_TYPE {
     SNIPS_SESSION_TERMINATION_TYPE_NOMINAL = 1,
     SNIPS_SESSION_TERMINATION_TYPE_SITE_UNAVAILABLE = 2,
@@ -577,7 +623,7 @@ impl SNIPS_SESSION_TERMINATION_TYPE {
             hermes::SessionTerminationType::IntentNotRecognized => {
                 SNIPS_SESSION_TERMINATION_TYPE::SNIPS_SESSION_TERMINATION_TYPE_INTENT_NOT_RECOGNIZED
             }
-            hermes::SessionTerminationType::Timeout => {
+            hermes::SessionTerminationType::Timeout { .. } => {
                 SNIPS_SESSION_TERMINATION_TYPE::SNIPS_SESSION_TERMINATION_TYPE_TIMEOUT
             }
             hermes::SessionTerminationType::Error { .. } => {
@@ -593,16 +639,25 @@ pub struct CSessionTermination {
     termination_type: SNIPS_SESSION_TERMINATION_TYPE,
     /// Nullable,
     data: *const libc::c_char,
+    component: SNIPS_HERMES_COMPONENT,
 }
 
 impl CSessionTermination {
     fn from(termination: hermes::SessionTerminationType) -> Fallible<Self> {
         let termination_type = SNIPS_SESSION_TERMINATION_TYPE::from(&termination);
-        let data: *const libc::c_char = match termination {
-            hermes::SessionTerminationType::Error { error } => convert_to_c_string!(error),
-            _ => null(),
+        let (data, component): (*const libc::c_char, _) = match termination {
+            hermes::SessionTerminationType::Error { error } => (
+                convert_to_c_string!(error),
+                SNIPS_HERMES_COMPONENT::SNIPS_HERMES_COMPONENT_NONE,
+            ),
+            hermes::SessionTerminationType::Timeout { component } => (null(), SNIPS_HERMES_COMPONENT::from(component)),
+            _ => (null(), SNIPS_HERMES_COMPONENT::SNIPS_HERMES_COMPONENT_NONE),
         };
-        Ok(Self { termination_type, data })
+        Ok(Self {
+            termination_type,
+            data,
+            component,
+        })
     }
 }
 
@@ -622,7 +677,9 @@ impl AsRust<hermes::SessionTerminationType> for CSessionTermination {
                 hermes::SessionTerminationType::IntentNotRecognized
             }
             SNIPS_SESSION_TERMINATION_TYPE::SNIPS_SESSION_TERMINATION_TYPE_TIMEOUT => {
-                hermes::SessionTerminationType::Timeout
+                hermes::SessionTerminationType::Timeout {
+                    component: self.component.as_rust()?,
+                }
             }
             SNIPS_SESSION_TERMINATION_TYPE::SNIPS_SESSION_TERMINATION_TYPE_ERROR => {
                 hermes::SessionTerminationType::Error {
@@ -882,6 +939,22 @@ mod tests {
             session_id: "session_id".into(),
             termination: hermes::SessionTerminationType::Error {
                 error: "this is my error".into(),
+            },
+        });
+
+        round_trip_test::<_, CSessionEndedMessage>(hermes::SessionEndedMessage {
+            site_id: "siteid".into(),
+            custom_data: None,
+            session_id: "session_id".into(),
+            termination: hermes::SessionTerminationType::Timeout { component: None },
+        });
+
+        round_trip_test::<_, CSessionEndedMessage>(hermes::SessionEndedMessage {
+            site_id: "siteid".into(),
+            custom_data: None,
+            session_id: "session_id".into(),
+            termination: hermes::SessionTerminationType::Timeout {
+                component: Some(hermes::HermesComponent::Hotword),
             },
         })
     }

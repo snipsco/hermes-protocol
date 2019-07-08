@@ -20,6 +20,18 @@ import org.parceler.Parcel.Serialization.BEAN
 import org.parceler.ParcelConstructor
 import org.parceler.ParcelProperty
 
+@Parcel
+enum class HermesComponent {
+    @JsonProperty("audioServer") AudioServer,
+    @JsonProperty("hotword") Hotword,
+    @JsonProperty("asr") Asr,
+    @JsonProperty("nlu") Nlu,
+    @JsonProperty("dialogue") Dialogue,
+    @JsonProperty("tts") Tts,
+    @JsonProperty("injection") Injection,
+    @JsonProperty("clientApp") ClientApp,
+}
+
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
 @JsonSubTypes(
         Type(value = Action::class, name = "action"),
@@ -124,26 +136,31 @@ data class SessionEndedMessage @ParcelConstructor constructor(
         @ParcelProperty("termination") val termination: SessionTermination,
         @ParcelProperty("siteId") val siteId: String)
 
-sealed class SessionTermination(val type: SessionTermination.Type) {
+
+sealed class SessionTermination(val reason: SessionTermination.Type) {
     enum class Type {
-        NOMINAL,
-        SITE_UNAVAILABLE,
-        ABORTED_BY_USER,
-        INTENT_NOT_RECOGNIZED,
-        TIMEOUT,
-        ERROR,
+        @JsonProperty("nominal") NOMINAL,
+        @JsonProperty("siteUnavailable") SITE_UNAVAILABLE,
+        @JsonProperty("AbortedByUser") ABORTED_BY_USER,
+        @JsonProperty("IntentNotRecognized") INTENT_NOT_RECOGNIZED,
+        @JsonProperty("timeout") TIMEOUT,
+        @JsonProperty("error") ERROR,
     }
 
     object Nominal : SessionTermination(SessionTermination.Type.NOMINAL)
     object SiteUnAvailable : SessionTermination(SessionTermination.Type.SITE_UNAVAILABLE)
     object AbortedByUser : SessionTermination(SessionTermination.Type.ABORTED_BY_USER)
     object IntenNotRecognized : SessionTermination(SessionTermination.Type.INTENT_NOT_RECOGNIZED)
-    object Timeout : SessionTermination(SessionTermination.Type.TIMEOUT)
 
     @Parcel(BEAN)
     data class Error @ParcelConstructor constructor(
             @ParcelProperty("error") val error: String
     ) : SessionTermination(SessionTermination.Type.ERROR)
+
+    @Parcel(BEAN)
+    data class Timeout @ParcelConstructor constructor(
+            @ParcelProperty("component") val component: HermesComponent
+    ) : SessionTermination(SessionTermination.Type.TIMEOUT)
 }
 
 @Parcel(BEAN)

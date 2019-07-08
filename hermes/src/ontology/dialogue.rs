@@ -1,6 +1,7 @@
 use super::asr::{AsrToken, SpeakerId};
 use super::nlu::{NluIntentClassifierResult, NluSlot};
 use super::HermesMessage;
+use crate::HermesComponent;
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -177,7 +178,7 @@ pub enum SessionTerminationType {
     /// The platform didn't understand was the user said
     IntentNotRecognized,
     /// No response was received from one of the components in a timely manner
-    Timeout,
+    Timeout { component: Option<HermesComponent> },
     /// A generic error occurred
     Error { error: String },
 }

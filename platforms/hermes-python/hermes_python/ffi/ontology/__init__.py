@@ -6,6 +6,7 @@ from ctypes import c_char_p, c_int32, c_void_p, c_uint8, POINTER, Structure, poi
 from enum import IntEnum
 
 
+
 class CStringArray(Structure):
     _fields_ = [
         ("data", POINTER(c_char_p)),
@@ -130,3 +131,23 @@ class Grain(IntEnum):
 class Precision(IntEnum):
     APPROXIMATE = 0
     EXACT = 1
+
+
+class SNIPS_HERMES_COMPONENT(IntEnum):
+    SNIPS_HERMES_COMPONENT_NONE = -1
+    SNIPS_HERMES_COMPONENT_AUDIO_SERVER = 1
+    SNIPS_HERMES_COMPONENT_HOTWORD = 2
+    SNIPS_HERMES_COMPONENT_ASR = 3
+    SNIPS_HERMES_COMPONENT_NLU = 4
+    SNIPS_HERMES_COMPONENT_DIALOGUE = 5
+    SNIPS_HERMES_COMPONENT_TTS = 6
+    SNIPS_HERMES_COMPONENT_INJECTION = 7
+    SNIPS_HERMES_COMPONENT_CLIENT_APP = 8
+
+    @classmethod
+    def from_repr(cls, repr):
+        # type: (Option[HermesComponent]) -> SNIPS_HERMES_COMPONENT
+        if repr:
+            return SNIPS_HERMES_COMPONENT(repr.value)
+        else:
+            return SNIPS_HERMES_COMPONENT.SNIPS_HERMES_COMPONENT_NONE
