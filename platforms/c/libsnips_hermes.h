@@ -441,6 +441,10 @@ typedef struct {
 } CInjectionFacade;
 
 typedef struct {
+  const char *request_id;
+} CInjectionResetCompleteMessage;
+
+typedef struct {
   const char *last_injection_date;
 } CInjectionStatusMessage;
 
@@ -492,6 +496,10 @@ typedef struct {
    */
   const char *id;
 } CInjectionRequestMessage;
+
+typedef struct {
+  const char *request_id;
+} CInjectionResetRequestMessage;
 
 /**
  * A struct representing the configuration of the MQTT client
@@ -725,6 +733,8 @@ SNIPS_RESULT hermes_drop_injection_complete_message(const CInjectionCompleteMess
 
 SNIPS_RESULT hermes_drop_injection_facade(const CInjectionFacade *cstruct);
 
+SNIPS_RESULT hermes_drop_injection_reset_complete_message(const CInjectionResetCompleteMessage *cstruct);
+
 SNIPS_RESULT hermes_drop_injection_status_message(const CInjectionStatusMessage *cstruct);
 
 SNIPS_RESULT hermes_drop_intent_message(const CIntentMessage *cstruct);
@@ -754,10 +764,16 @@ SNIPS_RESULT hermes_get_last_error(const char **error);
 SNIPS_RESULT hermes_injection_publish_injection_request(const CInjectionFacade *facade,
                                                         const CInjectionRequestMessage *message);
 
+SNIPS_RESULT hermes_injection_publish_injection_reset_request(const CInjectionFacade *facade,
+                                                              const CInjectionResetRequestMessage *message);
+
 SNIPS_RESULT hermes_injection_publish_injection_status_request(const CInjectionFacade *facade);
 
 SNIPS_RESULT hermes_injection_subscribe_injection_complete(const CInjectionFacade *facade,
                                                            void (*handler)(const CInjectionCompleteMessage*, void*));
+
+SNIPS_RESULT hermes_injection_subscribe_injection_reset_complete(const CInjectionFacade *facade,
+                                                                 void (*handler)(const CInjectionResetCompleteMessage*, void*));
 
 SNIPS_RESULT hermes_injection_subscribe_injection_status(const CInjectionFacade *facade,
                                                          void (*handler)(const CInjectionStatusMessage*, void*));
