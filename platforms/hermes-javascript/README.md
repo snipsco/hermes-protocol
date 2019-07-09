@@ -383,7 +383,7 @@ dialog.off('intent/myIntent', handler)
 Publish an event programatically.
 
 ```js
-const { Dialog } = require('hermes-javascript')
+const { Enums } = require('hermes-javascript/types')
 
 const dialog = hermes.dialog()
 
@@ -391,7 +391,7 @@ dialog.publish('start_session', {
     customData: 'some data',
     siteId: 'site Id',
     init: {
-        type:  Dialog.enums.initType.notification,
+        type: Enums.initType.notification,
         text: 'hello world'
     }
 })
@@ -410,7 +410,7 @@ The dialog manager.
 Start a new dialog session.
 
 ```js
-const { Dialog } = require('hermes-javascript')
+const { Enums } = require('hermes-javascript/types')
 
 // Start a 'notification type' session that will say whatever is in the "text" field and terminate.
 
@@ -419,7 +419,7 @@ dialog.publish('start_session', {
     siteId: /* string */,
     init: {
         // An enumeration, either 'action' or 'notification'
-        type: Dialog.enums.initType.notification,
+        type: Enums.initType.notification,
         text: /* string */
     }
 })
@@ -431,7 +431,7 @@ dialog.publish('start_session', {
     siteId: /* string */,
     init: {
         // An enumeration, either 'action' or 'notification'
-        type: Dialog.enums.initType.action,
+        type: Enums.initType.action,
         text: /* string */,
         intentFilter: /* string[] */,
         canBeEnqueued: /* boolean */,
@@ -663,7 +663,7 @@ Vocabulary injection for the speech recognition.
 Requests custom payload to be injected.
 
 ```js
-const { Injection } = require('hermes-javascript')
+const { Enums } = require('hermes-javascript/types')
 
 injection.publish('injection_request', {
     // Id of the injection request, used to identify the injection when retrieving its status.
@@ -677,7 +677,7 @@ injection.publish('injection_request', {
         [
             // Enumeration: add or addFromVanilla
             // see documentation here: https://docs.snips.ai/guides/advanced-configuration/dynamic-vocabulary#3-inject-entity-values
-            Injection.enums.injectionKind.add,
+            Enums.injectionKind.add,
             // An object, with entities as the key mapped with an array of string entries to inject.
             {
                 films : [
