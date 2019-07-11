@@ -546,7 +546,7 @@ class CSessionTermination : Structure(), Structure.ByValue {
         NOMINAL -> Nominal
         SITE_UNAVAILABLE -> SiteUnAvailable
         ABORTED_BY_USER -> AbortedByUser
-        INTENT_NOT_RECOGNIZED -> IntenNotRecognized // TODO : v2 correct typo
+        INTENT_NOT_RECOGNIZED -> IntenNotRecognized
         TIMEOUT -> Timeout(component = when (component!!) {
             SNIPS_HERMES_COMPONENT.AUDIO_SERVER -> HermesComponent.AudioServer
             SNIPS_HERMES_COMPONENT.HOTWORD -> HermesComponent.Hotword
