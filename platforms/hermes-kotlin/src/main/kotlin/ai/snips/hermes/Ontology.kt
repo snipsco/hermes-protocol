@@ -151,9 +151,7 @@ sealed class SessionTermination(val reason: SessionTermination.Type) {
     object SiteUnAvailable : SessionTermination(SessionTermination.Type.SITE_UNAVAILABLE)
     object AbortedByUser : SessionTermination(SessionTermination.Type.ABORTED_BY_USER)
 
-    @Deprecated("use IntentNotRecognized field instead", ReplaceWith("ai.snips.hermes.SessionTermination.IntentNotRecognized"))
-    object IntenNotRecognized : SessionTermination(SessionTermination.Type.INTENT_NOT_RECOGNIZED)
-    object IntentNotRecognized : SessionTermination(SessionTermination.Type.INTENT_NOT_RECOGNIZED)
+    object IntenNotRecognized : SessionTermination(SessionTermination.Type.INTENT_NOT_RECOGNIZED) // TODO : v2
 
     @Parcel(BEAN)
     data class Error @ParcelConstructor constructor(

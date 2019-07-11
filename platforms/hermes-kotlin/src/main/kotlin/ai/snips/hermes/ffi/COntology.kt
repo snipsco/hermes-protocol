@@ -28,7 +28,6 @@ import ai.snips.hermes.SessionStartedMessage
 import ai.snips.hermes.SessionTermination
 import ai.snips.hermes.SessionTermination.AbortedByUser
 import ai.snips.hermes.SessionTermination.Error
-import ai.snips.hermes.SessionTermination.IntentNotRecognized
 import ai.snips.hermes.SessionTermination.IntenNotRecognized
 import ai.snips.hermes.SessionTermination.Nominal
 import ai.snips.hermes.SessionTermination.SiteUnAvailable
@@ -526,7 +525,6 @@ class CSessionTermination : Structure(), Structure.ByValue {
                         is SiteUnAvailable -> SITE_UNAVAILABLE
                         is AbortedByUser -> ABORTED_BY_USER
                         is IntenNotRecognized -> INTENT_NOT_RECOGNIZED
-                        is IntentNotRecognized -> INTENT_NOT_RECOGNIZED
                         else -> throw IllegalArgumentException("got unexpected termination type $input")
                     }
                     data = null
