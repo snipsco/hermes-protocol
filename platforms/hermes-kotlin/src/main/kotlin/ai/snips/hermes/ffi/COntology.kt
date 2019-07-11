@@ -526,6 +526,7 @@ class CSessionTermination : Structure(), Structure.ByValue {
                         is SiteUnAvailable -> SITE_UNAVAILABLE
                         is AbortedByUser -> ABORTED_BY_USER
                         is IntenNotRecognized -> INTENT_NOT_RECOGNIZED
+                        is IntentNotRecognized -> INTENT_NOT_RECOGNIZED
                         else -> throw IllegalArgumentException("got unexpected termination type $input")
                     }
                     data = null
