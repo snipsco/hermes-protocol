@@ -79,11 +79,6 @@ pub struct NluSlot {
     pub nlu_slot: snips_nlu_ontology::Slot,
 }
 
-pub use snips_nlu_ontology::{
-    AmountOfMoneyValue, DurationValue, InstantTimeValue, NumberValue, OrdinalValue, PercentageValue, Slot, SlotValue,
-    StringValue, TemperatureValue, TimeIntervalValue,
-};
-
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NluIntentClassifierResult {
@@ -109,3 +104,7 @@ pub struct NluIntentMessage {
 }
 
 impl<'de> HermesMessage<'de> for NluIntentMessage {}
+
+pub mod nlu_ontology {
+    pub use snips_nlu_ontology::*;
+}
