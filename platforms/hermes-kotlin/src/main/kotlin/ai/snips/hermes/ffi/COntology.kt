@@ -43,7 +43,6 @@ import ai.snips.nlu.ontology.ffi.toPointer
 import com.sun.jna.Memory
 import com.sun.jna.Pointer
 import com.sun.jna.Structure
-import kotlin.Byte.Companion
 
 
 class SNIPS_HERMES_COMPONENT {
