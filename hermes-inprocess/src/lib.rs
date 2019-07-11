@@ -387,7 +387,7 @@ impl<T: Send + Sync + Debug + Copy + 'static> IdentifiableComponentFacade for In
         subscribe_filter!(self, IdentifiableComponentLoaded<T> { component_loaded }, handler, site_id, |it| &it.site_id)
     }
 
-    fn subscribe_components_loaded(&self, handler: Callback<ComponentLoadedOnSiteMessage>) -> Fallible<()> {
+    fn subscribe_all_component_loaded(&self, handler: Callback<ComponentLoadedOnSiteMessage>) -> Fallible<()> {
         subscribe!(self, IdentifiableComponentLoaded<T> { component_loaded }, handler)
     }
 }
