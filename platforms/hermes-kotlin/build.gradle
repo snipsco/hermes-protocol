@@ -29,7 +29,7 @@ repositories {
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    compile "ai.snips:snips-nlu-ontology:0.64.8"
+    compile "ai.snips:snips-nlu-ontology:0.65.0"
     compile 'net.java.dev.jna:jna:4.5.0'
     compile 'org.parceler:parceler-api:1.1.9'
 }
