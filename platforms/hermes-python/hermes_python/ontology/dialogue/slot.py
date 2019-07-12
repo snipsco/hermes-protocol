@@ -194,9 +194,21 @@ class SlotValue(object):
             string_value = string_at(c_repr_music_album_value).decode('utf-8')
             value = MusicAlbumValue(string_value)
         elif SlotValueType.MUSICTRACK == value_type:  # MUSICTRACK
-            c_repr_music_artist_value = c_repr.value
-            string_value = string_at(c_repr_music_artist_value).decode('utf-8')
+            c_repr_music_track_value = c_repr.value
+            string_value = string_at(c_repr_music_track_value).decode('utf-8')
             value = MusicTrackValue(string_value)
+        elif SlotValueType.CITY == value_type:  # CITY
+            c_repr_city_value = c_repr.value
+            string_value = string_at(c_repr_city_value).decode('utf-8')
+            value = CityValue(string_value)
+        elif SlotValueType.COUNTRY == value_type:  # COUNTRY
+            c_repr_country_value = c_repr.value
+            string_value = string_at(c_repr_country_value).decode('utf-8')
+            value = CountryValue(string_value)
+        elif SlotValueType.REGION == value_type:  # REGION
+            c_repr_regoin_value = c_repr.value
+            string_value = string_at(c_repr_regoin_value).decode('utf-8')
+            value = RegionValue(string_value)
 
         else:
             raise Exception("Bad value type. Got : {}".format(value_type))
@@ -391,6 +403,35 @@ class MusicTrackValue(object):
     def __init__(self, string_value):
         """
         A structured representation of Custom Value slot type.
+
+        :param string_value: a string value
+        """
+        self.value = string_value
+
+class CityValue(object):
+    def __init__(self, string_value):
+        """
+        A structured representation of City Value slot type.
+
+        :param string_value: a string value
+        """
+        self.value = string_value
+
+
+class CountryValue(object):
+    def __init__(self, string_value):
+        """
+        A structured representation of Country Value slot type.
+
+        :param string_value: a string value
+        """
+        self.value = string_value
+
+
+class RegionValue(object):
+    def __init__(self, string_value):
+        """
+        A structured representation of Region Value slot type.
 
         :param string_value: a string value
         """
