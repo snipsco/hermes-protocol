@@ -10,5 +10,8 @@ export enum slotType {
     percentage = 'Percentage',
     musicAlbum = 'MusicAlbum',
     musicArtist = 'MusicArtist',
-    musicTrack = 'MusicTrack'
+    musicTrack = 'MusicTrack',
+    city = 'City',
+    country = 'Country',
+    region = 'Region'
 }

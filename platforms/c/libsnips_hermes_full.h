@@ -155,6 +155,18 @@ typedef enum {
    * Music Track type represented by a char *
    */
   SNIPS_SLOT_VALUE_TYPE_MUSICTRACK = 12,
+  /**
+   * City type represented by a char *
+   */
+  SNIPS_SLOT_VALUE_TYPE_CITY = 13,
+  /**
+   * Country type represented by a char *
+   */
+  SNIPS_SLOT_VALUE_TYPE_COUNTRY = 14,
+  /**
+   * Region type represented by a char *
+   */
+  SNIPS_SLOT_VALUE_TYPE_REGION = 15,
 } SNIPS_SLOT_VALUE_TYPE;
 
 typedef struct {

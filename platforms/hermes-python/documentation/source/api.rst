@@ -81,3 +81,11 @@ Slot Values
 .. autoclass:: MusicTrackValue
     :members:
 
+.. autoclass:: CityValue
+    :members:
+
+.. autoclass:: CountryValue
+    :members:
+
+.. autoclass:: RegionValue
+    :members:

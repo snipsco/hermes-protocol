@@ -208,6 +208,12 @@ class CSlotValue(Structure):
             cls(c_void_p, c_int32(repr.value_type))
         elif SlotValueType.MUSICTRACK == repr.value_type:  # MUSICTRACK
             cls(c_void_p, c_int32(repr.value_type))
+        elif SlotValueType.CITY == repr.value_type:  # CITY
+            cls(c_void_p, c_int32(repr.value_type))
+        elif SlotValueType.COUNTRY == repr.value_type:  # COUNTRY
+            cls(c_void_p, c_int32(repr.value_type))
+        elif SlotValueType.REGION == repr.value_type:  # REGION
+            cls(c_void_p, c_int32(repr.value_type))
 
         else:
             raise Exception("Bad value type. Got : {}".format(repr.value_type))

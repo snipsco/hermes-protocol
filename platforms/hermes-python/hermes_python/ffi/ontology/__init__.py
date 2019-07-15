@@ -115,6 +115,9 @@ class SlotValueType(IntEnum):
     MUSICARTIST = 10
     MUSICALBUM = 11
     MUSICTRACK = 12
+    CITY = 13
+    COUNTRY = 14
+    REGION = 15
 
 
 class Grain(IntEnum):
