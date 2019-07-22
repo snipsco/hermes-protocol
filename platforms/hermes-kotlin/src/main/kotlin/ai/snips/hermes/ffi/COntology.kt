@@ -1,3 +1,6 @@
+// we use a lot of snake case property names in this file to match the C headers, lets tell the compiler not to worry
+@file:Suppress("PropertyName")
+
 package ai.snips.hermes.ffi
 
 import ai.snips.hermes.AsrDecodingDuration
@@ -8,6 +11,14 @@ import ai.snips.hermes.DialogueConfigureIntent
 import ai.snips.hermes.DialogueConfigureMessage
 import ai.snips.hermes.EndSessionMessage
 import ai.snips.hermes.HermesComponent
+import ai.snips.hermes.HermesComponent.Asr
+import ai.snips.hermes.HermesComponent.AudioServer
+import ai.snips.hermes.HermesComponent.ClientApp
+import ai.snips.hermes.HermesComponent.Dialogue
+import ai.snips.hermes.HermesComponent.Hotword
+import ai.snips.hermes.HermesComponent.Injection
+import ai.snips.hermes.HermesComponent.Nlu
+import ai.snips.hermes.HermesComponent.Tts
 import ai.snips.hermes.InjectionKind
 import ai.snips.hermes.InjectionKind.Add
 import ai.snips.hermes.InjectionOperation
@@ -45,19 +56,19 @@ import com.sun.jna.Pointer
 import com.sun.jna.Structure
 
 
-class SNIPS_HERMES_COMPONENT {
+class CHermesComponent {
     companion object {
-        const val NONE = -1
-        const val AUDIO_SERVER = 1
-        const val HOTWORD = 2
-        const val ASR = 3
-        const val NLU = 4
-        const val DIALOGUE = 5
-        const val TTS = 6
-        const val INJECTION = 7
-        const val CLIENT_APP = 8
+        private const val NONE = -1
+        private const val AUDIO_SERVER = 1
+        private const val HOTWORD = 2
+        private const val ASR = 3
+        private const val NLU = 4
+        private const val DIALOGUE = 5
+        private const val TTS = 6
+        private const val INJECTION = 7
+        private const val CLIENT_APP = 8
 
-        fun fromHermesComponent(component: HermesComponent) : Int = when (component) {
+        fun fromHermesComponent(component: HermesComponent?) : Int = when (component) {
             HermesComponent.AudioServer -> AUDIO_SERVER
             HermesComponent.Hotword -> HOTWORD
             HermesComponent.Asr -> ASR
@@ -66,6 +77,20 @@ class SNIPS_HERMES_COMPONENT {
             HermesComponent.Tts -> TTS
             HermesComponent.Injection -> INJECTION
             HermesComponent.ClientApp -> CLIENT_APP
+            null -> NONE
+        }
+
+        fun toHermesComponent(component: Int?) : HermesComponent? = when (component) {
+            null, CHermesComponent.NONE -> null
+            CHermesComponent.AUDIO_SERVER -> AudioServer
+            CHermesComponent.HOTWORD -> Hotword
+            CHermesComponent.ASR -> Asr
+            CHermesComponent.NLU -> Nlu
+            CHermesComponent.DIALOGUE -> Dialogue
+            CHermesComponent.TTS -> Tts
+            CHermesComponent.INJECTION -> Injection
+            CHermesComponent.CLIENT_APP -> ClientApp
+            else -> throw IllegalArgumentException("got unexpected component type $component")
         }
     }
 }
@@ -280,7 +305,7 @@ class CEndSessionMessage(p: Pointer?) : Structure(p), Structure.ByReference {
 class CNluSlot(p: Pointer?) : Structure(p), Structure.ByReference {
     companion object {
         @JvmStatic
-        fun fromSlot(slot: Slot) = CNluSlot(null).apply {
+        fun fromSlot(@Suppress("UNUSED_PARAMETER") slot: Slot) = CNluSlot(null).apply {
             nlu_slot = null
             throw java.lang.RuntimeException("Converter for CSlot not existing yet...")
         }
@@ -512,7 +537,7 @@ class CSessionTermination : Structure(), Structure.ByValue {
                 is Timeout -> CSessionTermination().apply {
                     termination_type = TIMEOUT
                     data = null
-                    component = SNIPS_HERMES_COMPONENT.fromHermesComponent(input.component)
+                    component = CHermesComponent.fromHermesComponent(input.component)
                 }
                 is Error -> CSessionTermination().apply {
                     termination_type = ERROR
@@ -547,17 +572,7 @@ class CSessionTermination : Structure(), Structure.ByValue {
         SITE_UNAVAILABLE -> SiteUnAvailable
         ABORTED_BY_USER -> AbortedByUser
         INTENT_NOT_RECOGNIZED -> IntenNotRecognized
-        TIMEOUT -> Timeout(component = when (component!!) {
-            SNIPS_HERMES_COMPONENT.AUDIO_SERVER -> HermesComponent.AudioServer
-            SNIPS_HERMES_COMPONENT.HOTWORD -> HermesComponent.Hotword
-            SNIPS_HERMES_COMPONENT.ASR -> HermesComponent.Asr
-            SNIPS_HERMES_COMPONENT.NLU -> HermesComponent.Nlu
-            SNIPS_HERMES_COMPONENT.DIALOGUE -> HermesComponent.Dialogue
-            SNIPS_HERMES_COMPONENT.TTS -> HermesComponent.Tts
-            SNIPS_HERMES_COMPONENT.INJECTION -> HermesComponent.Injection
-            SNIPS_HERMES_COMPONENT.CLIENT_APP -> HermesComponent.ClientApp
-            else -> throw IllegalArgumentException("got unexpected component type $component")
-        })
+        TIMEOUT -> Timeout(component = CHermesComponent.toHermesComponent(component))
         ERROR -> Error(error = data.readString())
         else -> throw IllegalArgumentException("unknown value type $data")
     }
