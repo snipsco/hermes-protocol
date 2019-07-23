@@ -1,3 +1,16 @@
+## [0.3.14](https://github.com/snipsco/hermes-protocol/compare/js/0.3.13...0.3.14) (2019-07-18)
+
+* **Chore**: Bump hermes mqtt version to `0.67.0` ([8b4068f](https://github.com/snipsco/hermes-protocol/commit/8b4068f))
+
+## [0.3.13](https://github.com/snipsco/hermes-protocol/compare/js/0.3.12...0.3.13) (2019-07-18)
+
+
+### Features
+
+* **message:** add session ended component field on timeouts ([fb20157](https://github.com/snipsco/hermes-protocol/commit/fb20157))
+
+
+
 ## [0.3.12](https://github.com/snipsco/hermes-protocol/compare/js/0.3.11...0.3.12) (2019-06-17)
 
 
