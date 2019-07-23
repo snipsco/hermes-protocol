@@ -155,41 +155,50 @@ class FfiTest {
 
     @Test
     fun roundTripSessionEnded() {
-        val input_1 = SessionEndedMessage(
+        val input = SessionEndedMessage(
                 "some session id",
                 "some custom data",
                 SessionTermination.AbortedByUser,
                 "some site id"
         )
 
-        assertThat(HermesTest().roundTripSessionEnded(input_1)).isEqualTo(input_1)
+        assertThat(HermesTest().roundTripSessionEnded(input)).isEqualTo(input)
 
-        val input_2 = SessionEndedMessage(
+        val input2 = SessionEndedMessage(
                 "some session id",
                 "some custom data",
                 SessionTermination.Error(error = "some error"),
                 "some site id"
         )
 
-        assertThat(HermesTest().roundTripSessionEnded(input_2)).isEqualTo(input_2)
+        assertThat(HermesTest().roundTripSessionEnded(input2)).isEqualTo(input2)
 
-        val input_3 = SessionEndedMessage(
+        val input3 = SessionEndedMessage(
                 "some session id",
                 "some custom data",
                 SessionTermination.Timeout(component = HermesComponent.ClientApp),
                 "some site id"
         )
 
-        assertThat(HermesTest().roundTripSessionEnded(input_3)).isEqualTo(input_3)
+        assertThat(HermesTest().roundTripSessionEnded(input3)).isEqualTo(input3)
 
-        val input_4 = SessionEndedMessage(
+        val input4 = SessionEndedMessage(
+                "some session id",
+                "some custom data",
+                SessionTermination.Timeout(component = null),
+                "some site id"
+        )
+
+        assertThat(HermesTest().roundTripSessionEnded(input4)).isEqualTo(input4)
+
+        val input5 = SessionEndedMessage(
                 "some session id",
                 "some custom data",
                 SessionTermination.IntenNotRecognized,
                 "some site id"
         )
 
-        assertThat(HermesTest().roundTripSessionEnded(input_4)).isEqualTo(input_4)
+        assertThat(HermesTest().roundTripSessionEnded(input5)).isEqualTo(input5)
     }
 
     @Test

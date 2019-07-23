@@ -138,6 +138,10 @@ data class SessionEndedMessage @ParcelConstructor constructor(
 
 
 sealed class SessionTermination(val reason: SessionTermination.Type) {
+    @Deprecated(replaceWith = ReplaceWith("reason"), message = "use the reason field instead")
+    @JsonIgnore
+    val type = this.reason
+
     enum class Type {
         @JsonProperty("nominal") NOMINAL,
         @JsonProperty("siteUnavailable") SITE_UNAVAILABLE,
@@ -160,7 +164,7 @@ sealed class SessionTermination(val reason: SessionTermination.Type) {
 
     @Parcel(BEAN)
     data class Timeout @ParcelConstructor constructor(
-            @ParcelProperty("component") val component: HermesComponent
+            @ParcelProperty("component") val component: HermesComponent?
     ) : SessionTermination(SessionTermination.Type.TIMEOUT)
 }
 
