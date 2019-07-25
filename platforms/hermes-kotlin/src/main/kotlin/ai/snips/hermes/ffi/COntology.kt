@@ -24,6 +24,8 @@ import ai.snips.hermes.InjectionKind.Add
 import ai.snips.hermes.InjectionOperation
 import ai.snips.hermes.InjectionRequestMessage
 import ai.snips.hermes.InjectionCompleteMessage
+import ai.snips.hermes.InjectionResetCompleteMessage
+import ai.snips.hermes.InjectionResetRequestMessage
 import ai.snips.hermes.IntentClassifierResult
 import ai.snips.hermes.IntentMessage
 import ai.snips.hermes.IntentNotRecognizedMessage
@@ -858,6 +860,54 @@ class CInjectionCompleteMessage(p: Pointer?) : Structure(p), Structure.ByReferen
     override fun getFieldOrder() = listOf("request_id")
 
     fun toInjectionCompleteMessage() = InjectionCompleteMessage (
+            requestId = request_id?.readString()
+    )
+}
+
+class CInjectionResetRequestMessage(p: Pointer?) : Structure(p), Structure.ByReference {
+    companion object {
+        @JvmStatic
+        fun fromInjectionResetRequestMessage(input: InjectionResetRequestMessage) = CInjectionResetRequestMessage(null).apply {
+            request_id = input.requestId?.toPointer()
+        }
+    }
+
+    @JvmField
+    var request_id: Pointer? = null
+
+    // be careful this block must be below the field definition if you don't want the native values read by JNA
+    // overridden by the default ones
+    init {
+        read()
+    }
+
+    override fun getFieldOrder() = listOf("request_id")
+
+    fun toInjectionResetRequestMessage() = InjectionResetRequestMessage (
+            requestId = request_id?.readString()
+    )
+}
+
+class CInjectionResetCompleteMessage(p: Pointer?) : Structure(p), Structure.ByReference {
+    companion object {
+        @JvmStatic
+        fun fromInjectionResetCompleteMessage(input: InjectionResetCompleteMessage) = CInjectionResetCompleteMessage(null).apply {
+            request_id = input.requestId?.toPointer()
+        }
+    }
+
+    @JvmField
+    var request_id: Pointer? = null
+
+    // be careful this block must be below the field definition if you don't want the native values read by JNA
+    // overridden by the default ones
+    init {
+        read()
+    }
+
+    override fun getFieldOrder() = listOf("request_id")
+
+    fun toInjectionResetCompleteMessage() = InjectionResetCompleteMessage (
             requestId = request_id?.readString()
     )
 }
