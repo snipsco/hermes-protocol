@@ -10,6 +10,8 @@ import ai.snips.hermes.HermesComponent
 import ai.snips.hermes.InjectionKind.Add
 import ai.snips.hermes.InjectionOperation
 import ai.snips.hermes.InjectionRequestMessage
+import ai.snips.hermes.InjectionResetCompleteMessage
+import ai.snips.hermes.InjectionResetRequestMessage
 import ai.snips.hermes.IntentClassifierResult
 import ai.snips.hermes.IntentMessage
 import ai.snips.hermes.IntentNotRecognizedMessage
@@ -151,6 +153,26 @@ class FfiTest {
 
         assertThat(HermesTest().roundTripInjectionComplete(input)).isEqualTo(input)
         assertThat(HermesTest().roundTripInjectionCompleteJson(input)).isEqualTo(input)
+    }
+
+    @Test
+    fun roundTripInjectionResetRequest() {
+        val input = InjectionResetRequestMessage(
+                requestId = "foobar"
+        )
+
+        assertThat(HermesTest().roundTripInjectionResetRequest(input)).isEqualTo(input)
+        assertThat(HermesTest().roundTripInjectionResetRequestJson(input)).isEqualTo(input)
+    }
+
+    @Test
+    fun roundTripInjectionResetComplete() {
+        val input = InjectionResetCompleteMessage(
+                requestId = "foobar"
+        )
+
+        assertThat(HermesTest().roundTripInjectionResetComplete(input)).isEqualTo(input)
+        assertThat(HermesTest().roundTripInjectionResetCompleteJson(input)).isEqualTo(input)
     }
 
     @Test
