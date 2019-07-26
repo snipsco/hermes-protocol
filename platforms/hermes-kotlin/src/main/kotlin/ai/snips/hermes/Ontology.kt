@@ -212,6 +212,17 @@ data class InjectionCompleteMessage @ParcelConstructor constructor(
 )
 
 @Parcel(BEAN)
+data class InjectionResetRequestMessage @ParcelConstructor constructor(
+        @ParcelProperty("requestId") val requestId: String?
+)
+
+@Parcel(BEAN)
+data class InjectionResetCompleteMessage @ParcelConstructor constructor(
+        @ParcelProperty("requestId") val requestId: String?
+)
+
+
+@Parcel(BEAN)
 data class AsrDecodingDuration @ParcelConstructor constructor(
         @ParcelProperty("start") val start: Float,
         @ParcelProperty("end") val end: Float

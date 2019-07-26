@@ -98,7 +98,7 @@ impl<'de> HermesMessage<'de> for InjectionResetRequestMessage {}
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct InjectionResetCompleteMessage {
-    /// The id of the `InjectionResetRequestMessage`
+    /// The id of the `InjectionResetCompleteMessage`
     pub request_id: Option<String>,
 }
 
