@@ -1,7 +1,6 @@
 use std::ptr::null;
 use std::slice;
 
-use failure::bail;
 use failure::Fallible;
 use failure::ResultExt;
 use ffi_utils::*;
@@ -337,6 +336,8 @@ pub struct CNluIntentMessage {
     pub slots: *const CNluSlotArray,
     /// Nullable
     pub session_id: *const libc::c_char,
+    /// Nullable
+    pub alternatives: *const CNluIntentAlternativeArray,
 }
 
 unsafe impl Sync for CNluIntentMessage {}
@@ -359,13 +360,33 @@ impl CReprOf<hermes::NluIntentMessage> for CNluIntentMessage {
                 null()
             },
             session_id: convert_to_nullable_c_string!(input.session_id),
+            alternatives: if let Some(alternatives) = input.alternatives {
+                CNluIntentAlternativeArray::c_repr_of(alternatives)?.into_raw_pointer()
+            } else {
+                null()
+            },
         })
     }
 }
 
 impl AsRust<hermes::NluIntentMessage> for CNluIntentMessage {
     fn as_rust(&self) -> Fallible<hermes::NluIntentMessage> {
-        bail!("Missing converter for CSlotList, if you need this feature, please tell us !")
+        Ok(hermes::NluIntentMessage {
+            session_id: create_optional_rust_string_from!(self.session_id),
+            id: create_optional_rust_string_from!(self.id),
+            input: create_rust_string_from!(self.input),
+            intent: unsafe { CNluIntentClassifierResult::raw_borrow(self.intent) }?.as_rust()?,
+            slots: if !self.slots.is_null() {
+                unsafe { CNluSlotArray::raw_borrow(self.slots) }?.as_rust()?
+            } else {
+                vec![]
+            },
+            alternatives: if !self.alternatives.is_null() {
+                Some(unsafe { CNluIntentAlternativeArray::raw_borrow(self.alternatives) }?.as_rust()?)
+            } else {
+                None
+            },
+        })
     }
 }
 
@@ -374,8 +395,109 @@ impl Drop for CNluIntentMessage {
         take_back_nullable_c_string!(self.id);
         take_back_c_string!(self.input);
         let _ = unsafe { CNluIntentClassifierResult::drop_raw_pointer(self.intent) };
-        let _ = unsafe { CNluSlotArray::drop_raw_pointer(self.slots) };
+        if !self.slots.is_null() {
+            let _ = unsafe { CNluSlotArray::drop_raw_pointer(self.slots) };
+        }
         take_back_nullable_c_string!(self.session_id);
+        if !self.alternatives.is_null() {
+            let _ = unsafe { CNluIntentAlternativeArray::drop_raw_pointer(self.alternatives) };
+        };
+    }
+}
+
+pub struct CNluIntentAlternative {
+    /// Nullable, name of the intent detected (null = no intent)
+    pub intent_name: *const libc::c_char,
+    /// Between 0 and 1
+    pub confidence_score: libc::c_float,
+    /// Nullable
+    pub slots: *const CNluSlotArray,
+}
+
+impl CReprOf<hermes::NluIntentAlternative> for CNluIntentAlternative {
+    fn c_repr_of(input: hermes::NluIntentAlternative) -> Fallible<Self> {
+        Ok(Self {
+            intent_name: convert_to_nullable_c_string!(input.intent_name),
+            confidence_score: input.confidence_score,
+            slots: if !input.slots.is_empty() {
+                CNluSlotArray::c_repr_of(input.slots)?.into_raw_pointer()
+            } else {
+                null()
+            },
+        })
+    }
+}
+
+impl AsRust<hermes::NluIntentAlternative> for CNluIntentAlternative {
+    fn as_rust(&self) -> Fallible<hermes::NluIntentAlternative> {
+        Ok(hermes::NluIntentAlternative {
+            intent_name: create_optional_rust_string_from!(self.intent_name),
+            confidence_score: self.confidence_score,
+            slots: if !self.slots.is_null() {
+                unsafe { CNluSlotArray::raw_borrow(self.slots) }?.as_rust()?
+            } else {
+                vec![]
+            },
+        })
+    }
+}
+
+impl Drop for CNluIntentAlternative {
+    fn drop(&mut self) {
+        take_back_nullable_c_string!(self.intent_name);
+        if !self.slots.is_null() {
+            let _ = unsafe { CNluSlotArray::drop_raw_pointer(self.slots) };
+        }
+    }
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct CNluIntentAlternativeArray {
+    pub entries: *const *const CNluIntentAlternative,
+    pub count: libc::c_int,
+}
+
+impl CReprOf<Vec<hermes::NluIntentAlternative>> for CNluIntentAlternativeArray {
+    fn c_repr_of(input: Vec<hermes::NluIntentAlternative>) -> Fallible<Self> {
+        let array = Self {
+            count: input.len() as _,
+            entries: Box::into_raw(
+                input
+                    .into_iter()
+                    .map(|e| CNluIntentAlternative::c_repr_of(e).map(RawPointerConverter::into_raw_pointer))
+                    .collect::<Fallible<Vec<_>>>()
+                    .context("Could not convert map to C Repr")?
+                    .into_boxed_slice(),
+            ) as *const *const _,
+        };
+        Ok(array)
+    }
+}
+
+impl AsRust<Vec<hermes::NluIntentAlternative>> for CNluIntentAlternativeArray {
+    fn as_rust(&self) -> Fallible<Vec<hermes::NluIntentAlternative>> {
+        let mut result = Vec::with_capacity(self.count as usize);
+
+        for e in unsafe { slice::from_raw_parts(self.entries, self.count as usize) } {
+            result.push(unsafe { CNluIntentAlternative::raw_borrow(*e) }?.as_rust()?);
+        }
+        Ok(result)
+    }
+}
+
+impl Drop for CNluIntentAlternativeArray {
+    fn drop(&mut self) {
+        unsafe {
+            let slots = Box::from_raw(std::slice::from_raw_parts_mut(
+                self.entries as *mut *mut CNluIntentAlternative,
+                self.count as usize,
+            ));
+
+            for e in slots.iter() {
+                let _ = CNluIntentAlternative::drop_raw_pointer(*e);
+            }
+        }
     }
 }
 

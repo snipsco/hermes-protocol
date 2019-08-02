@@ -1,7 +1,7 @@
 use super::asr::{AsrToken, SpeakerId};
 use super::nlu::{NluIntentClassifierResult, NluSlot};
 use super::HermesMessage;
-use crate::HermesComponent;
+use crate::{HermesComponent, NluIntentAlternative};
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -25,11 +25,14 @@ pub struct IntentMessage {
     pub intent: NluIntentClassifierResult,
     /// The detected slots, if any
     pub slots: Vec<NluSlot>,
+    /// Alternatives intent resolutions
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub alternatives: Option<Vec<NluIntentAlternative>>,
 }
 
 impl<'de> HermesMessage<'de> for IntentMessage {}
 
-#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct IntentNotRecognizedMessage {
     /// The session in which no intent was recognized
@@ -45,6 +48,9 @@ pub struct IntentNotRecognizedMessage {
     pub speaker_hypotheses: Option<Vec<SpeakerId>>,
     /// Expresses the confidence that no intent was found
     pub confidence_score: f32,
+    /// Alternatives intent resolutions
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub alternatives: Option<Vec<NluIntentAlternative>>,
 }
 
 impl<'de> HermesMessage<'de> for IntentNotRecognizedMessage {}

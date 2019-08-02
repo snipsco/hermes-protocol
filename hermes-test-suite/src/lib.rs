@@ -398,7 +398,7 @@ macro_rules! test_suite {
             );
         t!(nlu_intent_parsed_works:
                     nlu.subscribe_intent_parsed <= NluIntentMessage | nlu_backend.publish_intent_parsed
-                    with NluIntentMessage { id: None, input: "hello world".into(), intent: NluIntentClassifierResult { intent_name: "my intent".into(), confidence_score: 0.73 }, slots: vec![], session_id: Some("abc".into()) };);
+                    with NluIntentMessage { id: None, input: "hello world".into(), intent: NluIntentClassifierResult { intent_name: "my intent".into(), confidence_score: 0.73 }, slots: vec![], session_id: Some("abc".into()), alternatives: Some(vec![hermes::NluIntentAlternative {intent_name: Some("foobar".into()), confidence_score: 0.5, slots:vec![]}, hermes::NluIntentAlternative {intent_name: None, confidence_score: 0.4, slots:vec![]} ]) };);
         t!(nlu_intent_not_recognized_works:
                     nlu.subscribe_intent_not_recognized <= NluIntentNotRecognizedMessage | nlu_backend.publish_intent_not_recognized
                     with NluIntentNotRecognizedMessage { id: None, input: "hello world".into(), session_id: Some("abc".into()), confidence_score: 0.5 };);
@@ -452,14 +452,14 @@ macro_rules! test_suite {
                     with SessionQueuedMessage { session_id: "some id".into(), custom_data: None, site_id: "some site".into() };);
         t!(dialogue_intents_works:
                     dialogue.subscribe_intents <= IntentMessage | dialogue_backend.publish_intent
-                    with IntentMessage { site_id: "some site".into(), session_id: "some id".into(), custom_data: None, input: "hello world".into(), asr_tokens: None, asr_confidence: None, intent: NluIntentClassifierResult { intent_name: "my intent".into(), confidence_score: 0.73 }, speaker_hypotheses: None, slots: vec![] };);
+                    with IntentMessage { site_id: "some site".into(), session_id: "some id".into(), custom_data: None, input: "hello world".into(), asr_tokens: None, asr_confidence: None, intent: NluIntentClassifierResult { intent_name: "my intent".into(), confidence_score: 0.73 }, speaker_hypotheses: None, slots: vec![], alternatives: None };);
         t!(dialogue_intent_works:
                     OneToMany
                     dialogue.subscribe_intent { "my intent".into() } <= IntentMessage | dialogue_backend.publish_intent
-                    with IntentMessage { site_id: "some site".into(), session_id: "some id".into(), custom_data: None, input: "hello world".into(), asr_tokens: Some(vec![vec![AsrToken { value: "hello".into(), confidence: 1., range_start: 0, range_end: 4, time: AsrDecodingDuration { start: 0.0, end: 2.0 } }, AsrToken { value: "world".into(), confidence: 1., range_start: 5, range_end: 9, time: AsrDecodingDuration { start: 2.0, end: 4.0 } },]]), asr_confidence: Some(0.5),intent: NluIntentClassifierResult { intent_name: "my intent".into(), confidence_score: 0.73 }, speaker_hypotheses: Some(vec![SpeakerId { name: Some("toto".into()), confidence: 0.9}]), slots: vec![] };);
+                    with IntentMessage { site_id: "some site".into(), session_id: "some id".into(), custom_data: None, input: "hello world".into(), asr_tokens: Some(vec![vec![AsrToken { value: "hello".into(), confidence: 1., range_start: 0, range_end: 4, time: AsrDecodingDuration { start: 0.0, end: 2.0 } }, AsrToken { value: "world".into(), confidence: 1., range_start: 5, range_end: 9, time: AsrDecodingDuration { start: 2.0, end: 4.0 } },]]), asr_confidence: Some(0.5),intent: NluIntentClassifierResult { intent_name: "my intent".into(), confidence_score: 0.73 }, speaker_hypotheses: Some(vec![SpeakerId { name: Some("toto".into()), confidence: 0.9}]), slots: vec![], alternatives: Some(vec![hermes::NluIntentAlternative {intent_name: Some("foobar".into()), confidence_score: 0.5, slots:vec![]}, hermes::NluIntentAlternative {intent_name: None, confidence_score: 0.4, slots:vec![]} ]) };);
         t!(dialogue_intent_not_recognized_works:
                     dialogue.subscribe_intent_not_recognized <= IntentNotRecognizedMessage | dialogue_backend.publish_intent_not_recognized
-                    with IntentNotRecognizedMessage { site_id: "some site".into(), session_id: "some id".into(), custom_data: None, input: Some("hello world".into()), speaker_hypotheses: None, confidence_score: 0.5 };);
+                    with IntentNotRecognizedMessage { site_id: "some site".into(), session_id: "some id".into(), custom_data: None, input: Some("hello world".into()), speaker_hypotheses: None, confidence_score: 0.5, alternatives: Some(vec![]) };);
         t!(dialogue_session_ended_works:
                     dialogue.subscribe_session_ended <= SessionEndedMessage | dialogue_backend.publish_session_ended
                     with SessionEndedMessage { site_id: "some site".into(), session_id: "some id".into(), custom_data: None, termination: SessionTerminationType::Nominal };);

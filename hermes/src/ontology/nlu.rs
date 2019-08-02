@@ -101,9 +101,23 @@ pub struct NluIntentMessage {
     pub slots: Vec<NluSlot>,
     /// An optional session id if there is a related session
     pub session_id: Option<String>,
+    /// Alternatives intent resolutions
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub alternatives: Option<Vec<NluIntentAlternative>>,
 }
 
 impl<'de> HermesMessage<'de> for NluIntentMessage {}
+
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NluIntentAlternative {
+    /// Name of the intent that was found, or None is not intent was recognized
+    pub intent_name: Option<String>,
+    /// The confidence score of this alternative
+    pub confidence_score: f32,
+    /// The detected slots, if any
+    pub slots: Vec<NluSlot>,
+}
 
 pub mod nlu_ontology {
     pub use snips_nlu_ontology::*;
