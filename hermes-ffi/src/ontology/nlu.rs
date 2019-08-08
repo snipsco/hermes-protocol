@@ -406,6 +406,8 @@ impl Drop for CNluIntentMessage {
     }
 }
 
+#[repr(C)]
+#[derive(Debug)]
 pub struct CNluIntentAlternative {
     /// Nullable, name of the intent detected (null = no intent)
     pub intent_name: *const libc::c_char,

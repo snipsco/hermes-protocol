@@ -331,6 +331,26 @@ typedef struct {
 } CNluSlotArray;
 
 typedef struct {
+  /**
+   * Nullable, name of the intent detected (null = no intent)
+   */
+  const char *intent_name;
+  /**
+   * Nullable
+   */
+  const CNluSlotArray *slots;
+  /**
+   * Between 0 and 1
+   */
+  float confidence_score;
+} CNluIntentAlternative;
+
+typedef struct {
+  const CNluIntentAlternative *const *entries;
+  int count;
+} CNluIntentAlternativeArray;
+
+typedef struct {
   float start;
   float end;
 } CAsrDecodingDuration;
@@ -367,6 +387,10 @@ typedef struct {
    */
   const CNluSlotArray *slots;
   /**
+   * Nullable
+   */
+  const CNluIntentAlternativeArray *alternatives;
+  /**
    * Nullable, the first array level represents the asr invocation, the second one the tokens
    */
   const CAsrTokenDoubleArray *asr_tokens;
@@ -387,6 +411,10 @@ typedef struct {
    * Nullable
    */
   const char *custom_data;
+  /**
+   * Nullable
+   */
+  const CNluIntentAlternativeArray *alternatives;
   float confidence_score;
 } CIntentNotRecognizedMessage;
 
