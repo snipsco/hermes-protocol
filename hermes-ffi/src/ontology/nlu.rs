@@ -437,9 +437,7 @@ impl AsRust<hermes::NluIntentAlternative> for CNluIntentAlternative {
             intent_name: create_optional_rust_string_from!(self.intent_name),
             confidence_score: self.confidence_score,
             slots: if !self.slots.is_null() {
-                let r = unsafe { CNluSlotArray::raw_borrow(self.slots) }?.as_rust()?;
-
-                r
+                unsafe { CNluSlotArray::raw_borrow(self.slots) }?.as_rust()?
             } else {
                 vec![]
             },
