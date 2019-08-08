@@ -846,8 +846,10 @@ impl AsRust<Vec<hermes::DialogueConfigureIntent>> for CDialogueConfigureIntentAr
     fn as_rust(&self) -> Fallible<Vec<hermes::DialogueConfigureIntent>> {
         let mut result = Vec::with_capacity(self.count as usize);
 
-        for e in unsafe { slice::from_raw_parts(self.entries, self.count as usize) } {
-            result.push(unsafe { CDialogueConfigureIntent::raw_borrow(*e) }?.as_rust()?);
+        if self.count > 0 {
+            for e in unsafe { slice::from_raw_parts(self.entries, self.count as usize) } {
+                result.push(unsafe { CDialogueConfigureIntent::raw_borrow(*e) }?.as_rust()?);
+            }
         }
         Ok(result)
     }

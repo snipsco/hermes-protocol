@@ -5,6 +5,7 @@ import ai.snips.hermes.SessionInit.Notification
 import ai.snips.hermes.SessionInit.Type.ACTION
 import ai.snips.hermes.SessionInit.Type.NOTIFICATION
 import ai.snips.nlu.ontology.Range
+import ai.snips.nlu.ontology.Slot
 import ai.snips.nlu.ontology.SlotValue
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonFormat
@@ -83,18 +84,15 @@ data class EndSessionMessage @ParcelConstructor constructor(
 )
 
 @Parcel(BEAN)
-data class Slot @ParcelConstructor constructor(
-        @ParcelProperty("rawValue") val rawValue: String,
-        @ParcelProperty("value") val value: SlotValue,
-        @ParcelProperty("range") val range: Range?,
-        @ParcelProperty("entity") val entity: String,
-        @ParcelProperty("slotName") val slotName: String,
-        @ParcelProperty("confidenceScore") val confidenceScore: Float?)
-
-@Parcel(BEAN)
 data class IntentClassifierResult @ParcelConstructor constructor(
         @ParcelProperty("intentName") val intentName: String,
         @ParcelProperty("confidenceScore") val confidenceScore: Float)
+
+@Parcel(BEAN)
+data class IntentAlternative @ParcelConstructor constructor(
+        @ParcelProperty("intentName") val intentName: String?,
+        @ParcelProperty("confidenceScore") val confidenceScore: Float,
+        @ParcelProperty("slots") val slots: List<Slot>)
 
 @Parcel(BEAN)
 data class IntentMessage @ParcelConstructor constructor(
@@ -104,6 +102,7 @@ data class IntentMessage @ParcelConstructor constructor(
         @ParcelProperty("input") val input: String,
         @ParcelProperty("intent") val intent: IntentClassifierResult,
         @ParcelProperty("slots") val slots: List<Slot>,
+        @ParcelProperty("alternatives") val alternatives: List<IntentAlternative>,
         @ParcelProperty("asrConfidence") val asrConfidence: Float?,
         // Use a mutable list here so that Parceler is happy
         @ParcelProperty("asrTokens") val asrTokens: MutableList<List<AsrToken>>)
@@ -114,7 +113,8 @@ data class IntentNotRecognizedMessage @ParcelConstructor constructor(
         @ParcelProperty("customData") val customData: String?,
         @ParcelProperty("siteId") val siteId: String,
         @ParcelProperty("input") val input: String?,
-        @ParcelProperty("confidenceScore") val confidenceScore: Float)
+        @ParcelProperty("confidenceScore") val confidenceScore: Float,
+        @ParcelProperty("alternatives") val alternatives: List<IntentAlternative>)
 
 @Parcel(BEAN)
 data class SessionStartedMessage @ParcelConstructor constructor(

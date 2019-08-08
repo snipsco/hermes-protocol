@@ -302,9 +302,10 @@ impl CReprOf<Vec<hermes::NluSlot>> for CNluSlotArray {
 impl AsRust<Vec<hermes::NluSlot>> for CNluSlotArray {
     fn as_rust(&self) -> Fallible<Vec<hermes::NluSlot>> {
         let mut result = Vec::with_capacity(self.count as usize);
-
-        for e in unsafe { slice::from_raw_parts(self.entries, self.count as usize) } {
-            result.push(unsafe { CNluSlot::raw_borrow(*e) }?.as_rust()?);
+        if self.count > 0 {
+            for e in unsafe { slice::from_raw_parts(self.entries, self.count as usize) } {
+                result.push(unsafe { CNluSlot::raw_borrow(*e) }?.as_rust()?);
+            }
         }
         Ok(result)
     }
@@ -408,10 +409,10 @@ impl Drop for CNluIntentMessage {
 pub struct CNluIntentAlternative {
     /// Nullable, name of the intent detected (null = no intent)
     pub intent_name: *const libc::c_char,
-    /// Between 0 and 1
-    pub confidence_score: libc::c_float,
     /// Nullable
     pub slots: *const CNluSlotArray,
+    /// Between 0 and 1
+    pub confidence_score: libc::c_float,
 }
 
 impl CReprOf<hermes::NluIntentAlternative> for CNluIntentAlternative {
@@ -434,7 +435,9 @@ impl AsRust<hermes::NluIntentAlternative> for CNluIntentAlternative {
             intent_name: create_optional_rust_string_from!(self.intent_name),
             confidence_score: self.confidence_score,
             slots: if !self.slots.is_null() {
-                unsafe { CNluSlotArray::raw_borrow(self.slots) }?.as_rust()?
+                let r = unsafe { CNluSlotArray::raw_borrow(self.slots) }?.as_rust()?;
+
+                r
             } else {
                 vec![]
             },
@@ -479,8 +482,10 @@ impl AsRust<Vec<hermes::NluIntentAlternative>> for CNluIntentAlternativeArray {
     fn as_rust(&self) -> Fallible<Vec<hermes::NluIntentAlternative>> {
         let mut result = Vec::with_capacity(self.count as usize);
 
-        for e in unsafe { slice::from_raw_parts(self.entries, self.count as usize) } {
-            result.push(unsafe { CNluIntentAlternative::raw_borrow(*e) }?.as_rust()?);
+        if self.count > 0 {
+            for e in unsafe { slice::from_raw_parts(self.entries, self.count as usize) } {
+                result.push(unsafe { CNluIntentAlternative::raw_borrow(*e) }?.as_rust()?);
+            }
         }
         Ok(result)
     }

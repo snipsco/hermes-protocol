@@ -26,6 +26,7 @@ import ai.snips.hermes.InjectionRequestMessage
 import ai.snips.hermes.InjectionCompleteMessage
 import ai.snips.hermes.InjectionResetCompleteMessage
 import ai.snips.hermes.InjectionResetRequestMessage
+import ai.snips.hermes.IntentAlternative
 import ai.snips.hermes.IntentClassifierResult
 import ai.snips.hermes.IntentMessage
 import ai.snips.hermes.IntentNotRecognizedMessage
@@ -45,9 +46,9 @@ import ai.snips.hermes.SessionTermination.IntenNotRecognized
 import ai.snips.hermes.SessionTermination.Nominal
 import ai.snips.hermes.SessionTermination.SiteUnAvailable
 import ai.snips.hermes.SessionTermination.Timeout
-import ai.snips.hermes.Slot
 import ai.snips.hermes.StartSessionMessage
 import ai.snips.hermes.TextCapturedMessage
+import ai.snips.nlu.ontology.Slot
 import ai.snips.nlu.ontology.ffi.CSlot
 import ai.snips.nlu.ontology.ffi.readRangeTo
 import ai.snips.nlu.ontology.ffi.readSlotValue
@@ -382,11 +383,83 @@ class CNluIntentClassifierResult : Structure(), Structure.ByReference {
     @JvmField
     var confidence_score: Float? = null
 
+    // be careful this block must be below the field definition if you don't want the native values read by JNA
+    // overridden by the default ones
+    init {
+        read()
+    }
+
     override fun getFieldOrder() = listOf("intent_name", "confidence_score")
 
     fun toIntentClassifierResult() = IntentClassifierResult(intentName = intent_name!!.readString(),
                                                             confidenceScore = confidence_score!!)
 }
+
+class CNluIntentAlternative(p: Pointer?) : Structure(p), Structure.ByReference {
+    companion object {
+        @JvmStatic
+        fun fromIntentAlternative(intentAlternative: IntentAlternative) =
+                CNluIntentAlternative(null).apply {
+                    intent_name = intentAlternative.intentName?.toPointer()
+                    confidence_score = intentAlternative.confidenceScore
+                    slots = CNluSlotArray.fromSlotList(intentAlternative.slots)
+                    println(this)
+                }
+    }
+
+    @JvmField
+    var intent_name: Pointer? = null
+    @JvmField
+    var slots: CNluSlotArray? = null
+    @JvmField
+    var confidence_score: Float? = null
+
+    // be careful this block must be below the field definition if you don't want the native values read by JNA
+    // overridden by the default ones
+    init {
+        read()
+    }
+
+    override fun getFieldOrder() = listOf("intent_name", "slots", "confidence_score")
+
+    fun toIntentAlternative() = IntentAlternative(intentName = intent_name?.readString(),
+                                                  confidenceScore = confidence_score!!,
+                                                  slots = slots?.toSlotList() ?: listOf())
+}
+
+class CNluIntentAlternativeArray(p: Pointer?) : Structure(p), Structure.ByReference {
+    companion object {
+        @JvmStatic
+        fun fromIntentAlternativeList(list: List<IntentAlternative>) = CNluIntentAlternativeArray(null).apply {
+            count = list.size
+            entries = if (count > 0)
+                Memory(Pointer.SIZE * list.size.toLong()).apply {
+                    list.forEachIndexed { i, e ->
+                        this.setPointer(i.toLong() * Pointer.SIZE, CNluIntentAlternative.fromIntentAlternative(e).apply { write() }.pointer)
+                    }
+                }
+            else null
+        }
+    }
+
+    @JvmField
+    var entries: Pointer? = null
+    @JvmField
+    var count: Int = -1
+
+    // be careful this block must be below the field definition if you don't want the native values read by JNA
+    // overridden by the default ones
+    init {
+        read()
+    }
+
+    override fun getFieldOrder() = listOf("entries", "count")
+
+    fun toIntentAlternativeList(): List<IntentAlternative> = if (count > 0) {
+        entries!!.getPointerArray(0, count).map { CNluIntentAlternative(it).toIntentAlternative() }
+    } else listOf()
+}
+
 
 class CIntentMessage(p: Pointer?) : Structure(p), Structure.ByReference {
     companion object {
@@ -398,6 +471,7 @@ class CIntentMessage(p: Pointer?) : Structure(p), Structure.ByReference {
             input = message.input.toPointer()
             intent = CNluIntentClassifierResult.fromIntentClassifierResult(message.intent)
             slots = CNluSlotArray.fromSlotList(message.slots)
+            alternatives = CNluIntentAlternativeArray.fromIntentAlternativeList(message.alternatives)
             asr_tokens = CAsrTokenDoubleArray.fromAsrTokenDoubleList(message.asrTokens)
             asr_confidence = message.asrConfidence ?: -1.0f
         }
@@ -416,6 +490,8 @@ class CIntentMessage(p: Pointer?) : Structure(p), Structure.ByReference {
     @JvmField
     var slots: CNluSlotArray? = null
     @JvmField
+    var alternatives: CNluIntentAlternativeArray? = null
+    @JvmField
     var asr_tokens: CAsrTokenDoubleArray? = null
     @JvmField
     var asr_confidence: Float? = null
@@ -426,7 +502,7 @@ class CIntentMessage(p: Pointer?) : Structure(p), Structure.ByReference {
         read()
     }
 
-    override fun getFieldOrder() = listOf("session_id", "custom_data", "site_id", "input", "intent", "slots", "asr_tokens", "asr_confidence")
+    override fun getFieldOrder() = listOf("session_id", "custom_data", "site_id", "input", "intent", "slots", "alternatives", "asr_tokens", "asr_confidence")
 
     fun toIntentMessage() = IntentMessage(
             sessionId = session_id.readString(),
@@ -435,6 +511,7 @@ class CIntentMessage(p: Pointer?) : Structure(p), Structure.ByReference {
             input = input.readString(),
             intent = intent!!.toIntentClassifierResult(),
             slots = slots?.toSlotList() ?: listOf(),
+            alternatives = alternatives?.toIntentAlternativeList() ?: listOf(),
             asrConfidence = if(asr_confidence?.let { it in 0.0..1.0 } == true) asr_confidence else null,
             asrTokens = asr_tokens?.toAsrTokenDoubleList()?.toMutableList() ?: mutableListOf())
 }
@@ -447,6 +524,7 @@ class CIntentNotRecognizedMessage(p: Pointer?) : Structure(p), Structure.ByRefer
             session_id = message.sessionId.toPointer()
             input = message.input?.toPointer()
             custom_data = message.customData?.toPointer()
+            alternatives = CNluIntentAlternativeArray.fromIntentAlternativeList(message.alternatives)
             confidence_score = message.confidenceScore
         }
     }
@@ -460,6 +538,8 @@ class CIntentNotRecognizedMessage(p: Pointer?) : Structure(p), Structure.ByRefer
     @JvmField
     var custom_data: Pointer? = null
     @JvmField
+    var alternatives: CNluIntentAlternativeArray? = null
+    @JvmField
     var confidence_score: Float? = null
 
     // be careful this block must be below the field definition if you don't want the native values read by JNA
@@ -468,13 +548,14 @@ class CIntentNotRecognizedMessage(p: Pointer?) : Structure(p), Structure.ByRefer
         read()
     }
 
-    override fun getFieldOrder() = listOf("site_id", "session_id", "input", "custom_data", "confidence_score")
+    override fun getFieldOrder() = listOf("site_id", "session_id", "input", "custom_data", "alternatives", "confidence_score")
 
     fun toIntentNotRecognizedMessage() = IntentNotRecognizedMessage(
             siteId = site_id.readString(),
             sessionId = session_id.readString(),
             input = input?.readString(),
             customData = custom_data?.readString(),
+            alternatives = alternatives?.toIntentAlternativeList() ?: listOf(),
             confidenceScore = confidence_score!!)
 }
 

@@ -81,10 +81,11 @@ impl AsRust<Vec<hermes::EntityValue>> for CEntityValueArray {
     fn as_rust(&self) -> Fallible<Vec<hermes::EntityValue>> {
         let mut result = Vec::with_capacity(self.count as usize);
 
-        for e in unsafe { slice::from_raw_parts(self.values, self.count as usize) } {
-            let entity = unsafe { CEntityValue::raw_borrow(*e) }?.as_rust()?;
-
-            result.push(entity);
+        if self.count > 0 {
+            for e in unsafe { slice::from_raw_parts(self.values, self.count as usize) } {
+                let entity = unsafe { CEntityValue::raw_borrow(*e) }?.as_rust()?;
+                result.push(entity);
+            }
         }
 
         Ok(result)
@@ -207,8 +208,10 @@ impl AsRust<Vec<CInjectionRequest>> for CInjectionRequestOperations {
     fn as_rust(&self) -> Fallible<Vec<CInjectionRequest>> {
         let mut result = Vec::with_capacity(self.count as usize);
 
-        for e in unsafe { slice::from_raw_parts(self.operations, self.count as usize) } {
-            result.push(unsafe { CInjectionRequestOperation::raw_borrow(*e) }?.as_rust()?);
+        if self.count > 0 {
+            for e in unsafe { slice::from_raw_parts(self.operations, self.count as usize) } {
+                result.push(unsafe { CInjectionRequestOperation::raw_borrow(*e) }?.as_rust()?);
+            }
         }
 
         Ok(result)

@@ -201,6 +201,22 @@ pub extern "C" fn hermes_ffi_test_round_trip_text_captured(
 }
 
 #[no_mangle]
+pub extern "C" fn hermes_ffi_test_round_trip_nlu_intent_alternative(
+    input: *const hermes_ffi::CNluIntentAlternative,
+    output: *mut *const hermes_ffi::CNluIntentAlternative,
+) -> ffi_utils::SNIPS_RESULT {
+    wrap!(round_trip(input, output))
+}
+
+#[no_mangle]
+pub extern "C" fn hermes_ffi_test_round_trip_nlu_intent_alternative_array(
+    input: *const hermes_ffi::CNluIntentAlternativeArray,
+    output: *mut *const hermes_ffi::CNluIntentAlternativeArray,
+) -> ffi_utils::SNIPS_RESULT {
+    wrap!(round_trip(input, output))
+}
+
+#[no_mangle]
 pub unsafe extern "C" fn hermes_ffi_test_destroy_string(string: *mut libc::c_char) -> SNIPS_RESULT {
     wrap!(std::ffi::CString::from_raw_pointer(string))
 }
@@ -229,6 +245,20 @@ pub unsafe extern "C" fn hermes_ffi_test_destroy_asr_token_double_array(
     input: *mut hermes_ffi::CAsrTokenDoubleArray,
 ) -> SNIPS_RESULT {
     wrap!(hermes_ffi::CAsrTokenDoubleArray::drop_raw_pointer(input))
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn hermes_ffi_test_destroy_nlu_intent_alternative(
+    input: *mut hermes_ffi::CNluIntentAlternative,
+) -> SNIPS_RESULT {
+    wrap!(hermes_ffi::CNluIntentAlternative::drop_raw_pointer(input))
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn hermes_ffi_test_destroy_nlu_intent_alternative_array(
+    input: *mut hermes_ffi::CNluIntentAlternativeArray,
+) -> SNIPS_RESULT {
+    wrap!(hermes_ffi::CNluIntentAlternativeArray::drop_raw_pointer(input))
 }
 
 generate_hermes_c_symbols!();
