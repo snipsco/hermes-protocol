@@ -101,7 +101,7 @@ pub struct NluIntentMessage {
     pub slots: Vec<NluSlot>,
     /// An optional session id if there is a related session
     pub session_id: Option<String>,
-    /// Alternatives intent resolutions
+    /// Alternative intent resolutions
     #[serde(skip_serializing_if = "Option::is_none")]
     pub alternatives: Option<Vec<NluIntentAlternative>>,
 }
