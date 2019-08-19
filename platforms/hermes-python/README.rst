@@ -64,7 +64,7 @@ Clone, the ``hermes-protocol`` repository :
 ::
 
    git clone git@github.com:snipsco/hermes-protocol.git
-   cd hermes-protocol
+   cd hermes-protocol/platforms/hermes-python
 
 You can then build the wheel :
 
@@ -72,6 +72,7 @@ You can then build the wheel :
 
    virtualenv env
    source env/bin/activate
+   mkdir -p hermes_python/dylib
    python setup.py bdist_wheel
 
 The built wheels should be in ``platforms/hermes-python/dist``
