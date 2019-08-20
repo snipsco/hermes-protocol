@@ -72,7 +72,6 @@ You can then build the wheel :
 
    virtualenv env
    source env/bin/activate
-   mkdir -p hermes_python/dylib
    python setup.py bdist_wheel
 
 The built wheels should be in ``platforms/hermes-python/dist``
