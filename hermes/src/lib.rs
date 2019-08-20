@@ -19,7 +19,7 @@ use failure::Fallible;
 
 /// A struct wrapping a callback with one argument, create one with the `new` method
 pub struct Callback<T> {
-    callback: Box<Fn(&T) -> () + Send + Sync>,
+    callback: Box<dyn Fn(&T) -> () + Send + Sync>,
 }
 
 impl<T> Callback<T> {
@@ -39,7 +39,7 @@ impl<T> Callback<T> {
 
 /// A struct wrapping a callback with no argument, create one with the `new` method
 pub struct Callback0 {
-    callback: Box<Fn() -> () + Send + Sync>,
+    callback: Box<dyn Fn() -> () + Send + Sync>,
 }
 
 impl Callback0 {
@@ -280,22 +280,22 @@ pub trait InjectionBackendFacade: ComponentBackendFacade {
 }
 
 pub trait HermesProtocolHandler: Send + Sync + std::fmt::Display {
-    fn voice_activity(&self) -> Box<VoiceActivityFacade>;
-    fn hotword(&self) -> Box<HotwordFacade>;
-    fn sound_feedback(&self) -> Box<SoundFeedbackFacade>;
-    fn asr(&self) -> Box<AsrFacade>;
-    fn tts(&self) -> Box<TtsFacade>;
-    fn nlu(&self) -> Box<NluFacade>;
-    fn audio_server(&self) -> Box<AudioServerFacade>;
-    fn dialogue(&self) -> Box<DialogueFacade>;
-    fn injection(&self) -> Box<InjectionFacade>;
-    fn voice_activity_backend(&self) -> Box<VoiceActivityBackendFacade>;
-    fn hotword_backend(&self) -> Box<HotwordBackendFacade>;
-    fn sound_feedback_backend(&self) -> Box<SoundFeedbackBackendFacade>;
-    fn asr_backend(&self) -> Box<AsrBackendFacade>;
-    fn tts_backend(&self) -> Box<TtsBackendFacade>;
-    fn nlu_backend(&self) -> Box<NluBackendFacade>;
-    fn audio_server_backend(&self) -> Box<AudioServerBackendFacade>;
-    fn dialogue_backend(&self) -> Box<DialogueBackendFacade>;
-    fn injection_backend(&self) -> Box<InjectionBackendFacade>;
+    fn voice_activity(&self) -> Box<dyn VoiceActivityFacade>;
+    fn hotword(&self) -> Box<dyn HotwordFacade>;
+    fn sound_feedback(&self) -> Box<dyn SoundFeedbackFacade>;
+    fn asr(&self) -> Box<dyn AsrFacade>;
+    fn tts(&self) -> Box<dyn TtsFacade>;
+    fn nlu(&self) -> Box<dyn NluFacade>;
+    fn audio_server(&self) -> Box<dyn AudioServerFacade>;
+    fn dialogue(&self) -> Box<dyn DialogueFacade>;
+    fn injection(&self) -> Box<dyn InjectionFacade>;
+    fn voice_activity_backend(&self) -> Box<dyn VoiceActivityBackendFacade>;
+    fn hotword_backend(&self) -> Box<dyn HotwordBackendFacade>;
+    fn sound_feedback_backend(&self) -> Box<dyn SoundFeedbackBackendFacade>;
+    fn asr_backend(&self) -> Box<dyn AsrBackendFacade>;
+    fn tts_backend(&self) -> Box<dyn TtsBackendFacade>;
+    fn nlu_backend(&self) -> Box<dyn NluBackendFacade>;
+    fn audio_server_backend(&self) -> Box<dyn AudioServerBackendFacade>;
+    fn dialogue_backend(&self) -> Box<dyn DialogueBackendFacade>;
+    fn injection_backend(&self) -> Box<dyn InjectionBackendFacade>;
 }

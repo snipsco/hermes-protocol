@@ -36,75 +36,75 @@ impl Default for InProcessHermesProtocolHandler {
 }
 
 impl HermesProtocolHandler for InProcessHermesProtocolHandler {
-    fn voice_activity(&self) -> Box<VoiceActivityFacade> {
+    fn voice_activity(&self) -> Box<dyn VoiceActivityFacade> {
         self.get_handler(VoiceActivity)
     }
 
-    fn hotword(&self) -> Box<HotwordFacade> {
+    fn hotword(&self) -> Box<dyn HotwordFacade> {
         self.get_handler(Hotword)
     }
 
-    fn sound_feedback(&self) -> Box<SoundFeedbackFacade> {
+    fn sound_feedback(&self) -> Box<dyn SoundFeedbackFacade> {
         self.get_handler(Sound)
     }
 
-    fn asr(&self) -> Box<AsrFacade> {
+    fn asr(&self) -> Box<dyn AsrFacade> {
         self.get_handler(Asr)
     }
 
-    fn tts(&self) -> Box<TtsFacade> {
+    fn tts(&self) -> Box<dyn TtsFacade> {
         self.get_handler(Tts)
     }
 
-    fn nlu(&self) -> Box<NluFacade> {
+    fn nlu(&self) -> Box<dyn NluFacade> {
         self.get_handler(Nlu)
     }
 
-    fn audio_server(&self) -> Box<AudioServerFacade> {
+    fn audio_server(&self) -> Box<dyn AudioServerFacade> {
         self.get_handler(AudioServer)
     }
 
-    fn dialogue(&self) -> Box<DialogueFacade> {
+    fn dialogue(&self) -> Box<dyn DialogueFacade> {
         self.get_handler(Dialogue)
     }
 
-    fn injection(&self) -> Box<InjectionFacade> {
+    fn injection(&self) -> Box<dyn InjectionFacade> {
         self.get_handler(Injection)
     }
 
-    fn voice_activity_backend(&self) -> Box<VoiceActivityBackendFacade> {
+    fn voice_activity_backend(&self) -> Box<dyn VoiceActivityBackendFacade> {
         self.get_handler(VoiceActivity)
     }
 
-    fn hotword_backend(&self) -> Box<HotwordBackendFacade> {
+    fn hotword_backend(&self) -> Box<dyn HotwordBackendFacade> {
         self.get_handler(Hotword)
     }
 
-    fn sound_feedback_backend(&self) -> Box<SoundFeedbackBackendFacade> {
+    fn sound_feedback_backend(&self) -> Box<dyn SoundFeedbackBackendFacade> {
         self.get_handler(Sound)
     }
 
-    fn asr_backend(&self) -> Box<AsrBackendFacade> {
+    fn asr_backend(&self) -> Box<dyn AsrBackendFacade> {
         self.get_handler(Asr)
     }
 
-    fn tts_backend(&self) -> Box<TtsBackendFacade> {
+    fn tts_backend(&self) -> Box<dyn TtsBackendFacade> {
         self.get_handler(Tts)
     }
 
-    fn nlu_backend(&self) -> Box<NluBackendFacade> {
+    fn nlu_backend(&self) -> Box<dyn NluBackendFacade> {
         self.get_handler(Nlu)
     }
 
-    fn audio_server_backend(&self) -> Box<AudioServerBackendFacade> {
+    fn audio_server_backend(&self) -> Box<dyn AudioServerBackendFacade> {
         self.get_handler(AudioServer)
     }
 
-    fn dialogue_backend(&self) -> Box<DialogueBackendFacade> {
+    fn dialogue_backend(&self) -> Box<dyn DialogueBackendFacade> {
         self.get_handler(Dialogue)
     }
 
-    fn injection_backend(&self) -> Box<InjectionBackendFacade> {
+    fn injection_backend(&self) -> Box<dyn InjectionBackendFacade> {
         self.get_handler(Injection)
     }
 }
