@@ -778,75 +778,75 @@ impl MqttHermesProtocolHandler {
 }
 
 impl HermesProtocolHandler for MqttHermesProtocolHandler {
-    fn voice_activity(&self) -> Box<VoiceActivityFacade> {
+    fn voice_activity(&self) -> Box<dyn VoiceActivityFacade> {
         self.component(Component::VoiceActivity)
     }
 
-    fn hotword(&self) -> Box<HotwordFacade> {
+    fn hotword(&self) -> Box<dyn HotwordFacade> {
         self.hotword_component()
     }
 
-    fn sound_feedback(&self) -> Box<SoundFeedbackFacade> {
+    fn sound_feedback(&self) -> Box<dyn SoundFeedbackFacade> {
         self.sound_toggleable()
     }
 
-    fn asr(&self) -> Box<AsrFacade> {
+    fn asr(&self) -> Box<dyn AsrFacade> {
         self.asr_component()
     }
 
-    fn tts(&self) -> Box<TtsFacade> {
+    fn tts(&self) -> Box<dyn TtsFacade> {
         self.component(Component::Tts)
     }
 
-    fn nlu(&self) -> Box<NluFacade> {
+    fn nlu(&self) -> Box<dyn NluFacade> {
         self.component(Component::Nlu)
     }
 
-    fn audio_server(&self) -> Box<AudioServerFacade> {
+    fn audio_server(&self) -> Box<dyn AudioServerFacade> {
         self.audio_server_component()
     }
 
-    fn dialogue(&self) -> Box<DialogueFacade> {
+    fn dialogue(&self) -> Box<dyn DialogueFacade> {
         self.dialogue_component()
     }
 
-    fn injection(&self) -> Box<InjectionFacade> {
+    fn injection(&self) -> Box<dyn InjectionFacade> {
         self.component(Component::Injection)
     }
 
-    fn voice_activity_backend(&self) -> Box<VoiceActivityBackendFacade> {
+    fn voice_activity_backend(&self) -> Box<dyn VoiceActivityBackendFacade> {
         self.component(Component::VoiceActivity)
     }
 
-    fn hotword_backend(&self) -> Box<HotwordBackendFacade> {
+    fn hotword_backend(&self) -> Box<dyn HotwordBackendFacade> {
         self.hotword_component()
     }
 
-    fn sound_feedback_backend(&self) -> Box<SoundFeedbackBackendFacade> {
+    fn sound_feedback_backend(&self) -> Box<dyn SoundFeedbackBackendFacade> {
         self.sound_toggleable()
     }
 
-    fn asr_backend(&self) -> Box<AsrBackendFacade> {
+    fn asr_backend(&self) -> Box<dyn AsrBackendFacade> {
         self.asr_component()
     }
 
-    fn tts_backend(&self) -> Box<TtsBackendFacade> {
+    fn tts_backend(&self) -> Box<dyn TtsBackendFacade> {
         self.component(Component::Tts)
     }
 
-    fn nlu_backend(&self) -> Box<NluBackendFacade> {
+    fn nlu_backend(&self) -> Box<dyn NluBackendFacade> {
         self.component(Component::Nlu)
     }
 
-    fn audio_server_backend(&self) -> Box<AudioServerBackendFacade> {
+    fn audio_server_backend(&self) -> Box<dyn AudioServerBackendFacade> {
         self.audio_server_component()
     }
 
-    fn dialogue_backend(&self) -> Box<DialogueBackendFacade> {
+    fn dialogue_backend(&self) -> Box<dyn DialogueBackendFacade> {
         self.dialogue_component()
     }
 
-    fn injection_backend(&self) -> Box<InjectionBackendFacade> {
+    fn injection_backend(&self) -> Box<dyn InjectionBackendFacade> {
         self.component(Component::Injection)
     }
 }

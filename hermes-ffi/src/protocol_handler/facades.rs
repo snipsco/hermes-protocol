@@ -22,7 +22,7 @@ impl UserData {
 }
 
 impl CProtocolHandler {
-    pub fn new(handler: Box<HermesProtocolHandler>, user_data: *mut libc::c_void) -> Self {
+    pub fn new(handler: Box<dyn HermesProtocolHandler>, user_data: *mut libc::c_void) -> Self {
         let user_data = UserData(user_data).into_raw_pointer() as _;
         Self {
             handler: Box::into_raw(Box::new(handler)) as *const libc::c_void,
@@ -30,8 +30,8 @@ impl CProtocolHandler {
         }
     }
 
-    pub fn extract(&self) -> &HermesProtocolHandler {
-        unsafe { &(**(self.handler as *const Box<HermesProtocolHandler>)) }
+    pub fn extract(&self) -> &dyn HermesProtocolHandler {
+        unsafe { &(**(self.handler as *const Box<dyn HermesProtocolHandler>)) }
     }
 
     pub fn user_data(&self) -> &UserData {
@@ -39,7 +39,7 @@ impl CProtocolHandler {
     }
 
     pub fn destroy(self) {
-        let _ = unsafe { Box::from_raw(self.handler as *mut Box<HermesProtocolHandler>) };
+        let _ = unsafe { Box::from_raw(self.handler as *mut Box<dyn HermesProtocolHandler>) };
     }
 }
 
