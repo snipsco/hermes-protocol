@@ -415,6 +415,13 @@ macro_rules! impl_identifiable_component_facades_for {
                 )
             }
 
+            fn subscribe_all_error(&self, handler: Callback<ErrorMessage>) -> Fallible<()> {
+                self.mqtt_handler.subscribe_payload(
+                    &HermesTopic::Component(Some("+".to_string()), self.component, ComponentCommand::Error),
+                    move |p| handler.call(p),
+                )
+            }
+
             fn subscribe_component_loaded(
                 &self,
                 site_id: String,

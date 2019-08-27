@@ -379,6 +379,10 @@ impl<T: Send + Sync + Debug + Copy + 'static> IdentifiableComponentFacade for In
         subscribe_filter!(self, IdentifiableComponentError<T> { error }, handler, site_id, |it| &it.site_id)
     }
 
+    fn subscribe_all_error(&self, handler: Callback<ErrorMessage>) -> Fallible<()> {
+        subscribe!(self, IdentifiableComponentError<T> { error }, handler)
+    }
+
     fn subscribe_component_loaded(
         &self,
         site_id: String,
