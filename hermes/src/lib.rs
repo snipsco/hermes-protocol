@@ -69,8 +69,8 @@ pub trait ComponentFacade: Send + Sync {
 pub trait IdentifiableComponentFacade: Send + Sync {
     fn publish_version_request(&self, id: String) -> Fallible<()>;
     fn subscribe_version(&self, id: String, handler: Callback<VersionMessage>) -> Fallible<()>;
-    fn subscribe_error(&self, id: String, handler: Callback<ErrorMessage>) -> Fallible<()>;
-    fn subscribe_all_error(&self, handler: Callback<ErrorMessage>) -> Fallible<()>;
+    fn subscribe_error(&self, id: String, handler: Callback<SiteErrorMessage>) -> Fallible<()>;
+    fn subscribe_all_error(&self, handler: Callback<SiteErrorMessage>) -> Fallible<()>;
     fn subscribe_component_loaded(&self, id: String, handler: Callback<ComponentLoadedOnSiteMessage>) -> Fallible<()>;
     fn subscribe_all_component_loaded(&self, handler: Callback<ComponentLoadedOnSiteMessage>) -> Fallible<()>;
 }
@@ -87,7 +87,7 @@ pub trait ComponentBackendFacade: Send + Sync {
 pub trait IdentifiableComponentBackendFacade: Send + Sync {
     fn subscribe_version_request(&self, id: String, handler: Callback0) -> Fallible<()>;
     fn publish_version(&self, id: String, version: VersionMessage) -> Fallible<()>;
-    fn publish_error(&self, id: String, error: ErrorMessage) -> Fallible<()>;
+    fn publish_error(&self, id: String, error: SiteErrorMessage) -> Fallible<()>;
     fn publish_component_loaded(&self, id: String, component_loaded: ComponentLoadedOnSiteMessage) -> Fallible<()>;
 }
 
