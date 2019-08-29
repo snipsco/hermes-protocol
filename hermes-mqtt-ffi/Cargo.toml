@@ -21,6 +21,6 @@ hermes-ffi = { path = "../hermes-ffi" }
 hermes-mqtt = { path = "../hermes-mqtt" }
 libc = "0.2"
 log = "0.4"
-snips-nlu-ontology-ffi = { git = "https://github.com/snipsco/snips-nlu-ontology", tag = "0.65.0" }
+snips-nlu-ontology-ffi = { git = "https://github.com/snipsco/snips-nlu-ontology", tag = "0.67.0" }
 # Needed to fix cbindgen issue. See https://github.com/eqrion/cbindgen/issues/221
-snips-nlu-ontology-ffi-macros = { git = "https://github.com/snipsco/snips-nlu-ontology", tag = "0.65.0" }
+snips-nlu-ontology-ffi-macros = { git = "https://github.com/snipsco/snips-nlu-ontology", tag = "0.67.0" }

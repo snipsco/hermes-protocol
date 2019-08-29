@@ -394,7 +394,7 @@ macro_rules! test_suite {
             );
         t!(nlu_slot_parsed_works:
                     nlu.subscribe_slot_parsed <= NluSlotMessage | nlu_backend.publish_slot_parsed
-                    with NluSlotMessage { id: None, input: "some input".into(), intent_name: "some intent".into(), slot: Some(NluSlot { nlu_slot: Slot { slot_name: "my slot".into(), raw_value: "value".into(), value: snips_nlu_ontology::SlotValue::Custom("my slot".into()), range: 0..6, entity: "entity".into(), confidence_score: Some(1.) }}), session_id: Some("abc".into()) };
+                    with NluSlotMessage { id: None, input: "some input".into(), intent_name: "some intent".into(), slot: Some(NluSlot { nlu_slot: Slot { slot_name: "my slot".into(), raw_value: "value".into(), value: snips_nlu_ontology::SlotValue::Custom("my slot".into()), range: 0..6, entity: "entity".into(), confidence_score: Some(1.), alternatives: vec![snips_nlu_ontology::SlotValue::Custom("my slot 2".into())] }}), session_id: Some("abc".into()) };
             );
         t!(nlu_intent_parsed_works:
                     nlu.subscribe_intent_parsed <= NluIntentMessage | nlu_backend.publish_intent_parsed
