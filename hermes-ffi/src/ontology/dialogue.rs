@@ -1163,6 +1163,10 @@ mod tests {
                 entity: "entity".to_string(),
                 slot_name: "forecast_location".to_string(),
                 confidence_score: Some(0.8),
+                alternatives: vec![
+                    snips_nlu_ontology::SlotValue::Custom("Gwadloup".to_string().into()),
+                    snips_nlu_ontology::SlotValue::Custom("Point a Pitre".to_string().into()),
+                ],
             },
         };
 
@@ -1206,6 +1210,10 @@ mod tests {
                             entity: "entity2".to_string(),
                             slot_name: "my_slot_name".to_string(),
                             confidence_score: Some(0.6),
+                            alternatives: vec![
+                                snips_nlu_ontology::SlotValue::Custom("Matnik".to_string().into()),
+                                snips_nlu_ontology::SlotValue::Custom("Fort de france".to_string().into()),
+                            ],
                         },
                     },
                     hermes::NluSlot {
@@ -1216,6 +1224,7 @@ mod tests {
                             entity: "entity3".to_string(),
                             slot_name: "another_slot_name".to_string(),
                             confidence_score: Some(0.7),
+                            alternatives: vec![],
                         },
                     },
                 ],
@@ -1232,6 +1241,10 @@ mod tests {
                             entity: "entity2".to_string(),
                             slot_name: "my_slot_name".to_string(),
                             confidence_score: Some(0.6),
+                            alternatives: vec![
+                                snips_nlu_ontology::SlotValue::Custom("Matnik".to_string().into()),
+                                snips_nlu_ontology::SlotValue::Custom("Fort de france".to_string().into()),
+                            ],
                         },
                     },
                     hermes::NluSlot {
@@ -1242,6 +1255,10 @@ mod tests {
                             entity: "entity3".to_string(),
                             slot_name: "another_slot_name".to_string(),
                             confidence_score: Some(0.7),
+                            alternatives: vec![
+                                snips_nlu_ontology::SlotValue::Custom("Matnik".to_string().into()),
+                                snips_nlu_ontology::SlotValue::Custom("Fort de france".to_string().into()),
+                            ],
                         },
                     },
                 ],
