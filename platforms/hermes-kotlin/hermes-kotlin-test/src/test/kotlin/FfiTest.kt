@@ -5,8 +5,8 @@ import ai.snips.hermes.ContinueSessionMessage
 import ai.snips.hermes.DialogueConfigureIntent
 import ai.snips.hermes.DialogueConfigureMessage
 import ai.snips.hermes.EndSessionMessage
-import ai.snips.hermes.InjectionCompleteMessage
 import ai.snips.hermes.HermesComponent
+import ai.snips.hermes.InjectionCompleteMessage
 import ai.snips.hermes.InjectionKind.Add
 import ai.snips.hermes.InjectionOperation
 import ai.snips.hermes.InjectionRequestMessage
@@ -28,6 +28,9 @@ import ai.snips.nlu.ontology.Slot
 import ai.snips.nlu.ontology.SlotValue
 import ai.snips.nlu.ontology.SlotValue.CityValue
 import ai.snips.nlu.ontology.SlotValue.MusicAlbumValue
+import ai.snips.nlu.ontology.SlotValue.MusicArtistValue
+import ai.snips.nlu.ontology.SlotValue.MusicTrackValue
+import ai.snips.nlu.ontology.SlotValue.NumberValue
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
@@ -108,7 +111,7 @@ class FfiTest {
                 alternatives = listOf(IntentAlternative(intentName = "toqsfqs",
                                                         confidenceScore = 0.1234f,
                                                         slots = listOf()),
-                                      IntentAlternative(intentName = null , confidenceScore = 0.14f, slots = listOf()))
+                                      IntentAlternative(intentName = null, confidenceScore = 0.14f, slots = listOf()))
         )
         assertThat(HermesTest().roundTripIntentNotRecognized(input)).isEqualTo(input)
         assertThat(HermesTest().roundTripIntentNotRecognizedJson(input)).isEqualTo(input)
@@ -135,18 +138,20 @@ class FfiTest {
                                                         confidenceScore = 0.1234f,
                                                         slots = listOf(Slot(entity = "qmldkfj",
                                                                             confidenceScore = 0.9f,
-                                                                            range = Range(0,1),
+                                                                            range = Range(0, 1),
                                                                             rawValue = "msqkfld",
                                                                             slotName = "qslfkj",
-                                                                            value = MusicAlbumValue(value = "qmslkfdj")),
+                                                                            value = MusicAlbumValue(value = "qmslkfdj"),
+                                                                            alternatives = listOf(MusicArtistValue(value = "mqsklfj"),
+                                                                                                  MusicTrackValue(value = "fsdqlkdflkqmj"))),
                                                                        Slot(entity = "qsdf",
                                                                             confidenceScore = 0.89f,
-                                                                            range = Range(10,43),
+                                                                            range = Range(10, 43),
                                                                             rawValue = "aaaaa",
                                                                             slotName = "bbbb",
-                                                                            value = CityValue(value = "qmslkfdj"))
+                                                                            value = CityValue(value = "qmslkfdj"), alternatives = listOf())
                                                         )),
-                                      IntentAlternative(intentName = null , confidenceScore = 0.14f, slots = listOf()))
+                                      IntentAlternative(intentName = null, confidenceScore = 0.14f, slots = listOf()))
         )
         // we're still missing a converter for CSlot for this one
         //assertThat(HermesTest().roundTripIntentNotRecognized(input3)).isEqualTo(input3)
@@ -348,7 +353,7 @@ class FfiTest {
                 alternatives = listOf(IntentAlternative(intentName = "toqsfqs",
                                                         confidenceScore = 0.1234f,
                                                         slots = listOf()),
-                                      IntentAlternative(intentName = null , confidenceScore = 0.14f, slots = listOf()))
+                                      IntentAlternative(intentName = null, confidenceScore = 0.14f, slots = listOf()))
 
 
         )
@@ -379,23 +384,29 @@ class FfiTest {
                                     range = Range(start = 1, end = 8),
                                     value = SlotValue.CustomValue("toto"),
                                     entity = "some entity",
-                                    slotName = "some slot")),
+                                    slotName = "some slot",
+                                    alternatives = listOf(NumberValue(value = 3.1415),
+                                                          MusicTrackValue(value = "fsdqlkdflkqmj"))
+                )),
                 alternatives = listOf(IntentAlternative(intentName = "toqsfqs",
                                                         confidenceScore = 0.1234f,
                                                         slots = listOf(Slot(entity = "qmldkfj",
                                                                             confidenceScore = 0.9f,
-                                                                            range = Range(0,1),
+                                                                            range = Range(0, 1),
                                                                             rawValue = "msqkfld",
                                                                             slotName = "qslfkj",
-                                                                            value = MusicAlbumValue(value = "qmslkfdj")),
+                                                                            value = MusicAlbumValue(value = "qmslkfdj"),
+                                                                            alternatives = listOf(MusicArtistValue(value = "mqsklfj"),
+                                                                                                  MusicTrackValue(value = "fsdqlkdflkqmj"))),
+
                                                                        Slot(entity = "qsdf",
                                                                             confidenceScore = 0.89f,
-                                                                            range = Range(10,43),
+                                                                            range = Range(10, 43),
                                                                             rawValue = "aaaaa",
                                                                             slotName = "bbbb",
-                                                                            value = CityValue(value = "qmslkfdj"))
-                                                                       )),
-                                      IntentAlternative(intentName = null , confidenceScore = 0.14f, slots = listOf()))
+                                                                            value = CityValue(value = "qmslkfdj"), alternatives = listOf())
+                                                        )),
+                                      IntentAlternative(intentName = null, confidenceScore = 0.14f, slots = listOf()))
 
         )
         // we're still missing a few converters to do that (slot)
@@ -414,8 +425,8 @@ class FfiTest {
         assertThat(HermesTest().roundTripIntentAlternative(input)).isEqualTo(input)
 
         val input2 = IntentAlternative(intentName = null,
-                                      confidenceScore = 0.1234f,
-                                      slots = listOf())
+                                       confidenceScore = 0.1234f,
+                                       slots = listOf())
 
         assertThat(HermesTest().roundTripIntentAlternative(input2)).isEqualTo(input2)
     }
@@ -438,7 +449,7 @@ class FfiTest {
                                                                  slotName = "bbbb",
                                                                  value = CityValue(value = "qmslkfdj"))*/
                                              )),
-                           IntentAlternative(intentName = null , confidenceScore = 0.14f, slots = listOf()))
+                           IntentAlternative(intentName = null, confidenceScore = 0.14f, slots = listOf()))
 
         assertThat(HermesTest().roundTripIntentAlternativeArray(input)).isEqualTo(input)
 

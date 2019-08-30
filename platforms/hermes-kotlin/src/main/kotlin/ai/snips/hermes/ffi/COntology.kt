@@ -325,14 +325,7 @@ class CNluSlot(p: Pointer?) : Structure(p), Structure.ByReference {
 
     override fun getFieldOrder() = listOf("nlu_slot")
 
-    fun toSlot() = Slot(
-            rawValue = nlu_slot!!.raw_value.readString(),
-            value = nlu_slot!!.value.readSlotValue(),
-            range = nlu_slot!!.range_start.readRangeTo(nlu_slot!!.range_end),
-            entity = nlu_slot!!.entity.readString(),
-            slotName = nlu_slot!!.slot_name.readString(),
-            confidenceScore = nlu_slot!!.confidence_score
-    )
+    fun toSlot() = nlu_slot!!.toSlot()
 }
 
 class CNluSlotArray(p: Pointer?) : Structure(p), Structure.ByReference {
