@@ -30,6 +30,7 @@ function roundTrip({ data, FFIFunctionName }) {
         const rustAllocatedString = (mutableReference as any).deref().readCString()
         expect(JSON.parse(rustAllocatedString)).toMatchObject(data)
     } catch(error) {
+        // eslint-disable-next-line
         console.log(error)
         throw error
     }
@@ -147,15 +148,17 @@ describe('It should perform json round-trips on messages', () => {
                 rawValue: 'vert',
                 value: {
                     kind: Dialog.enums.slotType.custom,
-                    value: 'vert'
+                    value: 'vert',
                 },
+                alternatives: [],
                 range: {
                     start: 7,
                     end: 11
                 },
                 entity: 'Color',
                 slotName: 'Color'
-            }]
+            }],
+            alternatives: []
         }
 
         const ordinalAndNumberIntentMessage: IntentMessage = {
@@ -177,6 +180,7 @@ describe('It should perform json round-trips on messages', () => {
                         value: 1,
                         kind: Dialog.enums.slotType.number
                     },
+                    alternatives: [],
                     range:{
                         start: 11,
                         end: 13
@@ -191,6 +195,7 @@ describe('It should perform json round-trips on messages', () => {
                         value: 1,
                         kind: Dialog.enums.slotType.number
                     },
+                    alternatives: [],
                     range: {
                         start: 19,
                         end: 21
@@ -205,12 +210,36 @@ describe('It should perform json round-trips on messages', () => {
                         value: 101,
                         kind: Dialog.enums.slotType.ordinal
                     },
+                    alternatives: [],
                     range: {
                         start: 19,
                         end: 21
                     },
                     entity: 'snips/ordinal',
                     slotName: 'thirdTerm'
+                }
+            ],
+            alternatives: [
+                {
+                    intentName: 'alternativeIntent',
+                    confidenceScore: 0.5,
+                    slots: [
+                        {
+                            confidenceScore: 0.5,
+                            rawValue: 'un',
+                            value: {
+                                value: 101,
+                                kind: Dialog.enums.slotType.ordinal,
+                            },
+                            alternatives: [],
+                            range: {
+                                start: 19,
+                                end: 21
+                            },
+                            entity: 'snips/ordinal',
+                            slotName: 'thirdTerm'
+                        }
+                    ]
                 }
             ]
         }
@@ -235,12 +264,18 @@ describe('It should perform json round-trips on messages', () => {
                     grain: Dialog.enums.grain.day,
                     precision: Dialog.enums.precision.exact
                 },
+                alternatives: [{
+                    kind: Dialog.enums.slotType.instantTime,
+                    value: '2019-01-07 00:00:00 +01:00',
+                    grain: Dialog.enums.grain.day,
+                    precision: Dialog.enums.precision.exact
+                }],
                 range: {
                     start: 35,
                     end: 46
                 },
                 entity: 'snips/datetime',
-                slotName: 'forecast_datetime'
+                slotName: 'forecast_datetime',
             }]
         }
 
@@ -268,7 +303,12 @@ describe('It should perform json round-trips on messages', () => {
             sessionId: '6ce651f7-0aec-4910-bfec-b246ea6ca550',
             input: 'additionne un plus un',
             customData: '',
-            confidenceScore: 0.5
+            confidenceScore: 0.5,
+            alternatives: [{
+                intentName: 'alternativeIntent',
+                confidenceScore: 0.5,
+                slots: []
+            }]
         }
         roundTrip({
             data: intentNotRecognizedMessage,
