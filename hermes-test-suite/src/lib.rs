@@ -401,7 +401,7 @@ macro_rules! test_suite {
                     with NluIntentMessage { id: None, input: "hello world".into(), intent: NluIntentClassifierResult { intent_name: "my intent".into(), confidence_score: 0.73 }, slots: vec![], session_id: Some("abc".into()), alternatives: Some(vec![hermes::NluIntentAlternative {intent_name: Some("foobar".into()), confidence_score: 0.5, slots:vec![]}, hermes::NluIntentAlternative {intent_name: None, confidence_score: 0.4, slots:vec![]} ]) };);
         t!(nlu_intent_not_recognized_works:
                     nlu.subscribe_intent_not_recognized <= NluIntentNotRecognizedMessage | nlu_backend.publish_intent_not_recognized
-                    with NluIntentNotRecognizedMessage { id: None, input: "hello world".into(), session_id: Some("abc".into()), confidence_score: 0.5 };);
+                    with NluIntentNotRecognizedMessage { id: None, input: "hello world".into(), session_id: Some("abc".into()), confidence_score: 0.5, alternatives: Some(vec![hermes::NluIntentAlternative {intent_name: Some("foobaz".into()), confidence_score: 0.5, slots:vec![]}, hermes::NluIntentAlternative {intent_name: None, confidence_score: 0.4, slots:vec![]} ]) };);
         t!(nlu_reload:
                     nlu_backend.subscribe_component_reload <= RequestComponentReloadMessage | nlu.publish_component_reload
                     with RequestComponentReloadMessage { id: "abc".into() }; );

@@ -207,6 +207,8 @@ pub struct CNluIntentNotRecognizedMessage {
     /// Nullable
     pub session_id: *const libc::c_char,
     pub confidence_score: libc::c_float,
+    /// Nullable
+    pub alternatives: *const CNluIntentAlternativeArray,
 }
 
 unsafe impl Sync for CNluIntentNotRecognizedMessage {}
@@ -224,6 +226,11 @@ impl CReprOf<hermes::NluIntentNotRecognizedMessage> for CNluIntentNotRecognizedM
             id: convert_to_nullable_c_string!(input.id),
             session_id: convert_to_nullable_c_string!(input.session_id),
             confidence_score: input.confidence_score,
+            alternatives: if let Some(alternatives) = input.alternatives {
+                CNluIntentAlternativeArray::c_repr_of(alternatives)?.into_raw_pointer()
+            } else {
+                null()
+            },
         })
     }
 }
@@ -235,6 +242,11 @@ impl AsRust<hermes::NluIntentNotRecognizedMessage> for CNluIntentNotRecognizedMe
             id: create_optional_rust_string_from!(self.id),
             session_id: create_optional_rust_string_from!(self.session_id),
             confidence_score: self.confidence_score,
+            alternatives: if !self.alternatives.is_null() {
+                Some(unsafe { CNluIntentAlternativeArray::raw_borrow(self.alternatives) }?.as_rust()?)
+            } else {
+                None
+            },
         })
     }
 }
@@ -244,6 +256,9 @@ impl Drop for CNluIntentNotRecognizedMessage {
         take_back_c_string!(self.input);
         take_back_nullable_c_string!(self.id);
         take_back_nullable_c_string!(self.session_id);
+        if !self.alternatives.is_null() {
+            let _ = unsafe { CNluIntentAlternativeArray::drop_raw_pointer(self.alternatives) };
+        };
     }
 }
 

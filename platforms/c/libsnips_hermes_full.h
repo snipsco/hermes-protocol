@@ -675,6 +675,10 @@ typedef struct {
    */
   const char *session_id;
   float confidence_score;
+  /**
+   * Nullable
+   */
+  const CNluIntentAlternativeArray *alternatives;
 } CNluIntentNotRecognizedMessage;
 
 typedef struct {

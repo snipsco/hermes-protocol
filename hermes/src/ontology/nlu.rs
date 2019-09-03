@@ -56,7 +56,7 @@ pub struct NluSlotMessage {
 
 impl<'de> HermesMessage<'de> for NluSlotMessage {}
 
-#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NluIntentNotRecognizedMessage {
     /// The id of the `NluQueryMessage` that was processed
@@ -67,6 +67,8 @@ pub struct NluIntentNotRecognizedMessage {
     pub confidence_score: f32,
     /// An optional session id if there is a related session
     pub session_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub alternatives: Option<Vec<NluIntentAlternative>>,
 }
 
 impl<'de> HermesMessage<'de> for NluIntentNotRecognizedMessage {}
