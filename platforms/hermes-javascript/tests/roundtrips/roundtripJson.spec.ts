@@ -150,7 +150,6 @@ describe('It should perform json round-trips on messages', () => {
                     kind: Dialog.enums.slotType.custom,
                     value: 'vert',
                 },
-                alternatives: [],
                 range: {
                     start: 7,
                     end: 11
@@ -195,7 +194,6 @@ describe('It should perform json round-trips on messages', () => {
                         value: 1,
                         kind: Dialog.enums.slotType.number
                     },
-                    alternatives: [],
                     range: {
                         start: 19,
                         end: 21
@@ -210,7 +208,6 @@ describe('It should perform json round-trips on messages', () => {
                         value: 101,
                         kind: Dialog.enums.slotType.ordinal
                     },
-                    alternatives: [],
                     range: {
                         start: 19,
                         end: 21
@@ -231,7 +228,6 @@ describe('It should perform json round-trips on messages', () => {
                                 value: 101,
                                 kind: Dialog.enums.slotType.ordinal,
                             },
-                            alternatives: [],
                             range: {
                                 start: 19,
                                 end: 21

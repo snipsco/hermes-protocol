@@ -112,7 +112,7 @@ export type NluSlot<T extends slotType = slotType> = {
     /** The resolved value of the slot. */
     value: InferedSlotType<T>
     /** Alternative values. */
-    alternatives: InferedSlotType<T>[]
+    alternatives?: InferedSlotType<T>[]
 }
 
 export interface IntentMessage {
