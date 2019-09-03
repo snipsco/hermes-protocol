@@ -113,7 +113,7 @@ impl<'de> HermesMessage<'de> for NluIntentMessage {}
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NluIntentAlternative {
-    /// Name of the intent that was found, or None is not intent was recognized
+    /// Name of the intent that was found, or None if not intent was recognized
     pub intent_name: Option<String>,
     /// The confidence score of this alternative
     pub confidence_score: f32,
