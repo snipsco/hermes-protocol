@@ -408,9 +408,16 @@ macro_rules! impl_identifiable_component_facades_for {
                 )
             }
 
-            fn subscribe_error(&self, site_id: String, handler: Callback<ErrorMessage>) -> Fallible<()> {
+            fn subscribe_error(&self, site_id: String, handler: Callback<SiteErrorMessage>) -> Fallible<()> {
                 self.mqtt_handler.subscribe_payload(
                     &HermesTopic::Component(Some(site_id), self.component, ComponentCommand::Error),
+                    move |p| handler.call(p),
+                )
+            }
+
+            fn subscribe_all_error(&self, handler: Callback<SiteErrorMessage>) -> Fallible<()> {
+                self.mqtt_handler.subscribe_payload(
+                    &HermesTopic::Component(Some("+".to_string()), self.component, ComponentCommand::Error),
                     move |p| handler.call(p),
                 )
             }
@@ -449,7 +456,7 @@ macro_rules! impl_identifiable_component_facades_for {
                 )
             }
 
-            fn publish_error(&self, site_id: String, error: ErrorMessage) -> Fallible<()> {
+            fn publish_error(&self, site_id: String, error: SiteErrorMessage) -> Fallible<()> {
                 self.mqtt_handler.publish_payload(
                     &HermesTopic::Component(Some(site_id), self.component, ComponentCommand::Error),
                     error,

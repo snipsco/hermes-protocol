@@ -296,8 +296,12 @@ macro_rules! t_identifiable_component {
                         $f.subscribe_version { "identifier".to_string() } <= VersionMessage | $f_back.publish_version
                         with VersionMessage { version: semver::Version { major: 1, minor: 0, patch: 0, pre: vec![], build: vec![]} };);
                 t!(error_works:
-                        $f.subscribe_error { "identifier".to_string() } <= ErrorMessage | $f_back.publish_error
-                        with ErrorMessage { session_id: Some("123abc".into()), error: "some error".into(), context: None };);
+                        $f.subscribe_error { "identifier".to_string() } <= SiteErrorMessage | $f_back.publish_error
+                        with SiteErrorMessage { session_id: Some("123abc".into()), error: "some error".into(), context: None, site_id: "identifier".into() };);
+                t!(all_error_works:
+                        ManyToOne
+                        $f.subscribe_all_error <= SiteErrorMessage | $f_back.publish_error { "identifier".into() }
+                        with SiteErrorMessage { session_id: Some("123abc".into()), error: "some error".into(), context: None, site_id: "identifier".into() };);
                 t!(component_loaded_works:
                         $f.subscribe_component_loaded { "identifier".to_string() } <= ComponentLoadedOnSiteMessage | $f_back.publish_component_loaded
                         with ComponentLoadedOnSiteMessage { id: Some("id".into()), reloaded: false, site_id: "site_id".into() }; );

@@ -351,7 +351,7 @@ struct IdentifiableComponentVersion<T: Debug> {
 #[derive(Debug)]
 struct IdentifiableComponentError<T: Debug> {
     site_id: String,
-    error: ErrorMessage,
+    error: SiteErrorMessage,
     component: T,
 }
 
@@ -375,8 +375,12 @@ impl<T: Send + Sync + Debug + Copy + 'static> IdentifiableComponentFacade for In
         subscribe_filter!(self, IdentifiableComponentVersion<T> { version }, handler, site_id, |it| &it.site_id)
     }
 
-    fn subscribe_error(&self, site_id: String, handler: Callback<ErrorMessage>) -> Fallible<()> {
+    fn subscribe_error(&self, site_id: String, handler: Callback<SiteErrorMessage>) -> Fallible<()> {
         subscribe_filter!(self, IdentifiableComponentError<T> { error }, handler, site_id, |it| &it.site_id)
+    }
+
+    fn subscribe_all_error(&self, handler: Callback<SiteErrorMessage>) -> Fallible<()> {
+        subscribe!(self, IdentifiableComponentError<T> { error }, handler)
     }
 
     fn subscribe_component_loaded(
@@ -406,7 +410,7 @@ impl<T: Send + Sync + Debug + Copy + 'static> IdentifiableComponentBackendFacade
         self.publish(component_version)
     }
 
-    fn publish_error(&self, site_id: String, error: ErrorMessage) -> Fallible<()> {
+    fn publish_error(&self, site_id: String, error: SiteErrorMessage) -> Fallible<()> {
         let component_error: IdentifiableComponentError<T> = IdentifiableComponentError {
             site_id,
             error,

@@ -67,6 +67,21 @@ impl<'de> HermesMessage<'de> for ErrorMessage {}
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct SiteErrorMessage {
+    /// Site on which the error happened.
+    pub site_id: String,
+    /// An optional session id if there is a related session
+    pub session_id: Option<String>,
+    /// The error that occurred
+    pub error: String,
+    /// Optional additional information on the context in which the error occurred
+    pub context: Option<String>,
+}
+
+impl<'de> HermesMessage<'de> for SiteErrorMessage {}
+
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub enum HermesComponent {
     AudioServer,
     Hotword,
