@@ -57,6 +57,8 @@ class HermesExtension(Command):
 
     def initialize_options(self):
         log("info", "preparing hermes extension building step")
+        # We initialize class properties that will be merged with the command-line arguments that have the same name
+        # in the finalize_options() method.
         self.include_extension = None
 
     def finalize_options(self):
@@ -88,7 +90,7 @@ class HermesExtension(Command):
                     log("success", "Found extension at : {}".format(self.SHARED_OBJECT_PATH))
                     self.include_extension = self.SHARED_OBJECT_PATH
 
-            else:
+            else:  # An actual path was provided.
                 log("info", "Will look for pre-built extension at path : {}".format(self.include_extension))
                 if not os.path.exists(self.include_extension):  # We check that the provided extension exists
                     raise Exception("the provided path to the compiled extension : {} doesn't exists ...".format(self.include_extension))
@@ -115,6 +117,12 @@ class HermesExtension(Command):
                 log("success", "Done compiling hermes extension !")
                 self.include_extension = BUILT_SHARED_OBJECT_PATH
 
+
+        if not os.path.exists(self.DYLIB_PATH):  # We check for the existence of the hermes_python/dylib folder !
+            log("warning", "Could not find folder dylib at : {}, creating one. ".format(self.DYLIB_PATH))
+            os.makedirs(self.DYLIB_PATH)
+        else:
+            log("warning", "The dylib folder is already present. ")
 
         if not os.path.exists(self.SHARED_OBJECT_PATH):
             shutil.copy(self.include_extension, self.DYLIB_PATH)
