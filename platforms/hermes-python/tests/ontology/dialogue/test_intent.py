@@ -15,7 +15,7 @@ class TestSlotAccessFromIntent(object):
         slots = hermes_python.ontology.dialogue.SlotMap(slot_map)
 
         intent_message = hermes_python.ontology.dialogue.IntentMessage("session_id", "", "site_id", "input", "testIntent",
-                                                                       slots, [])
+                                                                       slots, [], [], .1)
         assert type(intent_message.slots.test_slot.first()) is hermes_python.ontology.slot.CustomValue
         assert type(intent_message.slots.test_slot.all()[0]) is hermes_python.ontology.slot.CustomValue
         assert type(intent_message.slots.test_slot[0]) is hermes_python.ontology.nlu.NluSlot
@@ -25,7 +25,7 @@ class TestSlotAccessFromIntent(object):
 
     def test_slot_access_from_intent_message_that_has_no_slots(self):
         intent_message = hermes_python.ontology.dialogue.IntentMessage("session_id", "", "site_id", "input", "testIntent",
-                                                                       None, [])
+                                                                       None, [], [], .1)
 
         assert len(intent_message.slots) == 0
         assert len(intent_message.slots.test_slot) == 0
@@ -45,7 +45,7 @@ class TestSlotAccessFromIntent(object):
         slots = hermes_python.ontology.dialogue.SlotMap(slot_map)
 
         intent_message = hermes_python.ontology.dialogue.IntentMessage("session_id", "", "site_id", "input", "testIntent",
-                                                                       slots, [])
+                                                                       slots, [], [], .1)
 
         assert intent_message.slots.unseen_test_slot.first() is None
         assert intent_message.slots.unseen_test_slot.all() is None
@@ -63,5 +63,5 @@ class TestSlotAccessFromIntent(object):
 
         slots = hermes_python.ontology.dialogue.SlotMap(slot_map)
         intent_message = hermes_python.ontology.dialogue.IntentMessage("session_id", "", "site_id", "input", "testIntent",
-                                                                       slots, [])
+                                                                       slots, [], [], .1)
         assert intent_message.slots.test_slot[0].confidence_score == 0.8
