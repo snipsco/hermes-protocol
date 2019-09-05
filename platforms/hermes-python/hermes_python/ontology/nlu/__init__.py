@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional, Text
 
 from collections import defaultdict
 
@@ -8,7 +8,7 @@ try:
 except ImportError:
     from collections import Mapping  # Python2.7+
 
-from ..slot import Slot
+from ..slot import Slot, SlotValue
 
 
 class NluIntentAlternative(object):
@@ -34,7 +34,7 @@ class NluIntentAlternative(object):
 class NluSlot(object):
     def __init__(self, slot_value, raw_value, alternatives, entity, slot_name, range_start, range_end,
                  confidence_score):
-        # type: (SlotValue, str, List[SlotValue], str, str, int, int, float) -> None
+        # type: (SlotValue, Text, List[SlotValue], Text, Text, int, int, float) -> None
         self.slot_value = slot_value
         self.raw_value = raw_value
         self.alternatives = alternatives

@@ -14,7 +14,7 @@ class AsrDecodingDuration(object):
 
 class AsrToken(object):
     def __init__(self, value, confidence, range_start, range_end, time):
-        # type: (String, float, int, int, AsrDecodingDuration) -> None
+        # type: (str, float, int, int, AsrDecodingDuration) -> None
         self.value = value
         self.confidence = confidence
         self.range_start = range_start

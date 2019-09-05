@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-from typing import List
+from typing import List, Optional, Text
 from ..nlu import SlotMap, NluIntentAlternative
 from ..asr import AsrToken
 
 
 class IntentMessage(object):
     def __init__(self, session_id, custom_data, site_id, input, intent, slots, alternatives, asr_tokens, asr_confidence):
-        # type: (str, str, str, str, IntentClassifierResult, SlotMap, List[NluIntentAlternative], List[List[AsrToken]], float) -> None
+        # type: (Text, Text, Text, Text, IntentClassifierResult, SlotMap, List[NluIntentAlternative], List[List[AsrToken]], float) -> None
         """
         A python representation of the intent parsed by the NLU engine.
 
@@ -65,7 +65,7 @@ class IntentMessage(object):
 
 class IntentClassifierResult(object):
     def __init__(self, intent_name, confidence_score):
-        # type: (str, float) -> None
+        # type: (Text, float) -> None
         """
         Structured description of the intent classification.
 
@@ -84,7 +84,7 @@ class IntentClassifierResult(object):
 
 class IntentNotRecognizedMessage(object):
     def __init__(self, site_id, session_id, input, custom_data, confidence_score, alternatives):
-        # type: (str, str, Optional[str], Optional[str], float, List[NluIntentAlternative]) -> None
+        # type: (Text, Text, Optional[Text], Optional[Text], float, List[NluIntentAlternative]) -> None
         """
         A message that the handler receives from the Dialogue manager when an intent is not recognized and that the
         session was initialized with the intent_not_recognized flag turned on.
