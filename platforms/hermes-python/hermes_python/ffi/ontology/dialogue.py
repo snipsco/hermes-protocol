@@ -3,6 +3,8 @@ from ctypes import c_char_p, c_int32, c_int64, c_int, c_float, c_uint8, c_void_p
 from enum import IntEnum
 
 from ..ontology import CStringArray, SlotValueType, Grain, Precision, SNIPS_HERMES_COMPONENT
+from .nlu import CNluIntentAlternativeArray, CNluSlotArray, CNluIntentClassifierResult
+from .asr import CAsrTokenDoubleArray
 
 
 class CSayMessage(Structure):
@@ -149,195 +151,34 @@ class CStartSessionMessageNotification(Structure):
         return repr.into_c_repr()
 
 
-class CNluIntentClassifierResult(Structure):
-    _fields_ = [("intent_name", c_char_p),
-                ("confidence_score", c_float)]
-
-    @classmethod
-    def build(cls, intent_name, confidence_score):
-        intent_name = intent_name.encode('utf-8')
-        confidence_score = float(confidence_score)
-        return cls(intent_name, confidence_score)
-
-    @classmethod
-    def from_repr(cls, repr):
-        return cls.build(repr.intent_name, repr.confidence_score)
-
-
-class CSlotValue(Structure):
-    _fields_ = [
-        ("value", c_void_p),
-        ("value_type", c_int32)
-    ]
-    @classmethod
-    def build(cls, value, value_type):
-        return cls(value, value_type)
-
-    @classmethod
-    def from_repr(cls, repr):
-        if SlotValueType.CUSTOM == repr.value_type:  # CUSTOM
-            c_repr_custom_value = repr.value.value.encode('utf-8')
-            c_repr_value = cast(c_char_p(c_repr_custom_value), c_void_p)
-            return cls(c_repr_value, c_int32(repr.value_type))
-
-        elif SlotValueType.NUMBER == repr.value_type:  # NUMBER
-            c_repr_number = c_double(repr.value.value)
-            cls(byref(c_repr_number), c_int32(repr.value_type))
-
-        elif SlotValueType.ORDINAL == repr.value_type:  # ORDINAL
-            c_repr_ordinal_value = c_int64(repr.value.value)
-            cls(byref(c_repr_ordinal_value), c_int32(repr.value_type))
-
-        elif SlotValueType.INSTANTTIME == repr.value_type:  # INSTANTTIME
-            c_repr_instant_time_value = CInstantTimeValue.from_repr(repr.value)
-            cls(byref(c_repr_instant_time_value), c_int32(repr.value_type))
-
-        elif SlotValueType.TIMEINTERVAL == repr.value_type:  # TIMEINTERVAL
-            cls(c_void_p, c_int32(repr.value_type))
-        elif SlotValueType.AMOUNTOFMONEY == repr.value_type:  # AMOUNTOFMONEY
-            cls(c_void_p, c_int32(repr.value_type))
-        elif SlotValueType.TEMPERATURE == repr.value_type:  # TEMPERATURE
-            cls(c_void_p, c_int32(repr.value_type))
-        elif SlotValueType.DURATION == repr.value_type:  # DURATION
-            cls(c_void_p, c_int32(repr.value_type))
-        elif SlotValueType.PERCENTAGE == repr.value_type:  # PERCENTAGE
-            cls(c_void_p, c_int32(repr.value_type))
-        elif SlotValueType.MUSICARTIST == repr.value_type:  # MUSICARTIST
-            cls(c_void_p, c_int32(repr.value_type))
-        elif SlotValueType.MUSICALBUM == repr.value_type:  # MUSICALBUM
-            cls(c_void_p, c_int32(repr.value_type))
-        elif SlotValueType.MUSICTRACK == repr.value_type:  # MUSICTRACK
-            cls(c_void_p, c_int32(repr.value_type))
-        elif SlotValueType.CITY == repr.value_type:  # CITY
-            cls(c_void_p, c_int32(repr.value_type))
-        elif SlotValueType.COUNTRY == repr.value_type:  # COUNTRY
-            cls(c_void_p, c_int32(repr.value_type))
-        elif SlotValueType.REGION == repr.value_type:  # REGION
-            cls(c_void_p, c_int32(repr.value_type))
-
-        else:
-            raise Exception("Bad value type. Got : {}".format(repr.value_type))
-
-
-
-class CSlot(Structure):
-    _fields_ = [
-        ("value", CSlotValue),
-        ("raw_value", c_char_p),
-        ("entity", c_char_p),
-        ("slot_name", c_char_p),
-        ("range_start", c_int32),
-        ("range_end", c_int32),
-        ("confidence_score", c_float)
-    ]
-
-    @classmethod
-    def build(cls, c_slot_value, raw_value, entity, slot_name, range_start, range_end, confidence_score):
-        # type: (CSlotValue, str, str, str, int, int, float) -> CSlot
-        raw_value = raw_value.encode('utf-8') if raw_value else None
-        entity = entity.encode('utf-8') if entity else None
-        slot_name = slot_name.encode('utf-8') if slot_name else None
-        range_start = range_start
-        range_end = range_end
-        confidence_score = float(confidence_score) if confidence_score else float(-1)
-        return cls(c_slot_value, raw_value, entity, slot_name, range_start, range_end, confidence_score)
-
-
-class CNluSlot(Structure):
-    _fields_ = [
-        ("nlu_slot", POINTER(CSlot))
-    ]
-
-    @classmethod
-    def from_repr(cls, repr):
-        # type: (NluSlot) -> CNluSlot
-        c_slot_value = CSlotValue.from_repr(repr.slot_value)
-        c_slot = CSlot.build(c_slot_value,
-                             repr.raw_value,
-                             repr.entity,
-                             repr.slot_name,
-                             repr.range_start,
-                             repr.range_end,
-                             repr.confidence_score)
-
-        return cls(POINTER(CSlot)(c_slot))
-
-    @classmethod
-    def build(cls, nlu_slot):
-        slot_p = POINTER(CSlot)(nlu_slot)
-        return cls(slot_p)
-
-
-class CSlotList(Structure):
-    _fields_ = [
-        ("slots", POINTER(CSlot)),
-        ("size", c_int32)
-    ]
-
-
-class CNluSlotArray(Structure):
-    _fields_ = [
-        ("entries", POINTER(POINTER(CNluSlot))), # *const *const CNluSlot,
-        ("count", c_int)
-    ]
-
-    @classmethod
-    def from_repr(cls, repr):
-        # type: (SlotMap) -> CNluSlotArray
-        """
-        impl CReprOf<Vec<hermes::NluSlot>> for CNluSlotArray {
-            fn c_repr_of(input: Vec<hermes::NluSlot>) -> Fallible<Self> {
-                let array = Self {
-                    count: input.len() as _,
-                    entries: Box::into_raw(
-                        input
-                            .into_iter()
-                            .map(|e| CNluSlot::c_repr_of(e).map(|c| c.into_raw_pointer()))
-                            .collect::<Fallible<Vec<_>>>()
-                            .context("Could not convert map to C Repr")?
-                            .into_boxed_slice(),
-                    ) as *const *const _,
-                };
-                Ok(array)
-            }
-        }
-        :param repr:
-        :return:
-        """
-
-        # We flatten all the slots into a list
-        nlu_slots = [nlu_slot for slot_name, nlu_slot_array in repr.items() for nlu_slot in nlu_slot_array]
-        count = len(nlu_slots)
-
-        c_nlu_slots = [CNluSlot.from_repr(nlu_slot) for nlu_slot in nlu_slots]
-        entries = (CNluSlot * count)(*c_nlu_slots)
-        entries = cast(entries, POINTER(POINTER(CNluSlot)))
-
-        return cls(entries, c_int(count))
-
-
 class CIntentMessage(Structure):
     _fields_ = [("session_id", c_char_p),
                 ("custom_data", c_char_p),
                 ("site_id", c_char_p),
                 ("input", c_char_p),
                 ("intent", POINTER(CNluIntentClassifierResult)),
-                ("slots", POINTER(CNluSlotArray))]
+                ("slots", POINTER(CNluSlotArray)),
+                ("alternatives", POINTER(CNluIntentAlternativeArray)),
+                ("asr_tokens", POINTER(CAsrTokenDoubleArray)),
+                ("asr_confidence", c_float)]
 
     @classmethod
-    def build(cls, session_id, custom_data, site_id, input, c_intent_classifier_result, c_slot):
+    def build(cls, session_id, custom_data, site_id, input, c_intent_classifier_result, c_slots_p, c_intent_alternative_array_p, c_asr_token_double_array_p, asr_confidence):
         session_id = session_id.encode('utf-8')
         custom_data = custom_data.encode('utf-8') if custom_data else None
         site_id = site_id.encode('utf-8') if site_id else None
         input = input.encode('utf-8') if input else None
 
-        return cls(session_id, custom_data, site_id, input, c_intent_classifier_result, c_slot)
+        return cls(session_id, custom_data, site_id, input, c_intent_classifier_result, c_slots_p, c_intent_alternative_array_p, c_asr_token_double_array_p, asr_confidence)
 
     @classmethod
     def from_repr(cls, repr):
         c_intent_classifier_result = POINTER(CNluIntentClassifierResult)(CNluIntentClassifierResult.from_repr(repr.intent))
         c_slots = POINTER(CNluSlotArray)(CNluSlotArray.from_repr(repr.slots))
-        return cls.build(repr.session_id, repr.custom_data, repr.site_id, repr.input, c_intent_classifier_result, c_slots)
+        c_intent_alternatives = POINTER(CNluIntentAlternativeArray)(CNluIntentAlternativeArray.from_repr(repr.alternatives))
+        c_asr_token_double_array_p = POINTER(CAsrTokenDoubleArray)(CAsrTokenDoubleArray.from_repr(repr.asr_tokens))
+        asr_confidence = c_float(repr.asr_confidence)
+        return cls.build(repr.session_id, repr.custom_data, repr.site_id, repr.input, c_intent_classifier_result, c_slots, c_intent_alternatives, c_asr_token_double_array_p, asr_confidence)
 
 
 class SNIPS_SESSION_TERMINATION_TYPE(IntEnum):
@@ -431,57 +272,23 @@ class CIntentNotRecognizedMessage(Structure):
                 ("session_id", c_char_p),
                 ("input", c_char_p),  # Nullable
                 ("custom_data", c_char_p),  # Nullable
+                ("alternatives", POINTER(CNluIntentAlternativeArray)),  # Nullable
                 ("confidence_score", c_float)]
 
     @classmethod
-    def build(cls, site_id, session_id, input, custom_data, confidence_score):
+    def build(cls, site_id, session_id, input, custom_data, c_intent_alternative_array, confidence_score):
         site_id = site_id.encode('utf-8')
         session_id = session_id.encode('utf-8')
         input = input.encode('utf-8') if input else None
         custom_data = custom_data.encode('utf-8') if custom_data else None
         confidence_score = float(confidence_score)
 
-        return cls(site_id, session_id, input, custom_data, confidence_score)
+        return cls(site_id, session_id, input, custom_data, c_intent_alternative_array, confidence_score)
 
     @classmethod
     def from_repr(cls, repr):
-        return cls.build(repr.site_id, repr.session_id, repr.input, repr.custom_data, repr.confidence_score)
-
-
-# Slot Types Structs
-
-class CAmountOfMoneyValue(Structure):
-    _fields_ = [("unit", c_char_p),
-                ("value", c_float),
-                ("precision", c_int)] # TODO : Precision is an enum.
-
-
-class CTemperatureValue(Structure):
-    _fields_ = [("unit", c_char_p),
-                ("value", c_float)]
-
-
-class CInstantTimeValue(Structure):
-    _fields_ = [("value", c_char_p),
-               ("grain", c_int), # TODO : CGrain is an enum ...
-               ("precision", c_int)] # TODO : Precision is an enum ...
-
-
-class CTimeIntervalValue(Structure):
-    _fields_ = [("from_date", c_char_p),
-                ("to_date", c_char_p)]
-
-
-class CDurationValue(Structure):
-    _fields_ = [("years", c_int64),
-                ("quarters", c_int64),
-                ("months", c_int64),
-                ("weeks", c_int64),
-                ("days", c_int64),
-                ("hours", c_int64),
-                ("minutes", c_int64),
-                ("seconds", c_int64),
-                ("precision", c_int)]
+        alternatives_p = POINTER(CNluIntentAlternativeArray)(CNluIntentAlternativeArray.from_repr(repr.alternatives))
+        return cls.build(repr.site_id, repr.session_id, repr.input, repr.custom_data, alternatives_p, repr.confidence_score)
 
 
 class CDialogueConfigureIntent(Structure):
@@ -511,7 +318,8 @@ class CDialogueConfigureIntentArray(Structure):
     @classmethod
     def build(cls, intents):
         # type: (List[DialogueConfigureIntent]) -> CDialogueConfigureIntentArray
-        c_dialogue_configure_intents = [CDialogueConfigureIntent.from_repr(dialogue_configure_intent) for dialogue_configure_intent in intents]
+        c_dialogue_configure_intents = [CDialogueConfigureIntent.from_repr(dialogue_configure_intent) for
+                                        dialogue_configure_intent in intents]
 
         c_dialogue_configure_intents = [POINTER(CDialogueConfigureIntent)(intent) for intent in
                                         c_dialogue_configure_intents]
@@ -530,7 +338,6 @@ class CDialogueConfigureIntentArray(Structure):
 class CDialogueConfigureMessage(Structure):
     _fields_ = [("site_id", c_char_p),  # site_id is nullable.
                 ("intents", POINTER(CDialogueConfigureIntentArray))]
-
 
     @classmethod
     def from_repr(cls, repr):

@@ -2,9 +2,9 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-from ctypes import c_char_p, c_int32, c_void_p, c_uint8, POINTER, Structure, pointer, cast
+from ctypes import c_double, c_char_p, c_float, c_int, c_int32, c_int64, c_void_p, c_uint8, POINTER, Structure, pointer, cast, \
+    byref
 from enum import IntEnum
-
 
 
 class CStringArray(Structure):
@@ -102,6 +102,42 @@ class CMqttOptions(Structure):
                          repr.tls_client_cert, repr.tls_disable_root_store)
 
 
+# Slot Types Structs
+
+class CAmountOfMoneyValue(Structure):
+    _fields_ = [("unit", c_char_p),
+                ("value", c_float),
+                ("precision", c_int)]  # TODO : Precision is an enum.
+
+
+class CTemperatureValue(Structure):
+    _fields_ = [("unit", c_char_p),
+                ("value", c_float)]
+
+
+class CInstantTimeValue(Structure):
+    _fields_ = [("value", c_char_p),
+                ("grain", c_int),  # TODO : CGrain is an enum ...
+                ("precision", c_int)]  # TODO : Precision is an enum ...
+
+
+class CTimeIntervalValue(Structure):
+    _fields_ = [("from_date", c_char_p),
+                ("to_date", c_char_p)]
+
+
+class CDurationValue(Structure):
+    _fields_ = [("years", c_int64),
+                ("quarters", c_int64),
+                ("months", c_int64),
+                ("weeks", c_int64),
+                ("days", c_int64),
+                ("hours", c_int64),
+                ("minutes", c_int64),
+                ("seconds", c_int64),
+                ("precision", c_int)]
+
+
 class SlotValueType(IntEnum):
     CUSTOM = 1
     NUMBER = 2
@@ -154,3 +190,124 @@ class SNIPS_HERMES_COMPONENT(IntEnum):
             return SNIPS_HERMES_COMPONENT(repr.value)
         else:
             return SNIPS_HERMES_COMPONENT.SNIPS_HERMES_COMPONENT_NONE
+
+
+class CSlotValue(Structure):
+    _fields_ = [
+        ("value", c_void_p),
+        ("value_type", c_int32)
+    ]
+
+    @classmethod
+    def build(cls, value, value_type):
+        return cls(value, value_type)
+
+    @classmethod
+    def from_repr(cls, repr):
+        if SlotValueType.CUSTOM == repr.value_type:  # CUSTOM
+            c_repr_custom_value = repr.value.value.encode('utf-8')
+            c_repr_value = cast(c_char_p(c_repr_custom_value), c_void_p)
+            return cls(c_repr_value, c_int32(repr.value_type))
+
+        elif SlotValueType.NUMBER == repr.value_type:  # NUMBER
+            c_repr_number = c_double(repr.value.value)
+            cls(byref(c_repr_number), c_int32(repr.value_type))
+
+        elif SlotValueType.ORDINAL == repr.value_type:  # ORDINAL
+            c_repr_ordinal_value = c_int64(repr.value.value)
+            cls(byref(c_repr_ordinal_value), c_int32(repr.value_type))
+
+        elif SlotValueType.INSTANTTIME == repr.value_type:  # INSTANTTIME
+            c_repr_instant_time_value = CInstantTimeValue.from_repr(repr.value)
+            cls(byref(c_repr_instant_time_value), c_int32(repr.value_type))
+
+        elif SlotValueType.TIMEINTERVAL == repr.value_type:  # TIMEINTERVAL
+            cls(c_void_p, c_int32(repr.value_type))
+        elif SlotValueType.AMOUNTOFMONEY == repr.value_type:  # AMOUNTOFMONEY
+            cls(c_void_p, c_int32(repr.value_type))
+        elif SlotValueType.TEMPERATURE == repr.value_type:  # TEMPERATURE
+            cls(c_void_p, c_int32(repr.value_type))
+        elif SlotValueType.DURATION == repr.value_type:  # DURATION
+            cls(c_void_p, c_int32(repr.value_type))
+        elif SlotValueType.PERCENTAGE == repr.value_type:  # PERCENTAGE
+            cls(c_void_p, c_int32(repr.value_type))
+        elif SlotValueType.MUSICARTIST == repr.value_type:  # MUSICARTIST
+            cls(c_void_p, c_int32(repr.value_type))
+        elif SlotValueType.MUSICALBUM == repr.value_type:  # MUSICALBUM
+            cls(c_void_p, c_int32(repr.value_type))
+        elif SlotValueType.MUSICTRACK == repr.value_type:  # MUSICTRACK
+            cls(c_void_p, c_int32(repr.value_type))
+        elif SlotValueType.CITY == repr.value_type:  # CITY
+            cls(c_void_p, c_int32(repr.value_type))
+        elif SlotValueType.COUNTRY == repr.value_type:  # COUNTRY
+            cls(c_void_p, c_int32(repr.value_type))
+        elif SlotValueType.REGION == repr.value_type:  # REGION
+            cls(c_void_p, c_int32(repr.value_type))
+
+        else:
+            raise Exception("Bad value type. Got : {}".format(repr.value_type))
+
+
+class CSlotValueArray(Structure):
+    _fields_ = [
+        ("slot_values", POINTER(CSlotValue)),
+        ("size", c_int32)]
+
+    @classmethod
+    def from_repr(cls, repr):
+        # type: (List[SlotValue]) -> CSlotValueArray
+
+        c_slot_values_list = [CSlotValue.from_repr(slot_value) for slot_value in repr]
+        entries = (CSlotValue * len(c_slot_values_list))(*c_slot_values_list)
+        count = c_int32(len(c_slot_values_list))
+
+        return cls(entries, count)
+
+
+class CSlot(Structure):
+    _fields_ = [
+        ("value", POINTER(CSlotValue)),
+        ("alternatives", POINTER(CSlotValueArray)),
+        ("raw_value", c_char_p),
+        ("entity", c_char_p),
+        ("slot_name", c_char_p),
+        ("range_start", c_int32),
+        ("range_end", c_int32),
+        ("confidence_score", c_float)
+    ]
+
+    @classmethod
+    def build(cls, c_slot_value_p, alternatives_p, raw_value, entity, slot_name, range_start, range_end, confidence_score):
+        # type: (POINTER(CSlotValue), POINTER(CSlotValueArray), str, str, str, int, int, float) -> CSlot
+        raw_value = raw_value.encode('utf-8') if raw_value else None
+        entity = entity.encode('utf-8') if entity else None
+        slot_name = slot_name.encode('utf-8') if slot_name else None
+        range_start = range_start
+        range_end = range_end
+        confidence_score = float(confidence_score) if confidence_score else float(-1)
+        return cls(c_slot_value_p, alternatives_p, raw_value, entity, slot_name, range_start, range_end, confidence_score)
+
+    @classmethod
+    def from_repr(cls, repr):
+        # type: (Slot) -> CSlot
+        c_slot_value = CSlotValue.from_repr(repr.slot_value)
+        c_slot_value_p = POINTER(CSlotValue)(c_slot_value)
+
+        alternatives = CSlotValueArray.from_repr(repr.alternatives)
+        alternatives_p = POINTER(CSlotValueArray)(alternatives)
+
+        return CSlot.build(c_slot_value_p,
+                             alternatives_p,
+                             repr.raw_value,
+                             repr.entity,
+                             repr.slot_name,
+                             repr.range_start,
+                             repr.range_end,
+                             repr.confidence_score)
+
+
+class CSlotList(Structure):
+    _fields_ = [
+        ("slots", POINTER(CSlot)),
+        ("size", c_int32)
+    ]
