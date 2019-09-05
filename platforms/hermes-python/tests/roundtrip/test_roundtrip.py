@@ -7,13 +7,17 @@ from ctypes import cdll, CFUNCTYPE, c_void_p, c_char_p, POINTER, pointer, string
 import os
 from glob import glob
 import sys
+import pytest
 
 import hermes_python
 
-from hermes_python.ffi.ontology import CMapStringToStringArray
+from hermes_python.ontology.nlu import NluSlot, SlotMap, NluIntentAlternative
+from hermes_python.ontology.dialogue import IntentMessage, IntentClassifierResult
+from hermes_python.ontology.slot import SlotValue, CustomValue
+from hermes_python.ontology.asr import AsrDecodingDuration, AsrToken
 
-from hermes_python.ontology.dialogue import IntentMessage, IntentClassifierResult, SlotMap, NluSlot, SlotValue, \
-    CustomValue
+from hermes_python.ffi.ontology import CMapStringToStringArray
+from hermes_python.ffi.ontology.asr import CAsrDecodingDuration, CAsrToken
 from hermes_python.ffi.ontology.dialogue import CSessionQueuedMessage, CSessionStartedMessage, CSessionEndedMessage, \
     CIntentNotRecognizedMessage, CContinueSessionMessage, CStartSessionMessageNotification, CStartSessionMessageAction, \
     CEndSessionMessage, CDialogueConfigureMessage
@@ -91,7 +95,6 @@ def wrap_c_error():
 def get_round_trip_data_structure(py_ontology_object_instance, C_Ontology_Type, Python_Ontology_Class,
                                   round_trip_function):
     c_repr_object = C_Ontology_Type.from_repr(py_ontology_object_instance)
-
     pointer_c_repr = pointer(c_repr_object)
     output_pointer = pointer(c_void_p())
 
@@ -174,18 +177,40 @@ class TestSessionEndedRoundTrip(object):
         assert session_ended_message == round_trip_session_ended_message
 
 
-def test_hermes_ffi_test_round_trip_intent_not_recognized():
-    intent_not_recognized_message = hermes_python.ontology.dialogue.IntentNotRecognizedMessage("site_id", "session_id",
-                                                                                               "input", "custom_data",
-                                                                                               0.5)
-    round_trip_intent_not_recognized_message = get_round_trip_data_structure(
-        intent_not_recognized_message,
-        hermes_python.ffi.ontology.dialogue.CIntentNotRecognizedMessage,
-        hermes_python.ontology.dialogue.IntentNotRecognizedMessage,
-        lib.hermes_ffi_test_round_trip_intent_not_recognized
-    )
+class TestIntentNotRecognized(object):
 
-    assert intent_not_recognized_message == round_trip_intent_not_recognized_message
+    def test_hermes_ffi_test_round_trip_intent_not_recognized_1(self):
+        intent_not_recognized_message = hermes_python.ontology.dialogue.IntentNotRecognizedMessage("site_id", "session_id",
+                                                                                                   "input", "custom_data",
+                                                                                                   0.5, [])
+        round_trip_intent_not_recognized_message = get_round_trip_data_structure(
+            intent_not_recognized_message,
+            hermes_python.ffi.ontology.dialogue.CIntentNotRecognizedMessage,
+            hermes_python.ontology.dialogue.IntentNotRecognizedMessage,
+            lib.hermes_ffi_test_round_trip_intent_not_recognized
+        )
+
+        assert intent_not_recognized_message == round_trip_intent_not_recognized_message
+
+    @pytest.mark.skip(reason="skipped until slotmap equality resolved.")
+    def test_hermes_ffi_test_round_trip_intent_not_recognized_2(self):
+        slot_value = SlotValue(1, CustomValue("hello 🎁"))
+        nlu_slot = NluSlot(slot_value, "raw_value", [slot_value, slot_value], "entity", "slotName", 0, 2, 0.2)
+        slot_map = SlotMap({"slotName": [nlu_slot]})
+
+        intent_alternative = hermes_python.ontology.nlu.NluIntentAlternative("intent1", .2, slot_map)
+
+        intent_not_recognized_message = hermes_python.ontology.dialogue.IntentNotRecognizedMessage("site_id", "session_id",
+                                                                                                       "input", "custom_data",
+                                                                                                       0.5, [intent_alternative])
+        round_trip_intent_not_recognized_message = get_round_trip_data_structure(
+            intent_not_recognized_message,
+            hermes_python.ffi.ontology.dialogue.CIntentNotRecognizedMessage,
+            hermes_python.ontology.dialogue.IntentNotRecognizedMessage,
+            lib.hermes_ffi_test_round_trip_intent_not_recognized
+        )
+
+        assert intent_not_recognized_message == round_trip_intent_not_recognized_message
 
 
 class TestContinueSessionRoundTrip(object):
@@ -466,19 +491,239 @@ def test_tts_register_sound_message_roundtrip(wav_data):
     assert round_trip_register_sound == register_sound
 
 
-"""
-def test_hermes_ffi_test_round_trip_intent():
-    slot_value = SlotValue(1, CustomValue("hello :) 🎁"))
-    search_weather_nlu = NluSlot(0.2, slot_value, "hello", "proutEntity", "searchWeather", 0, 2)
-    slotMap = SlotMap({"searchWeather": [search_weather_nlu]})
-    intent_classifier_result = IntentClassifierResult("searchWeather", 0.2)
-    intent_message = IntentMessage("session_id", "custom_data", "site_id", "input", intent_classifier_result, slotMap)
-    round_trip_intent_message = get_round_trip_data_structure(
-        intent_message,
-        hermes_python.ffi.ontology.dialogue.CIntentMessage,
-        hermes_python.ontology.dialogue.IntentMessage,
-        lib.hermes_ffi_test_round_trip_intent
-    )
+class TestNluSlotArray(object):
+    def test_hermes_ffi_test_round_trip_nlu_slot_array_empty(self):
+        slot_map = SlotMap(dict())
 
-    assert intent_message == round_trip_intent_message
-"""
+        round_trip_slot_map = get_round_trip_data_structure(
+            slot_map,
+            hermes_python.ffi.ontology.nlu.CNluSlotArray,
+            SlotMap,
+            lib.hermes_ffi_test_round_trip_nlu_slot_array
+        )
+
+        assert slot_map.items() == round_trip_slot_map.items()
+
+    def test_hermes_ffi_test_round_trip_nlu_slot_array_with_slots(self):
+        slot_value = SlotValue(1, CustomValue("hello 🎁"))
+        nlu_slot = NluSlot(slot_value, "raw_value", [slot_value, slot_value], "entity", "slotName", 0, 2, 0.2)
+        slot_map = SlotMap({"slotName": [nlu_slot]})
+
+        round_trip_slot_map = get_round_trip_data_structure(
+            slot_map,
+            hermes_python.ffi.ontology.nlu.CNluSlotArray,
+            SlotMap,
+            lib.hermes_ffi_test_round_trip_nlu_slot_array
+        )
+
+        assert slot_map.slotName.first().value == round_trip_slot_map.slotName.first().value
+
+
+class TestIntentAlternative(object):
+    def test_hermes_ffi_test_round_trip_intent_alternative(self):
+        intent_alternative = hermes_python.ontology.nlu.NluIntentAlternative("intent_name", float(0.2), SlotMap(dict()))
+
+        round_trip_intent_alternative = get_round_trip_data_structure(
+            intent_alternative,
+            hermes_python.ffi.ontology.nlu.CNluIntentAlternative,
+            hermes_python.ontology.nlu.NluIntentAlternative,
+            lib.hermes_ffi_test_round_trip_nlu_intent_alternative
+        )
+
+        assert intent_alternative.intent_name == round_trip_intent_alternative.intent_name
+        assert len(intent_alternative.slots) == len(round_trip_intent_alternative.slots)
+
+    def test_hermes_ffi_test_round_trip_intent_alternative_with_slots(self):
+        first_slot_value = SlotValue(1, CustomValue("hello 🎁"))
+        second_slot_value = SlotValue(1, CustomValue("hell o 🎁"))
+        third_slot_value = SlotValue(1, CustomValue("hel o 🎁"))
+
+        nlu_slot = NluSlot(first_slot_value, "raw_value", [second_slot_value, third_slot_value], "entity", "searchWeather", 0, 2, .2)
+
+        slotMap = SlotMap({"searchWeather": [nlu_slot]})
+
+        intent_alternative = hermes_python.ontology.nlu.NluIntentAlternative("intent_name", float(0.2), slotMap)
+
+        round_trip_intent_alternative = get_round_trip_data_structure(
+            intent_alternative,
+            hermes_python.ffi.ontology.nlu.CNluIntentAlternative,
+            hermes_python.ontology.nlu.NluIntentAlternative,
+            lib.hermes_ffi_test_round_trip_nlu_intent_alternative
+        )
+        assert intent_alternative.intent_name == round_trip_intent_alternative.intent_name
+        assert len(intent_alternative.slots) == len(round_trip_intent_alternative.slots)
+
+
+class TestIntentAlternativeArray(object):
+    def test_hermes_ffi_test_round_trip_nlu_intent_alternative_array(self):
+
+        slot_value = SlotValue(1, CustomValue("hello 🎁"))
+        nlu_slot = NluSlot(slot_value, "raw_value", [slot_value, slot_value], "entity", "slotName", 0, 2, 0.2)
+        slot_map_1 = SlotMap({"slotName": [nlu_slot]})
+
+        slot_map_2 = SlotMap({})
+
+        nlu_intent_alternative_1 = hermes_python.ontology.nlu.NluIntentAlternative("intent1", .2, slot_map_1)
+        nlu_intent_alternative_2 = hermes_python.ontology.nlu.NluIntentAlternative("intent2", .3, slot_map_2)
+
+        intent_alternatives = [nlu_intent_alternative_1, nlu_intent_alternative_2]
+
+        c_repr_object = hermes_python.ffi.ontology.nlu.CNluIntentAlternativeArray.from_repr(intent_alternatives)
+        pointer_c_repr = pointer(c_repr_object)
+        output_pointer = pointer(c_void_p())
+
+        # Send it for round trip to Rust
+        result = lib.hermes_ffi_test_round_trip_nlu_intent_alternative_array(pointer_c_repr, output_pointer)
+        if result > 0:
+            wrap_c_error()
+
+        # Deserialize Rust result into C representation
+        round_trip_c_repr_object = hermes_python.ffi.ontology.nlu.CNluIntentAlternativeArray.from_address(output_pointer.contents.value)
+
+        # Deserialize into Python object
+        round_trip_python_ontology_object = [NluIntentAlternative.from_c_repr(round_trip_c_repr_object.entries[i].contents) for i in range(round_trip_c_repr_object.count)]
+
+        assert len(round_trip_python_ontology_object) == len(intent_alternatives)
+
+
+class TestIntent(object):
+    @staticmethod
+    def get_slot_map():
+        slot_value_1 = SlotValue(1, CustomValue("hello 🎁"))
+        slot_value_2 = SlotValue(1, CustomValue("helloo 🎁"))
+        slot_value_3 = SlotValue(1, CustomValue("hellooo 🎁"))
+        search_weather_nlu = NluSlot(slot_value_1, "hello", [slot_value_2, slot_value_3], "entity", "searchWeather", 0, 2, 0.2)
+        return SlotMap({"searchWeather": [search_weather_nlu]})
+
+    @staticmethod
+    def get_intent_alternatives():
+        slot_map_1 = TestIntent.get_slot_map()
+        slot_map_2 = TestIntent.get_slot_map()
+        nlu_intent_alternative_1 = hermes_python.ontology.nlu.NluIntentAlternative("intent1", .2, slot_map_1)
+        nlu_intent_alternative_2 = hermes_python.ontology.nlu.NluIntentAlternative("intent2", .3, slot_map_2)
+
+        return [nlu_intent_alternative_1, nlu_intent_alternative_2]
+
+
+    @staticmethod
+    def get_asr_tokens_matrix():
+        decoding_duration_1 = AsrDecodingDuration(.2, .4)
+        asr_token_1 = AsrToken("hello", .1, 0, 1, decoding_duration_1)
+
+        decoding_duration_2 = AsrDecodingDuration(.2, .4)
+        asr_token_2 = AsrToken("my", .1, 0, 1, decoding_duration_2)
+
+        decoding_duration_3 = AsrDecodingDuration(.2, .4)
+        asr_token_3 = AsrToken("friend", .1, 0, 1, decoding_duration_3)
+
+        asr_tokens_1 = [asr_token_1, asr_token_2, asr_token_3]
+        asr_tokens_2 = [asr_token_3, asr_token_2, asr_token_1]
+
+        return [asr_tokens_1, asr_tokens_2]
+
+    def test_hermes_ffi_test_round_trip_intent(self):
+        slot_map = TestIntent.get_slot_map()
+        intent_classifier_result = IntentClassifierResult("searchWeather", 0.2)
+        alternatives = TestIntent.get_intent_alternatives()
+        asr_tokens = TestIntent.get_asr_tokens_matrix()
+
+        intent_message = IntentMessage(
+            "session_id", "custom_data", "site_id", "input",
+            intent_classifier_result,
+            slot_map,
+            alternatives,
+            asr_tokens,
+            .1)
+
+        round_trip_intent_message = get_round_trip_data_structure(
+            intent_message,
+            hermes_python.ffi.ontology.dialogue.CIntentMessage,
+            hermes_python.ontology.dialogue.IntentMessage,
+            lib.hermes_ffi_test_round_trip_intent
+        )
+
+        assert round_trip_intent_message.input == intent_message.input
+        assert round_trip_intent_message.input == intent_message.input
+        assert round_trip_intent_message.input == intent_message.input
+
+
+class TestAsrTokens(object):
+
+    @staticmethod
+    def get_asr_tokens_from_c_asr_token_array(c_asr_token_array):
+        return [AsrToken.from_c_repr(c_asr_token_array.entries[i].contents) for i in range(c_asr_token_array.count)]
+
+    def test_hermes_ffi_test_round_trip_asr_token(self):
+        decoding_duration = AsrDecodingDuration(.2, .4)
+        asr_token = AsrToken("hello", .1, 0, 1, decoding_duration)
+
+        round_trip_asr_token = get_round_trip_data_structure(asr_token,
+                                      hermes_python.ffi.ontology.asr.CAsrToken,
+                                      hermes_python.ontology.asr.AsrToken,
+                                      lib.hermes_ffi_test_round_trip_asr_token)
+
+        assert asr_token.value == round_trip_asr_token.value
+        assert asr_token.range_start == round_trip_asr_token.range_start
+
+    def test_hermes_ffi_test_round_trip_asr_token_array(self):
+        decoding_duration_1 = AsrDecodingDuration(.2, .4)
+        asr_token_1 = AsrToken("hello", .1, 0, 1, decoding_duration_1)
+
+        decoding_duration_2 = AsrDecodingDuration(.2, .4)
+        asr_token_2 = AsrToken("my", .1, 0, 1, decoding_duration_2)
+
+        decoding_duration_3 = AsrDecodingDuration(.2, .4)
+        asr_token_3 = AsrToken("friend", .1, 0, 1, decoding_duration_3)
+
+        asr_tokens = [asr_token_1, asr_token_2, asr_token_3]
+
+        c_repr_object = hermes_python.ffi.ontology.asr.CAsrTokenArray.from_repr(asr_tokens)
+        pointer_c_repr = pointer(c_repr_object)
+        output_pointer = pointer(c_void_p())
+
+        # Send it for round trip to Rust
+        result = lib.hermes_ffi_test_round_trip_asr_token_array(pointer_c_repr, output_pointer)
+        if result > 0:
+            wrap_c_error()
+
+        # Deserialize Rust result into C representation
+        round_trip_c_repr_object = hermes_python.ffi.ontology.asr.CAsrTokenArray.from_address(output_pointer.contents.value)
+
+        # Deserialize into Python object
+        round_trip_python_ontology_object = TestAsrTokens.get_asr_tokens_from_c_asr_token_array(round_trip_c_repr_object)
+
+        assert len(round_trip_python_ontology_object) == len(asr_tokens)
+
+    def test_hermes_ffi_test_round_trip_asr_token_double_array(self):
+        decoding_duration_1 = AsrDecodingDuration(.2, .4)
+        asr_token_1 = AsrToken("hello", .1, 0, 1, decoding_duration_1)
+
+        decoding_duration_2 = AsrDecodingDuration(.2, .4)
+        asr_token_2 = AsrToken("my", .1, 0, 1, decoding_duration_2)
+
+        decoding_duration_3 = AsrDecodingDuration(.2, .4)
+        asr_token_3 = AsrToken("friend", .1, 0, 1, decoding_duration_3)
+
+        asr_tokens_1 = [asr_token_1, asr_token_2, asr_token_3]
+        asr_tokens_2 = [asr_token_3, asr_token_2, asr_token_1]
+
+        asr_tokens_matrix = [asr_tokens_1, asr_tokens_2]
+
+        c_repr_object = hermes_python.ffi.ontology.asr.CAsrTokenDoubleArray.from_repr(asr_tokens_matrix)
+        pointer_c_repr = pointer(c_repr_object)
+        output_pointer = pointer(c_void_p())
+
+        # Send it for round trip to Rust
+        result = lib.hermes_ffi_test_round_trip_asr_token_double_array(pointer_c_repr, output_pointer)
+        if result > 0:
+            wrap_c_error()
+
+        # Deserialize Rust result into C representation
+        round_trip_c_repr_object = hermes_python.ffi.ontology.asr.CAsrTokenDoubleArray.from_address(output_pointer.contents.value)
+
+        # Deserialize into Python object
+        round_trip_asr_tokens_matrix = [TestAsrTokens.get_asr_tokens_from_c_asr_token_array(round_trip_c_repr_object.entries[i].contents) for i in range(round_trip_c_repr_object.count)]
+
+        for asr_tokens_row, round_trip_asr_tokens_row in zip(asr_tokens_matrix, round_trip_asr_tokens_matrix):
+            assert len(round_trip_asr_tokens_row) == len(round_trip_asr_tokens_row)
+
