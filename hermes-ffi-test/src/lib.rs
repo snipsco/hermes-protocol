@@ -57,6 +57,14 @@ pub extern "C" fn hermes_ffi_test_round_trip_session_ended(
 }
 
 #[no_mangle]
+pub extern "C" fn hermes_ffi_test_round_trip_nlu_slot_array(
+    input: *const hermes_ffi::CNluSlotArray,
+    output: *mut *const hermes_ffi::CNluSlotArray,
+) -> ffi_utils::SNIPS_RESULT {
+    wrap!(round_trip(input, output))
+}
+
+#[no_mangle]
 pub extern "C" fn hermes_ffi_test_round_trip_intent(
     input: *const hermes_ffi::CIntentMessage,
     output: *mut *const hermes_ffi::CIntentMessage,
