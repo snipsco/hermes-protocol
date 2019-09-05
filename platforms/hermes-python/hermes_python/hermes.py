@@ -10,7 +10,7 @@ from .ontology import MqttOptions
 
 from .ontology.dialogue import ContinueSessionMessage, EndSessionMessage, StartSessionMessage, SessionInitNotification, \
     SessionInitAction, SessionStartedMessage, IntentMessage, SessionQueuedMessage, SessionEndedMessage, \
-    DialogueConfiguration, IntentNotRecognizedMessage
+    IntentNotRecognizedMessage
 from .ontology.feedback import SiteMessage
 from .ontology.tts import RegisterSoundMessage
 from .ontology.injection import InjectionStatusMessage, InjectionRequestMessage

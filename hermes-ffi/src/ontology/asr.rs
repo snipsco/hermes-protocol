@@ -224,8 +224,10 @@ impl CReprOf<Vec<hermes::AsrToken>> for CAsrTokenArray {
 impl AsRust<Vec<hermes::AsrToken>> for CAsrTokenArray {
     fn as_rust(&self) -> Fallible<Vec<hermes::AsrToken>> {
         let mut result = Vec::with_capacity(self.count as usize);
-        for e in unsafe { slice::from_raw_parts(self.entries, self.count as usize) } {
-            result.push(unsafe { CAsrToken::raw_borrow(*e) }?.as_rust()?);
+        if self.count > 0 {
+            for e in unsafe { slice::from_raw_parts(self.entries, self.count as usize) } {
+                result.push(unsafe { CAsrToken::raw_borrow(*e) }?.as_rust()?);
+            }
         }
         Ok(result)
     }
@@ -272,9 +274,10 @@ impl CReprOf<Vec<Vec<hermes::AsrToken>>> for CAsrTokenDoubleArray {
 impl AsRust<Vec<Vec<hermes::AsrToken>>> for CAsrTokenDoubleArray {
     fn as_rust(&self) -> Fallible<Vec<Vec<hermes::AsrToken>>> {
         let mut result = Vec::with_capacity(self.count as usize);
-
-        for e in unsafe { slice::from_raw_parts(self.entries, self.count as usize) } {
-            result.push(unsafe { CAsrTokenArray::raw_borrow(*e) }?.as_rust()?);
+        if self.count > 0 {
+            for e in unsafe { slice::from_raw_parts(self.entries, self.count as usize) } {
+                result.push(unsafe { CAsrTokenArray::raw_borrow(*e) }?.as_rust()?);
+            }
         }
         Ok(result)
     }
@@ -354,8 +357,10 @@ impl AsRust<Vec<hermes::SpeakerId>> for CSpeakerIdArray {
     fn as_rust(&self) -> Fallible<Vec<hermes::SpeakerId>> {
         let mut result = Vec::with_capacity(self.count as usize);
 
-        for e in unsafe { slice::from_raw_parts(self.entries, self.count as usize) } {
-            result.push(unsafe { CSpeakerId::raw_borrow(*e) }?.as_rust()?);
+        if self.count > 0 {
+            for e in unsafe { slice::from_raw_parts(self.entries, self.count as usize) } {
+                result.push(unsafe { CSpeakerId::raw_borrow(*e) }?.as_rust()?);
+            }
         }
         Ok(result)
     }

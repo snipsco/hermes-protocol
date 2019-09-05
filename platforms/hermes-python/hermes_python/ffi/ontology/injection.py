@@ -23,7 +23,6 @@ class CInjectionRequestOperation(Structure):
 
     @classmethod
     def from_repr(cls, repr):
-        print("yoooo: {}".format(repr))
         kind = repr.kind
         values = pointer(CMapStringToStringArray.from_repr(repr.values))
         return cls(values, kind)

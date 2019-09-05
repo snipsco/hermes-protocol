@@ -5,22 +5,23 @@ from hermes_python.ontology.dialogue import DialogueConfiguration
 
 
 def test_slot_access_dot_notation():
-    from hermes_python.ontology.dialogue import SlotsList
+    from hermes_python.ontology.nlu import SlotsList
     slots = hermes_python.ontology.dialogue.SlotMap({"test_slot": SlotsList()})
     assert type(slots.test_slot) is SlotsList
 
 
 def test_slot_access_dict_notation():
-    from hermes_python.ontology.dialogue import SlotsList
+    from hermes_python.ontology.nlu import SlotsList
     slots = hermes_python.ontology.dialogue.SlotMap({"test_slot": SlotsList()})
     assert type(slots["test_slot"]) is SlotsList
 
 
 def test_helper_method_access():
-    from hermes_python.ontology.dialogue import SlotsList, NluSlot, SlotMap, SlotValue, CustomValue
+    from hermes_python.ontology.slot import SlotValue, CustomValue
+    from hermes_python.ontology.nlu import SlotsList, NluSlot, SlotMap
 
     custom_value_slot = CustomValue("Hello world")
-    nlu_slot = NluSlot(0.1, SlotValue(1, custom_value_slot), "test", "test", "test_slot", 0, 0)
+    nlu_slot = NluSlot(SlotValue(1, custom_value_slot), "test", [], "test", "test_slot", 0, 0, [])
     slots = SlotMap({"test_slot": SlotsList()})
 
     slots.test_slot.append(nlu_slot)
@@ -57,7 +58,7 @@ def test_unseen_slot_acces_dict_notation():
 
 
 def test_slot_map_items_iteration():
-    from hermes_python.ontology.dialogue import SlotsList
+    from hermes_python.ontology.nlu import SlotsList
     slots = hermes_python.ontology.dialogue.SlotMap({"test_slot": SlotsList()})
 
     for slot, slot_value_list in slots.items():

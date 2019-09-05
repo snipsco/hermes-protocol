@@ -74,6 +74,25 @@ export type PercentageSlotValue<T extends slotType.percentage> = {
     kind: T,
     value: number
 }
+
+export type InferedSlotType<T extends slotType = slotType> =
+    T extends slotType.custom ? CustomSlotValue<T> :
+    T extends slotType.number ? NumberSlotValue<T> :
+    T extends slotType.ordinal ? OrdinalSlotValue<T> :
+    T extends slotType.instantTime ? InstantTimeSlotValue<T> :
+    T extends slotType.timeInterval ? TimeIntervalSlotValue<T> :
+    T extends slotType.amountOfMoney ? AmountOfMoneySlotValue<T> :
+    T extends slotType.temperature ? TemperatureSlotValue<T> :
+    T extends slotType.duration ? DurationSlotValue<T> :
+    T extends slotType.percentage ? PercentageSlotValue<T> :
+    T extends slotType.musicAlbum ? MusicAlbumSlotValue<T> :
+    T extends slotType.musicArtist ? MusicArtistSlotValue<T> :
+    T extends slotType.musicTrack ? MusicTrackSlotValue<T> :
+    T extends slotType.city ? CitySlotValue<T> :
+    T extends slotType.country ? CountrySlotValue<T> :
+    T extends slotType.region ? RegionSlotValue<T> :
+    never
+
 export type NluSlot<T extends slotType = slotType> = {
     /** Confidence of the slot, between 0 and 1, 1 being confident. */
     confidenceScore: number,
@@ -91,23 +110,9 @@ export type NluSlot<T extends slotType = slotType> = {
     /** The name of the slot. */
     slotName: string,
     /** The resolved value of the slot. */
-    value:
-        T extends slotType.custom ? CustomSlotValue<T> :
-        T extends slotType.number ? NumberSlotValue<T> :
-        T extends slotType.ordinal ? OrdinalSlotValue<T> :
-        T extends slotType.instantTime ? InstantTimeSlotValue<T> :
-        T extends slotType.timeInterval ? TimeIntervalSlotValue<T> :
-        T extends slotType.amountOfMoney ? AmountOfMoneySlotValue<T> :
-        T extends slotType.temperature ? TemperatureSlotValue<T> :
-        T extends slotType.duration ? DurationSlotValue<T> :
-        T extends slotType.percentage ? PercentageSlotValue<T> :
-        T extends slotType.musicAlbum ? MusicAlbumSlotValue<T> :
-        T extends slotType.musicArtist ? MusicArtistSlotValue<T> :
-        T extends slotType.musicTrack ? MusicTrackSlotValue<T> :
-        T extends slotType.city ? CitySlotValue<T> :
-        T extends slotType.country ? CountrySlotValue<T> :
-        T extends slotType.region ? RegionSlotValue<T> :
-        never
+    value: InferedSlotType<T>
+    /** Alternative values. */
+    alternatives?: InferedSlotType<T>[]
 }
 
 export interface IntentMessage {
@@ -153,5 +158,20 @@ export interface IntentMessage {
         }[]?
     ]
     /** Structured description of the detected slots for this intent if any. */
-    slots: NluSlot[]
+    slots: NluSlot[],
+    /** Array of alternative nlu slots that have lower probability. */
+    alternatives?: {
+        /**
+         * Nullable, name of the intent detected (null = no intent)
+         */
+        intentName?: string
+        /**
+         * Nullable
+         */
+        slots?: NluSlot[]
+        /**
+         * Between 0 and 1
+         */
+        confidenceScore: number
+    }[],
 }

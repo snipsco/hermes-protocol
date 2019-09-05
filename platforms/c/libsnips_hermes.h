@@ -288,13 +288,31 @@ typedef struct {
 } CSlotValue;
 
 /**
+ * Wrapper around a list of SlotValue
+ */
+typedef struct {
+  /**
+   * Pointer to the first slot value of the list
+   */
+  const CSlotValue *slot_values;
+  /**
+   * Number of slot values in the list
+   */
+  int32_t size;
+} CSlotValueArray;
+
+/**
  * Struct describing a Slot
  */
 typedef struct {
   /**
    * The resolved value of the slot
    */
-  CSlotValue value;
+  const CSlotValue *value;
+  /**
+   * The alternative slot values
+   */
+  const CSlotValueArray *alternatives;
   /**
    * The raw value as it appears in the input text
    */
@@ -329,6 +347,26 @@ typedef struct {
   const CNluSlot *const *entries;
   int count;
 } CNluSlotArray;
+
+typedef struct {
+  /**
+   * Nullable, name of the intent detected (null = no intent)
+   */
+  const char *intent_name;
+  /**
+   * Nullable
+   */
+  const CNluSlotArray *slots;
+  /**
+   * Between 0 and 1
+   */
+  float confidence_score;
+} CNluIntentAlternative;
+
+typedef struct {
+  const CNluIntentAlternative *const *entries;
+  int count;
+} CNluIntentAlternativeArray;
 
 typedef struct {
   float start;
@@ -367,6 +405,10 @@ typedef struct {
    */
   const CNluSlotArray *slots;
   /**
+   * Nullable
+   */
+  const CNluIntentAlternativeArray *alternatives;
+  /**
    * Nullable, the first array level represents the asr invocation, the second one the tokens
    */
   const CAsrTokenDoubleArray *asr_tokens;
@@ -387,6 +429,10 @@ typedef struct {
    * Nullable
    */
   const char *custom_data;
+  /**
+   * Nullable
+   */
+  const CNluIntentAlternativeArray *alternatives;
   float confidence_score;
 } CIntentNotRecognizedMessage;
 

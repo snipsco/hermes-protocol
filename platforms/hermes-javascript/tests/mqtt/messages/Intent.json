@@ -50,6 +50,10 @@
                 "kind": "Custom",
                 "value": "vert"
             },
+            "alternatives": [{
+                "kind": "Custom",
+                "value": "blue"
+            }],
             "range": {
                 "start": 7,
                 "end": 11
@@ -57,5 +61,26 @@
             "entity": "Color",
             "slotName": "Color"
         }
-    ]
+    ],
+    "alternatives": [{
+        "intentName": "alternativeIntent",
+        "confidenceScore": 0.5,
+        "slots": [
+            {
+                "confidenceScore": 0.2,
+                "rawValue": "blue",
+                "value": {
+                    "kind": "Custom",
+                    "value": "blue"
+                },
+                "alternatives": [],
+                "range": {
+                    "start": 7,
+                    "end": 11
+                },
+                "entity": "Color",
+                "slotName": "Color"
+            }
+        ]
+    }]
 }

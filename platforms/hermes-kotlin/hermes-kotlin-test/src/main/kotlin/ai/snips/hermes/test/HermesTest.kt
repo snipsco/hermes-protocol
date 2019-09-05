@@ -8,6 +8,7 @@ import ai.snips.hermes.InjectionRequestMessage
 import ai.snips.hermes.InjectionCompleteMessage
 import ai.snips.hermes.InjectionResetCompleteMessage
 import ai.snips.hermes.InjectionResetRequestMessage
+import ai.snips.hermes.IntentAlternative
 import ai.snips.hermes.IntentMessage
 import ai.snips.hermes.IntentNotRecognizedMessage
 import ai.snips.hermes.SessionEndedMessage
@@ -29,6 +30,8 @@ import ai.snips.hermes.ffi.CInjectionResetRequestMessage
 import ai.snips.hermes.ffi.CIntentMessage
 import ai.snips.hermes.ffi.CIntentNotRecognizedMessage
 import ai.snips.hermes.ffi.CMapStringToStringArray
+import ai.snips.hermes.ffi.CNluIntentAlternative
+import ai.snips.hermes.ffi.CNluIntentAlternativeArray
 import ai.snips.hermes.ffi.CSessionEndedMessage
 import ai.snips.hermes.ffi.CSessionTermination
 import ai.snips.hermes.ffi.CStartSessionMessage
@@ -86,6 +89,21 @@ class HermesTest {
                       INSTANCE::hermes_ffi_test_round_trip_intent,
                       { CIntentMessage(it).toIntentMessage() },
                       INSTANCE::hermes_drop_intent_message)
+
+    fun roundTripIntentAlternative(input: IntentAlternative) =
+            roundTrip(input,
+                      CNluIntentAlternative.Companion::fromIntentAlternative,
+                      INSTANCE::hermes_ffi_test_round_trip_nlu_intent_alternative,
+                      { CNluIntentAlternative(it).toIntentAlternative() },
+                      INSTANCE::hermes_ffi_test_destroy_nlu_intent_alternative)
+
+    fun roundTripIntentAlternativeArray(input: List<IntentAlternative>) =
+            roundTrip(input,
+                      CNluIntentAlternativeArray.Companion::fromIntentAlternativeList,
+                      INSTANCE::hermes_ffi_test_round_trip_nlu_intent_alternative_array,
+                      { CNluIntentAlternativeArray(it).toIntentAlternativeList() },
+                      INSTANCE::hermes_ffi_test_destroy_nlu_intent_alternative_array)
+
 
     fun roundTripIntentNotRecognized(input: IntentNotRecognizedMessage) =
             roundTrip(input,
@@ -247,6 +265,8 @@ class HermesTest {
         fun hermes_ffi_test_round_trip_continue_session(input: CContinueSessionMessage, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_end_session(input: CEndSessionMessage, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_intent(input: CIntentMessage, output: PointerByReference): Int
+        fun hermes_ffi_test_round_trip_nlu_intent_alternative(input: CNluIntentAlternative, output: PointerByReference): Int
+        fun hermes_ffi_test_round_trip_nlu_intent_alternative_array(input: CNluIntentAlternativeArray, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_intent_not_recognized(input: CIntentNotRecognizedMessage, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_injection_request(input: CInjectionRequestMessage, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_injection_complete(input: CInjectionCompleteMessage, output: PointerByReference): Int
@@ -284,6 +304,8 @@ class HermesTest {
         fun hermes_ffi_test_destroy_asr_token(ptr: Pointer): Int
         fun hermes_ffi_test_destroy_asr_token_array(ptr: Pointer): Int
         fun hermes_ffi_test_destroy_asr_token_double_array(ptr: Pointer): Int
+        fun hermes_ffi_test_destroy_nlu_intent_alternative(ptr: Pointer): Int
+        fun hermes_ffi_test_destroy_nlu_intent_alternative_array(ptr: Pointer): Int
 
         fun hermes_drop_continue_session_message(ptr: Pointer): Int
         fun hermes_drop_start_session_message(ptr: Pointer): Int

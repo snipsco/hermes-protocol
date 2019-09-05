@@ -1,109 +1,19 @@
 # -*- coding: utf-8 -*-
-from typing import Any, Text
+from typing import Any, Text, List
 from builtins import object
-from collections import defaultdict
-
-
-# Ever since Python3.3, Mapping was moved to the abc submodule.
-try:
-    from collections.abc import Mapping  # type: ignore
-except ImportError:
-    from collections import Mapping  # Python2.7+
-
 from six.moves import range
 
 from ctypes import string_at, c_double, c_int64
+
 from hermes_python.ffi.ontology import SlotValueType, Grain, Precision
-from hermes_python.ffi.ontology.dialogue import CAmountOfMoneyValue, CTemperatureValue, CInstantTimeValue, \
+from hermes_python.ffi.ontology import CAmountOfMoneyValue, CTemperatureValue, CInstantTimeValue, \
     CTimeIntervalValue, CDurationValue
 
 
-
-class SlotMap(Mapping):
-    def __init__(self, data):
-        # type: (dict) -> None
-        mapping = dict()
-        for k,v in data.items():
-            mapping[k] = SlotsList(v)
-        self.__data = mapping
-
-    def __getattr__(self, item):
-        return self.__data.get(item, SlotsList())
-
-    def __getitem__(self, item):
-        return self.__data.get(item, SlotsList())
-
-    def __len__(self):
-        return self.__data.__len__()
-
-    def __iter__(self):
-        return iter(self.__data)
-
-    @classmethod
-    def from_c_repr(cls, c_slots_list_repr):
-        mapping = defaultdict(SlotsList)
-
-        slots_list_length = c_slots_list_repr.count
-        c_slots_array_repr = c_slots_list_repr.entries
-
-        for i in range(slots_list_length):
-            nlu_slot = NluSlot.from_c_repr(c_slots_array_repr[i].contents)
-            slot_name = nlu_slot.slot_name
-            mapping[slot_name].append(nlu_slot)
-        return cls(mapping)
-
-
-class SlotsList(list):
-    # An extension to make things easier to reach slot_values that are deeply nested in the IntentMessage datastructure.
-    def first(self):
-        """
-
-        :return:
-        """
-        if len(self) > 0:
-            return self[0].slot_value.value
-        else:
-            return None
-
-    def all(self):
-        """
-
-        :return:
-        """
-        if len(self) > 0:
-            return [element.slot_value.value for element in self]
-        else:
-            return None
-
-
-class NluSlot(object):
-    def __init__(self, confidence_score, slot_value, raw_value, entity, slot_name, range_start, range_end):
-        # type: (float, SlotValue, str, str, str, int, int) -> None
-        self.confidence_score = confidence_score
-        self.slot_value = slot_value
-        self.raw_value = raw_value
-        self.entity = entity
-        self.slot_name = slot_name
-        self.range_start = range_start
-        self.range_end = range_end
-
-    @classmethod
-    def from_c_repr(cls, c_repr):
-        slot = Slot.from_c_repr(c_repr.nlu_slot[0])
-
-        slot_value = slot.slot_value  # To ensure compatibility, we flatten the data structure ...
-        raw_value = slot.raw_value
-        entity = slot.entity
-        slot_name = slot.slot_name
-        range_start = slot.range_start
-        range_end = slot.range_end
-        confidence_score = slot.confidence_score
-        return cls(confidence_score, slot_value, raw_value, entity, slot_name, range_start, range_end)
-
-
 class Slot(object):
-    def __init__(self, slot_value, raw_value, entity, slot_name, range_start, range_end, confidence_score):
-        # type: (SlotValue, str, str, str, int, int, float) -> None
+    def __init__(self, slot_value, raw_value, alternatives, entity, slot_name, range_start, range_end,
+                 confidence_score):
+        # type: (SlotValue, str, List[SlotValue], str, str, int, int, float) -> None
         """
         Deprecated.
 
@@ -112,6 +22,7 @@ class Slot(object):
 
         :param slot_value: an slotValue object that represents the value of the parsed slot.
         :param raw_value: the raw value of the slot, not parsed.
+        :param alternatives: alternatives slots
         :param entity:
         :param slot_name: name of the slot.
         :param range_start: index at which the slot begins.
@@ -120,6 +31,7 @@ class Slot(object):
         """
         self.slot_value = slot_value
         self.raw_value = raw_value
+        self.alternatives = alternatives
         self.entity = entity
         self.slot_name = slot_name
         self.range_start = range_start
@@ -128,7 +40,7 @@ class Slot(object):
 
     @classmethod
     def from_c_repr(cls, c_repr):
-        slot_value = SlotValue.from_c_repr(c_repr.value)
+        slot_value = SlotValue.from_c_repr(c_repr.value.contents)
         raw_value = c_repr.raw_value.decode('utf-8')
         entity = c_repr.entity.decode('utf-8')
         slot_name = c_repr.slot_name.decode('utf-8')
@@ -136,7 +48,14 @@ class Slot(object):
         range_end = c_repr.range_end
         confidence_score = c_repr.confidence_score
 
-        return cls(slot_value, raw_value, entity, slot_name, range_start, range_end, confidence_score)
+        alternatives = list()
+
+        if c_repr.alternatives:
+            alternatives_length = c_repr.alternatives.contents.size
+            c_alternatives_array_repr = c_repr.alternatives.contents.slot_values
+            alternatives = [SlotValue.from_c_repr(c_alternatives_array_repr[i]) for i in range(alternatives_length)]
+
+        return cls(slot_value, raw_value, alternatives, entity, slot_name, range_start, range_end, confidence_score)
 
 
 class SlotValue(object):
@@ -159,30 +78,30 @@ class SlotValue(object):
             c_repr_custom_value = c_repr.value
             string_value = string_at(c_repr_custom_value).decode('utf-8')
             value = CustomValue(string_value)
-        elif SlotValueType.NUMBER == value_type: # NUMBER
+        elif SlotValueType.NUMBER == value_type:  # NUMBER
             c_repr_number = c_double.from_address(c_repr.value)
             number = c_repr_number.value
             value = NumberValue(number)
-        elif SlotValueType.ORDINAL == value_type: # ORDINAL
+        elif SlotValueType.ORDINAL == value_type:  # ORDINAL
             c_repr_number = c_int64.from_address(c_repr.value)
             number = c_repr_number.value
             value = OrdinalValue(number)
-        elif SlotValueType.INSTANTTIME == value_type: # INSTANTTIME
+        elif SlotValueType.INSTANTTIME == value_type:  # INSTANTTIME
             c_repr_instant_time_value = CInstantTimeValue.from_address(c_repr.value)
             value = InstantTimeValue.from_c_repr(c_repr_instant_time_value)
-        elif SlotValueType.TIMEINTERVAL == value_type: # TIMEINTERVAL
+        elif SlotValueType.TIMEINTERVAL == value_type:  # TIMEINTERVAL
             c_repr_time_interval_value = CTimeIntervalValue.from_address(c_repr.value)
             value = TimeIntervalValue.from_c_repr(c_repr_time_interval_value)
-        elif SlotValueType.AMOUNTOFMONEY == value_type: # AMOUNTOFMONEY
+        elif SlotValueType.AMOUNTOFMONEY == value_type:  # AMOUNTOFMONEY
             c_repr_amount_of_money_value = CAmountOfMoneyValue.from_address(c_repr.value)
             value = AmountOfMoneyValue.from_c_repr(c_repr_amount_of_money_value)
-        elif SlotValueType.TEMPERATURE == value_type: # TEMPERATURE
+        elif SlotValueType.TEMPERATURE == value_type:  # TEMPERATURE
             c_repr_temperature_value = CTemperatureValue.from_address(c_repr.value)
             value = TemperatureValue.from_c_repr(c_repr_temperature_value)
-        elif SlotValueType.DURATION == value_type: # DURATION
+        elif SlotValueType.DURATION == value_type:  # DURATION
             c_repr_duration_value = CDurationValue.from_address(c_repr.value)
             value = DurationValue.from_c_repr(c_repr_duration_value)
-        elif SlotValueType.PERCENTAGE == value_type: # PERCENTAGE
+        elif SlotValueType.PERCENTAGE == value_type:  # PERCENTAGE
             c_repr_percentage = c_double.from_address(c_repr.value)
             value = PercentageValue(c_repr_percentage.value)
         elif SlotValueType.MUSICARTIST == value_type:  # MUSICARTIST
@@ -407,6 +326,7 @@ class MusicTrackValue(object):
         :param string_value: a string value
         """
         self.value = string_value
+
 
 class CityValue(object):
     def __init__(self, string_value):

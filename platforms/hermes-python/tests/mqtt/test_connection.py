@@ -59,7 +59,7 @@ class TestPublishingMessages(object):
             h.enable_sound_feedback(site_message)
             h.disable_sound_feedback(site_message)
 
-
+@pytest.mark.skip(reason="removed once we have intent roundtrip tests. ")
 def test_subscription_to_intent_message(mqtt_server):
     subscribe_intent_callback = mock.Mock()
 

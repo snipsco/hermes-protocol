@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 from __future__ import unicode_literals
-from typing import List
 from itertools import groupby
-from typing import Optional, Text, Tuple, List, DefaultDict
+from typing import Tuple, DefaultDict, Text
 
+from collections import defaultdict
 from hermes_python.ffi.ontology.dialogue import CDialogueConfigureMessage
 
 from .intent import *
-from .slot import *
 from .session import *
 
 

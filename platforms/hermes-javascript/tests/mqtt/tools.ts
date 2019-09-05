@@ -91,6 +91,7 @@ export const setupSubscriberJsonTest = ({
     hermesTopic,
     facadeSubscription
 } : SubscriberJsonTestArgs) => {
+    // eslint-disable-next-line
     return new Promise(async resolve => {
         facade.once(facadeSubscription, message => {
             expect(message).toMatchObject(json)

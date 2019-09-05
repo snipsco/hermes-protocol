@@ -8,6 +8,7 @@ use ffi_utils::*;
 
 use crate::ontology::asr::CAsrTokenDoubleArray;
 use crate::ontology::nlu::{CNluIntentClassifierResult, CNluSlotArray};
+use crate::CNluIntentAlternativeArray;
 
 #[repr(C)]
 #[derive(Debug)]
@@ -20,6 +21,8 @@ pub struct CIntentMessage {
     pub intent: *const CNluIntentClassifierResult,
     /// Nullable
     pub slots: *const CNluSlotArray,
+    /// Nullable
+    pub alternatives: *const CNluIntentAlternativeArray,
     ///// Nullable
     //pub speaker_hypotheses: *const CSpeakerIdArray,
     /// Nullable, the first array level represents the asr invocation, the second one the tokens
@@ -49,6 +52,11 @@ impl CReprOf<hermes::IntentMessage> for CIntentMessage {
             } else {
                 null()
             },
+            alternatives: if let Some(alternatives) = input.alternatives {
+                CNluIntentAlternativeArray::c_repr_of(alternatives)?.into_raw_pointer()
+            } else {
+                null()
+            },
             /*speaker_hypotheses: if let Some(speaker_hypotheses) = input.speaker_hypotheses {
                 CSpeakerIdArray::c_repr_of(speaker_hypotheses)?.into_raw_pointer()
             } else {
@@ -75,24 +83,34 @@ impl AsRust<hermes::IntentMessage> for CIntentMessage {
             custom_data: create_optional_rust_string_from!(self.custom_data),
             site_id: create_rust_string_from!(self.site_id),
             input: create_rust_string_from!(self.input),
-            speaker_hypotheses: None, /* match unsafe { self.speaker_hypotheses.as_ref() } {
-                                          Some(speaker_hypotheses) => {
-                                              Some(unsafe { CSpeakerIdArray::raw_borrow(speaker_hypotheses)? }.as_rust()?)
-                                          }
-                                          None => None,
-                                      }*/
+            speaker_hypotheses: None,
+            /* match unsafe { self.speaker_hypotheses.as_ref() } {
+                Some(speaker_hypotheses) => {
+                    Some(unsafe { CSpeakerIdArray::raw_borrow(speaker_hypotheses)? }.as_rust()?)
+                }
+                None => None,
+            }*/
             asr_tokens: if self.asr_tokens.is_null() {
                 None
             } else {
-                Some(unsafe { &*self.asr_tokens }.as_rust()?)
+                Some(unsafe { CAsrTokenDoubleArray::raw_borrow(self.asr_tokens) }?.as_rust()?)
             },
             asr_confidence: if self.asr_confidence >= 0.0 && self.asr_confidence <= 1.0 {
                 Some(self.asr_confidence)
             } else {
                 None
             },
-            intent: unsafe { &*self.intent }.as_rust()?,
-            slots: unsafe { &*self.slots }.as_rust()?,
+            intent: unsafe { CNluIntentClassifierResult::raw_borrow(self.intent) }?.as_rust()?,
+            slots: if !self.slots.is_null() {
+                unsafe { CNluSlotArray::raw_borrow(self.slots) }?.as_rust()?
+            } else {
+                vec![]
+            },
+            alternatives: if !self.alternatives.is_null() {
+                Some(unsafe { CNluIntentAlternativeArray::raw_borrow(self.alternatives) }?.as_rust()?)
+            } else {
+                None
+            },
         })
     }
 }
@@ -110,6 +128,9 @@ impl Drop for CIntentMessage {
         if !self.asr_tokens.is_null() {
             let _ = unsafe { CAsrTokenDoubleArray::drop_raw_pointer(self.asr_tokens) };
         }
+        if !self.alternatives.is_null() {
+            let _ = unsafe { CNluIntentAlternativeArray::drop_raw_pointer(self.alternatives) };
+        }
         /*if !self.speaker_hypotheses.is_null() {
             let _ = unsafe { CSpeakerIdArray::drop_raw_pointer(self.speaker_hypotheses) };
         }*/
@@ -125,6 +146,8 @@ pub struct CIntentNotRecognizedMessage {
     pub input: *const libc::c_char,
     /// Nullable
     pub custom_data: *const libc::c_char,
+    /// Nullable
+    pub alternatives: *const CNluIntentAlternativeArray,
     ///// Nullable
     //pub speaker_hypotheses: *const CSpeakerIdArray,
     pub confidence_score: libc::c_float,
@@ -138,6 +161,11 @@ impl CReprOf<hermes::IntentNotRecognizedMessage> for CIntentNotRecognizedMessage
             site_id: convert_to_c_string!(input.site_id),
             session_id: convert_to_c_string!(input.session_id),
             input: convert_to_nullable_c_string!(input.input),
+            alternatives: if let Some(alternatives) = input.alternatives {
+                CNluIntentAlternativeArray::c_repr_of(alternatives)?.into_raw_pointer()
+            } else {
+                null()
+            },
             /*speaker_hypotheses: if let Some(speaker_hypotheses) = input.speaker_hypotheses {
                 CSpeakerIdArray::c_repr_of(speaker_hypotheses)?.into_raw_pointer()
             } else {
@@ -155,13 +183,19 @@ impl AsRust<hermes::IntentNotRecognizedMessage> for CIntentNotRecognizedMessage 
             site_id: create_rust_string_from!(self.site_id),
             session_id: create_rust_string_from!(self.session_id),
             input: create_optional_rust_string_from!(self.input),
-            speaker_hypotheses: None, /* match unsafe { self.speaker_hypotheses.as_ref() } {
-                                          Some(speaker_hypotheses) => {
-                                              Some(unsafe { CSpeakerIdArray::raw_borrow(speaker_hypotheses)? }.as_rust()?)
-                                          }
-                                          None => None,
-                                      }*/
+            speaker_hypotheses: None,
+            /* match unsafe { self.speaker_hypotheses.as_ref() } {
+                Some(speaker_hypotheses) => {
+                    Some(unsafe { CSpeakerIdArray::raw_borrow(speaker_hypotheses)? }.as_rust()?)
+                }
+                None => None,
+            }*/
             custom_data: create_optional_rust_string_from!(self.custom_data),
+            alternatives: if !self.alternatives.is_null() {
+                Some(unsafe { CNluIntentAlternativeArray::raw_borrow(self.alternatives) }?.as_rust()?)
+            } else {
+                None
+            },
             confidence_score: self.confidence_score,
         })
     }
@@ -812,8 +846,10 @@ impl AsRust<Vec<hermes::DialogueConfigureIntent>> for CDialogueConfigureIntentAr
     fn as_rust(&self) -> Fallible<Vec<hermes::DialogueConfigureIntent>> {
         let mut result = Vec::with_capacity(self.count as usize);
 
-        for e in unsafe { slice::from_raw_parts(self.entries, self.count as usize) } {
-            result.push(unsafe { CDialogueConfigureIntent::raw_borrow(*e) }?.as_rust()?);
+        if self.count > 0 {
+            for e in unsafe { slice::from_raw_parts(self.entries, self.count as usize) } {
+                result.push(unsafe { CDialogueConfigureIntent::raw_borrow(*e) }?.as_rust()?);
+            }
         }
         Ok(result)
     }
@@ -882,9 +918,10 @@ impl Drop for CDialogueConfigureMessage {
 
 #[cfg(test)]
 mod tests {
+    use std::ops::Range;
+
     use super::super::tests::round_trip_test;
     use super::*;
-    use std::ops::Range;
 
     #[test]
     fn round_trip_intent_not_recognized() {
@@ -895,6 +932,11 @@ mod tests {
             speaker_hypotheses: None,
             input: Some("some text".into()),
             confidence_score: 0.5,
+            alternatives: Some(vec![hermes::NluIntentAlternative {
+                slots: vec![],
+                confidence_score: 0.8,
+                intent_name: Some("some intent name".into()),
+            }]),
         });
 
         round_trip_test::<_, CIntentNotRecognizedMessage>(hermes::IntentNotRecognizedMessage {
@@ -904,6 +946,7 @@ mod tests {
             speaker_hypotheses: None,
             input: None,
             confidence_score: 0.5,
+            alternatives: None,
         });
     }
 
@@ -1120,6 +1163,10 @@ mod tests {
                 entity: "entity".to_string(),
                 slot_name: "forecast_location".to_string(),
                 confidence_score: Some(0.8),
+                alternatives: vec![
+                    snips_nlu_ontology::SlotValue::Custom("Gwadloup".to_string().into()),
+                    snips_nlu_ontology::SlotValue::Custom("Point a Pitre".to_string().into()),
+                ],
             },
         };
 
@@ -1150,6 +1197,79 @@ mod tests {
             }],
         ];
 
+        let alternatives = vec![
+            hermes::nlu::NluIntentAlternative {
+                intent_name: Some("another boring intent".to_string()),
+                confidence_score: 0.9,
+                slots: vec![
+                    hermes::NluSlot {
+                        nlu_slot: snips_nlu_ontology::Slot {
+                            raw_value: "Martinique".to_string(),
+                            value: snips_nlu_ontology::SlotValue::Custom("Martinique".to_string().into()),
+                            range: Range { start: (42), end: (66) },
+                            entity: "entity2".to_string(),
+                            slot_name: "my_slot_name".to_string(),
+                            confidence_score: Some(0.6),
+                            alternatives: vec![
+                                snips_nlu_ontology::SlotValue::Custom("Matnik".to_string().into()),
+                                snips_nlu_ontology::SlotValue::Custom("Fort de france".to_string().into()),
+                            ],
+                        },
+                    },
+                    hermes::NluSlot {
+                        nlu_slot: snips_nlu_ontology::Slot {
+                            raw_value: "Marie Galante".to_string(),
+                            value: snips_nlu_ontology::SlotValue::Custom("Marie Galante".to_string().into()),
+                            range: Range { start: (1), end: (19) },
+                            entity: "entity3".to_string(),
+                            slot_name: "another_slot_name".to_string(),
+                            confidence_score: Some(0.7),
+                            alternatives: vec![],
+                        },
+                    },
+                ],
+            },
+            hermes::nlu::NluIntentAlternative {
+                intent_name: Some("yet another boring intent".to_string()),
+                confidence_score: 0.8,
+                slots: vec![
+                    hermes::NluSlot {
+                        nlu_slot: snips_nlu_ontology::Slot {
+                            raw_value: "Martinique".to_string(),
+                            value: snips_nlu_ontology::SlotValue::Custom("Martinique".to_string().into()),
+                            range: Range { start: (42), end: (66) },
+                            entity: "entity2".to_string(),
+                            slot_name: "my_slot_name".to_string(),
+                            confidence_score: Some(0.6),
+                            alternatives: vec![
+                                snips_nlu_ontology::SlotValue::Custom("Matnik".to_string().into()),
+                                snips_nlu_ontology::SlotValue::Custom("Fort de france".to_string().into()),
+                            ],
+                        },
+                    },
+                    hermes::NluSlot {
+                        nlu_slot: snips_nlu_ontology::Slot {
+                            raw_value: "Marie Galante".to_string(),
+                            value: snips_nlu_ontology::SlotValue::Custom("Marie Galante".to_string().into()),
+                            range: Range { start: (1), end: (19) },
+                            entity: "entity3".to_string(),
+                            slot_name: "another_slot_name".to_string(),
+                            confidence_score: Some(0.7),
+                            alternatives: vec![
+                                snips_nlu_ontology::SlotValue::Custom("Matnik".to_string().into()),
+                                snips_nlu_ontology::SlotValue::Custom("Fort de france".to_string().into()),
+                            ],
+                        },
+                    },
+                ],
+            },
+            hermes::nlu::NluIntentAlternative {
+                intent_name: None,
+                confidence_score: 0.5,
+                slots: vec![],
+            },
+        ];
+
         round_trip_test::<_, CIntentMessage>(hermes::IntentMessage {
             session_id: "a session id".to_string(),
             custom_data: Some("a custom datum".to_string()),
@@ -1163,6 +1283,7 @@ mod tests {
                 confidence_score: 1.0,
             },
             slots: vec![slot],
+            alternatives: Some(alternatives),
         })
     }
 }

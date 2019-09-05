@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
-from .slot import SlotMap
+from typing import List, Optional, Text
+from ..nlu import SlotMap, NluIntentAlternative
+from ..asr import AsrToken
 
 
 class IntentMessage(object):
-    def __init__(self, session_id, custom_data, site_id, input, intent, slots):
-        # type: (str, str, str, str, IntentClassifierResult, SlotMap) -> None
+    def __init__(self, session_id, custom_data, site_id, input, intent, slots, alternatives, asr_tokens, asr_confidence):
+        # type: (Text, Text, Text, Text, IntentClassifierResult, SlotMap, List[NluIntentAlternative], List[List[AsrToken]], float) -> None
         """
         A python representation of the intent parsed by the NLU engine.
 
@@ -21,6 +23,10 @@ class IntentMessage(object):
         self.input = input
         self.intent = intent  # type : IntentClassifierResult
         self.slots = slots if slots else SlotMap({})  # type: SlotMap
+        self.alternatives = alternatives  # type: List[NluIntentAlternative]
+        self.asr_tokens = asr_tokens  # type: List[List[AsrToken]]
+        self.asr_confidence = asr_confidence
+
 
     @classmethod
     def from_c_repr(cls, c_repr):
@@ -28,18 +34,38 @@ class IntentMessage(object):
         custom_data = c_repr.custom_data.decode('utf-8') if c_repr.custom_data else None
         site_id = c_repr.site_id.decode('utf-8')
         input = c_repr.input.decode('utf-8')
+        asr_confidence = float(c_repr.asr_confidence)
         intent = IntentClassifierResult.from_c_repr(c_repr.intent.contents)
         if c_repr.slots:  # Slots is now nullable.
             slots = SlotMap.from_c_repr(c_repr.slots.contents)
         else:
             slots = SlotMap({})
 
-        return cls(session_id, custom_data, site_id, input, intent, slots)
+        alternatives = list()
+
+        if c_repr.alternatives:
+            intent_alternatives_length = c_repr.alternatives.contents.count
+            c_intent_alternatives_array_repr = c_repr.alternatives.contents.entries
+
+            for i in range(intent_alternatives_length):
+                intent_alternative = NluIntentAlternative.from_c_repr(c_intent_alternatives_array_repr[i].contents)
+                alternatives.append(intent_alternative)
+
+        asr_token_arrays = list()
+        c_asr_token_arrays_length = c_repr.asr_tokens.contents.count
+        c_asr_token_arrays_repr = c_repr.asr_tokens.contents.entries
+
+        for i in range(c_asr_token_arrays_length):
+            c_asr_token_array = c_asr_token_arrays_repr[i].contents
+            asr_token_array = [AsrToken.from_c_repr(c_asr_token_array.entries[i].contents) for i in range(c_asr_token_array.count)]
+            asr_token_arrays.append(asr_token_array)
+
+        return cls(session_id, custom_data, site_id, input, intent, slots, alternatives, asr_token_arrays, asr_confidence)
 
 
 class IntentClassifierResult(object):
     def __init__(self, intent_name, confidence_score):
-        # type: (str, float) -> None
+        # type: (Text, float) -> None
         """
         Structured description of the intent classification.
 
@@ -54,3 +80,47 @@ class IntentClassifierResult(object):
         intent_name = c_repr.intent_name.decode('utf-8')
         confidence_score = c_repr.confidence_score
         return cls(intent_name, confidence_score)
+
+
+class IntentNotRecognizedMessage(object):
+    def __init__(self, site_id, session_id, input, custom_data, confidence_score, alternatives):
+        # type: (Text, Text, Optional[Text], Optional[Text], float, List[NluIntentAlternative]) -> None
+        """
+        A message that the handler receives from the Dialogue manager when an intent is not recognized and that the
+        session was initialized with the intent_not_recognized flag turned on.
+
+        :param site_id: Site where the user interaction is taking place.
+        :param session_id: Session identifier that was started.
+        :param input: The user input that has generated this intent. This parameter is nullable
+        :param custom_data: Custom data passed by the Dialogue Manager in the current dialogue session.
+        This parameter is nullable
+        :param confidence_score: Between 0 and 1
+        """
+        self.site_id = site_id
+        self.session_id = session_id
+        self.input = input
+        self.custom_data = custom_data
+        self.confidence_score = confidence_score
+        self.alternatives = alternatives
+
+    @classmethod
+    def from_c_repr(cls, c_repr):
+        site_id = c_repr.site_id.decode('utf-8')
+        session_id = c_repr.session_id.decode('utf-8')
+        input = c_repr.input.decode('utf-8') if c_repr.input else None
+        custom_data = c_repr.custom_data.decode('utf-8') if c_repr.custom_data else None
+        confidence_score = float(c_repr.confidence_score)
+
+        alternatives = []
+        if c_repr.alternatives:
+            intent_alternatives_length = c_repr.alternatives.contents.count
+            c_intent_alternatives_array_repr = c_repr.alternatives.contents.entries
+
+            for i in range(intent_alternatives_length):
+                intent_alternative = NluIntentAlternative.from_c_repr(c_intent_alternatives_array_repr[i].contents)
+                alternatives.append(intent_alternative)
+
+        return cls(site_id, session_id, input, custom_data, confidence_score, alternatives)
+
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
