@@ -90,16 +90,42 @@ typedef enum {
 } SNIPS_RESULT;
 
 typedef enum {
+  /**
+   * The session expects a response from the user. Users responses will be provided in the form
+   * of `CIntentMessage`s.
+   */
   SNIPS_SESSION_INIT_TYPE_ACTION = 1,
+  /**
+   * The session doesn't expect a response from the user. If the session cannot be started, it
+   * will be enqueued.
+   */
   SNIPS_SESSION_INIT_TYPE_NOTIFICATION = 2,
 } SNIPS_SESSION_INIT_TYPE;
 
 typedef enum {
+  /**
+   * The session ended as expected
+   */
   SNIPS_SESSION_TERMINATION_TYPE_NOMINAL = 1,
+  /**
+   * Dialogue was deactivated on the site the session requested
+   */
   SNIPS_SESSION_TERMINATION_TYPE_SITE_UNAVAILABLE = 2,
+  /**
+   * The user aborted the session
+   */
   SNIPS_SESSION_TERMINATION_TYPE_ABORTED_BY_USER = 3,
+  /**
+   * The platform didn't understand was the user said
+   */
   SNIPS_SESSION_TERMINATION_TYPE_INTENT_NOT_RECOGNIZED = 4,
+  /**
+   * No response was received from one of the components in a timely manner
+   */
   SNIPS_SESSION_TERMINATION_TYPE_TIMEOUT = 5,
+  /**
+   * A generic error occurred
+   */
   SNIPS_SESSION_TERMINATION_TYPE_ERROR = 6,
 } SNIPS_SESSION_TERMINATION_TYPE;
 
@@ -374,7 +400,13 @@ typedef struct {
 } CNluIntentAlternative;
 
 typedef struct {
+  /**
+   * pointer to the first alternative
+   */
   const CNluIntentAlternative *const *entries;
+  /**
+   * number of alternatives
+   */
   int count;
 } CNluIntentAlternativeArray;
 
@@ -384,111 +416,175 @@ typedef struct {
 } CAsrTokenDoubleArray;
 
 typedef struct {
+  /**
+   * The session identifier in which this intent was detected
+   */
   const char *session_id;
   /**
-   * Nullable
+   * Nullable, the custom data that was given at the session creation
    */
   const char *custom_data;
+  /**
+   * The site where the intent was detected.
+   */
   const char *site_id;
+  /**
+   * The input that generated this intent
+   */
   const char *input;
+  /**
+   * The result of the intent classification
+   */
   const CNluIntentClassifierResult *intent;
   /**
-   * Nullable
+   * Nullable, the detected slots, if any
    */
   const CNluSlotArray *slots;
   /**
-   * Nullable
+   * Nullable, alternatives intent resolutions
    */
   const CNluIntentAlternativeArray *alternatives;
   /**
-   * Nullable, the first array level represents the asr invocation, the second one the tokens
+   * Nullable, the tokens detected by the ASR, the first array level represents the asr
+   * invocation, the second one the tokens
    */
   const CAsrTokenDoubleArray *asr_tokens;
   /**
-   * Note: this value is optional. Any value not in [0,1] should be ignored.
+   * Confidence of the asr capture, this value is optional. Any value not in [0,1] should be ignored.
    */
   float asr_confidence;
 } CIntentMessage;
 
 typedef struct {
+  /**
+   * The site where no intent was recognized
+   */
   const char *site_id;
+  /**
+   * The session in which no intent was recognized
+   */
   const char *session_id;
   /**
-   * Nullable
+   * Nullable, the text that didn't match any intent
    */
   const char *input;
   /**
-   * Nullable
+   * Nullable, the custom data that was given at the session creation
    */
   const char *custom_data;
   /**
-   * Nullable
+   * Nullable, alternatives intent resolutions
    */
   const CNluIntentAlternativeArray *alternatives;
+  /**
+   * Expresses the confidence that no intent was found
+   */
   float confidence_score;
 } CIntentNotRecognizedMessage;
 
 typedef struct {
+  /**
+   * The type of the termination
+   */
   SNIPS_SESSION_TERMINATION_TYPE termination_type;
   /**
-   * Nullable,
+   * Nullable, set id the type is `SNIPS_SESSION_TERMINATION_TYPE_ERROR` and gives more info on
+   * the error that happen
    */
   const char *data;
+  /**
+   * If the type is `SNIPS_SESSION_TERMINATION_TYPE_TIMEOUT`, this gives the component that
+   * generated the timeout
+   */
   SNIPS_HERMES_COMPONENT component;
 } CSessionTermination;
 
 typedef struct {
+  /**
+   * The id of the session that was terminated
+   */
   const char *session_id;
   /**
-   * Nullable
+   * Nullable, the custom data associated to this session
    */
   const char *custom_data;
+  /**
+   * How the session was ended
+   */
   CSessionTermination termination;
+  /**
+   * The site on which this session took place
+   */
   const char *site_id;
 } CSessionEndedMessage;
 
 typedef struct {
+  /**
+   * The id of the session that was queued
+   */
   const char *session_id;
   /**
-   * Nullable
+   * Nullable, the custom data that was given at the creation of the session
    */
   const char *custom_data;
+  /**
+   * The site on which this session was queued
+   */
   const char *site_id;
 } CSessionQueuedMessage;
 
 typedef struct {
+  /**
+   * The id of the session that was started
+   */
   const char *session_id;
   /**
-   * Nullable
+   * Nullable, the custom data that was given at the creation of the session
    */
   const char *custom_data;
+  /**
+   * The site on which this session was started
+   */
   const char *site_id;
   /**
-   * Nullable
+   * Nullable, this field indicates this session is a reactivation of a previously ended session.
+   * This is for example provided when the user continues talking to the platform without saying
+   * the hotword again after a session was ended.
    */
   const char *reactivated_from_session_id;
 } CSessionStartedMessage;
 
 typedef struct {
+  /**
+   * The name of the intent that should be configured.
+   */
   const char *intent_id;
   /**
-   * Optional Boolean 0 => false, 1 => true other values => null
+   * Optional Boolean 0 => false, 1 => true other values => null,
+   * Whether this intent should be activated on not.
    */
   unsigned char enable;
 } CDialogueConfigureIntent;
 
 typedef struct {
+  /**
+   * Pointer to the first intent configuration
+   */
   const CDialogueConfigureIntent *const *entries;
+  /**
+   * Number of intent configuration
+   */
   int count;
 } CDialogueConfigureIntentArray;
 
 typedef struct {
   /**
-   * Nullable
+   * Nullable, the site on which this configuration applies, if `null` the configuration will
+   * be applied to all sites
    */
   const char *site_id;
   /**
-   * Nullable
+   * Nullable, Intent configurations to apply
    */
   const CDialogueConfigureIntentArray *intents;
 } CDialogueConfigureMessage;
@@ -508,42 +604,79 @@ typedef struct {
 } CStringArray;
 
 typedef struct {
+  /**
+   * The id of the session this action applies to
+   */
   const char *session_id;
+  /**
+   * The text to say to the user
+   */
   const char *text;
   /**
-   * Nullable
+   * Nullable, an optional list of intent name to restrict the parsing of the user response to
    */
   const CStringArray *intent_filter;
   /**
-   * Nullable
+   * Nullable, an optional piece of data that will be given back in `CIntentMessage`,
+   * `CIntentNotRecognizedMessage` and `CSessionEndedMessage` that are related
+   * to this session. If set it will replace any existing custom data previously set on this
+   * session
    */
   const char *custom_data;
   /**
-   * Nullable
+   * Nullable,  An optional string, requires `intent_filter` to contain a single value. If set,
+   * the dialogue engine will not run the the intent classification on the user response and go
+   * straight to slot filling, assuming the intent is the one passed in the `intent_filter`, and
+   * searching the value of the given slot
    */
   const char *slot;
+  /**
+   * A boolean to indicate whether the dialogue manager should handle not recognized
+   * intents by itself or sent them as a `CIntentNotRecognizedMessage` for the client to handle.
+   * This setting applies only to the next conversation turn. The default value is false (and
+   * the dialogue manager will handle non recognized intents by itself) true = 1, false = 0
+   */
   unsigned char send_intent_not_recognized;
 } CContinueSessionMessage;
 
 typedef struct {
+  /**
+   * The id of the session to end
+   */
   const char *session_id;
   /**
-   * Nullable
+   * Nullable, an optional text to be told to the user before ending the session
    */
   const char *text;
 } CEndSessionMessage;
 
 typedef struct {
+  /**
+   * The type of session to start
+   */
   SNIPS_SESSION_INIT_TYPE init_type;
   /**
-   * Points to either a *const char, a *const CActionSessionInit
+   * Points to either a *const char if the type is `SNIPS_SESSION_INIT_TYPE_NOTIFICATION`, or a
+   * const CActionSessionInit if the type is `SNIPS_SESSION_INIT_TYPE_ACTION`
    */
   const void *value;
 } CSessionInit;
 
 typedef struct {
+  /**
+   * The way this session should be created
+   */
   CSessionInit init;
+  /**
+   * An optional string that will be given back in `CIntentMessage`,
+   * `CIntentNotRecognizedMessage`, `CSessionQueuedMessage`, `CSessionStartedMessage` and
+   * `CSessionEndedMessage` that are related to this session
+   */
   const char *custom_data;
+  /**
+   * The site where the session should be started, a null value will be interpreted as the
+   * default one
+   */
   const char *site_id;
 } CStartSessionMessage;
 
@@ -838,14 +971,23 @@ typedef struct {
 
 typedef struct {
   /**
-   * Nullable
+   * Nullable, an optional text to be told to the user
    */
   const char *text;
   /**
-   * Nullable
+   * Nullable, an optional list of intent name to restrict the parsing of the user response to
    */
   const CStringArray *intent_filter;
+  /**
+   * A boolean to indicate if the session can be enqueued if it can't be started immediately (ie
+   * there is another running session on the site). 1 = true, 0 = false
+   */
   unsigned char can_be_enqueued;
+  /**
+   * A boolean to indicate whether the dialogue manager should handle non recognized intents by
+   * itself or sent them as an `CIntentNotRecognizedMessage` for the client to handle. This
+   * setting applies only to the next conversation turn. 1 = true, 0 = false
+   */
   unsigned char send_intent_not_recognized;
 } CActionSessionInit;
 
