@@ -13,7 +13,7 @@ use crate::CNluIntentAlternativeArray;
 #[repr(C)]
 #[derive(Debug)]
 pub struct CIntentMessage {
-    /// The session in which this intent was detected
+    /// The session identifier in which this intent was detected
     pub session_id: *const libc::c_char,
     /// Nullable, the custom data that was given at the session creation
     pub custom_data: *const libc::c_char,
@@ -228,7 +228,7 @@ pub enum SNIPS_SESSION_INIT_TYPE {
     /// of `CIntentMessage`s.
     SNIPS_SESSION_INIT_TYPE_ACTION = 1,
     /// The session doesn't expect a response from the user. If the session cannot be started, it
-    /// will enqueued.
+    /// will be enqueued.
     SNIPS_SESSION_INIT_TYPE_NOTIFICATION = 2,
 }
 
@@ -244,7 +244,7 @@ impl SNIPS_SESSION_INIT_TYPE {
 #[repr(C)]
 #[derive(Debug, PartialEq)]
 pub struct CActionSessionInit {
-    /// Nullable, an optional text to say to the user
+    /// Nullable, an optional text to be told to the user
     text: *const libc::c_char,
     /// Nullable, an optional list of intent name to restrict the parsing of the user response to
     intent_filter: *const CStringArray,
@@ -410,7 +410,7 @@ impl Drop for CStartSessionMessage {
 pub struct CSessionStartedMessage {
     /// The id of the session that was started
     pub session_id: *const libc::c_char,
-    /// Nullable, the custom data that was given at the session creation
+    /// Nullable, the custom data that was given at the creation of the session
     pub custom_data: *const libc::c_char,
     /// The site on which this session was started
     pub site_id: *const libc::c_char,
@@ -464,7 +464,7 @@ impl Drop for CSessionStartedMessage {
 pub struct CSessionQueuedMessage {
     /// The id of the session that was queued
     pub session_id: *const libc::c_char,
-    /// Nullable, the custom data that was given at the session creation
+    /// Nullable, the custom data that was given at the creation of the session
     pub custom_data: *const libc::c_char,
     /// The site on which this session was queued
     pub site_id: *const libc::c_char,
@@ -588,7 +588,7 @@ impl Drop for CContinueSessionMessage {
 pub struct CEndSessionMessage {
     /// The id of the session to end
     pub session_id: *const libc::c_char,
-    /// Nullable, an optional text to say to the user before ending the session
+    /// Nullable, an optional text to be told to the user before ending the session
     pub text: *const libc::c_char,
 }
 
@@ -935,7 +935,7 @@ impl Drop for CDialogueConfigureIntentArray {
 #[derive(Debug)]
 pub struct CDialogueConfigureMessage {
     /// Nullable, the site on which this configuration applies, if `null` the configuration will
-    /// be applied toall sites
+    /// be applied to all sites
     pub site_id: *const libc::c_char,
     /// Nullable, Intent configurations to apply
     pub intents: *const CDialogueConfigureIntentArray,

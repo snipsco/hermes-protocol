@@ -89,7 +89,7 @@ fn boolean_default_true() -> bool {
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct StartSessionMessage {
-    /// The way this session should created
+    /// The way this session should be created
     pub init: SessionInit,
     /// An optional piece of data that will be given back in `IntentMessage`,
     /// `IntentNotRecognizedMessage`, `SessionQueuedMessage`, `SessionStartedMessage` and
