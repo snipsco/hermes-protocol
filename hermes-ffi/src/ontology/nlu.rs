@@ -472,7 +472,9 @@ impl Drop for CNluIntentAlternative {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CNluIntentAlternativeArray {
+    /// pointer to the first alternative
     pub entries: *const *const CNluIntentAlternative,
+    /// number of alternatives
     pub count: libc::c_int,
 }
 
