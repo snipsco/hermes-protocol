@@ -39,7 +39,7 @@ pub struct IntentNotRecognizedMessage {
     pub session_id: String,
     /// The custom data that was given at the session creation
     pub custom_data: Option<String>,
-    /// The site where the intent was detected.
+    /// The site where no intent was recognized
     pub site_id: String,
     /// The text that didn't match any intent, `None` if no text wa captured
     pub input: Option<String>,
@@ -89,7 +89,7 @@ fn boolean_default_true() -> bool {
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct StartSessionMessage {
-    /// The way this session was created
+    /// The way this session should be created
     pub init: SessionInit,
     /// An optional piece of data that will be given back in `IntentMessage`,
     /// `IntentNotRecognizedMessage`, `SessionQueuedMessage`, `SessionStartedMessage` and
@@ -122,11 +122,11 @@ impl<'de> HermesMessage<'de> for SessionStartedMessage {}
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SessionQueuedMessage {
-    /// The id of the session that was started
+    /// The id of the session that was queued
     pub session_id: String,
     /// The custom data that was given at the session creation
     pub custom_data: Option<String>,
-    /// The site on which this session was started
+    /// The site on which this session was queued
     pub site_id: String,
 }
 
@@ -141,7 +141,7 @@ pub struct ContinueSessionMessage {
     pub text: String,
     /// An optional list of intent name to restrict the parsing of the user response to
     pub intent_filter: Option<Vec<String>>,
-    /// An optional piece of data that will be given back in `IntentMessage` and
+    /// An optional piece of data that will be given back in `IntentMessage`
     /// `IntentNotRecognizedMessage` and `SessionEndedMessage` that are related
     /// to this session. If set it will replace any existing custom data previously set on this
     /// session
@@ -194,11 +194,11 @@ pub enum SessionTerminationType {
 pub struct SessionEndedMessage {
     /// The id of the session that was terminated
     pub session_id: String,
-    /// The custom data that was given at the session creation
+    /// The custom data associated to this session
     pub custom_data: Option<String>,
     /// How the session was ended
     pub termination: SessionTerminationType,
-    /// The site on which this session was ended.
+    /// The site on which this session took place
     pub site_id: String,
 }
 

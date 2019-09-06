@@ -13,21 +13,26 @@ use crate::CNluIntentAlternativeArray;
 #[repr(C)]
 #[derive(Debug)]
 pub struct CIntentMessage {
+    /// The session identifier in which this intent was detected
     pub session_id: *const libc::c_char,
-    /// Nullable
+    /// Nullable, the custom data that was given at the session creation
     pub custom_data: *const libc::c_char,
+    /// The site where the intent was detected.
     pub site_id: *const libc::c_char,
+    /// The input that generated this intent
     pub input: *const libc::c_char,
+    /// The result of the intent classification
     pub intent: *const CNluIntentClassifierResult,
-    /// Nullable
+    /// Nullable, the detected slots, if any
     pub slots: *const CNluSlotArray,
-    /// Nullable
+    /// Nullable, alternatives intent resolutions
     pub alternatives: *const CNluIntentAlternativeArray,
     ///// Nullable
     //pub speaker_hypotheses: *const CSpeakerIdArray,
-    /// Nullable, the first array level represents the asr invocation, the second one the tokens
+    /// Nullable, the tokens detected by the ASR, the first array level represents the asr
+    /// invocation, the second one the tokens
     pub asr_tokens: *const CAsrTokenDoubleArray,
-    /// Note: this value is optional. Any value not in [0,1] should be ignored.
+    /// Confidence of the asr capture, this value is optional. Any value not in [0,1] should be ignored.
     pub asr_confidence: libc::c_float,
 }
 
@@ -140,16 +145,19 @@ impl Drop for CIntentMessage {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CIntentNotRecognizedMessage {
+    /// The site where no intent was recognized
     pub site_id: *const libc::c_char,
+    /// The session in which no intent was recognized
     pub session_id: *const libc::c_char,
-    /// Nullable
+    /// Nullable, the text that didn't match any intent
     pub input: *const libc::c_char,
-    /// Nullable
+    /// Nullable, the custom data that was given at the session creation
     pub custom_data: *const libc::c_char,
-    /// Nullable
+    /// Nullable, alternatives intent resolutions
     pub alternatives: *const CNluIntentAlternativeArray,
     ///// Nullable
     //pub speaker_hypotheses: *const CSpeakerIdArray,
+    /// Expresses the confidence that no intent was found
     pub confidence_score: libc::c_float,
 }
 
@@ -216,7 +224,11 @@ impl Drop for CIntentNotRecognizedMessage {
 #[repr(C)]
 #[derive(Debug, PartialEq)]
 pub enum SNIPS_SESSION_INIT_TYPE {
+    /// The session expects a response from the user. Users responses will be provided in the form
+    /// of `CIntentMessage`s.
     SNIPS_SESSION_INIT_TYPE_ACTION = 1,
+    /// The session doesn't expect a response from the user. If the session cannot be started, it
+    /// will be enqueued.
     SNIPS_SESSION_INIT_TYPE_NOTIFICATION = 2,
 }
 
@@ -232,11 +244,16 @@ impl SNIPS_SESSION_INIT_TYPE {
 #[repr(C)]
 #[derive(Debug, PartialEq)]
 pub struct CActionSessionInit {
-    /// Nullable
+    /// Nullable, an optional text to be told to the user
     text: *const libc::c_char,
-    /// Nullable
+    /// Nullable, an optional list of intent name to restrict the parsing of the user response to
     intent_filter: *const CStringArray,
+    /// A boolean to indicate if the session can be enqueued if it can't be started immediately (ie
+    /// there is another running session on the site). 1 = true, 0 = false
     can_be_enqueued: libc::c_uchar,
+    /// A boolean to indicate whether the dialogue manager should handle non recognized intents by
+    /// itself or sent them as an `CIntentNotRecognizedMessage` for the client to handle. This
+    /// setting applies only to the next conversation turn. 1 = true, 0 = false
     send_intent_not_recognized: libc::c_uchar,
 }
 
@@ -279,8 +296,10 @@ impl Drop for CActionSessionInit {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CSessionInit {
+    /// The type of session to start
     init_type: SNIPS_SESSION_INIT_TYPE,
-    /// Points to either a *const char, a *const CActionSessionInit
+    /// Points to either a *const char if the type is `SNIPS_SESSION_INIT_TYPE_NOTIFICATION`, or a
+    /// *const CActionSessionInit if the type is `SNIPS_SESSION_INIT_TYPE_ACTION`
     value: *const libc::c_void,
 }
 
@@ -336,8 +355,14 @@ impl Drop for CSessionInit {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CStartSessionMessage {
+    /// The way this session should be created
     pub init: CSessionInit,
+    /// An optional string that will be given back in `CIntentMessage`,
+    /// `CIntentNotRecognizedMessage`, `CSessionQueuedMessage`, `CSessionStartedMessage` and
+    /// `CSessionEndedMessage` that are related to this session
     pub custom_data: *const libc::c_char,
+    /// The site where the session should be started, a null value will be interpreted as the
+    /// default one
     pub site_id: *const libc::c_char,
 }
 
@@ -383,11 +408,15 @@ impl Drop for CStartSessionMessage {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CSessionStartedMessage {
+    /// The id of the session that was started
     pub session_id: *const libc::c_char,
-    /// Nullable
+    /// Nullable, the custom data that was given at the creation of the session
     pub custom_data: *const libc::c_char,
+    /// The site on which this session was started
     pub site_id: *const libc::c_char,
-    /// Nullable
+    /// Nullable, this field indicates this session is a reactivation of a previously ended session.
+    /// This is for example provided when the user continues talking to the platform without saying
+    /// the hotword again after a session was ended.
     pub reactivated_from_session_id: *const libc::c_char,
 }
 
@@ -433,9 +462,11 @@ impl Drop for CSessionStartedMessage {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CSessionQueuedMessage {
+    /// The id of the session that was queued
     pub session_id: *const libc::c_char,
-    /// Nullable
+    /// Nullable, the custom data that was given at the creation of the session
     pub custom_data: *const libc::c_char,
+    /// The site on which this session was queued
     pub site_id: *const libc::c_char,
 }
 
@@ -478,14 +509,26 @@ impl Drop for CSessionQueuedMessage {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CContinueSessionMessage {
+    /// The id of the session this action applies to
     pub session_id: *const libc::c_char,
+    /// The text to say to the user
     pub text: *const libc::c_char,
-    /// Nullable
+    /// Nullable, an optional list of intent name to restrict the parsing of the user response to
     pub intent_filter: *const CStringArray,
-    /// Nullable
+    /// Nullable, an optional piece of data that will be given back in `CIntentMessage`,
+    /// `CIntentNotRecognizedMessage` and `CSessionEndedMessage` that are related
+    /// to this session. If set it will replace any existing custom data previously set on this
+    /// session
     pub custom_data: *const libc::c_char,
-    /// Nullable
+    /// Nullable,  An optional string, requires `intent_filter` to contain a single value. If set,
+    /// the dialogue engine will not run the the intent classification on the user response and go
+    /// straight to slot filling, assuming the intent is the one passed in the `intent_filter`, and
+    /// searching the value of the given slot
     pub slot: *const libc::c_char,
+    /// A boolean to indicate whether the dialogue manager should handle not recognized
+    /// intents by itself or sent them as a `CIntentNotRecognizedMessage` for the client to handle.
+    /// This setting applies only to the next conversation turn. The default value is false (and
+    /// the dialogue manager will handle non recognized intents by itself) true = 1, false = 0
     pub send_intent_not_recognized: libc::c_uchar,
 }
 
@@ -543,8 +586,9 @@ impl Drop for CContinueSessionMessage {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CEndSessionMessage {
+    /// The id of the session to end
     pub session_id: *const libc::c_char,
-    /// Nullable
+    /// Nullable, an optional text to be told to the user before ending the session
     pub text: *const libc::c_char,
 }
 
@@ -634,11 +678,17 @@ impl AsRust<Option<hermes::HermesComponent>> for SNIPS_HERMES_COMPONENT {
 #[repr(C)]
 #[derive(Debug)]
 pub enum SNIPS_SESSION_TERMINATION_TYPE {
+    /// The session ended as expected
     SNIPS_SESSION_TERMINATION_TYPE_NOMINAL = 1,
+    /// Dialogue was deactivated on the site the session requested
     SNIPS_SESSION_TERMINATION_TYPE_SITE_UNAVAILABLE = 2,
+    /// The user aborted the session
     SNIPS_SESSION_TERMINATION_TYPE_ABORTED_BY_USER = 3,
+    /// The platform didn't understand was the user said
     SNIPS_SESSION_TERMINATION_TYPE_INTENT_NOT_RECOGNIZED = 4,
+    /// No response was received from one of the components in a timely manner
     SNIPS_SESSION_TERMINATION_TYPE_TIMEOUT = 5,
+    /// A generic error occurred
     SNIPS_SESSION_TERMINATION_TYPE_ERROR = 6,
 }
 
@@ -670,9 +720,13 @@ impl SNIPS_SESSION_TERMINATION_TYPE {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CSessionTermination {
+    /// The type of the termination
     termination_type: SNIPS_SESSION_TERMINATION_TYPE,
-    /// Nullable,
+    /// Nullable, set id the type is `SNIPS_SESSION_TERMINATION_TYPE_ERROR` and gives more info on
+    /// the error that happen
     data: *const libc::c_char,
+    /// If the type is `SNIPS_SESSION_TERMINATION_TYPE_TIMEOUT`, this gives the component that
+    /// generated the timeout
     component: SNIPS_HERMES_COMPONENT,
 }
 
@@ -733,10 +787,13 @@ impl Drop for CSessionTermination {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CSessionEndedMessage {
+    /// The id of the session that was terminated
     pub session_id: *const libc::c_char,
-    /// Nullable
+    /// Nullable, the custom data associated to this session
     pub custom_data: *const libc::c_char,
+    /// How the session was ended
     pub termination: CSessionTermination,
+    /// The site on which this session took place
     pub site_id: *const libc::c_char,
 }
 
@@ -781,8 +838,10 @@ impl Drop for CSessionEndedMessage {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CDialogueConfigureIntent {
+    /// The name of the intent that should be configured.
     pub intent_id: *const libc::c_char,
-    /// Optional Boolean 0 => false, 1 => true other values => null
+    /// Optional Boolean 0 => false, 1 => true other values => null,
+    /// Whether this intent should be activated on not.
     pub enable: libc::c_uchar,
 }
 
@@ -821,7 +880,9 @@ impl Drop for CDialogueConfigureIntent {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CDialogueConfigureIntentArray {
+    /// Pointer to the first intent configuration
     pub entries: *const *const CDialogueConfigureIntent,
+    /// Number of intent configuration
     pub count: libc::c_int,
 }
 
@@ -873,9 +934,10 @@ impl Drop for CDialogueConfigureIntentArray {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CDialogueConfigureMessage {
-    /// Nullable
+    /// Nullable, the site on which this configuration applies, if `null` the configuration will
+    /// be applied to all sites
     pub site_id: *const libc::c_char,
-    /// Nullable
+    /// Nullable, Intent configurations to apply
     pub intents: *const CDialogueConfigureIntentArray,
 }
 
