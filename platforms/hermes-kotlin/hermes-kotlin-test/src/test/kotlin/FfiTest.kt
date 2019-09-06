@@ -142,14 +142,14 @@ class FfiTest {
                                                                             rawValue = "msqkfld",
                                                                             slotName = "qslfkj",
                                                                             value = MusicAlbumValue(value = "qmslkfdj"),
-                                                                            alternatives = listOf(MusicArtistValue(value = "mqsklfj"),
-                                                                                                  MusicTrackValue(value = "fsdqlkdflkqmj"))),
+                                                                            alternatives = mutableListOf(MusicArtistValue(value = "mqsklfj"),
+                                                                                                         MusicTrackValue(value = "fsdqlkdflkqmj"))),
                                                                        Slot(entity = "qsdf",
                                                                             confidenceScore = 0.89f,
                                                                             range = Range(10, 43),
                                                                             rawValue = "aaaaa",
                                                                             slotName = "bbbb",
-                                                                            value = CityValue(value = "qmslkfdj"), alternatives = listOf())
+                                                                            value = CityValue(value = "qmslkfdj"), alternatives = mutableListOf())
                                                         )),
                                       IntentAlternative(intentName = null, confidenceScore = 0.14f, slots = listOf()))
         )
@@ -385,8 +385,8 @@ class FfiTest {
                                     value = SlotValue.CustomValue("toto"),
                                     entity = "some entity",
                                     slotName = "some slot",
-                                    alternatives = listOf(NumberValue(value = 3.1415),
-                                                          MusicTrackValue(value = "fsdqlkdflkqmj"))
+                                    alternatives = mutableListOf(NumberValue(value = 3.1415),
+                                                                 MusicTrackValue(value = "fsdqlkdflkqmj"))
                 )),
                 alternatives = listOf(IntentAlternative(intentName = "toqsfqs",
                                                         confidenceScore = 0.1234f,
@@ -396,15 +396,16 @@ class FfiTest {
                                                                             rawValue = "msqkfld",
                                                                             slotName = "qslfkj",
                                                                             value = MusicAlbumValue(value = "qmslkfdj"),
-                                                                            alternatives = listOf(MusicArtistValue(value = "mqsklfj"),
-                                                                                                  MusicTrackValue(value = "fsdqlkdflkqmj"))),
+                                                                            alternatives = mutableListOf(MusicArtistValue(value = "mqsklfj"),
+                                                                                                         MusicTrackValue(value = "fsdqlkdflkqmj"))),
 
                                                                        Slot(entity = "qsdf",
                                                                             confidenceScore = 0.89f,
                                                                             range = Range(10, 43),
                                                                             rawValue = "aaaaa",
                                                                             slotName = "bbbb",
-                                                                            value = CityValue(value = "qmslkfdj"), alternatives = listOf())
+                                                                            value = CityValue(value = "qmslkfdj"),
+                                                                            alternatives = mutableListOf())
                                                         )),
                                       IntentAlternative(intentName = null, confidenceScore = 0.14f, slots = listOf()))
 
