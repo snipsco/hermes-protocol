@@ -13,6 +13,41 @@ The Hermes Client
 Ontology
 --------
 
+Session
+^^^^^^^
+
+.. module:: hermes_python.ontology.dialogue.session
+
+.. autoclass:: StartSessionMessage
+    :members: __init__
+
+.. autoclass:: EndSessionMessage
+    :members: __init__
+
+.. autoclass:: ContinueSessionMessage
+    :members: __init__
+
+.. autoclass:: SessionStartedMessage
+    :members: __init__
+
+.. autoclass:: SessionEndedMessage
+    :members: __init__
+
+.. autoclass:: SessionQueuedMessage
+    :members: __init__
+
+.. autoclass:: SessionInitAction
+    :show-inheritance:
+    :members: __init__
+
+.. autoclass:: SessionInitNotification
+    :show-inheritance:
+    :members: __init__
+
+.. autoclass:: SessionInit
+
+
+
 Intent
 ^^^^^^
 

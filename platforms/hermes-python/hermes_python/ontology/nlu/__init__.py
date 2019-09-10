@@ -137,7 +137,7 @@ class SlotMap(Mapping):
 
 class SlotsList(list):
     """
-    A helper class that is a list of `NluSlot`s. It's a subclass of list that makes it easier to reach slot_values that are deeply nested in the IntentMessage datastructure.
+    A helper class that is a list of `NluSlot`. It's a subclass of list that makes it easier to reach slot_values that are deeply nested in the `IntentMessage` datastructure.
     """
 
     def __eq__(self, other):

@@ -19,13 +19,13 @@ class SessionInitAction(SessionInit):
         # type:(Optional[str], Optional[List[str]], bool, bool) -> None
         """
         :param text: An optional text to say to the user
+        :type text: Optional[Text]
         :param intent_filter: An optional list of intent name to restrict the parsing of the user response to
-        :param can_be_enqueued: An optional boolean to indicate if the session can be enqueued if it can't be started
-        immediately (ie there is another running session on the site). The default value is true
-        :param send_intent_not_recognized: An optional boolean to indicate whether the dialogue manager should handle
-        non recognized intents by itself or sent them as an `IntentNotRecognizedMessage` for the
-        client to handle. This setting applies only to the next conversation turn. The default
-        value is false (and the dialogue manager will handle non recognized intents by itself)
+        :type intent_filter: Optional[List[str]]
+        :param can_be_enqueued: An optional boolean to indicate if the session can be enqueued if it can't be started immediately (ie there is another running session on the site). The default value is true
+        :type can_be_enqueued: bool
+        :param send_intent_not_recognized: An optional boolean to indicate whether the dialogue manager should handle non recognized intents by itself or sent them as an `IntentNotRecognizedMessage` for the client to handle. This setting applies only to the next conversation turn. The default value is false (and the dialogue manager will handle non recognized intents by itself)
+        :type send_intent_not_recognized: bool
         """
         self.text = text
         self.intent_filter = intent_filter
@@ -65,7 +65,9 @@ class SessionInitNotification(SessionInit):
         """
         The session doesn't expect a response from the user.
         If the session cannot be started, it will enqueued.
+
         :param text:
+        :type text: Text
         """
         self.text = text
 
@@ -86,11 +88,11 @@ class StartSessionMessage(object):
         # type: (SessionInit, str, str) -> None
         """
         :param session_init: The way this session was created
-        :param custom_data: An optional piece of data that will be given back in `IntentMessage`,
-        `IntentNotRecognizedMessage`, `SessionQueuedMessage`, `SessionStartedMessage` and `SessionEndedMessage`
-        that are related to this session
-        :param site_id: The site where the session should be started, a value of `None` will be interpreted as the
-        default one
+        :type session_init: SessionInit
+        :param custom_data: An optional piece of data that will be given back in `IntentMessage`, `IntentNotRecognizedMessage`, `SessionQueuedMessage`, `SessionStartedMessage` and `SessionEndedMessage` that are related to this session
+        :type custom_data: Text
+        :param site_id: The site where the session should be started, a value of `None` will be interpreted as the default one
+        :type site_id: Text
         """
         self.init = session_init
         self.custom_data = custom_data
@@ -126,12 +128,12 @@ class SessionStartedMessage(object):
         A message that the handler receives from the Dialogue Manager when a session is started.
 
         :param session_id: Session identifier that was started.
+        :type session_id: Text
         :param custom_data: Custom data provided in the start session request on.
+        :type custom_data: Optional[Text]
         :param site_id:  Site where the user interaction is taking place.
-        :param reactivated_from_session_id: NOT IMPLEMENTED YET. This feature is coming soon.
-        This optional field indicates this session is a reactivation of a previously
-        ended session. This is for example provided when the user continues talking to the platform without saying the
-        hotword again after a session was ended.
+        :type site_id: Text
+        :param reactivated_from_session_id: NOT IMPLEMENTED YET. This feature is coming soon. This optional field indicates this session is a reactivation of a previously ended session. This is for example provided when the user continues talking to the platform without saying the hotword again after a session was ended.
         """
         self.session_id = session_id
         self.custom_data = custom_data
@@ -156,7 +158,9 @@ class EndSessionMessage(object):
         # type: (str, Optional[str]) -> None
         """
         :param session_id: The id of the session to end
+        :type session_id: Text
         :param text: An optional text to say to the user before ending the session
+        :type text: Optional[Text]
         """
         self.session_id = session_id
         self.text = text
@@ -181,9 +185,13 @@ class SessionEndedMessage(object):
         A message that the handler receives from the Dialogue Manager when a session is ended.
 
         :param session_id: Session identifier that was started.
+        :type session_id: Text
         :param custom_data: Custom data provided in the start session request on.
+        :type custom_data: Optional[Text]
         :param site_id: Site where the user interaction is taking place.
+        :type site_id: Text
         :param termination: Structured description of why the session has been ended.
+        :type termination: SessionTermination
         """
         self.session_id = session_id
         self.custom_data = custom_data
@@ -209,8 +217,11 @@ class SessionQueuedMessage(object):
         A message that the handler receives from the Dialogue Manager when a session is queued.
 
         :param session_id: Session identifier that was started.
+        :type session_id: Text
         :param custom_data: Custom data provided in the start session request on.
+        :type custom_data: Optional[Text]
         :param site_id: Site where the user interaction is taking place
+        :type site_id: Text
         """
         self.session_id = session_id
         self.custom_data = custom_data
@@ -252,10 +263,12 @@ class SessionTerminationTypeAbortedByUser(SessionTerminationType):
         # type:() -> SNIPS_SESSION_TERMINATION_TYPE
         return SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_ABORTED_BY_USER
 
+
 class SessionTerminationTypeIntentNotRecognized(SessionTerminationType):
     def into_c_repr(self):
         # type:() -> SNIPS_SESSION_TERMINATION_TYPE
         return SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_INTENT_NOT_RECOGNIZED
+
 
 class SessionTerminationTypeTimeOut(SessionTerminationType):
     def __init__(self, component):
@@ -283,8 +296,11 @@ class SessionTermination(object):
     def __init__(self, termination_type, data):
         # type: (SessionTerminationType, str) -> None
         """
-        :param termination_type:
-        :param data: the reason why the session was ended
+
+        :param termination_type: the reason why the session was ended
+        :type termination_type: SessionTerminationType
+        :param data: attached data
+        :type data: Text
         """
         self.termination_type = termination_type
         self.data = data
@@ -294,18 +310,24 @@ class SessionTermination(object):
         # type: (CSessionTermination) -> SessionTermination
         data = c_repr.data.decode('utf-8') if c_repr.data else None
 
-        if SNIPS_SESSION_TERMINATION_TYPE(c_repr.termination_type) is SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_NOMINAL:
-            termination_type = SessionTerminationTypeNominal() # type: SessionTerminationType
-        elif SNIPS_SESSION_TERMINATION_TYPE(c_repr.termination_type) is SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_SITE_UNAVAILABLE:
+        if SNIPS_SESSION_TERMINATION_TYPE(
+                c_repr.termination_type) is SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_NOMINAL:
+            termination_type = SessionTerminationTypeNominal()  # type: SessionTerminationType
+        elif SNIPS_SESSION_TERMINATION_TYPE(
+                c_repr.termination_type) is SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_SITE_UNAVAILABLE:
             termination_type = SessionTerminationTypeSiteUnavailable()
-        elif SNIPS_SESSION_TERMINATION_TYPE(c_repr.termination_type) is SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_ABORTED_BY_USER:
+        elif SNIPS_SESSION_TERMINATION_TYPE(
+                c_repr.termination_type) is SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_ABORTED_BY_USER:
             termination_type = SessionTerminationTypeAbortedByUser()
-        elif SNIPS_SESSION_TERMINATION_TYPE(c_repr.termination_type) is SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_INTENT_NOT_RECOGNIZED:
+        elif SNIPS_SESSION_TERMINATION_TYPE(
+                c_repr.termination_type) is SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_INTENT_NOT_RECOGNIZED:
             termination_type = SessionTerminationTypeIntentNotRecognized()
-        elif SNIPS_SESSION_TERMINATION_TYPE(c_repr.termination_type) is SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_TIMEOUT:
+        elif SNIPS_SESSION_TERMINATION_TYPE(
+                c_repr.termination_type) is SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_TIMEOUT:
             component = HermesComponent.from_c_repr(c_repr.component)
             termination_type = SessionTerminationTypeTimeOut(component)
-        elif SNIPS_SESSION_TERMINATION_TYPE(c_repr.termination_type) is SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_ERROR:
+        elif SNIPS_SESSION_TERMINATION_TYPE(
+                c_repr.termination_type) is SNIPS_SESSION_TERMINATION_TYPE.SNIPS_SESSION_TERMINATION_TYPE_ERROR:
             termination_type = SessionTerminationTypeError(data)
         else:
             raise Exception("Bad value type. Got : {}".format(c_repr.termination_type))
@@ -321,17 +343,17 @@ class ContinueSessionMessage(object):
         # type: (str, str, List[str], Optional[str], bool, Optional[str]) -> None
         """
         :param session_id: Identifier of the dialogue session during which this intent was parsed.
+        :type session_id: Text
         :param text:
-        :param intent_filter: a list of allowed intent names that the dialogue manager will use to filter incoming
-        intents. Nullable argument
+        :type text: Text
+        :param intent_filter: a list of allowed intent names that the dialogue manager will use to filter incoming intents. Nullable argument
+        :type intent_filter: List[Text]
         :param custom_data: Nullable argument.
-        :param send_intent_not_recognized: An optional boolean to indicate whether the dialogue manager should handle
-        non recognized intents by itself or sent them as an `IntentNotRecognizedMessage` for the client to handle. This
-        setting applies only to the next conversation turn. The default
-        value is false (and the dialogue manager will handle non recognized intents by itself)
-        :param slot: An optional string, requires `intent_filter` to contain a single value. If set, the dialogue engine
-         will not run the the intent classification on the user response and go straight to slot filling, assuming the
-         intent is the one passed in the `intent_filter`, and searching the value of the given slot
+        :type custom_data: Optional[Text]
+        :param send_intent_not_recognized: An optional boolean to indicate whether the dialogue manager should handle non recognized intents by itself or sent them as an `IntentNotRecognizedMessage` for the client to handle. This setting applies only to the next conversation turn. The default value is false (and the dialogue manager will handle non recognized intents by itself)
+        :type send_intent_not_recognized: bool
+        :param slot: An optional string, requires `intent_filter` to contain a single value. If set, the dialogue engine will not run the the intent classification on the user response and go straight to slot filling, assuming the intent is the one passed in the `intent_filter`, and searching the value of the given slot
+        :type slot: Optional[Text]
         """
         self.session_id = session_id
         self.text = text
@@ -363,6 +385,3 @@ class ContinueSessionMessage(object):
     def into_c_repr(self):
         return CContinueSessionMessage.build(self.session_id, self.text, self.intent_filter, self.custom_data,
                                              self.slot, self.send_intent_not_recognized)
-
-
-
