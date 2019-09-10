@@ -11,11 +11,24 @@ class IntentMessage(object):
         A python representation of the intent parsed by the NLU engine.
 
         :param session_id: Identifier of the dialogue session during which this intent was parsed.
+        :type session_id: Text
         :param custom_data: Custom data passed by the Dialogue Manager in the current dialogue session.
+        :type custom_data: Text
         :param site_id: Site where the user interaction took place.
+        :type site_id: Text
         :param input: The user input that has generated this intent.
+        :type input: Text
         :param intent: Structured description of the intent classification.
+        :type intent: IntentClassifierResult
         :param slots: Structured description of the detected slots for this intent if any.
+        :type slots: SlotMap
+        :param alternatives: A list of alternatives intent resolutions
+        :type alternatives: List[NluIntentAlternative]
+        :param asr_tokens: The tokens detected by the ASR. The first list represents the different ASR invocations
+        :type asr_tokens: List[List[AsrToken]]
+        :param asr_confidence: Confidence of the asr capture
+        :type asr_confidence: float
+
         """
         self.session_id = session_id
         self.custom_data = custom_data
@@ -70,7 +83,9 @@ class IntentClassifierResult(object):
         Structured description of the intent classification.
 
         :param intent_name: name of the intent.
+        :type intent_name: Text
         :param confidence_score: confidence_score that the parsed sentence is the `intent_name` intent.
+        :type confidence_score: float
         """
         self.intent_name = intent_name
         self.confidence_score = confidence_score
@@ -90,11 +105,17 @@ class IntentNotRecognizedMessage(object):
         session was initialized with the intent_not_recognized flag turned on.
 
         :param site_id: Site where the user interaction is taking place.
+        :type site_id: Text
         :param session_id: Session identifier that was started.
+        :type session_id: Text
         :param input: The user input that has generated this intent. This parameter is nullable
-        :param custom_data: Custom data passed by the Dialogue Manager in the current dialogue session.
-        This parameter is nullable
+        :type input: Optional[Text]
+        :param custom_data: Custom data passed by the Dialogue Manager in the current dialogue session. This parameter is nullable
+        :type custom_data: Optional[Text]
         :param confidence_score: Between 0 and 1
+        :type confidence_score: float
+        :param alternatives: A list of alternatives intent resolutions
+        :type alternatives: List[NluIntentAlternatives]
         """
         self.site_id = site_id
         self.session_id = session_id

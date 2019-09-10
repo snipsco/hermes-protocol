@@ -1,4 +1,4 @@
-from typing import List, Optional, Text
+from typing import List, Optional, Text, Mapping
 
 from collections import defaultdict
 
@@ -14,6 +14,16 @@ from ..slot import Slot, SlotValue
 class NluIntentAlternative(object):
     def __init__(self, intent_name, confidence_score, slots):
         # type: (Optional[Text], float, SlotMap) -> None
+        """
+        Alternative resolution provided by the NLU engine
+
+        :param intent_name: name of the alternative intent.
+        :type intent_name: Optional[Text]
+        :param confidence_score: confidence score of the alternative intent
+        :type confidence_score: float
+        :param slots: slot map of the parsed slots for this alternative intent.
+        :type slots: SlotMap
+        """
         self.intent_name = intent_name
         self.confidence_score = confidence_score
         self.slots = slots
@@ -35,6 +45,25 @@ class NluSlot(object):
     def __init__(self, slot_value, raw_value, alternatives, entity, slot_name, range_start, range_end,
                  confidence_score):
         # type: (SlotValue, Text, List[SlotValue], Text, Text, int, int, float) -> None
+        """
+        :param slot_value: Parsed value of the slot into a structure.
+        :type slot_value: SlotValue
+        :param raw_value: Unparsed, raw value of the detected slot.
+        :type raw_value: Text
+        :param alternatives: Alternatives resolutions of the slot.
+        :type alternatives: List[SlotValue]
+        :param entity:
+        :type entity: Text
+        :param slot_name: name of the detected slot.
+        :type slot_name: Text
+        :param range_start: Index in the parsed sentence, at which the slot starts
+        :type range_start: int
+        :param range_end: Index in the parsed sentence, at which the slot ends.
+        :type range_end: int
+        :param confidence_score: confidence level of the parsing of the detected slot.
+        :type confidence_score: float
+
+        """
         self.slot_value = slot_value
         self.raw_value = raw_value
         self.alternatives = alternatives
@@ -64,7 +93,14 @@ class NluSlot(object):
 
 class SlotMap(Mapping):
     def __init__(self, data):
-        # type: (dict) -> None
+        # type: (Mapping[Text, SlotsList]) -> None
+        """
+        A helper class (which is a subclass of the collections.abc.Mapping class) which allows to
+        access slots using a dot notation.
+
+        :param data: A map-like that has slot-name as key, and a SlotsList as a value.
+        :type data: Mapping[Text, SlotsList]
+        """
         mapping = dict()
         for k, v in data.items():
             mapping[k] = SlotsList(v)
@@ -100,15 +136,16 @@ class SlotMap(Mapping):
 
 
 class SlotsList(list):
-    # An extension to make things easier to reach slot_values that are deeply nested in the IntentMessage datastructure.
+    """
+    A helper class that is a list of `NluSlot`s. It's a subclass of list that makes it easier to reach slot_values that are deeply nested in the IntentMessage datastructure.
+    """
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
 
     def first(self):
         """
-
-        :return:
+        Returns the `value` field of the `slot_value` field of the first `NluSlot` occurence in the `SlotsList`
         """
         if len(self) > 0:
             return self[0].slot_value.value
@@ -117,8 +154,7 @@ class SlotsList(list):
 
     def all(self):
         """
-
-        :return:
+        Returns a list of `value`s field of the `slot_value` field of all `NluSlot` occurences in the `SlotsList`
         """
         if len(self) > 0:
             return [element.slot_value.value for element in self]

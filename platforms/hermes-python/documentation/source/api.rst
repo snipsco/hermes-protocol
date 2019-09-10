@@ -19,18 +19,30 @@ Intent
 .. module:: hermes_python.ontology.dialogue.intent
 
 .. autoclass:: IntentMessage
-    :members:
+    :members: __init__
 
 .. autoclass:: IntentClassifierResult
+    :members: __init__
+
+.. autoclass:: IntentNotRecognizedMessage
+    :members: __init__
+
     :members:
+
+.. module:: hermes_python.ontology.nlu
+
+.. autoclass:: NluIntentAlternative
+    :members: __init__
+
 
 Slots
 ^^^^^
 
-.. module:: hermes_python.ontology.dialogue.slot
+.. autoclass:: NluSlot
+    :members: __init__
 
 .. autoclass:: SlotMap
-    :members:
+    :members: __init__
 
 .. autoclass:: SlotsList
     :members:
@@ -42,50 +54,52 @@ Slots
 Slot Values
 ^^^^^^^^^^^
 
+.. module:: hermes_python.ontology.slot
+
 .. autoclass:: SlotValue
-    :members:
+    :members: __init__
 
 .. autoclass:: CustomValue
-    :members:
+    :members: __init__
 
 .. autoclass:: NumberValue
-    :members:
+    :members: __init__
 
 .. autoclass:: OrdinalValue
-    :members:
+    :members: __init__
 
 .. autoclass:: AmountOfMoneyValue
-    :members:
+    :members: __init__
 
 .. autoclass:: TemperatureValue
-    :members:
+    :members: __init__
 
 .. autoclass:: InstantTimeValue
-    :members:
+    :members: __init__
 
 .. autoclass:: TimeIntervalValue
-    :members:
+    :members: __init__
 
 .. autoclass:: DurationValue
-    :members:
+    :members: __init__
 
 .. autoclass:: PercentageValue
-    :members:
+    :members: __init__
 
 .. autoclass:: MusicArtistValue
-    :members:
+    :members: __init__
 
 .. autoclass:: MusicAlbumValue
-    :members:
+    :members: __init__
 
 .. autoclass:: MusicTrackValue
-    :members:
+    :members: __init__
 
 .. autoclass:: CityValue
-    :members:
+    :members: __init__
 
 .. autoclass:: CountryValue
-    :members:
+    :members: __init__
 
 .. autoclass:: RegionValue
-    :members:
+    :members: __init__
