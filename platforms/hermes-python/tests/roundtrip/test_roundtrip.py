@@ -447,22 +447,34 @@ def test_hermes_ffi_test_round_trip_dialogue_configure_intent_array():
 
     assert dialogue_configure_intent_array == round_trip_dialogue_configure_intent_array
 
+class TestInjection(object):
+    def test_injection_request_message_roundtrip(self):
+        input_request_1 = AddInjectionRequest({"key": ["hello", "world", "✨"]})
+        input_request_2 = AddFromVanillaInjectionRequest({"key": ["hello", "moon", "👽"]})
+        operations = [input_request_1, input_request_2]
+        lexicon = {"key": ["i", "am a", "lexicon ⚠️"]}
+        injection_request = InjectionRequestMessage(operations, lexicon)
 
-def test_injection_request_message_roundtrip():
-    input_request_1 = AddInjectionRequest({"key": ["hello", "world", "✨"]})
-    input_request_2 = AddFromVanillaInjectionRequest({"key": ["hello", "moon", "👽"]})
-    operations = [input_request_1, input_request_2]
-    lexicon = {"key": ["i", "am a", "lexicon ⚠️"]}
-    injection_request = InjectionRequestMessage(operations, lexicon)
+        round_trip_injection_request = get_round_trip_data_structure(
+            injection_request,
+            hermes_python.ffi.ontology.injection.CInjectionRequestMessage,
+            hermes_python.ontology.injection.InjectionRequestMessage,
+            lib.hermes_ffi_test_round_trip_injection_request
+        )
 
-    round_trip_injection_request = get_round_trip_data_structure(
-        injection_request,
-        hermes_python.ffi.ontology.injection.CInjectionRequestMessage,
-        hermes_python.ontology.injection.InjectionRequestMessage,
-        lib.hermes_ffi_test_round_trip_injection_request
-    )
+        assert injection_request == round_trip_injection_request
 
-    assert injection_request == round_trip_injection_request
+    def test_injection_complete_message_roundtrip(self):
+        injection_complete = hermes_python.ontology.injection.InjectionCompleteMessage("request_id")
+
+        round_trip_injection_complete_message = get_round_trip_data_structure(
+            injection_complete,
+            hermes_python.ffi.ontology.injection.CInjectionCompleteMessage,
+            hermes_python.ontology.injection.InjectionCompleteMessage,
+            lib.hermes_ffi_test_round_trip_injection_complete
+        )
+
+        assert injection_complete == round_trip_injection_complete_message
 
 
 class TestMapStringToStringArray(object):

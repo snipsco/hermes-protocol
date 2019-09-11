@@ -379,6 +379,16 @@ tasks at the same time on devices with limited computing power.
 
 You can monitor the progress of your injection request with ``snips-watch -vvv``.
 
+You can register a callback so that your code knows when an injection process is completed :
+
+::
+
+    def injection_completed(hermes, injection_complete_message):
+        print("The injection operation with id {} completed !".format(injection_complete_message.request_id))
+
+    with Hermes("localhost:1883") as h:
+        h.subscribe_injection_complete(injection_completed).request_injection(request2)
+
 
 Configuring MQTT options
 ------------------------

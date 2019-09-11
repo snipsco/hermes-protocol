@@ -2,6 +2,7 @@ History
 ==========
 0.8.0 (2019-09-10)
 ------------------
+* Adds subscription to injection lifecycle events : subscribe_injection_complete 
 * Adds a component field to the SessionTerminationType class
 * Introduces alternatives intent resolutions
 * Fixes folder creation issue when building the wheel from sources

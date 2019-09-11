@@ -55,3 +55,14 @@ class CInjectionRequestMessage(Structure):
         cross_language = repr.cross_language.encode('utf-8') if repr.cross_language else None
         id = repr.id.encode('utf-8') if repr.id else None
         return cls(operations, lexicon, cross_language, id)
+
+
+class CInjectionCompleteMessage(Structure):
+    _fields_ = [("request_id", c_char_p)]
+
+    @classmethod
+    def from_repr(cls, repr):
+        request_id = repr.request_id.encode('utf-8')
+        return cls(request_id)
+
+

@@ -79,3 +79,21 @@ class AddFromVanillaInjectionRequest(InjectionRequestOperation):
     def from_c_repr(cls, c_repr):
         values = c_repr.values.contents.into_repr()
         return cls(values)
+
+
+class InjectionCompleteMessage(object):
+    def __init__(self, request_id):
+        """
+        :param request_id: The id of the injection request that just completed.
+        :type request_id: Text
+        """
+        # type: (Text)
+        self.request_id = request_id
+
+    def __eq__(self, other):
+        return other.__dict__ == self.__dict__
+
+    @classmethod
+    def from_c_repr(cls, c_repr):
+        request_id = c_repr.request_id.decode('utf-8')
+        return cls(request_id)
