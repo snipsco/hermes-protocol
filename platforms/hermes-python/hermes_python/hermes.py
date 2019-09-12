@@ -349,7 +349,7 @@ class Hermes(object):
     #     return self
 
     def subscribe_injection_complete(self, user_callback_injection_complete):
-        # type: (Text, Callable[[Hermes, InjectionCompleteMessage], None]) -> Hermes
+        # type: (Callable[[Hermes, InjectionCompleteMessage], None]) -> Hermes
         """
         Registers a callback to be triggered when an injection process is completed.
 
@@ -372,13 +372,45 @@ class Hermes(object):
         Publishes an injection request to the platform.
 
         Note that this function is asynchronous. You can check the status of the injection by registering a injection
-        status callback with the `subscribe_injection_status` method of `hermes` and by requesting the status of the
-        injection with the `request_injection_status` method of `hermes`.
+        complete callback with the `subscribe_injection_complete` method of `hermes`.
 
         :param injection_request: An object that contains the different injection requests operations.
         :return: the current instance of Hermes to allow chaining.
         """
         self.ffi.injection.publish_injection_request(injection_request)
+        return self
+
+    def subscribe_injection_reset_complete(self, user_callback_injection_reset_complete):
+        # type: (Callable[[Hermes, InjectionResetCompleteMessage], None]) -> Hermes
+        """
+        Registers a callback to be triggered when an injection reset process is completed.
+
+        The callback will be called with the following parameters :
+            - hermes : the current instance of the Hermes object
+            - injectionResetCompleteMessage:
+                - A python representation of the message of completion for an injection reset operation (for json_repr set to False)
+                - A json representation of the the message of completion for an injection reset operation (for json_repr set to True)
+
+        :param user_callback_injection_reset_complete:
+        :type user_callback_injection_reset_complete: Callable[[Hermes, InjectionResetCompleteMessage]
+        :return:
+        """
+        self.ffi.injection.register_subscribe_injection_reset_complete(user_callback_injection_reset_complete, self)
+        return self
+
+    def request_injection_reset(self, injection_reset_request):
+        # type: (InjectionResetRequestMessage) -> Hermes
+        """
+        Publishes an injection reset request to the platform.
+
+        Note that this function is asynchronous. You can check the status of the injection reset by registering a injection
+        reset complete callback with the `subscribe_injection_reset_complete` method of `hermes`.
+
+
+        :param injection_reset_request: An request object to reset the injection to its factory settings;
+        :return: the current instance of Hermes to allow chaining.
+        """
+        self.ffi.injection.publish_injection_reset_request(injection_reset_request)
         return self
 
     def start(self):

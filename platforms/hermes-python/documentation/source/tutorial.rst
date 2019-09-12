@@ -377,8 +377,6 @@ Let's see how an injection would be performed by the action code :
 **Careful**, performing an entity injection is a CPU and memory intensive task. You should not trigger multiple injection
 tasks at the same time on devices with limited computing power.
 
-You can monitor the progress of your injection request with ``snips-watch -vvv``.
-
 You can register a callback so that your code knows when an injection process is completed :
 
 ::
@@ -387,7 +385,22 @@ You can register a callback so that your code knows when an injection process is
         print("The injection operation with id {} completed !".format(injection_complete_message.request_id))
 
     with Hermes("localhost:1883") as h:
-        h.subscribe_injection_complete(injection_completed).request_injection(request2)
+        h.subscribe_injection_complete(injection_completed).request_injection(injection_request)
+
+
+You can monitor the progress of your injection request with ``snips-watch -vvv``.
+
+You can also reset the injected vocabulary of your assistant to its factory settings using the ``request_injection_reset` method of ``hermes``.
+Since the operation of resetting the injection is asynchronous, you can register a callback to know when the injection reset process is completed :
+
+::
+
+    def injection_reset_completed(hermes, injection_reset_complete_message):
+        print("The injection reset operation with id {} completed !".format(injection_reset_complete_message.request_id))
+
+    with Hermes("localhost:1883") as h:
+        h.subscribe_injection_reset_complete(injection_reset_completed).request_injection_reset(request)
+
 
 
 Configuring MQTT options

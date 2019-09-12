@@ -66,3 +66,19 @@ class CInjectionCompleteMessage(Structure):
         return cls(request_id)
 
 
+class CInjectionResetRequestMessage(Structure):
+    _fields_ = [("request_id", c_char_p)]
+
+    @classmethod
+    def from_repr(cls, repr):
+        request_id = repr.request_id.encode('utf-8')
+        return cls(request_id)
+
+
+class CInjectionResetCompleteMessage(Structure):
+    _fields_ = [("request_id", c_char_p)]
+
+    @classmethod
+    def from_repr(cls, repr):
+        request_id = repr.request_id.encode('utf-8')
+        return cls(request_id)

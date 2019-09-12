@@ -5,7 +5,7 @@ import pytest
 from hermes_python.hermes import Hermes
 from hermes_python.ontology import MqttOptions
 from hermes_python.ontology.dialogue import StartSessionMessage, SessionInitNotification, ContinueSessionMessage
-from hermes_python.ontology.injection import InjectionRequestMessage
+from hermes_python.ontology.injection import InjectionRequestMessage, InjectionResetRequestMessage
 
 HOST = "localhost"
 DUMMY_INTENT_NAME = "INTENT"
@@ -236,3 +236,29 @@ class TestInjection(object):
         h.__exit__(None, None, None)
 
         h.ffi.injection.register_subscribe_injection_complete.assert_called_once_with(user_callback, h)
+
+    def test_correctly_requesting_injection_reset(self):
+        h = Hermes(HOST)
+        h.ffi = mock.MagicMock()
+
+        injection_reset_request = InjectionResetRequestMessage("request_id")
+
+        with h:
+            h.request_injection_reset(injection_reset_request)
+
+        h.ffi.injection.publish_injection_reset_request.assert_called_once_with(injection_reset_request)
+
+
+    def test_correctly_registering_injection_reset_complete(self):
+        def user_callback(hermes, injection_reset_complete):
+            pass
+
+        h = Hermes(HOST)
+        h.ffi = mock.MagicMock()
+        h.__enter__()
+        h.subscribe_injection_reset_complete(user_callback)
+        h.__exit__(None, None, None)
+
+        h.ffi.injection.register_subscribe_injection_reset_complete.assert_called_once_with(user_callback, h)
+
+

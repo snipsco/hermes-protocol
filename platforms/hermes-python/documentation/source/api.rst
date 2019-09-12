@@ -138,3 +138,33 @@ Slot Values
 
 .. autoclass:: RegionValue
     :members: __init__
+
+Injection
+^^^^^^^^^
+
+.. module:: hermes_python.ontology.injection
+
+.. autoclass:: InjectionRequestMessage
+    :members: __init__
+
+.. autoclass:: InjectionCompleteMessage
+    :members: __init__
+
+.. autoclass:: InjectionResetRequestMessage
+    :members: __init__
+
+.. autoclass:: InjectionResetCompleteMessage
+    :members: __init__
+
+.. autoclass:: InjectionRequestOperation
+    :members: __init__
+
+.. autoclass:: AddInjectionRequest
+    :show-inheritance:
+    :members: __init__
+
+.. autoclass:: AddFromVanillaInjectionRequest
+    :show-inheritance:
+    :members: __init__
+
+
