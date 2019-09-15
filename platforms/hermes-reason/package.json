@@ -1,0 +1,58 @@
+{
+  "name": "hermes-reason",
+  "version": "0.0.1",
+  "description": "ReasonML & Ocaml bindings for the hermes protocol.",
+  "esy": {
+    "build": "dune build -p <PACKAGE_NAME>",
+    "buildDev": "pesy",
+    "release": { "bin": [ "HermesReasonExample.exe" ] }
+  },
+  "buildDirs": {
+    "library": {
+      "name": "hermes-reason.lib",
+      "namespace": "HermesReason",
+      "require": [ "ctypes", "ctypes.foreign", "console.lib" ],
+      "preprocess": "pps ppx-ctypes-helper.lib",
+      "includeSubdirs": "unqualified"
+    },
+    "test/lib": {
+      "name": "hermes-reason.test.lib",
+      "namespace": "HermesReasonTestLib",
+      "require": [
+        "hermes-reason.lib", "rely.lib", "ctypes", "ctypes.foreign"
+      ],
+      "ocamloptFlags": "-linkall -g"
+    },
+    "test": {
+      "require": [ "hermes-reason.test.lib" ],
+      "main": "HermesReasonTests",
+      "name": "HermesReasonTests.exe"
+    },
+    "example": {
+      "require": [ "hermes-reason.lib", "ctypes", "ctypes.foreign" ],
+      "main": "HermesReasonExample",
+      "name": "HermesReasonExample.exe"
+    }
+  },
+  "scripts": {
+    "pesy": "bash -c 'env PESY_MODE=update pesy'",
+    "test": "esy x HermesReasonTests.exe",
+    "example": "esy x HermesReasonExample.exe"
+  },
+  "dependencies": {
+    "@esy-ocaml/reason": "*",
+    "@opam/ctypes": "0.15.1",
+    "@opam/ctypes-foreign": "0.4.0",
+    "@opam/dune": ">=1.6.0",
+    "@reason-native/console": "^0.1.0",
+    "@reason-native/rely": "^3.1.0",
+    "ocaml": "^4.4.0",
+    "ppx-ctypes-helper": "^0.1.2"
+  },
+  "devDependencies": {
+    "ocaml": "4.7.1004",
+    "refmterr": "*",
+    "pesy": "*",
+    "@opam/merlin": "*"
+  }
+}

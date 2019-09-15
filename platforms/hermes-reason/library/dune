@@ -1,0 +1,13 @@
+
+; !!!! This dune file is generated from the package.json file by pesy. If you modify it by hand
+; !!!! your changes will be undone! Instead, edit the package.json and then rerun 'esy pesy' at the project root.
+; !!!! If you want to stop using pesy and manage this file by hand, change package.json's 'esy.build' command to: refmterr dune build -p  hermes-reason
+(library
+   ; The namespace that other packages/libraries will access this library through
+   (name HermesReason)
+   ; Other libraries list this name in their package.json 'require' field to use this library.
+   (public_name hermes-reason.lib)
+   (libraries  ctypes ctypes.foreign console.lib )
+   (preprocess ( pps ppx-ctypes-helper.lib ))  ; From package.json preprocess field
+)
+(include_subdirs unqualified)  ; From package.json includeSubdirs field
