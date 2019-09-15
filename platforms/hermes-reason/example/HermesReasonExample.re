@@ -6,7 +6,7 @@ open Console;
 
 /* Unix.putenv("RUST_LOG", "debug"); */
 
-let lib = Dl.dlopen(~filename="../../target/debug/libhermes_mqtt_ffi.dylib", ~flags=[]);
+let lib = Dl.dlopen(~filename="../../target/debug/libhermes_mqtt_ffi.dylib", ~flags=[RTLD_NOW]);
 
 let check_res =
   fun

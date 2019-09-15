@@ -4,7 +4,7 @@ open Foreign;
 open HermesReason.Structs;
 open HermesReason.Enums;
 
-let lib = Dl.dlopen(~filename="../../target/debug/libhermes_ffi_test.dylib", ~flags=[]);
+let lib = Dl.dlopen(~filename="../../target/debug/libhermes_ffi_test.dylib", ~flags=[RTLD_NOW]);
 
 /* Utils */
 
