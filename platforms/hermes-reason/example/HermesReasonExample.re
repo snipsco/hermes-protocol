@@ -4,15 +4,23 @@ open HermesReason.Structs;
 open HermesReason.Bindings;
 open Console;
 
-/* Unix.putenv("RUST_LOG", "debug"); */
+Unix.putenv("RUST_LOG", "debug");
 
-let lib = Dl.dlopen(~filename="../../target/debug/libhermes_mqtt_ffi.dylib", ~flags=[RTLD_NOW]);
+let suffixes = [".so", ".dylib", ".exe", ""];
+
+suffixes |> List.iter(suff => {
+  try (
+    Dl.dlopen(~filename="../../target/debug/libhermes_mqtt_ffi" ++ suff, ~flags=[RTLD_NOW]) |> ignore
+  ) {
+    | _ => (/* Ignore */);
+  }
+});
 
 let check_res =
   fun
   | Error(i) => {
       let errorStringPtr = allocate(string, "");
-      hermes_get_last_error(~from=lib, errorStringPtr) |> ignore;
+      hermes_get_last_error(errorStringPtr) |> ignore;
       Console.error(!@errorStringPtr);
     }
   | _ => ();
