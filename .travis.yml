@@ -13,6 +13,9 @@ before_install:
   - sudo update-alternatives --set java  /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java
   - sudo update-alternatives --set javac  /usr/lib/jvm/java-8-openjdk-amd64/bin/javac
 
+install:
+  - npm i -g esy
+
 before_script:
   - if [ "$TRAVIS_RUST_VERSION" == "stable" ]; then
       rustup component add rustfmt;
@@ -38,6 +41,7 @@ script:
   - (cd platforms/hermes-kotlin && ./gradlew --console plain test -Pdebug)
   - (cd platforms/hermes-python && ./run-tests-travis.sh)
   - (cd platforms/hermes-javascript && npm install && npm start)
+  - (cd platforms/hermes-reason && esy && esy test)
 
 matrix:
   allow_failures:
