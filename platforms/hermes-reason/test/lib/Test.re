@@ -4,16 +4,7 @@ open Foreign;
 open HermesReason.Structs;
 open HermesReason.Enums;
 
-let suffixes = [".so", ".dylib", ".exe", ""];
-
-suffixes |> List.iter(suff => {
-  try (
-  Dl.dlopen(~filename="../../target/debug/libhermes_ffi_test" ++ suff, ~flags=[RTLD_NOW]) |> ignore
-  ) {
-    | _ => (/* Ignore */);
-  }
-});
-
+HermesReason.Utils.openDynamicLibrary("../../target/debug/libhermes_ffi_test")
 
 /* Utils */
 

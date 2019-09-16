@@ -6,15 +6,7 @@ open Console;
 
 Unix.putenv("RUST_LOG", "debug");
 
-let suffixes = [".so", ".dylib", ".exe", ""];
-
-suffixes |> List.iter(suff => {
-  try (
-    Dl.dlopen(~filename="../../target/debug/libhermes_mqtt_ffi" ++ suff, ~flags=[RTLD_NOW]) |> ignore
-  ) {
-    | _ => (/* Ignore */);
-  }
-});
+HermesReason.Utils.openDynamicLibrary("../../target/debug/libhermes_mqtt_ffi")
 
 let check_res =
   fun
