@@ -4,7 +4,11 @@ open Foreign;
 open HermesReason.Structs;
 open HermesReason.Enums;
 
-HermesReason.Utils.openDynamicLibrary("../../target/debug/libhermes_ffi_test")
+let opened = HermesReason.Utils.openDynamicLibrary("../../target/debug/libhermes_ffi_test");
+
+if(opened == false) {
+  raise(Failure("Could not open the hermes_ffi_test dynamic library file."));
+}
 
 /* Utils */
 
@@ -14,10 +18,10 @@ let ( !** ) = any => ptr @@ ptr @@ any;
 let ( ?** ) = any => ptr_opt @@ ptr_opt @@ any;
 let (@>>) = (previous, any) => previous @-> returning @@ any;
 
+/* Helpers */
+
 let hermes_ffi_test_get_last_error =
   foreign("hermes_ffi_test_get_last_error", !*string @>> snips_result);
-
-/* Helpers */
 
 let check_res = result =>
   try(

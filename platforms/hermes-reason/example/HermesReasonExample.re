@@ -6,7 +6,11 @@ open Console;
 
 Unix.putenv("RUST_LOG", "debug");
 
-HermesReason.Utils.openDynamicLibrary("../../target/debug/libhermes_mqtt_ffi")
+let opened = HermesReason.Utils.openDynamicLibrary("../../target/debug/libhermes_mqtt_ffi");
+
+if(opened == false) {
+  raise(Failure("Could not open the hermes_ffi_test dynamic library file."));
+}
 
 let check_res =
   fun
