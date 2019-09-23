@@ -718,6 +718,21 @@ mod tests {
                 "hermes/audioServer/default/playFinished",
             ),
             (
+                HermesTopic::AudioServer(
+                    Some("default".into()),
+                    AudioServerCommand::StreamBytes {
+                        stream_id: "someId".into(),
+                        chunk_number: "25".into(),
+                        is_last_chunk: "0".into(),
+                    },
+                ),
+                "hermes/audioServer/default/playBytesStreaming/someId/25/0",
+            ),
+            (
+                HermesTopic::AudioServer(Some("default".into()), AudioServerCommand::StreamFinished),
+                "hermes/audioServer/default/streamFinished",
+            ),
+            (
                 HermesTopic::Component(
                     Some("default".into()),
                     Component::AudioServer,
