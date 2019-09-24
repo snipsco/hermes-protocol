@@ -7,4 +7,6 @@ members = [
     "hermes-mqtt",
     "hermes-mqtt-ffi",
     "hermes-test-suite",
+    "hermes-utils",
+    "hermes-utils-derive",
 ]
