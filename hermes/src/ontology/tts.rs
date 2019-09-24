@@ -1,9 +1,10 @@
 use super::HermesMessage;
 
-#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct SayMessage {
     /// The text to say
+    #[example_value("Hello, world!")]
     pub text: String,
     /// The lang to use when saying the `text`, will use en_GB if not provided
     pub lang: Option<String>,
@@ -17,7 +18,7 @@ pub struct SayMessage {
 
 impl<'de> HermesMessage<'de> for SayMessage {}
 
-#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct SayFinishedMessage {
     /// The id of the `SayMessage` which was has been said
@@ -28,7 +29,7 @@ pub struct SayFinishedMessage {
 
 impl<'de> HermesMessage<'de> for SayFinishedMessage {}
 
-#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct RegisterSoundMessage {
     /// The sound to register encoded as a wav.

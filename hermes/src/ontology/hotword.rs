@@ -7,7 +7,7 @@ pub enum HotwordModelType {
     Personal,
 }
 
-#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct HotwordDetectedMessage {
     /// The site where the hotword was triggered
@@ -18,6 +18,7 @@ pub struct HotwordDetectedMessage {
     pub model_version: Option<String>,
     /// The type of hotword that was triggered
     // TODO make non optional in next major rework of the protocol
+    #[example_value(Some(HotwordModelType::Universal))]
     pub model_type: Option<HotwordModelType>,
     /// The current sensitivity of the detector
     pub current_sensitivity: Option<f32>,

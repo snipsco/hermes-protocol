@@ -1,7 +1,7 @@
 use super::HermesMessage;
 
 /// This message is used to request the audio server to play a wav file
-#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct PlayBytesMessage {
     /// An id for the request, it will be passed back in the `PlayFinishedMessage`
@@ -10,6 +10,7 @@ pub struct PlayBytesMessage {
     /// Note that serde json serialization is provided but in practice most handler impl will want
     /// to avoid the base64 encoding/decoding and give this a special treatment
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
+    #[example_value(vec![0;2048])]
     pub wav_bytes: Vec<u8>,
     /// The site where the bytes should be played
     pub site_id: String,
@@ -18,7 +19,7 @@ pub struct PlayBytesMessage {
 impl<'de> HermesMessage<'de> for PlayBytesMessage {}
 
 /// This message is used to request the audio server to play a part of a sound
-#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct StreamBytesMessage {
     /// The play request identifier. This identifier will be passed to subsequent chunks along the
@@ -26,6 +27,7 @@ pub struct StreamBytesMessage {
     pub stream_id: String,
     /// The bytes of the chunk to play (should be a regular wav with header)
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
+    #[example_value(vec![0;256])]
     pub bytes: Vec<u8>,
     /// The site where the audio should be played
     pub site_id: String,
@@ -39,7 +41,7 @@ impl<'de> HermesMessage<'de> for StreamBytesMessage {}
 
 /// This message is used for the audio streaming on the snips platform. It is used both for normal
 /// streaming and replay streaming.
-#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct AudioFrameMessage {
     /// The bytes of the WAV frame (should be a regular WAV with header).
@@ -104,6 +106,7 @@ pub struct AudioFrameMessage {
     /// Note that serde json serialization is provided but in practice most handler impl will want
     /// to avoid the base64 encoding/decoding and give this a special treatment
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
+    #[example_value(vec![0;512])]
     pub wav_frame: Vec<u8>,
     /// The site this frame originates from
     pub site_id: String,
@@ -115,12 +118,13 @@ impl<'de> HermesMessage<'de> for AudioFrameMessage {}
 /// time. The audio server implementation is expected to be able to replay frames from a few seconds
 /// in the past. Replayed frames go through the same canal as normal frames and are identified by a
 /// special metadata in the INFO chunk
-#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct ReplayRequestMessage {
     /// An id for the request, it will be passed back in the replayed frames headers.
     pub request_id: String,
     /// When to start replay from
+    #[example_value(1545696000000i64)]
     pub start_at_ms: i64,
     /// The site this frame originates from
     pub site_id: String,
@@ -129,7 +133,7 @@ pub struct ReplayRequestMessage {
 impl<'de> HermesMessage<'de> for ReplayRequestMessage {}
 
 /// This message is send by the audio server when a wav has finished playing
-#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct PlayFinishedMessage {
     /// The id of the `PlayBytesMessage` which bytes finished playing
@@ -139,7 +143,7 @@ pub struct PlayFinishedMessage {
 }
 
 /// This message is send by the audio server when a audio stream has finished playing
-#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct StreamFinishedMessage {
     /// The id of the `StreamBytesMessage` which bytes finished playing

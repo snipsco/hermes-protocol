@@ -1,6 +1,6 @@
 use super::HermesMessage;
 
-#[derive(Debug, Clone, Default, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[derive(Debug, Clone, Default, PartialEq, PartialOrd, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct AsrStartListeningMessage {
     /// The site that must be listened too
@@ -13,14 +13,14 @@ pub struct AsrStartListeningMessage {
 
 impl<'de> HermesMessage<'de> for AsrStartListeningMessage {}
 
-#[derive(Debug, Clone, Default, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[derive(Debug, Clone, Default, PartialEq, PartialOrd, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct AsrDecodingDuration {
     pub start: f32,
     pub end: f32,
 }
 
-#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct AsrToken {
     /// The value of the token
@@ -36,7 +36,7 @@ pub struct AsrToken {
     pub time: AsrDecodingDuration,
 }
 
-#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct TextCapturedMessage {
     /// The text captured
@@ -58,7 +58,7 @@ pub struct TextCapturedMessage {
 
 impl<'de> HermesMessage<'de> for TextCapturedMessage {}
 
-#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct SpeakerId {
     /// The name of the detected speaker, `None` represents unknown speakers

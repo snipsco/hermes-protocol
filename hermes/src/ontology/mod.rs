@@ -1,5 +1,6 @@
 use std::fmt;
 
+use hermes_utils::Example;
 use semver;
 use serde::{Deserialize, Serialize};
 
@@ -21,9 +22,9 @@ pub mod nlu;
 pub mod tts;
 pub mod vad;
 
-pub trait HermesMessage<'de>: fmt::Debug + Deserialize<'de> + Serialize {}
+pub trait HermesMessage<'de>: fmt::Debug + Deserialize<'de> + Serialize + Example {}
 
-#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct SiteMessage {
     /// The site concerned
@@ -43,16 +44,17 @@ impl Default for SiteMessage {
 
 impl<'de> HermesMessage<'de> for SiteMessage {}
 
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct VersionMessage {
     /// The version of the component
+    #[example_value(semver::Version::parse("1.0.0").unwrap())]
     pub version: semver::Version,
 }
 
 impl<'de> HermesMessage<'de> for VersionMessage {}
 
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct ErrorMessage {
     /// An optional session id if there is a related session
@@ -65,7 +67,7 @@ pub struct ErrorMessage {
 
 impl<'de> HermesMessage<'de> for ErrorMessage {}
 
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct SiteErrorMessage {
     /// Site on which the error happened.
@@ -109,7 +111,7 @@ where
         .and_then(|string| base64::decode(&string).map_err(|err| Error::custom(err.to_string())))
 }
 
-#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct ComponentLoadedOnSiteMessage {
     /// Optional id associated to a load/reload operation for a component
@@ -122,7 +124,7 @@ pub struct ComponentLoadedOnSiteMessage {
 
 impl<'de> HermesMessage<'de> for ComponentLoadedOnSiteMessage {}
 
-#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct RequestComponentReloadMessage {
     /// Id associated to a reload request operation of a component
@@ -131,7 +133,7 @@ pub struct RequestComponentReloadMessage {
 
 impl<'de> HermesMessage<'de> for RequestComponentReloadMessage {}
 
-#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct ComponentLoadedMessage {
     /// Optional id associated to a load/reload operation for a component

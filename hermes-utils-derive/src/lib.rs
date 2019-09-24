@@ -37,7 +37,7 @@ fn impl_example_macro(input: &syn::DeriveInput) -> TokenStream {
                 let value = &value.tokens;
                 quote!(#ident: #value.into())
             } else {
-                quote!(#ident: Example::example(hermes_utils::ExampleConfig {
+                quote!(#ident: hermes_utils::Example::example(hermes_utils::ExampleConfig {
                     field_name: Some(stringify!(#ident).into()),
                     .. config.clone()
                 }))

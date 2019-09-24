@@ -2,8 +2,9 @@ use super::asr::{AsrToken, SpeakerId};
 use super::nlu::{NluIntentClassifierResult, NluSlot};
 use super::HermesMessage;
 use crate::{HermesComponent, NluIntentAlternative};
+use hermes_utils::Example;
 
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct IntentMessage {
     /// The session in which this intent was detected
@@ -32,7 +33,7 @@ pub struct IntentMessage {
 
 impl<'de> HermesMessage<'de> for IntentMessage {}
 
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct IntentNotRecognizedMessage {
     /// The session in which no intent was recognized
@@ -86,7 +87,22 @@ fn boolean_default_true() -> bool {
     true
 }
 
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+impl Example for SessionInit {
+    fn example(config: hermes_utils::ExampleConfig) -> SessionInit {
+        SessionInit::Action {
+            text: Some("Hello world".into()),
+            intent_filter: if config.minimal {
+                None
+            } else {
+                Some(vec!["HelloResponseIntent".into()])
+            },
+            can_be_enqueued: true,
+            send_intent_not_recognized: false,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct StartSessionMessage {
     /// The way this session should be created
@@ -102,7 +118,7 @@ pub struct StartSessionMessage {
 
 impl<'de> HermesMessage<'de> for StartSessionMessage {}
 
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct SessionStartedMessage {
     /// The id of the session that was started
@@ -119,7 +135,7 @@ pub struct SessionStartedMessage {
 
 impl<'de> HermesMessage<'de> for SessionStartedMessage {}
 
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct SessionQueuedMessage {
     /// The id of the session that was queued
@@ -132,7 +148,7 @@ pub struct SessionQueuedMessage {
 
 impl<'de> HermesMessage<'de> for SessionQueuedMessage {}
 
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct ContinueSessionMessage {
     /// The id of the session this action applies to
@@ -161,7 +177,7 @@ pub struct ContinueSessionMessage {
 
 impl<'de> HermesMessage<'de> for ContinueSessionMessage {}
 
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct EndSessionMessage {
     /// The id of the session to end
@@ -189,7 +205,7 @@ pub enum SessionTerminationType {
     Error { error: String },
 }
 
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct SessionEndedMessage {
     /// The id of the session that was terminated
@@ -197,6 +213,7 @@ pub struct SessionEndedMessage {
     /// The custom data associated to this session
     pub custom_data: Option<String>,
     /// How the session was ended
+    #[example_value(SessionTerminationType::Nominal)]
     pub termination: SessionTerminationType,
     /// The site on which this session took place
     pub site_id: String,
@@ -204,7 +221,7 @@ pub struct SessionEndedMessage {
 
 impl<'de> HermesMessage<'de> for SessionEndedMessage {}
 
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct DialogueConfigureMessage {
     /// The site on which this configuration applies, if None the configuration will be applied to
@@ -216,11 +233,12 @@ pub struct DialogueConfigureMessage {
 
 impl<'de> HermesMessage<'de> for DialogueConfigureMessage {}
 
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct DialogueConfigureIntent {
     /// The name of the intent that should be configured.
     pub intent_id: String,
     /// Whether this intent should be activated on not.
+    #[example_value(true)]
     pub enable: Option<bool>,
 }

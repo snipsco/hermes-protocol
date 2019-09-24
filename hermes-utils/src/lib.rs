@@ -1,4 +1,6 @@
 pub use hermes_utils_derive::Example;
+use std::collections::HashMap;
+use std::hash::Hash;
 
 #[derive(Default, Clone)]
 pub struct ExampleConfig {
@@ -58,6 +60,35 @@ impl<T: Example> Example for Vec<T> {
                         index: Some(index),
                         ..config.clone()
                     })
+                })
+                .collect()
+        }
+    }
+}
+
+impl<T: Example, U: Example> Example for (T, U) {
+    fn example(config: ExampleConfig) -> Self {
+        (T::example(config.clone()), U::example(config))
+    }
+}
+
+impl<T: Example + Eq + Hash, U: Example> Example for HashMap<T, U> {
+    fn example(config: ExampleConfig) -> Self {
+        if config.minimal {
+            HashMap::new()
+        } else {
+            (1..=3)
+                .map(|index| {
+                    (
+                        T::example(ExampleConfig {
+                            index: Some(index),
+                            ..config.clone()
+                        }),
+                        U::example(ExampleConfig {
+                            index: Some(index),
+                            ..config.clone()
+                        }),
+                    )
                 })
                 .collect()
         }
