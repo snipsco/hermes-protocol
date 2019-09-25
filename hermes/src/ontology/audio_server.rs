@@ -124,7 +124,7 @@ pub struct ReplayRequestMessage {
     /// An id for the request, it will be passed back in the replayed frames headers.
     pub request_id: String,
     /// When to start replay from
-    #[example_value(1545696000000i64)]
+    #[example_value(1_545_696_000_000i64)]
     pub start_at_ms: i64,
     /// The site this frame originates from
     pub site_id: String,

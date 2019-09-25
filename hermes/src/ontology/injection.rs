@@ -82,7 +82,7 @@ impl<'de> HermesMessage<'de> for InjectionRequestMessage {}
 #[serde(rename_all = "camelCase")]
 pub struct InjectionStatusMessage {
     /// Date of the latest injection
-    #[example_value(DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp(1545696000, 0), Utc))]
+    #[example_value(DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp(1_545_696_000, 0), Utc))]
     pub last_injection_date: Option<DateTime<Utc>>,
 }
 

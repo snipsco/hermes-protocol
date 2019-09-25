@@ -72,10 +72,10 @@ impl<T: Example, U: Example> Example for (T, U) {
     }
 }
 
-impl<T: Example + Eq + Hash, U: Example> Example for HashMap<T, U> {
+impl<T: Example + Eq + Hash, U: Example, S: ::std::hash::BuildHasher + Default> Example for HashMap<T, U, S> {
     fn example(config: ExampleConfig) -> Self {
         if config.minimal {
-            HashMap::new()
+            HashMap::default()
         } else {
             (1..=3)
                 .map(|index| {

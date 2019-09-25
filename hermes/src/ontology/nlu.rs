@@ -102,7 +102,7 @@ impl Example for NluSlot {
                 } else {
                     "value".into()
                 }),
-                range: 0 + config.index.unwrap_or(0) * 10..6 + config.index.unwrap_or(0) * 10,
+                range: (config.index.unwrap_or(0) * 10)..(6 + config.index.unwrap_or(0) * 10),
                 entity: "entity".into(),
                 confidence_score: Some(1.),
                 alternatives: vec![snips_nlu_ontology::SlotValue::Custom(
