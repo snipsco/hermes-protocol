@@ -9,10 +9,10 @@ macro_rules! t {
     (
         $name:ident :
         $s_facade:ident.
-        $s:ident <=
-        $t:ty |
+        $s:ident $(($($field:ident).+))? $($subscribe_arg:block)? <=
         $p_facade:ident.
         $p:ident
+        $($publish_arg:block)?
     ) => {
         #[test]
         fn $name() {
@@ -22,54 +22,14 @@ macro_rules! t {
             let (tx, rx) = std::sync::mpsc::channel();
             let tx = std::sync::Mutex::new(tx);
             receiver
-                .$s(hermes::Callback::new(move |o: &$t| {
-                    tx.lock().map(|it| it.send(o.clone())).unwrap().unwrap()
-                }))
-                .unwrap();
-            use hermes::hermes_utils::Example;
-            let message = <$t>::full_example();
-            std::thread::sleep(WAIT_DURATION);
-            source.$p(message.clone()).unwrap();
-            let result = rx.recv_timeout(std::time::Duration::from_secs(1));
-            assert!(result.is_ok(), "didn't receive message after one second");
-            assert_eq!(result.unwrap(), message)
-        }
-    };
-    ($name:ident : $s_facade:ident. $s:ident <= $p_facade:ident. $p:ident) => {
-        #[test]
-        fn $name() {
-            let (handler_source, handler_receiver) = create_handlers();
-            let source = handler_source.$p_facade();
-            let receiver = handler_receiver.$s_facade();
-            let (tx, rx) = std::sync::mpsc::channel();
-            let tx = std::sync::Mutex::new(tx);
-            receiver
-                .$s(hermes::Callback0::new(move || {
+                .$s($(message.$($field).*.clone(),)?
+                    $($subscribe_arg,)?
+                    hermes::Callback0::new(move || {
                     tx.lock().map(|it| it.send(())).unwrap().unwrap()
                 }))
                 .unwrap();
             std::thread::sleep(WAIT_DURATION);
-            source.$p().unwrap();
-            let result = rx.recv_timeout(std::time::Duration::from_secs(1));
-            assert!(result.is_ok(), "didn't receive message after one second");
-        }
-    };
-    ($name:ident : $s_facade:ident. $s:ident $a:block <= $p_facade:ident. $p:ident) => {
-        #[test]
-        fn $name() {
-            let (handler_source, handler_receiver) = create_handlers();
-            let source = handler_source.$p_facade();
-            let receiver = handler_receiver.$s_facade();
-            let (tx, rx) = std::sync::mpsc::channel();
-            let tx = std::sync::Mutex::new(tx);
-            receiver
-                .$s(
-                    $a,
-                    hermes::Callback0::new(move || tx.lock().map(|it| it.send(())).unwrap().unwrap()),
-                )
-                .unwrap();
-            std::thread::sleep(WAIT_DURATION);
-            source.$p($a).unwrap();
+            source.$p($($publish_arg,)? $($subscribe_arg,)?).unwrap();
             let result = rx.recv_timeout(std::time::Duration::from_secs(1));
             assert!(result.is_ok(), "didn't receive message after one second");
         }
@@ -77,11 +37,11 @@ macro_rules! t {
     (
         $name:ident :
         $s_facade:ident.
-        $s:ident
-        $a:block <=
+        $s:ident $(($($field:ident).+))? $($subscribe_arg:block)? <=
         $t:ty |
         $p_facade:ident.
         $p:ident
+        $($publish_arg:block)?
     ) => {
         #[test]
         fn $name() {
@@ -90,149 +50,25 @@ macro_rules! t {
             let receiver = handler_receiver.$s_facade();
             let (tx, rx) = std::sync::mpsc::channel();
             let tx = std::sync::Mutex::new(tx);
-            receiver
-                .$s(
-                    $a,
-                    hermes::Callback::new(move |o: &$t| tx.lock().map(|it| it.send(o.clone())).unwrap().unwrap()),
-                )
-                .unwrap();
             use hermes::hermes_utils::Example;
             let message = <$t>::full_example();
-            std::thread::sleep(WAIT_DURATION);
-            source.$p($a, message.clone()).unwrap();
-            let result = rx.recv_timeout(std::time::Duration::from_secs(1));
-            assert!(result.is_ok(), "didn't receive message after one second");
-            assert_eq!(result.unwrap(), message)
-        }
-    };
-    ($name:ident : OneToMany $s_facade:ident. $s:ident $a:block <= $p_facade:ident. $p:ident) => {
-        #[test]
-        fn $name() {
-            let (handler_source, handler_receiver) = create_handlers();
-            let source = handler_source.$p_facade();
-            let receiver = handler_receiver.$s_facade();
-            let (tx, rx) = std::sync::mpsc::channel();
-            let tx = std::sync::Mutex::new(tx);
             receiver
-                .$s(
-                    $a,
-                    hermes::Callback0::new(move || tx.lock().map(|it| it.send(())).unwrap().unwrap()),
-                )
-                .unwrap();
-            std::thread::sleep(WAIT_DURATION);
-            source.$p($a).unwrap();
-            let result = rx.recv_timeout(std::time::Duration::from_secs(1));
-            assert!(result.is_ok(), "didn't receive message after one second");
-        }
-    };
-    (
-        $name:ident : OneToMany
-        $s_facade:ident.
-        $s:ident
-        ($($field:ident).+) <=
-        $t:ty |
-        $p_facade:ident.
-        $p:ident
-    ) => {
-        #[test]
-        fn $name() {
-            let (handler_source, handler_receiver) = create_handlers();
-            let source = handler_source.$p_facade();
-            let receiver = handler_receiver.$s_facade();
-            let (tx, rx) = std::sync::mpsc::channel();
-            let tx = std::sync::Mutex::new(tx);
-            let message = <$t>::full_example();
-            receiver
-                .$s(
-                    message.$($field).*.clone(),
-                    hermes::Callback::new(move |o: &$t| tx.lock().map(|it| it.send(o.clone())).unwrap().unwrap()),
-                )
-                .unwrap();
-            use hermes::hermes_utils::Example;
-
-            std::thread::sleep(WAIT_DURATION);
-            source.$p(message.clone()).unwrap();
-            let result = rx.recv_timeout(std::time::Duration::from_secs(1));
-            assert!(result.is_ok(), "didn't receive message after one second");
-            assert_eq!(result.unwrap(), message)
-        }
-    };
-    ($name:ident : ManyToOne $s_facade:ident. $s:ident <= $p_facade:ident. $p:ident $a:block) => {
-        #[test]
-        fn $name() {
-            let (handler_source, handler_receiver) = create_handlers();
-            let source = handler_source.$p_facade();
-            let receiver = handler_receiver.$s_facade();
-            let (tx, rx) = std::sync::mpsc::channel();
-            let tx = std::sync::Mutex::new(tx);
-            receiver
-                .$s(hermes::Callback0::new(move || {
-                    tx.lock().map(|it| it.send(())).unwrap().unwrap()
-                }))
-                .unwrap();
-            std::thread::sleep(WAIT_DURATION);
-            source.$p($a).unwrap();
-            let result = rx.recv_timeout(std::time::Duration::from_secs(1));
-            assert!(result.is_ok(), "didn't receive message after one second");
-        }
-    };
-    (
-        $name:ident : ManyToOne
-        $s_facade:ident.
-        $s:ident <=
-        $t:ty |
-        $p_facade:ident.
-        $p:ident
-        $a:block
-    ) => {
-        #[test]
-        fn $name() {
-            let (handler_source, handler_receiver) = create_handlers();
-            let source = handler_source.$p_facade();
-            let receiver = handler_receiver.$s_facade();
-            let (tx, rx) = std::sync::mpsc::channel();
-            let tx = std::sync::Mutex::new(tx);
-            receiver
-                .$s(hermes::Callback::new(move |o: &$t| {
+                .$s($(message.$($field).*.clone(),)?
+                    $($subscribe_arg,)?
+                    hermes::Callback::new(move |o: &$t| {
                     tx.lock().map(|it| it.send(o.clone())).unwrap().unwrap()
                 }))
                 .unwrap();
-            use hermes::hermes_utils::Example;
-            let message = <$t>::full_example();
             std::thread::sleep(WAIT_DURATION);
-            source.$p($a, message.clone()).unwrap();
+            source.$p($($publish_arg,)? $($subscribe_arg,)? message.clone()).unwrap();
             let result = rx.recv_timeout(std::time::Duration::from_secs(1));
-            assert!(result.is_ok(), "didn't receive message after one second");
-            assert_eq!(result.unwrap(), message)
-        }
-    };
-    (
-        $name:ident : ManyToOne
-        $s_facade:ident.
-        $s:ident <=
-        $t:ty |
-        $p_facade:ident.
-        $p:ident
-    ) => {
-        #[test]
-        fn $name() {
-            let (handler_source, handler_receiver) = create_handlers();
-            let source = handler_source.$p_facade();
-            let receiver = handler_receiver.$s_facade();
-            let (tx, rx) = std::sync::mpsc::channel();
-            let tx = std::sync::Mutex::new(tx);
-            receiver
-                .$s(hermes::Callback::new(move |o: &$t| {
-                    tx.lock().map(|it| it.send(o.clone())).unwrap().unwrap()
-                }))
-                .unwrap();
-            use hermes::hermes_utils::Example;
-            let message = <$t>::full_example();
-            std::thread::sleep(WAIT_DURATION);
-            source.$p(message.clone()).unwrap();
-            let result = rx.recv_timeout(std::time::Duration::from_secs(1));
-            assert!(result.is_ok(), "didn't receive message after one second");
-            assert_eq!(result.unwrap(), message)
+            assert!(result.is_ok(), "didn't receive message after one second (full example)");
+            assert_eq!(result.unwrap(), message);
+            let message2 = <$t>::minimal_example();
+            source.$p($($publish_arg,)? $($subscribe_arg,)? message2.clone()).unwrap();
+            let result2 = rx.recv_timeout(std::time::Duration::from_secs(1));
+            assert!(result2.is_ok(), "didn't receive message after one second (minimal example)");
+            assert_eq!(result2.unwrap(), message2);
         }
     };
 }
@@ -292,12 +128,10 @@ macro_rules! t_identifiable_component {
                 t!(error_works:
                         $f.subscribe_error { "identifier".to_string() } <= SiteErrorMessage | $f_back.publish_error);
                 t!(all_error_works:
-                        ManyToOne
                         $f.subscribe_all_error <= SiteErrorMessage | $f_back.publish_error { "identifier".into() });
                 t!(component_loaded_works:
                         $f.subscribe_component_loaded { "identifier".to_string() } <= ComponentLoadedOnSiteMessage | $f_back.publish_component_loaded );
                 t!(components_loaded_works:
-                        ManyToOne
                         $f.subscribe_all_component_loaded <= ComponentLoadedOnSiteMessage | $f_back.publish_component_loaded { "site_id".into() });
             }
         };
@@ -317,16 +151,12 @@ macro_rules! test_suite {
 
         t_identifiable_component!(voice_activity_identifiable_component: voice_activity_backend | voice_activity);
         t!(voice_activity_vad_up_works:
-                    OneToMany
                     voice_activity.subscribe_vad_up(site_id) <= VadUpMessage | voice_activity_backend.publish_vad_up);
         t!(voice_activity_vad_down_works:
-                    OneToMany
                     voice_activity.subscribe_vad_down(site_id) <= VadDownMessage | voice_activity_backend.publish_vad_down);
         t!(voice_activity_all_vad_up_works:
-                    ManyToOne
                     voice_activity.subscribe_all_vad_up <= VadUpMessage | voice_activity_backend.publish_vad_up);
         t!(voice_activity_all_vad_down_works:
-                    ManyToOne
                     voice_activity.subscribe_all_vad_down <= VadDownMessage | voice_activity_backend.publish_vad_down);
 
         t_identifiable_component!(hotword_identifiable_component: hotword_backend | hotword);
@@ -334,7 +164,7 @@ macro_rules! test_suite {
         t!(hotword_detected_works:
                     hotword.subscribe_detected { "hotword_identifier".into() } <= HotwordDetectedMessage | hotword_backend.publish_detected);
         t!(hotword_all_detected_works:
-                    ManyToOne
+
                     hotword.subscribe_all_detected <= HotwordDetectedMessage | hotword_backend.publish_detected { "hotword_identifier".into() });
 
         t_identifiable_toggleable!(sound_feedback_identifiable_toggleable: sound_feedback_backend | sound_feedback );
@@ -377,23 +207,18 @@ macro_rules! test_suite {
         t_identifiable_component!(audio_server_component: audio_server_backend | audio_server);
         t_identifiable_toggleable!(audio_server_toggeable: audio_server_backend | audio_server);
         t!(audio_server_play_bytes_works:
-                    OneToMany
                     audio_server_backend.subscribe_play_bytes(site_id) <= PlayBytesMessage | audio_server.publish_play_bytes);
         t!(audio_server_play_all_bytes_works:
                     audio_server_backend.subscribe_all_play_bytes <= PlayBytesMessage | audio_server.publish_play_bytes);
         t!(audio_server_play_finished_works:
-                    OneToMany
                     audio_server.subscribe_play_finished(site_id) <= PlayFinishedMessage | audio_server_backend.publish_play_finished);
         t!(audio_server_all_play_finished_works:
                     audio_server.subscribe_all_play_finished <= PlayFinishedMessage | audio_server_backend.publish_play_finished);
         t!(audio_server_audio_frame_works:
-                    OneToMany
                     audio_server.subscribe_audio_frame(site_id) <= AudioFrameMessage | audio_server_backend.publish_audio_frame);
         t!(audio_server_replay_request:
-                    OneToMany
                     audio_server_backend.subscribe_replay_request(site_id) <= ReplayRequestMessage | audio_server.publish_replay_request);
         t!(audio_server_replay_response:
-                    OneToMany
                     audio_server.subscribe_replay_response(site_id) <= AudioFrameMessage | audio_server_backend.publish_replay_response);
 
         t_component!(dialogue_component: dialogue_backend | dialogue);
@@ -405,7 +230,6 @@ macro_rules! test_suite {
         t!(dialogue_intents_works:
                     dialogue.subscribe_intents <= IntentMessage | dialogue_backend.publish_intent);
         t!(dialogue_intent_works:
-                    OneToMany
                     dialogue.subscribe_intent(intent.intent_name) <= IntentMessage | dialogue_backend.publish_intent);
         t!(dialogue_intent_not_recognized_works:
                     dialogue.subscribe_intent_not_recognized <= IntentNotRecognizedMessage | dialogue_backend.publish_intent_not_recognized);
