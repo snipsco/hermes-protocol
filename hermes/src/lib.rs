@@ -10,7 +10,7 @@ extern crate serde_json;
 extern crate snips_nlu_ontology;
 
 #[macro_use]
-extern crate hermes_utils;
+pub extern crate hermes_utils;
 
 pub mod errors;
 pub mod ontology;
