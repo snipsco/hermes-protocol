@@ -561,17 +561,11 @@ impl Drop for CNluIntentClassifierResult {
 mod tests {
     use super::super::tests::round_trip_test;
     use super::*;
+    use hermes::hermes_utils::Example;
 
     #[test]
     fn round_trip_intent_classifier_result() {
-        round_trip_test::<_, CNluIntentClassifierResult>(hermes::NluIntentClassifierResult {
-            intent_name: "MakeCoffee".into(),
-            confidence_score: 0.5,
-        });
-
-        round_trip_test::<_, CNluIntentClassifierResult>(hermes::NluIntentClassifierResult {
-            intent_name: "MakeCoffee".into(),
-            confidence_score: 0.5,
-        });
+        round_trip_test::<_, CNluIntentClassifierResult>(hermes::NluIntentClassifierResult::minimal_example());
+        round_trip_test::<_, CNluIntentClassifierResult>(hermes::NluIntentClassifierResult::full_example());
     }
 }

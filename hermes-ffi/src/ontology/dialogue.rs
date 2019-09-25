@@ -982,109 +982,68 @@ impl Drop for CDialogueConfigureMessage {
 mod tests {
     use std::ops::Range;
 
+    use hermes::hermes_utils::Example;
+
     use super::super::tests::round_trip_test;
     use super::*;
 
     #[test]
     fn round_trip_intent_not_recognized() {
-        round_trip_test::<_, CIntentNotRecognizedMessage>(hermes::IntentNotRecognizedMessage {
-            site_id: "siteid".into(),
-            custom_data: Some("custom".into()),
-            session_id: "session id".into(),
-            speaker_hypotheses: None,
-            input: Some("some text".into()),
-            confidence_score: 0.5,
-            alternatives: Some(vec![hermes::NluIntentAlternative {
-                slots: vec![],
-                confidence_score: 0.8,
-                intent_name: Some("some intent name".into()),
-            }]),
-        });
+        round_trip_test::<_, CIntentNotRecognizedMessage>(hermes::IntentNotRecognizedMessage::minimal_example());
 
         round_trip_test::<_, CIntentNotRecognizedMessage>(hermes::IntentNotRecognizedMessage {
-            site_id: "siteid".into(),
-            custom_data: None,
-            session_id: "session id".into(),
-            speaker_hypotheses: None,
-            input: None,
-            confidence_score: 0.5,
-            alternatives: None,
+            speaker_hypotheses: None, // TODO these are not supported by the ffi just yet
+            ..hermes::IntentNotRecognizedMessage::full_example()
         });
     }
 
     #[test]
     fn round_trip_session_started() {
-        round_trip_test::<_, CSessionStartedMessage>(hermes::SessionStartedMessage {
-            site_id: "siteid".into(),
-            custom_data: Some("custom".into()),
-            session_id: "session id".into(),
-            reactivated_from_session_id: Some("other session id".into()),
-        });
+        round_trip_test::<_, CSessionStartedMessage>(hermes::SessionStartedMessage::minimal_example());
 
-        round_trip_test::<_, CSessionStartedMessage>(hermes::SessionStartedMessage {
-            site_id: "siteid".into(),
-            custom_data: None,
-            session_id: "session id".into(),
-            reactivated_from_session_id: None,
-        })
+        round_trip_test::<_, CSessionStartedMessage>(hermes::SessionStartedMessage::full_example())
     }
 
     #[test]
     fn round_trip_session_ended() {
-        round_trip_test::<_, CSessionEndedMessage>(hermes::SessionEndedMessage {
-            site_id: "siteid".into(),
-            custom_data: Some("custom".into()),
-            session_id: "session id".into(),
-            termination: hermes::SessionTerminationType::Nominal,
-        });
+        round_trip_test::<_, CSessionEndedMessage>(hermes::SessionEndedMessage::minimal_example());
+        round_trip_test::<_, CSessionEndedMessage>(hermes::SessionEndedMessage::full_example());
 
         round_trip_test::<_, CSessionEndedMessage>(hermes::SessionEndedMessage {
-            site_id: "siteid".into(),
-            custom_data: None,
-            session_id: "session_id".into(),
             termination: hermes::SessionTerminationType::Error {
                 error: "this is my error".into(),
             },
+            ..hermes::SessionEndedMessage::full_example()
         });
 
         round_trip_test::<_, CSessionEndedMessage>(hermes::SessionEndedMessage {
-            site_id: "siteid".into(),
-            custom_data: None,
-            session_id: "session_id".into(),
             termination: hermes::SessionTerminationType::Timeout { component: None },
+            ..hermes::SessionEndedMessage::full_example()
         });
 
         round_trip_test::<_, CSessionEndedMessage>(hermes::SessionEndedMessage {
-            site_id: "siteid".into(),
-            custom_data: None,
-            session_id: "session_id".into(),
             termination: hermes::SessionTerminationType::Timeout {
                 component: Some(hermes::HermesComponent::Hotword),
             },
+            ..hermes::SessionEndedMessage::full_example()
         })
     }
 
     #[test]
     fn round_trip_session_queued() {
-        round_trip_test::<_, CSessionQueuedMessage>(hermes::SessionQueuedMessage {
-            site_id: "siteid".into(),
-            custom_data: Some("custom".into()),
-            session_id: "session id".into(),
-        });
+        round_trip_test::<_, CSessionQueuedMessage>(hermes::SessionQueuedMessage::minimal_example());
 
-        round_trip_test::<_, CSessionQueuedMessage>(hermes::SessionQueuedMessage {
-            site_id: "siteid".into(),
-            custom_data: None,
-            session_id: "session_id".into(),
-        })
+        round_trip_test::<_, CSessionQueuedMessage>(hermes::SessionQueuedMessage::full_example())
     }
 
     #[test]
     fn round_trip_start_session() {
+        round_trip_test::<_, CStartSessionMessage>(hermes::StartSessionMessage::minimal_example());
+        round_trip_test::<_, CStartSessionMessage>(hermes::StartSessionMessage::full_example());
+
         round_trip_test::<_, CStartSessionMessage>(hermes::StartSessionMessage {
             init: hermes::SessionInit::Notification { text: "text".into() },
-            custom_data: Some("thing".into()),
-            site_id: Some("site".into()),
+            ..hermes::StartSessionMessage::full_example()
         });
 
         round_trip_test::<_, CStartSessionMessage>(hermes::StartSessionMessage {
@@ -1094,8 +1053,7 @@ mod tests {
                 can_be_enqueued: true,
                 send_intent_not_recognized: false,
             },
-            custom_data: Some("thing".into()),
-            site_id: Some("site".into()),
+            ..hermes::StartSessionMessage::full_example()
         });
 
         round_trip_test::<_, CStartSessionMessage>(hermes::StartSessionMessage {
@@ -1105,67 +1063,39 @@ mod tests {
                 can_be_enqueued: false,
                 send_intent_not_recognized: true,
             },
-            custom_data: None,
-            site_id: None,
+            ..hermes::StartSessionMessage::minimal_example()
         });
     }
 
     #[test]
     fn round_trip_continue_session() {
-        round_trip_test::<_, CContinueSessionMessage>(hermes::ContinueSessionMessage {
-            session_id: "my session id".into(),
-            text: "some text".into(),
-            intent_filter: Some(vec!["filter1".into(), "filter2".into()]),
-            custom_data: Some("foo bar".into()),
-            slot: Some("some slot".into()),
-            send_intent_not_recognized: true,
-        });
+        round_trip_test::<_, CContinueSessionMessage>(hermes::ContinueSessionMessage::minimal_example());
+
+        round_trip_test::<_, CContinueSessionMessage>(hermes::ContinueSessionMessage::full_example());
 
         round_trip_test::<_, CContinueSessionMessage>(hermes::ContinueSessionMessage {
-            session_id: "my session id".into(),
-            text: "some text".into(),
-            intent_filter: None,
-            custom_data: None,
-            slot: None,
-            send_intent_not_recognized: false,
-        });
-
-        round_trip_test::<_, CContinueSessionMessage>(hermes::ContinueSessionMessage {
-            session_id: "my session id".into(),
-            text: "some text".into(),
             intent_filter: Some(vec![]),
             custom_data: Some("".into()),
             slot: Some("".into()),
             send_intent_not_recognized: true,
+            ..hermes::ContinueSessionMessage::full_example()
         });
     }
 
     #[test]
     fn round_trip_end_session() {
-        round_trip_test::<_, CEndSessionMessage>(hermes::EndSessionMessage {
-            session_id: "my session id".into(),
-            text: Some("some text".into()),
-        });
+        round_trip_test::<_, CEndSessionMessage>(hermes::EndSessionMessage::minimal_example());
 
-        round_trip_test::<_, CEndSessionMessage>(hermes::EndSessionMessage {
-            session_id: "my session id".into(),
-            text: None,
-        });
+        round_trip_test::<_, CEndSessionMessage>(hermes::EndSessionMessage::full_example());
     }
 
     #[test]
     fn round_trip_dialogue_configure_intent() {
+        round_trip_test::<_, CDialogueConfigureIntent>(hermes::DialogueConfigureIntent::minimal_example());
+        round_trip_test::<_, CDialogueConfigureIntent>(hermes::DialogueConfigureIntent::full_example());
         round_trip_test::<_, CDialogueConfigureIntent>(hermes::DialogueConfigureIntent {
-            intent_id: "my intent".into(),
             enable: Some(true),
-        });
-        round_trip_test::<_, CDialogueConfigureIntent>(hermes::DialogueConfigureIntent {
-            intent_id: "an intent".into(),
-            enable: Some(false),
-        });
-        round_trip_test::<_, CDialogueConfigureIntent>(hermes::DialogueConfigureIntent {
-            intent_id: "".into(),
-            enable: None,
+            ..hermes::DialogueConfigureIntent::full_example()
         });
     }
 
@@ -1173,17 +1103,11 @@ mod tests {
     fn round_trip_dialogue_configure_intent_array() {
         round_trip_test::<_, CDialogueConfigureIntentArray>(vec![
             hermes::DialogueConfigureIntent {
-                intent_id: "my intent".into(),
                 enable: Some(true),
+                ..hermes::DialogueConfigureIntent::full_example()
             },
-            hermes::DialogueConfigureIntent {
-                intent_id: "an intent".into(),
-                enable: Some(false),
-            },
-            hermes::DialogueConfigureIntent {
-                intent_id: "".into(),
-                enable: None,
-            },
+            hermes::DialogueConfigureIntent::full_example(),
+            hermes::DialogueConfigureIntent::minimal_example(),
         ]);
 
         round_trip_test::<_, CDialogueConfigureIntentArray>(vec![]);
@@ -1191,28 +1115,9 @@ mod tests {
 
     #[test]
     fn round_trip_dialogue_configure() {
-        round_trip_test::<_, CDialogueConfigureMessage>(hermes::DialogueConfigureMessage {
-            site_id: Some("some site".into()),
-            intents: Some(vec![
-                hermes::DialogueConfigureIntent {
-                    intent_id: "my intent".into(),
-                    enable: Some(true),
-                },
-                hermes::DialogueConfigureIntent {
-                    intent_id: "an intent".into(),
-                    enable: Some(false),
-                },
-                hermes::DialogueConfigureIntent {
-                    intent_id: "".into(),
-                    enable: None,
-                },
-            ]),
-        });
+        round_trip_test::<_, CDialogueConfigureMessage>(hermes::DialogueConfigureMessage::minimal_example());
 
-        round_trip_test::<_, CDialogueConfigureMessage>(hermes::DialogueConfigureMessage {
-            site_id: None,
-            intents: None,
-        });
+        round_trip_test::<_, CDialogueConfigureMessage>(hermes::DialogueConfigureMessage::full_example());
     }
 
     #[test]
