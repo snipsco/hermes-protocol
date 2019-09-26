@@ -201,23 +201,6 @@ typedef struct {
 } CAsrBackendFacade;
 
 typedef struct {
-  const char *site_id;
-  /**
-   * Nullable
-   */
-  const char *session_id;
-  int64_t start_signal_ms;
-} CAsrStartListeningMessage;
-
-typedef struct {
-  const char *site_id;
-  /**
-   * Nullable
-   */
-  const char *session_id;
-} CSiteMessage;
-
-typedef struct {
   float start;
   float end;
 } CAsrDecodingDuration;
@@ -249,6 +232,23 @@ typedef struct {
    */
   const char *session_id;
 } CTextCapturedMessage;
+
+typedef struct {
+  const char *site_id;
+  /**
+   * Nullable
+   */
+  const char *session_id;
+  int64_t start_signal_ms;
+} CAsrStartListeningMessage;
+
+typedef struct {
+  const char *site_id;
+  /**
+   * Nullable
+   */
+  const char *session_id;
+} CSiteMessage;
 
 typedef struct {
   const void *facade;
@@ -1112,17 +1112,17 @@ typedef struct {
   SNIPS_PRECISION precision;
 } CDurationValue;
 
-SNIPS_RESULT hermes_asr_backend_publish_start_listening(const CAsrBackendFacade *facade,
-                                                        void (*handler)(const CAsrStartListeningMessage*, void*));
+SNIPS_RESULT hermes_asr_backend_publish_partial_text_captured(const CAsrBackendFacade *facade,
+                                                              const CTextCapturedMessage *message);
 
-SNIPS_RESULT hermes_asr_backend_publish_stop_listening(const CAsrBackendFacade *facade,
-                                                       void (*handler)(const CSiteMessage*, void*));
+SNIPS_RESULT hermes_asr_backend_publish_text_captured(const CAsrBackendFacade *facade,
+                                                      const CTextCapturedMessage *message);
 
-SNIPS_RESULT hermes_asr_backend_subscribe_partial_text_captured(const CAsrBackendFacade *facade,
-                                                                const CTextCapturedMessage *message);
+SNIPS_RESULT hermes_asr_backend_subscribe_start_listening(const CAsrBackendFacade *facade,
+                                                          void (*handler)(const CAsrStartListeningMessage*, void*));
 
-SNIPS_RESULT hermes_asr_backend_subscribe_text_captured(const CAsrBackendFacade *facade,
-                                                        const CTextCapturedMessage *message);
+SNIPS_RESULT hermes_asr_backend_subscribe_stop_listening(const CAsrBackendFacade *facade,
+                                                         void (*handler)(const CSiteMessage*, void*));
 
 SNIPS_RESULT hermes_asr_publish_start_listening(const CAsrFacade *facade,
                                                 const CAsrStartListeningMessage *message);

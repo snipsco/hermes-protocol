@@ -139,10 +139,10 @@ macro_rules! generate_structures_c_symbols {
                 $crate::generate_facade_subscribe!(hermes_asr_subscribe_text_captured = CAsrFacade: subscribe_text_captured(|CTextCapturedMessage|));
                 $crate::generate_facade_subscribe!(hermes_asr_subscribe_partial_text_captured = CAsrFacade: subscribe_partial_text_captured(|CTextCapturedMessage|));
 
-                $crate::generate_facade_subscribe!(hermes_asr_backend_publish_start_listening = CAsrBackendFacade: subscribe_start_listening(|CAsrStartListeningMessage|));
-                $crate::generate_facade_subscribe!(hermes_asr_backend_publish_stop_listening = CAsrBackendFacade: subscribe_stop_listening(|CSiteMessage|));
-                $crate::generate_facade_publish!(hermes_asr_backend_subscribe_text_captured = CAsrBackendFacade: publish_text_captured(CTextCapturedMessage));
-                $crate::generate_facade_publish!(hermes_asr_backend_subscribe_partial_text_captured = CAsrBackendFacade: publish_partial_text_captured(CTextCapturedMessage));
+                $crate::generate_facade_subscribe!(hermes_asr_backend_subscribe_start_listening = CAsrBackendFacade: subscribe_start_listening(|CAsrStartListeningMessage|));
+                $crate::generate_facade_subscribe!(hermes_asr_backend_subscribe_stop_listening = CAsrBackendFacade: subscribe_stop_listening(|CSiteMessage|));
+                $crate::generate_facade_publish!(hermes_asr_backend_publish_text_captured = CAsrBackendFacade: publish_text_captured(CTextCapturedMessage));
+                $crate::generate_facade_publish!(hermes_asr_backend_publish_partial_text_captured = CAsrBackendFacade: publish_partial_text_captured(CTextCapturedMessage));
 
                 $crate::generate_facade_publish!(hermes_tts_publish_say = CTtsFacade: publish_say(CSayMessage));
                 $crate::generate_facade_subscribe!(hermes_tts_subscribe_say_finished = CTtsFacade: subscribe_say_finished(|CSayFinishedMessage|));
