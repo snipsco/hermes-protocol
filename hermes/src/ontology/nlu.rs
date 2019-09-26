@@ -1,7 +1,9 @@
+use hermes_utils::Example;
+
 use super::asr::AsrToken;
 use super::HermesMessage;
 
-#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct NluQueryMessage {
     /// The text to run the NLU on
@@ -19,7 +21,7 @@ pub struct NluQueryMessage {
 
 impl<'de> HermesMessage<'de> for NluQueryMessage {}
 
-#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct NluSlotQueryMessage {
     /// The text to run the slot detection on
@@ -39,7 +41,7 @@ pub struct NluSlotQueryMessage {
 
 impl<'de> HermesMessage<'de> for NluSlotQueryMessage {}
 
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct NluSlotMessage {
     /// The id of the `NluSlotQueryMessage` that was processed
@@ -56,7 +58,7 @@ pub struct NluSlotMessage {
 
 impl<'de> HermesMessage<'de> for NluSlotMessage {}
 
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct NluIntentNotRecognizedMessage {
     /// The id of the `NluQueryMessage` that was processed
@@ -81,7 +83,41 @@ pub struct NluSlot {
     pub nlu_slot: snips_nlu_ontology::Slot,
 }
 
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+impl Example for NluSlot {
+    fn example(config: hermes_utils::ExampleConfig) -> Self {
+        Self {
+            nlu_slot: snips_nlu_ontology::Slot {
+                slot_name: if let Some(index) = config.index {
+                    format!("slot {} name", index)
+                } else {
+                    "slot name".into()
+                },
+                raw_value: if let Some(index) = config.index {
+                    format!("raw value {}", index)
+                } else {
+                    "raw value".into()
+                },
+                value: snips_nlu_ontology::SlotValue::Custom(if let Some(index) = config.index {
+                    format!("value {}", index).into()
+                } else {
+                    "value".into()
+                }),
+                range: (config.index.unwrap_or(0) * 10)..(6 + config.index.unwrap_or(0) * 10),
+                entity: "entity".into(),
+                confidence_score: Some(1.),
+                alternatives: vec![snips_nlu_ontology::SlotValue::Custom(
+                    if let Some(index) = config.index {
+                        format!("value {} alternative", index).into()
+                    } else {
+                        "value alternative".into()
+                    },
+                )],
+            },
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct NluIntentClassifierResult {
     /// Name of the intent that was found
@@ -90,7 +126,7 @@ pub struct NluIntentClassifierResult {
     pub confidence_score: f32,
 }
 
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct NluIntentMessage {
     /// The id of the `NluQueryMessage` that was processed
@@ -110,7 +146,7 @@ pub struct NluIntentMessage {
 
 impl<'de> HermesMessage<'de> for NluIntentMessage {}
 
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct NluIntentAlternative {
     /// Name of the intent that was found, or None if not intent was recognized

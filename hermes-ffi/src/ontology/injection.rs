@@ -390,7 +390,7 @@ impl AsRust<hermes::InjectionResetCompleteMessage> for CInjectionResetCompleteMe
 mod tests {
     use super::super::tests::round_trip_test;
     use super::*;
-    use chrono::prelude::*;
+    use hermes::hermes_utils::Example;
 
     #[test]
     fn round_trip_injection_request_operation() {
@@ -461,7 +461,7 @@ mod tests {
 
         round_trip_test::<_, CInjectionRequestOperations>(vec![
             (hermes::InjectionKind::Add, HashMap::new()),
-            (hermes::InjectionKind::Add, test_map),
+            (hermes::InjectionKind::AddFromVanilla, test_map),
         ]);
     }
 
@@ -515,30 +515,26 @@ mod tests {
 
     #[test]
     fn round_trip_injection_status() {
-        round_trip_test::<_, CInjectionStatusMessage>(hermes::InjectionStatusMessage {
-            last_injection_date: Some(Utc.ymd(2014, 11, 28).and_hms(12, 0, 9)),
-        });
+        round_trip_test::<_, CInjectionStatusMessage>(hermes::InjectionStatusMessage::minimal_example());
+        round_trip_test::<_, CInjectionStatusMessage>(hermes::InjectionStatusMessage::full_example());
     }
 
     #[test]
     fn round_trip_injection_complete() {
-        round_trip_test::<_, CInjectionCompleteMessage>(hermes::InjectionCompleteMessage {
-            request_id: Some("identifier".to_string()),
-        });
+        round_trip_test::<_, CInjectionCompleteMessage>(hermes::InjectionCompleteMessage::minimal_example());
+        round_trip_test::<_, CInjectionCompleteMessage>(hermes::InjectionCompleteMessage::full_example());
     }
 
     #[test]
     fn round_trip_injection_reset_request() {
-        round_trip_test::<_, CInjectionResetRequestMessage>(hermes::InjectionResetRequestMessage {
-            request_id: Some("some id".to_string()),
-        })
+        round_trip_test::<_, CInjectionResetRequestMessage>(hermes::InjectionResetRequestMessage::minimal_example());
+        round_trip_test::<_, CInjectionResetRequestMessage>(hermes::InjectionResetRequestMessage::full_example());
     }
 
     #[test]
     fn round_trip_injection_reset_complete() {
-        round_trip_test::<_, CInjectionResetCompleteMessage>(hermes::InjectionResetCompleteMessage {
-            request_id: Some("some id".to_string()),
-        })
+        round_trip_test::<_, CInjectionResetCompleteMessage>(hermes::InjectionResetCompleteMessage::minimal_example());
+        round_trip_test::<_, CInjectionResetCompleteMessage>(hermes::InjectionResetCompleteMessage::full_example());
     }
 
 }

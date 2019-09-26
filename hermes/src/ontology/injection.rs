@@ -1,7 +1,11 @@
-use super::HermesMessage;
+use std::collections::HashMap;
+
 use chrono::prelude::*;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use std::collections::HashMap;
+
+use hermes_utils::Example;
+
+use super::HermesMessage;
 
 type Value = String;
 type Entity = String;
@@ -16,7 +20,13 @@ pub enum InjectionKind {
     AddFromVanilla,
 }
 
-#[derive(Debug, Clone, PartialEq, PartialOrd)]
+impl Example for InjectionKind {
+    fn example(_: hermes_utils::ExampleConfig) -> Self {
+        Self::Add
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd, Example)]
 pub struct EntityValue {
     pub value: String,
     pub weight: u32,
@@ -52,7 +62,7 @@ impl Serialize for EntityValue {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct InjectionRequestMessage {
     /// List of operations to execute in the order of the list on a model
@@ -68,16 +78,17 @@ pub struct InjectionRequestMessage {
 
 impl<'de> HermesMessage<'de> for InjectionRequestMessage {}
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct InjectionStatusMessage {
     /// Date of the latest injection
+    #[example_value(DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp(1_545_696_000, 0), Utc))]
     pub last_injection_date: Option<DateTime<Utc>>,
 }
 
 impl<'de> HermesMessage<'de> for InjectionStatusMessage {}
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct InjectionCompleteMessage {
     /// The id of the `InjectionRequestMessage`
@@ -86,7 +97,7 @@ pub struct InjectionCompleteMessage {
 
 impl<'de> HermesMessage<'de> for InjectionCompleteMessage {}
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct InjectionResetRequestMessage {
     /// The id of the `InjectionResetRequestMessage`
@@ -95,7 +106,7 @@ pub struct InjectionResetRequestMessage {
 
 impl<'de> HermesMessage<'de> for InjectionResetRequestMessage {}
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct InjectionResetCompleteMessage {
     /// The id of the `InjectionResetCompleteMessage`
@@ -106,8 +117,9 @@ impl<'de> HermesMessage<'de> for InjectionResetCompleteMessage {}
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use serde_json;
+
+    use super::*;
 
     #[test]
     fn custom_deserialization_entityvalue_works() {
@@ -117,7 +129,7 @@ mod test {
             entity_value,
             EntityValue {
                 value: "a".to_string(),
-                weight: 1
+                weight: 1,
             }
         );
 
@@ -127,7 +139,7 @@ mod test {
             entity_value,
             EntityValue {
                 value: "a".to_string(),
-                weight: 42
+                weight: 42,
             }
         );
     }
@@ -156,14 +168,14 @@ mod test {
             values_per_entity["e_0"][0],
             EntityValue {
                 value: "a".to_string(),
-                weight: 1
+                weight: 1,
             }
         );
         assert_eq!(
             values_per_entity["e_0"][1],
             EntityValue {
                 value: "b".to_string(),
-                weight: 42
+                weight: 42,
             }
         );
     }
@@ -182,14 +194,14 @@ mod test {
             values_per_entity["e_0"][0],
             EntityValue {
                 value: "a".to_string(),
-                weight: 22
+                weight: 22,
             }
         );
         assert_eq!(
             values_per_entity["e_0"][1],
             EntityValue {
                 value: "b".to_string(),
-                weight: 31
+                weight: 31,
             }
         );
     }

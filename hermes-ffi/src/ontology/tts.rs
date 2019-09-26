@@ -157,12 +157,11 @@ impl Drop for CRegisterSoundMessage {
 mod tests {
     use super::super::tests::round_trip_test;
     use super::*;
+    use hermes::hermes_utils::Example;
 
     #[test]
     fn round_trip_register_sound() {
-        round_trip_test::<_, CRegisterSoundMessage>(hermes::RegisterSoundMessage {
-            sound_id: "my sound id".into(),
-            wav_sound: vec![6; 513],
-        });
+        round_trip_test::<_, CRegisterSoundMessage>(hermes::RegisterSoundMessage::minimal_example());
+        round_trip_test::<_, CRegisterSoundMessage>(hermes::RegisterSoundMessage::full_example());
     }
 }

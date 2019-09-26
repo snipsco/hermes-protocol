@@ -1,6 +1,6 @@
 use super::HermesMessage;
 
-#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct VadUpMessage {
     /// The site concerned
@@ -11,7 +11,7 @@ pub struct VadUpMessage {
 
 impl<'de> HermesMessage<'de> for VadUpMessage {}
 
-#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize, Serialize, Example)]
 #[serde(rename_all = "camelCase")]
 pub struct VadDownMessage {
     /// The site concerned

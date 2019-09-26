@@ -384,16 +384,12 @@ impl Drop for CSpeakerIdArray {
 mod tests {
     use super::super::tests::round_trip_test;
     use super::*;
+    use hermes::hermes_utils::Example;
 
     #[test]
     fn round_trip_asr_token() {
-        round_trip_test::<_, CAsrToken>(hermes::AsrToken {
-            value: "hello world".into(),
-            confidence: 0.98,
-            range_start: 4,
-            range_end: 9,
-            time: hermes::AsrDecodingDuration { start: 0.0, end: 5.0 },
-        });
+        round_trip_test::<_, CAsrToken>(hermes::AsrToken::minimal_example());
+        round_trip_test::<_, CAsrToken>(hermes::AsrToken::full_example());
     }
 
     #[test]
@@ -401,20 +397,8 @@ mod tests {
         round_trip_test::<_, CAsrTokenArray>(vec![]);
 
         round_trip_test::<_, CAsrTokenArray>(vec![
-            hermes::AsrToken {
-                value: "hello".to_string(),
-                confidence: 0.98,
-                range_start: 1,
-                range_end: 4,
-                time: hermes::AsrDecodingDuration { start: 0.0, end: 5.0 },
-            },
-            hermes::AsrToken {
-                value: "world".to_string(),
-                confidence: 0.73,
-                range_start: 5,
-                range_end: 9,
-                time: hermes::AsrDecodingDuration { start: 0.0, end: 5.0 },
-            },
+            hermes::AsrToken::minimal_example(),
+            hermes::AsrToken::minimal_example(),
         ]);
     }
 
@@ -423,30 +407,9 @@ mod tests {
         round_trip_test::<_, CAsrTokenDoubleArray>(vec![]);
 
         round_trip_test::<_, CAsrTokenDoubleArray>(vec![
-            vec![
-                hermes::AsrToken {
-                    value: "hello".to_string(),
-                    confidence: 0.98,
-                    range_start: 1,
-                    range_end: 4,
-                    time: hermes::AsrDecodingDuration { start: 0.0, end: 5.0 },
-                },
-                hermes::AsrToken {
-                    value: "world".to_string(),
-                    confidence: 0.73,
-                    range_start: 5,
-                    range_end: 9,
-                    time: hermes::AsrDecodingDuration { start: 0.0, end: 5.0 },
-                },
-            ],
+            vec![hermes::AsrToken::minimal_example(), hermes::AsrToken::full_example()],
             vec![],
-            vec![hermes::AsrToken {
-                value: "yop".to_string(),
-                confidence: 0.97,
-                range_start: 5,
-                range_end: 1,
-                time: hermes::AsrDecodingDuration { start: 1.0, end: 4.5 },
-            }],
+            vec![hermes::AsrToken::full_example()],
         ]);
     }
 }
