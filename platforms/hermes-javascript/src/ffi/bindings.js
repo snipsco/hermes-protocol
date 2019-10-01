@@ -55,8 +55,14 @@ module.exports.library = libraryPath => ffi.Library(libraryPath, {
     hermes_injection_publish_injection_request_json: [ 'int', [ 'void *', 'char * ']],
     // Request an injection status message to be sent
     hermes_injection_publish_injection_status_request_json: [ 'int', [ 'void *' ]],
+    // Reset previously injected data
+    hermes_injection_publish_injection_reset_request_json: [ 'int', [ 'void *', 'char * ']],
     // Subscribe to injection status
     hermes_injection_subscribe_injection_status_json: [ 'int', [ 'void *', 'void *' ]],
+    // Subscribe to injection completion
+    hermes_injection_subscribe_injection_complete_json: [ 'int', [ 'void *', 'void *' ]],
+    // Subscribe to injection reset completion
+    hermes_injection_subscribe_injection_reset_complete_json: [ 'int', [ 'void *', 'void *' ]],
 
     /* Feedback */
 
