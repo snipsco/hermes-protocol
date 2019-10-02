@@ -93,11 +93,11 @@ class AddFromVanillaInjectionRequest(InjectionRequestOperation):
 
 class InjectionCompleteMessage(object):
     def __init__(self, request_id):
+        # type: (Text) -> None
         """
         :param request_id: The id of the injection request that just completed.
         :type request_id: Text
         """
-        # type: (Text)
         self.request_id = request_id
 
     def __eq__(self, other):
@@ -115,11 +115,11 @@ class InjectionCompleteMessage(object):
 
 class InjectionResetRequestMessage(object):
     def __init__(self, request_id):
+        # type: (Text) -> None
         """
         :param request_id: The id of the injection reset request.
         :type request_id: Text
         """
-        # type: (Text)
         self.request_id = request_id
 
     def __eq__(self, other):
@@ -136,11 +136,11 @@ class InjectionResetRequestMessage(object):
 
 class InjectionResetCompleteMessage(object):
     def __init__(self, request_id):
+        # type: (Text) -> None
         """
         :param request_id: The id of the injection reset request that just completed.
         :type request_id: Text
         """
-        # type: (Text)
         self.request_id = request_id
 
     def __eq__(self, other):
