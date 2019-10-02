@@ -303,7 +303,7 @@ class MusicArtistValue(object):
         A structured representation of Percentage Value slot type.
         A structured representation of Custom Value slot type.
         :param value:
-       :param string_value: a string value
+        :param string_value: a string value
         """
         self.value = string_value
 

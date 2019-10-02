@@ -4,9 +4,9 @@ from ...ffi import utils
 from ...ffi.wrappers import ffi_function_callback_wrapper
 from ...ffi.ontology.facades import CInjectionFacade
 from ...ffi.utils import hermes_protocol_handler_injection_facade, hermes_drop_injection_facade
-from ...ffi.ontology.injection import CInjectionStatusMessage
+from ...ffi.ontology.injection import CInjectionStatusMessage, CInjectionCompleteMessage, CInjectionResetCompleteMessage
 
-from ...ontology.injection import InjectionStatusMessage
+from ...ontology.injection import InjectionStatusMessage, InjectionCompleteMessage, InjectionResetCompleteMessage
 
 
 class InjectionFFI(object):
@@ -16,6 +16,12 @@ class InjectionFFI(object):
 
         # References to callbacks called from C
         self._c_callback_subscribe_injection_status = []
+
+        # References to callbacks called from C
+        self._c_callback_subscribe_injection_complete = []
+
+        # References to callbacks called from C
+        self._c_callback_subscribe_injection_reset_complete = []
 
     def initialize_facade(self, protocol_handler):
         hermes_protocol_handler_injection_facade(protocol_handler, byref(self._facade))
@@ -61,6 +67,13 @@ class InjectionFFI(object):
         )
         return self
 
+    def publish_injection_reset_request(self, message):
+        self._call_foreign_function(
+            'hermes_injection_publish_injection_reset_request',
+            message
+        )
+        return self
+
     def publish_injection_status_request(self):
         self._call_foreign_function_no_arg('hermes_injection_publish_injection_status_request')
         return self
@@ -82,3 +95,40 @@ class InjectionFFI(object):
                 number_of_callbacks - 1])  # We retrieve the last callback we registered
 
         return self
+
+    def register_subscribe_injection_complete(self, user_defined_callback, hermes_client):
+        c_intent_handler_callback = ffi_function_callback_wrapper(use_json_api=self.use_json_api,
+                                                                  hermes_client=hermes_client,
+                                                                  target_handler_return_type=c_void_p,
+                                                                  handler_function=user_defined_callback,
+                                                                  handler_argument_type=InjectionCompleteMessage,
+                                                                  target_handler_argument_type=CInjectionCompleteMessage)
+
+        self._c_callback_subscribe_injection_complete.append(c_intent_handler_callback)
+        number_of_callbacks = len(self._c_callback_subscribe_injection_complete)
+
+        self._register_c_handler(
+            'hermes_injection_subscribe_injection_complete',
+            self._c_callback_subscribe_injection_complete[
+                number_of_callbacks - 1])  # We retrieve the last callback we registered
+
+        return self
+
+    def register_subscribe_injection_reset_complete(self, user_defined_callback, hermes_client):
+        c_intent_handler_callback = ffi_function_callback_wrapper(use_json_api=self.use_json_api,
+                                                                  hermes_client=hermes_client,
+                                                                  target_handler_return_type=c_void_p,
+                                                                  handler_function=user_defined_callback,
+                                                                  handler_argument_type=InjectionResetCompleteMessage,
+                                                                  target_handler_argument_type=CInjectionResetCompleteMessage)
+
+        self._c_callback_subscribe_injection_reset_complete.append(c_intent_handler_callback)
+        number_of_callbacks = len(self._c_callback_subscribe_injection_reset_complete)
+
+        self._register_c_handler(
+            'hermes_injection_subscribe_injection_reset_complete',
+            self._c_callback_subscribe_injection_reset_complete[
+                number_of_callbacks - 1]) # We retrieve the last callback we registered
+
+        return self
+

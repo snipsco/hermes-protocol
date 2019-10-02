@@ -1,5 +1,5 @@
 from typing import Optional, Text, List, Mapping
-from ...ffi.ontology.injection import InjectionKind, CInjectionRequestMessage, CInjectionRequestOperation
+from ...ffi.ontology.injection import InjectionKind, CInjectionRequestMessage, CInjectionResetCompleteMessage, CInjectionResetRequestMessage, CInjectionCompleteMessage
 
 
 class InjectionStatusMessage(object):
@@ -15,6 +15,16 @@ class InjectionStatusMessage(object):
 class InjectionRequestMessage(object):
     def __init__(self, operations, lexicon=dict(), cross_language=None, id=None):
         # type: (List[InjectionRequestOperation], Mapping[Text, List[Text]], Optional[Text], Optional[Text]) -> None
+        """
+        :param operations: List of operations to execute in the order of the list on a model
+        :type operations: List[InjectionRequestOperation]
+        :param lexicon: List of pre-computed prononciations to add in a model
+        :type lexicon: Mapping[Text, List[Text]]
+        :param cross_language: Language for cross-language G2P
+        :type cross_language: Optional[Text]
+        :param id: The id of the `InjectionRequestMessage` that was processed
+        :type id: Optional[Text]
+        """
         self.operations = operations
         self.lexicon = lexicon
         self.cross_language = cross_language
@@ -79,3 +89,69 @@ class AddFromVanillaInjectionRequest(InjectionRequestOperation):
     def from_c_repr(cls, c_repr):
         values = c_repr.values.contents.into_repr()
         return cls(values)
+
+
+class InjectionCompleteMessage(object):
+    def __init__(self, request_id):
+        # type: (Text) -> None
+        """
+        :param request_id: The id of the injection request that just completed.
+        :type request_id: Text
+        """
+        self.request_id = request_id
+
+    def __eq__(self, other):
+        return other.__dict__ == self.__dict__
+
+    @classmethod
+    def from_c_repr(cls, c_repr):
+        request_id = c_repr.request_id.decode('utf-8')
+        return cls(request_id)
+
+    def into_c_repr(self):
+        return CInjectionCompleteMessage.from_repr(self)
+
+
+
+class InjectionResetRequestMessage(object):
+    def __init__(self, request_id):
+        # type: (Text) -> None
+        """
+        :param request_id: The id of the injection reset request.
+        :type request_id: Text
+        """
+        self.request_id = request_id
+
+    def __eq__(self, other):
+        return other.__dict__ == self.__dict__
+
+    @classmethod
+    def from_c_repr(cls, c_repr):
+        request_id = c_repr.request_id.decode('utf-8')
+        return cls(request_id)
+
+    def into_c_repr(self):
+        return CInjectionResetRequestMessage.from_repr(self)
+
+
+class InjectionResetCompleteMessage(object):
+    def __init__(self, request_id):
+        # type: (Text) -> None
+        """
+        :param request_id: The id of the injection reset request that just completed.
+        :type request_id: Text
+        """
+        self.request_id = request_id
+
+    def __eq__(self, other):
+        return other.__dict__ == self.__dict__
+
+    @classmethod
+    def from_c_repr(cls, c_repr):
+        request_id = c_repr.request_id.decode('utf-8')
+        return cls(request_id)
+
+    def into_c_repr(self):
+        return CInjectionResetCompleteMessage.from_repr(self)
+
+

@@ -17,6 +17,11 @@ rst:
 	tail -n+5 build/rst/README.rst >> tmp.rst
 	mv tmp.rst ../README.rst
 
+github:
+	@$(SPHINXBUILD) -M rst "$(SOURCEDIR)" "$(BUILDDIR)" "$(SOURCEDIR)/README.rst" $(SPHINXOPTS) $(O)
+	head -n 9 ../README.rst >> tmp.rst
+	tail -n+5 build/rst/README.rst >> tmp.rst
+	mv tmp.rst ../README.rst
 
 .PHONY: help Makefile rst
 
