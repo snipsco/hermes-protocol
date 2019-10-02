@@ -536,5 +536,4 @@ mod tests {
         round_trip_test::<_, CInjectionResetCompleteMessage>(hermes::InjectionResetCompleteMessage::minimal_example());
         round_trip_test::<_, CInjectionResetCompleteMessage>(hermes::InjectionResetCompleteMessage::full_example());
     }
-
 }

@@ -230,5 +230,4 @@ mod tests {
 
         round_trip_test::<_, CMapStringToStringArray>(test_map);
     }
-
 }
