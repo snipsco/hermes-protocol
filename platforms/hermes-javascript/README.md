@@ -702,11 +702,31 @@ Note that you should subscribe to `injection_status` beforehand in order to rece
 injection.publish('injection_status_request')
 ```
 
+- **injection_reset_request**
+
+Will clear all the previously injected values.
+
+```js
+injection.publish('injection_reset_request', {
+    // Identifies the request.
+    // The id will be sent back in the injection reset completed message.
+    requestId: /* string */
+})
+```
+
 #### Events available for subscribing
 
 - **injection_status**
 
 Get the status of the last injection request.
+
+- **injection_complete**
+
+When an injection request completes.
+
+- **injection_reset_complete**
+
+When an injection reset request completes.
 
 ### Feedback Api Subset
 
