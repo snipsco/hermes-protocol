@@ -272,7 +272,7 @@ class SessionTerminationTypeIntentNotRecognized(SessionTerminationType):
 
 class SessionTerminationTypeTimeOut(SessionTerminationType):
     def __init__(self, component):
-        # type: (HermesComponent) -> None
+        # type: (Optional[HermesComponent]) -> None
         self.component = component
         SessionTerminationType.__init__(self)
 
@@ -294,12 +294,13 @@ class SessionTerminationTypeError(SessionTerminationType):
 
 class SessionTermination(object):
     def __init__(self, termination_type, data):
-        # type: (SessionTerminationType, str) -> None
+        # type: (SessionTerminationType, Optional[str]) -> None
         """
 
         :param termination_type: the reason why the session was ended
         :type termination_type: SessionTerminationType
-        :param data: attached data
+        :param data: Nullable, set if the type is `SNIPS_SESSION_TERMINATION_TYPE_ERROR` and gives more info on the
+        error that happened
         :type data: Text
         """
         self.termination_type = termination_type

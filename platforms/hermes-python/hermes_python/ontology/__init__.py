@@ -1,3 +1,4 @@
+from typing import Optional
 from enum import IntEnum
 from hermes_python.ffi.ontology import SNIPS_HERMES_COMPONENT
 
@@ -14,11 +15,11 @@ class HermesComponent(IntEnum):
 
     @classmethod
     def from_c_repr(cls, c_repr):
-        # type: (SNIPS_HERMES_COMPONENT) -> HermesComponent
-        if c_repr.SNIPS_HERMES_COMPONENT_NONE:
-            raise Exception("Bad value type. Got : {}".format(c_repr))
+        # type: (SNIPS_HERMES_COMPONENT) -> Optional[HermesComponent]
+        if c_repr == SNIPS_HERMES_COMPONENT.SNIPS_HERMES_COMPONENT_NONE:
+            return None
         else:
-            return HermesComponent(c_repr.value)
+            return HermesComponent(c_repr)
 
 
 class MqttOptions(object):

@@ -176,6 +176,24 @@ class TestSessionEndedRoundTrip(object):
         assert session_ended_message.termination == round_trip_session_ended_message.termination
         assert session_ended_message == round_trip_session_ended_message
 
+    def test_hermes_ffi_test_round_trip_session_ended_timeout(self):
+        termination_type_timeout = hermes_python.ontology.dialogue.SessionTerminationTypeTimeOut(None)
+        session_termination = hermes_python.ontology.dialogue.SessionTermination(termination_type_timeout, None)
+
+        session_ended_message = hermes_python.ontology.dialogue.SessionEndedMessage("session_id", "custom_data",
+                                                                                    "site_id", session_termination)
+
+        round_trip_session_ended_message = get_round_trip_data_structure(
+            session_ended_message,
+            hermes_python.ffi.ontology.dialogue.CSessionEndedMessage,
+            hermes_python.ontology.dialogue.SessionEndedMessage,
+            lib.hermes_ffi_test_round_trip_session_ended
+        )
+
+        assert session_ended_message.termination.data == round_trip_session_ended_message.termination.data
+        assert session_ended_message.termination == round_trip_session_ended_message.termination
+        assert session_ended_message == round_trip_session_ended_message
+
 
 class TestIntentNotRecognized(object):
 
