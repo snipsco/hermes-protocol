@@ -1,3 +1,4 @@
+from typing import Optional
 from enum import IntEnum
 from hermes_python.ffi.ontology import SNIPS_HERMES_COMPONENT
 
@@ -14,7 +15,7 @@ class HermesComponent(IntEnum):
 
     @classmethod
     def from_c_repr(cls, c_repr):
-        # type: (SNIPS_HERMES_COMPONENT) -> HermesComponent
+        # type: (SNIPS_HERMES_COMPONENT) -> Optional[HermesComponent]
         if c_repr == SNIPS_HERMES_COMPONENT.SNIPS_HERMES_COMPONENT_NONE:
             return None
         else:
