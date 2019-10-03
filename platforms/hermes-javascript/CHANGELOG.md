@@ -1,3 +1,19 @@
+# [0.4.0](https://github.com/snipsco/hermes-protocol/compare/js/0.3.14...0.4.0) (2019-10-03)
+
+
+### Features
+
+* **injection:** add injection complete & reset bindings ([0bae1b5](https://github.com/snipsco/hermes-protocol/commit/0bae1b5))
+* **nlu:** Add alternatives for intents and slots. ([8e16503](https://github.com/snipsco/hermes-protocol/commit/8e16503))
+* **nlu:** make slot alternatives field optional ([d93a84e](https://github.com/snipsco/hermes-protocol/commit/d93a84e))
+
+
+### BREAKING CHANGES
+
+* **nlu:** new mandatory field "alternatives" added to the NluSlot type.
+
+
+
 ## [0.3.14](https://github.com/snipsco/hermes-protocol/compare/js/0.3.13...0.3.14) (2019-07-18)
 
 * **Chore**: Bump hermes mqtt version to `0.67.0` ([8b4068f](https://github.com/snipsco/hermes-protocol/commit/8b4068f))
