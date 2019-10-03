@@ -150,6 +150,16 @@ it('[injection] should publish an injection status request event', () => {
   })
 })
 
+it('[injection] should publish an injection reset request event', () => {
+  return setupPublisherJsonTest({
+    client,
+    facade: injection,
+    json: require('./messages/InjectionReset.json'),
+    hermesTopic: 'hermes/injection/reset/perform',
+    facadePublication: 'injection_reset_request'
+  })
+})
+
 // Feedback
 
 it('[feedback] should publish an notification sound on event', () => {
@@ -289,6 +299,26 @@ it('[injection] should receive events related to an injection status', () => {
     json: require('./messages/InjectionStatus.json'),
     hermesTopic: 'hermes/injection/status',
     facadeSubscription: 'injection_status'
+  })
+})
+
+it('[injection] should receive events related to a completed injection', () => {
+  return setupSubscriberJsonTest({
+    client,
+    facade: injection,
+    json: require('./messages/InjectionComplete.json'),
+    hermesTopic: 'hermes/injection/complete',
+    facadeSubscription: 'injection_complete'
+  })
+})
+
+it('[injection] should receive events related to a completed injection reset', () => {
+  return setupSubscriberJsonTest({
+    client,
+    facade: injection,
+    json: require('./messages/InjectionResetComplete.json'),
+    hermesTopic: 'hermes/injection/reset/complete',
+    facadeSubscription: 'injection_reset_complete'
   })
 })
 

@@ -19,6 +19,9 @@ export default class Injection extends ApiSubset {
         },
         injection_status_request: {
             fullEventName: 'hermes_injection_publish_injection_status_request_json'
+        },
+        injection_reset_request: {
+            fullEventName: 'hermes_injection_publish_injection_reset_request_json'
         }
     }
     publishMessagesList: InjectionTypes.publishMessagesList = undefined as any
@@ -26,6 +29,12 @@ export default class Injection extends ApiSubset {
     subscribeEvents = {
         injection_status: {
             fullEventName: 'hermes_injection_subscribe_injection_status_json'
+        },
+        injection_complete: {
+            fullEventName: 'hermes_injection_subscribe_injection_complete_json'
+        },
+        injection_reset_complete: {
+            fullEventName: 'hermes_injection_subscribe_injection_reset_complete_json'
         }
     }
     subscribeMessagesList: InjectionTypes.subscribeMessagesList = undefined as any
