@@ -1,5 +1,9 @@
 History
 ==========
+0.8.1 (2019-10-03)
+------------------
+* Hotfix : adding back DialogueConfiguration in the main module + Conversion function for SessionTermination object
+
 0.8.0 (2019-09-10)
 ------------------
 * Adds subscription to injection lifecycle events : subscribe_injection_complete, subscribe_injection_reset_complete
