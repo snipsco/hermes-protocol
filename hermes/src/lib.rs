@@ -271,6 +271,8 @@ pub trait InjectionFacade: ComponentFacade {
     fn subscribe_injection_status(&self, handler: Callback<InjectionStatusMessage>) -> Fallible<()>;
     fn subscribe_injection_complete(&self, handler: Callback<InjectionCompleteMessage>) -> Fallible<()>;
     fn subscribe_injection_reset_complete(&self, handler: Callback<InjectionResetCompleteMessage>) -> Fallible<()>;
+    fn subscribe_injection_failed(&self, handler: Callback<InjectionFailedMessage>) -> Fallible<()>;
+    fn subscribe_injection_reset_failed(&self, handler: Callback<InjectionResetFailedMessage>) -> Fallible<()>;
 }
 
 /// The facade the injecter must use to receive its orders and advertise when it has finished
@@ -281,6 +283,8 @@ pub trait InjectionBackendFacade: ComponentBackendFacade {
     fn publish_injection_status(&self, status: InjectionStatusMessage) -> Fallible<()>;
     fn publish_injection_complete(&self, message: InjectionCompleteMessage) -> Fallible<()>;
     fn publish_injection_reset_complete(&self, message: InjectionResetCompleteMessage) -> Fallible<()>;
+    fn publish_injection_failed(&self, message: InjectionFailedMessage) -> Fallible<()>;
+    fn publish_injection_reset_failed(&self, message: InjectionResetFailedMessage) -> Fallible<()>;
 }
 
 pub trait HermesProtocolHandler: Send + Sync + std::fmt::Display {

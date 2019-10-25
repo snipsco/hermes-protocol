@@ -533,6 +533,8 @@ pub enum InjectionCommand {
     Complete,
     ResetRequest,
     ResetComplete,
+    Failed,
+    ResetFailed,
 }
 
 impl ToPath for InjectionCommand {
@@ -540,6 +542,7 @@ impl ToPath for InjectionCommand {
         match &self {
             InjectionCommand::ResetRequest => "reset/perform".into(),
             InjectionCommand::ResetComplete => "reset/complete".into(),
+            InjectionCommand::ResetFailed => "reset/failed".into(),
             _ => self.as_path_default(),
         }
     }

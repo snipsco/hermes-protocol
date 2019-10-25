@@ -720,6 +720,8 @@ impl InjectionFacade for MqttComponentFacade {
     s!(subscribe_injection_status<InjectionStatusMessage> &HermesTopic::Injection(InjectionCommand::Status););
     s!(subscribe_injection_complete<InjectionCompleteMessage> &HermesTopic::Injection(InjectionCommand::Complete););
     s!(subscribe_injection_reset_complete<InjectionResetCompleteMessage> &HermesTopic::Injection(InjectionCommand::ResetComplete););
+    s!(subscribe_injection_failed<InjectionFailedMessage> &HermesTopic::Injection(InjectionCommand::Failed););
+    s!(subscribe_injection_reset_failed<InjectionResetFailedMessage> &HermesTopic::Injection(InjectionCommand::ResetFailed););
 }
 
 impl InjectionBackendFacade for MqttComponentFacade {
@@ -729,6 +731,8 @@ impl InjectionBackendFacade for MqttComponentFacade {
     p!(publish_injection_status<InjectionStatusMessage> &HermesTopic::Injection(InjectionCommand::Status););
     p!(publish_injection_complete<InjectionCompleteMessage> &HermesTopic::Injection(InjectionCommand::Complete););
     p!(publish_injection_reset_complete<InjectionResetCompleteMessage> &HermesTopic::Injection(InjectionCommand::ResetComplete););
+    p!(publish_injection_failed<InjectionFailedMessage> &HermesTopic::Injection(InjectionCommand::Failed););
+    p!(publish_injection_reset_failed<InjectionResetFailedMessage> &HermesTopic::Injection(InjectionCommand::ResetFailed););
 }
 
 impl MqttHermesProtocolHandler {
