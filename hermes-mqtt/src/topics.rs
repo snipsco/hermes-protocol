@@ -280,6 +280,7 @@ impl HermesTopic {
                 ComponentCommand::VersionRequest,
             )),
             Some("complete") => Some(Injection(Complete)),
+            Some("failed") => Some(Injection(Failed)),
             Some("version") => Some(HermesTopic::Component(
                 None,
                 Component::Injection,
@@ -298,6 +299,7 @@ impl HermesTopic {
             Some("reset") => match comps.next() {
                 Some("perform") => Some(Injection(ResetRequest)),
                 Some("complete") => Some(Injection(ResetComplete)),
+                Some("failed") => Some(Injection(ResetFailed)),
                 _ => None,
             },
             _ => None,
@@ -833,6 +835,14 @@ mod tests {
             (
                 HermesTopic::Injection(InjectionCommand::ResetComplete),
                 "hermes/injection/reset/complete",
+            ),
+            (
+                HermesTopic::Injection(InjectionCommand::Failed),
+                "hermes/injection/failed",
+            ),
+            (
+                HermesTopic::Injection(InjectionCommand::ResetFailed),
+                "hermes/injection/reset/failed",
             ),
             (
                 HermesTopic::Component(None, Component::Injection, ComponentCommand::VersionRequest),
