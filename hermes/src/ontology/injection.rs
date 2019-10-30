@@ -103,7 +103,7 @@ pub struct InjectionFailedMessage {
     /// The id of the `InjectionFailedMessage`
     pub request_id: Option<String>,
     /// The context of the failure
-    pub context: Option<String>,
+    pub context: String,
 }
 
 impl<'de> HermesMessage<'de> for InjectionFailedMessage {}
@@ -132,7 +132,7 @@ pub struct InjectionResetFailedMessage {
     /// The id of the `InjectionResetFailedMessage`
     pub request_id: Option<String>,
     /// The context of the failure
-    pub context: Option<String>,
+    pub context: String,
 }
 
 impl<'de> HermesMessage<'de> for InjectionResetFailedMessage {}

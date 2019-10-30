@@ -302,6 +302,7 @@ impl AsRust<hermes::InjectionStatusMessage> for CInjectionStatusMessage {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CInjectionCompleteMessage {
+    /// Nullable
     pub request_id: *const libc::c_char,
 }
 
@@ -331,6 +332,7 @@ impl AsRust<hermes::InjectionCompleteMessage> for CInjectionCompleteMessage {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CInjectionResetRequestMessage {
+    /// Nullable
     pub request_id: *const libc::c_char,
 }
 
@@ -360,6 +362,7 @@ impl AsRust<hermes::InjectionResetRequestMessage> for CInjectionResetRequestMess
 #[repr(C)]
 #[derive(Debug)]
 pub struct CInjectionResetCompleteMessage {
+    /// Nullable
     pub request_id: *const libc::c_char,
 }
 
@@ -389,6 +392,7 @@ impl AsRust<hermes::InjectionResetCompleteMessage> for CInjectionResetCompleteMe
 #[repr(C)]
 #[derive(Debug)]
 pub struct CInjectionFailedMessage {
+    /// Nullable
     pub request_id: *const libc::c_char,
     pub context: *const libc::c_char,
 }
@@ -398,7 +402,7 @@ unsafe impl Sync for CInjectionFailedMessage {}
 impl Drop for CInjectionFailedMessage {
     fn drop(&mut self) {
         take_back_nullable_c_string!(self.request_id);
-        take_back_nullable_c_string!(self.context);
+        take_back_c_string!(self.context);
     }
 }
 
@@ -406,7 +410,7 @@ impl CReprOf<hermes::InjectionFailedMessage> for CInjectionFailedMessage {
     fn c_repr_of(message: hermes::InjectionFailedMessage) -> Fallible<Self> {
         Ok(Self {
             request_id: convert_to_nullable_c_string!(message.request_id),
-            context: convert_to_nullable_c_string!(message.context),
+            context: convert_to_c_string!(message.context),
         })
     }
 }
@@ -414,7 +418,7 @@ impl CReprOf<hermes::InjectionFailedMessage> for CInjectionFailedMessage {
 impl AsRust<hermes::InjectionFailedMessage> for CInjectionFailedMessage {
     fn as_rust(&self) -> Fallible<hermes::InjectionFailedMessage> {
         let request_id = create_optional_rust_string_from!(self.request_id);
-        let context = create_optional_rust_string_from!(self.context);
+        let context = create_rust_string_from!(self.context);
         Ok(hermes::InjectionFailedMessage { request_id, context })
     }
 }
@@ -422,6 +426,7 @@ impl AsRust<hermes::InjectionFailedMessage> for CInjectionFailedMessage {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CInjectionResetFailedMessage {
+    /// Nullable
     pub request_id: *const libc::c_char,
     pub context: *const libc::c_char,
 }
@@ -431,7 +436,7 @@ unsafe impl Sync for CInjectionResetFailedMessage {}
 impl Drop for CInjectionResetFailedMessage {
     fn drop(&mut self) {
         take_back_nullable_c_string!(self.request_id);
-        take_back_nullable_c_string!(self.context);
+        take_back_c_string!(self.context);
     }
 }
 
@@ -439,7 +444,7 @@ impl CReprOf<hermes::InjectionResetFailedMessage> for CInjectionResetFailedMessa
     fn c_repr_of(message: hermes::InjectionResetFailedMessage) -> Fallible<Self> {
         Ok(Self {
             request_id: convert_to_nullable_c_string!(message.request_id),
-            context: convert_to_nullable_c_string!(message.context),
+            context: convert_to_c_string!(message.context),
         })
     }
 }
@@ -447,7 +452,7 @@ impl CReprOf<hermes::InjectionResetFailedMessage> for CInjectionResetFailedMessa
 impl AsRust<hermes::InjectionResetFailedMessage> for CInjectionResetFailedMessage {
     fn as_rust(&self) -> Fallible<hermes::InjectionResetFailedMessage> {
         let request_id = create_optional_rust_string_from!(self.request_id);
-        let context = create_optional_rust_string_from!(self.context);
+        let context = create_rust_string_from!(self.context);
         Ok(hermes::InjectionResetFailedMessage { request_id, context })
     }
 }

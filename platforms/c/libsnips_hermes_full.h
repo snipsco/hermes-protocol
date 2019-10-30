@@ -713,6 +713,9 @@ typedef struct {
 } CHotwordFacade;
 
 typedef struct {
+  /**
+   * Nullable
+   */
   const char *request_id;
 } CInjectionCompleteMessage;
 
@@ -722,6 +725,9 @@ typedef struct {
 } CInjectionFacade;
 
 typedef struct {
+  /**
+   * Nullable
+   */
   const char *request_id;
   const char *context;
 } CInjectionFailedMessage;
@@ -760,15 +766,24 @@ typedef struct {
 } CInjectionRequestMessage;
 
 typedef struct {
+  /**
+   * Nullable
+   */
   const char *request_id;
 } CInjectionResetCompleteMessage;
 
 typedef struct {
+  /**
+   * Nullable
+   */
   const char *request_id;
   const char *context;
 } CInjectionResetFailedMessage;
 
 typedef struct {
+  /**
+   * Nullable
+   */
   const char *request_id;
 } CInjectionResetRequestMessage;
 
