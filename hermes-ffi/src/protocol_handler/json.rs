@@ -125,7 +125,6 @@ macro_rules! generate_json_c_symbols {
             $crate::generate_facade_subscribe_json!(hermes_injection_subscribe_injection_failed_json = CInjectionFacade: subscribe_injection_failed());
             $crate::generate_facade_subscribe_json!(hermes_injection_subscribe_injection_reset_failed_json = CInjectionFacade: subscribe_injection_reset_failed());
 
-
             #[cfg(feature = "full_bindings")]
             pub mod full_bindings {
                 use super::super::facades::full_bindings::*;
