@@ -27,7 +27,7 @@ const LIB_NAME = {
     openbsd: 'libhermes_mqtt_ffi',
     darwin: 'libhermes_mqtt_ffi',
     mac:    'libhermes_mqtt_ffi',
-    win32:  'hermes_mqtt_ffi.dll'
+    win32:  'hermes_mqtt_ffi'
 }[process.platform]
 
 const LIB_PATH = baseFolder =>
