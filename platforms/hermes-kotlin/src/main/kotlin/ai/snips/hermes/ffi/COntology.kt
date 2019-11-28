@@ -56,7 +56,10 @@ import ai.snips.nlu.ontology.ffi.readString
 import ai.snips.nlu.ontology.ffi.toPointer
 import com.sun.jna.Memory
 import com.sun.jna.Pointer
+import com.sun.jna.PointerType
 import com.sun.jna.Structure
+import com.sun.jna.ptr.PointerByReference
+import java.awt.Point
 
 
 class CHermesComponent {
@@ -1012,19 +1015,90 @@ class CAsrDecodingDuration : Structure(), Structure.ByValue {
     override fun getFieldOrder() = listOf("start", "end")
 
     fun toAsrDecodingDuration() = AsrDecodingDuration(start = start!!,
-                                                      end = end!!)
+            end = end!!)
 }
+
+class Dummy(val value_start: Int, val value_end: Int, val time: AsrDecodingDuration)
+
+class CDummy(p: Pointer?) : Structure(p), Structure.ByReference {
+    companion object {
+        @JvmStatic
+        fun fromDummy(d: Dummy) = CDummy(null).apply {
+            value_start = d.value_start
+            value_end = d.value_end
+            time = CAsrDecodingDuration.fromAsrDecodingDuration(d.time)
+        }
+    }
+
+    @JvmField
+    var value_start: Int = -1
+
+    @JvmField
+    var value_end: Int = -1
+
+    @JvmField
+    var time: CAsrDecodingDuration? = null
+
+
+    init {
+        read()
+    }
+    override fun getFieldOrder() = listOf("value_start", "value_end", "time")
+
+    fun toDummy() = Dummy (
+            value_start = value_start,
+            value_end = value_end,
+            time = time!!.toAsrDecodingDuration()
+    )
+}
+
+class CDummyArray(p: Pointer?) : Structure(p), Structure.ByReference {
+    companion object {
+        @JvmStatic
+        fun fromDummyList(list: List<Dummy>) = CDummyArray(null).apply {
+            count = list.size
+            entries = if (count > 0) {
+
+                val cDummyRef = CDummy(null)
+
+                var vals : Array<CDummy> = cDummyRef.toArray(list.size) as Array<CDummy>
+
+                list.forEachIndexed { i, dummy ->
+                    vals[i].apply {
+                        value_start = dummy.value_start
+                        value_end = dummy.value_end
+                        time = CAsrDecodingDuration.fromAsrDecodingDuration(dummy.time)
+                    }
+                }
+                vals
+            }
+            else null
+        }
+    }
+
+    @JvmField
+    var entries: Array<CDummy>? = arrayOf(CDummy(null))
+    @JvmField
+    var count: Int = -1
+
+    // be careful this block must be below the field definition if you don't want the native values read by JNA
+    // overridden by the default ones
+    init {
+        read()
+    }
+
+    override fun getFieldOrder() = listOf("entries", "count")
+
+    fun toDummyList(): List<Dummy> = if (count > 0) {
+        entries!!.map { it.toDummy() }
+    } else listOf()
+}
+
 
 class CAsrToken(p: Pointer?) : Structure(p), Structure.ByReference {
     companion object {
         @JvmStatic
-        fun fromAsrToken(token: AsrToken) = CAsrToken(null).apply {
-            value = token.value.toPointer()
-            confidence = token.confidence
-            range_start = token.range.start
-            range_end = token.range.end
-            time = CAsrDecodingDuration.fromAsrDecodingDuration(token.time)
-        }
+        fun fromAsrToken(token: AsrToken) = CAsrToken(null).copyFromAsrToken(token)
     }
 
     @JvmField
@@ -1057,26 +1131,25 @@ class CAsrToken(p: Pointer?) : Structure(p), Structure.ByReference {
             time = time!!.toAsrDecodingDuration()
     )
 
+    fun copyFromAsrToken(token: AsrToken) = this.apply {
+        value = token.value.toPointer()
+        confidence = token.confidence
+        range_start = token.range.start
+        range_end = token.range.end
+        time = CAsrDecodingDuration.fromAsrDecodingDuration(token.time)
+    }
+
 }
 
 
 class CAsrTokenArray(p: Pointer?) : Structure(p), Structure.ByReference {
     companion object {
         @JvmStatic
-        fun fromAsrTokenList(list: List<AsrToken>) = CAsrTokenArray(null).apply {
-            count = list.size
-            entries = if (count > 0)
-                Memory(Pointer.SIZE * list.size.toLong()).apply {
-                    list.forEachIndexed { i, e ->
-                        this.setPointer(i.toLong() * Pointer.SIZE, CAsrToken.fromAsrToken(e).apply { write() }.pointer)
-                    }
-                }
-            else null
-        }
+        fun fromAsrTokenList(list: List<AsrToken>) = CAsrTokenArray(null).copyFromAsrTokenList(list)
     }
 
     @JvmField
-    var entries: Pointer? = null
+    var entries: CAsrToken? = null
     @JvmField
     var count: Int = -1
 
@@ -1089,8 +1162,21 @@ class CAsrTokenArray(p: Pointer?) : Structure(p), Structure.ByReference {
     override fun getFieldOrder() = listOf("entries", "count")
 
     fun toAsrTokenList(): List<AsrToken> = if (count > 0) {
-        entries!!.getPointerArray(0, count).map { CAsrToken(it).toAsrToken() }
+        (entries!!.toArray(count) as Array<CAsrToken>).map { it.toAsrToken() }
     } else listOf()
+
+    fun copyFromAsrTokenList(list: List<AsrToken>) = this.apply {
+        count = list.size
+        entries = if (count > 0) {
+            var cAsrTokenArrayRef = CAsrToken(null)
+            var cAsrTokenArray: Array<CAsrToken> = cAsrTokenArrayRef.toArray(list.size) as Array<CAsrToken>
+
+            list.forEachIndexed { i, token ->
+                cAsrTokenArray[i].copyFromAsrToken(token)
+            }
+            cAsrTokenArrayRef
+        } else null
+    }
 }
 
 class CAsrTokenDoubleArray(p: Pointer?) : Structure(p), Structure.ByReference {
@@ -1098,18 +1184,19 @@ class CAsrTokenDoubleArray(p: Pointer?) : Structure(p), Structure.ByReference {
         @JvmStatic
         fun fromAsrTokenDoubleList(list: List<List<AsrToken>>) = CAsrTokenDoubleArray(null).apply {
             count = list.size
-            entries = if (count > 0)
-                Memory(Pointer.SIZE * list.size.toLong()).apply {
-                    list.forEachIndexed { i, e ->
-                        this.setPointer(i.toLong() * Pointer.SIZE, CAsrTokenArray.fromAsrTokenList(e).apply { write() }.pointer)
-                    }
+            entries = if (count > 0) {
+                var cAsrTokenDoubleArrayRef = CAsrTokenArray(null)
+                var cAsrTokenDoubleArray: Array<CAsrTokenArray> = cAsrTokenDoubleArrayRef.toArray(list.size) as Array<CAsrTokenArray>
+                list.forEachIndexed { i, tokenList ->
+                    cAsrTokenDoubleArray[i].copyFromAsrTokenList(tokenList)
                 }
-            else null
+                cAsrTokenDoubleArrayRef
+            } else null
         }
     }
 
     @JvmField
-    var entries: Pointer? = null
+    var entries: CAsrTokenArray? = null
     @JvmField
     var count: Int = -1
 
@@ -1122,7 +1209,7 @@ class CAsrTokenDoubleArray(p: Pointer?) : Structure(p), Structure.ByReference {
     override fun getFieldOrder() = listOf("entries", "count")
 
     fun toAsrTokenDoubleList(): List<List<AsrToken>> = if (count > 0) {
-        entries!!.getPointerArray(0, count).map { CAsrTokenArray(it).toAsrTokenList() }
+        (entries!!.toArray(count) as Array<CAsrTokenArray>).map { it.toAsrTokenList() }
     } else listOf()
 }
 
@@ -1130,7 +1217,7 @@ class CAsrTokenDoubleArray(p: Pointer?) : Structure(p), Structure.ByReference {
 class CTextCapturedMessage(p: Pointer?) : Structure(p), Structure.ByReference {
     companion object {
         @JvmStatic
-        fun fromTextCapturedMessage(message:TextCapturedMessage) = CTextCapturedMessage(null).apply {
+        fun fromTextCapturedMessage(message: TextCapturedMessage) = CTextCapturedMessage(null).apply {
             text = message.text.toPointer()
             tokens = CAsrTokenArray.fromAsrTokenList(message.tokens)
             likelihood = message.likelihood

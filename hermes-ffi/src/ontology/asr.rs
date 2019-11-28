@@ -200,7 +200,7 @@ impl Drop for CAsrToken {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CAsrTokenArray {
-    pub entries: *const *const CAsrToken,
+    pub entries: *const CAsrToken,
     pub count: libc::c_int,
 }
 
@@ -208,14 +208,18 @@ impl CReprOf<Vec<hermes::AsrToken>> for CAsrTokenArray {
     fn c_repr_of(input: Vec<hermes::AsrToken>) -> Fallible<Self> {
         let array = Self {
             count: input.len() as _,
-            entries: Box::into_raw(
-                input
-                    .into_iter()
-                    .map(|e| CAsrToken::c_repr_of(e).map(RawPointerConverter::into_raw_pointer))
-                    .collect::<Fallible<Vec<_>>>()
-                    .context("Could not convert map to C Repr")?
-                    .into_boxed_slice(),
-            ) as *const *const _,
+            entries: if input.len() > 0 {
+                Box::into_raw(
+                    input
+                        .into_iter()
+                        .map(|e| CAsrToken::c_repr_of(e))
+                        .collect::<Fallible<Vec<_>>>()
+                        .context("Could not convert map to C Repr")?
+                        .into_boxed_slice(),
+                ) as *const _
+            } else {
+                null() as *const _
+            },
         };
         Ok(array)
     }
@@ -226,7 +230,7 @@ impl AsRust<Vec<hermes::AsrToken>> for CAsrTokenArray {
         let mut result = Vec::with_capacity(self.count as usize);
         if self.count > 0 {
             for e in unsafe { slice::from_raw_parts(self.entries, self.count as usize) } {
-                result.push(unsafe { CAsrToken::raw_borrow(*e) }?.as_rust()?);
+                result.push(e.as_rust()?);
             }
         }
         Ok(result)
@@ -236,13 +240,10 @@ impl AsRust<Vec<hermes::AsrToken>> for CAsrTokenArray {
 impl Drop for CAsrTokenArray {
     fn drop(&mut self) {
         unsafe {
-            let tokens = Box::from_raw(std::slice::from_raw_parts_mut(
-                self.entries as *mut *mut CAsrToken,
+            Box::from_raw(std::slice::from_raw_parts_mut(
+                self.entries as *mut CAsrToken,
                 self.count as usize,
             ));
-            for e in tokens.iter() {
-                let _ = CAsrToken::drop_raw_pointer(*e);
-            }
         }
     }
 }
@@ -250,7 +251,7 @@ impl Drop for CAsrTokenArray {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CAsrTokenDoubleArray {
-    pub entries: *const *const CAsrTokenArray,
+    pub entries: *const CAsrTokenArray,
     pub count: libc::c_int,
 }
 
@@ -261,11 +262,11 @@ impl CReprOf<Vec<Vec<hermes::AsrToken>>> for CAsrTokenDoubleArray {
             entries: Box::into_raw(
                 input
                     .into_iter()
-                    .map(|e| CAsrTokenArray::c_repr_of(e).map(RawPointerConverter::into_raw_pointer))
+                    .map(|e| CAsrTokenArray::c_repr_of(e))
                     .collect::<Fallible<Vec<_>>>()
                     .context("Could not convert map to C Repr")?
                     .into_boxed_slice(),
-            ) as *const *const _,
+            ) as *const _,
         };
         Ok(array)
     }
@@ -276,7 +277,7 @@ impl AsRust<Vec<Vec<hermes::AsrToken>>> for CAsrTokenDoubleArray {
         let mut result = Vec::with_capacity(self.count as usize);
         if self.count > 0 {
             for e in unsafe { slice::from_raw_parts(self.entries, self.count as usize) } {
-                result.push(unsafe { CAsrTokenArray::raw_borrow(*e) }?.as_rust()?);
+                result.push(e.as_rust()?);
             }
         }
         Ok(result)
@@ -286,14 +287,10 @@ impl AsRust<Vec<Vec<hermes::AsrToken>>> for CAsrTokenDoubleArray {
 impl Drop for CAsrTokenDoubleArray {
     fn drop(&mut self) {
         unsafe {
-            let tokens = Box::from_raw(std::slice::from_raw_parts_mut(
-                self.entries as *mut *mut CAsrTokenArray,
+            Box::from_raw(std::slice::from_raw_parts_mut(
+                self.entries as *mut CAsrTokenArray,
                 self.count as usize,
             ));
-
-            for e in tokens.iter() {
-                let _ = CAsrTokenArray::drop_raw_pointer(*e);
-            }
         }
     }
 }

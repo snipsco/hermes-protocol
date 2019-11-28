@@ -22,6 +22,10 @@ import ai.snips.hermes.SessionQueuedMessage
 import ai.snips.hermes.SessionTermination
 import ai.snips.hermes.StartSessionMessage
 import ai.snips.hermes.TextCapturedMessage
+import ai.snips.hermes.ffi.CAsrTokenArray
+import ai.snips.hermes.ffi.CDummy
+import ai.snips.hermes.ffi.CDummyArray
+import ai.snips.hermes.ffi.Dummy
 import ai.snips.hermes.test.HermesTest
 import ai.snips.nlu.ontology.Range
 import ai.snips.nlu.ontology.Slot
@@ -32,6 +36,7 @@ import ai.snips.nlu.ontology.SlotValue.MusicArtistValue
 import ai.snips.nlu.ontology.SlotValue.MusicTrackValue
 import ai.snips.nlu.ontology.SlotValue.NumberValue
 import com.google.common.truth.Truth.assertThat
+import com.sun.jna.ptr.PointerByReference
 import org.junit.Test
 
 class FfiTest {
@@ -285,11 +290,39 @@ class FfiTest {
     @Test
     fun roundTripAsrTokenArray() {
         val input = listOf(AsrToken(value = "toto",
-                                    time = AsrDecodingDuration(start = 1.2f, end = 4.4f),
-                                    range = AsrTokenRange(start = 5, end = 10),
-                                    confidence = 0.8f))
+                                    time = AsrDecodingDuration(start = 1.2f, end = 2.1f),
+                                    range = AsrTokenRange(start = 1, end = 2),
+                                    confidence = 0.1f),
+                                    AsrToken(
+                                        value= "tata",
+                                        time= AsrDecodingDuration(start = 2.3f, end=3.2f),
+                                        range = AsrTokenRange(start = 2, end = 3),
+                                        confidence = 0.2f),
+                                    AsrToken(
+                                            value= "titi",
+                                            time= AsrDecodingDuration(start = 3.4f, end=4.3f),
+                                            range = AsrTokenRange(start = 4, end = 5),
+                                            confidence = 0.3f)
+        )
         assertThat(HermesTest().roundTripAsrTokenArray(input)).isEqualTo(input)
-        assertThat(HermesTest().roundTripAsrTokenArray(listOf())).isEqualTo(listOf<AsrToken>())
+    }
+
+    @Test
+    fun roundTripDummyArray() {
+        val input = listOf(
+                Dummy(0, 1, AsrDecodingDuration(1.0f, 2.0f)),
+                Dummy(1, 2, AsrDecodingDuration(2.0f, 3.0f)),
+                Dummy(3, 4, AsrDecodingDuration(4.0f, 5.0f))
+        )
+        val c_dummy_array = CDummyArray.fromDummyList(input)
+        val output = c_dummy_array.toDummyList()
+        assertThat(input).isEqualTo(output)
+    }
+
+    @Test
+    fun roundTripDummy() {
+        val input = Dummy(0, 10, AsrDecodingDuration(0f, 100f))
+        assertThat(CDummy.fromDummy(input).toDummy()).isEqualTo(input)
     }
 
     @Test

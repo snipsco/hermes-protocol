@@ -277,3 +277,4 @@ data class DialogueConfigureIntent @ParcelConstructor constructor(
         @ParcelProperty("intentId") val intentId: String,
         @ParcelProperty("enable") val enable: Boolean?
 )
+
