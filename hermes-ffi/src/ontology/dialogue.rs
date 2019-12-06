@@ -881,7 +881,7 @@ impl Drop for CDialogueConfigureIntent {
 #[derive(Debug)]
 pub struct CDialogueConfigureIntentArray {
     /// Pointer to the first intent configuration
-    pub entries: *const *const CDialogueConfigureIntent,
+    pub entries: *const CDialogueConfigureIntent,
     /// Number of intent configuration
     pub count: libc::c_int,
 }
@@ -890,14 +890,18 @@ impl CReprOf<Vec<hermes::DialogueConfigureIntent>> for CDialogueConfigureIntentA
     fn c_repr_of(input: Vec<hermes::DialogueConfigureIntent>) -> Fallible<Self> {
         let array = Self {
             count: input.len() as _,
-            entries: Box::into_raw(
-                input
-                    .into_iter()
-                    .map(|e| CDialogueConfigureIntent::c_repr_of(e).map(RawPointerConverter::into_raw_pointer))
-                    .collect::<Fallible<Vec<_>>>()
-                    .context("Could not convert map to C Repr")?
-                    .into_boxed_slice(),
-            ) as *const *const _,
+            entries: if !input.is_empty() {
+                Box::into_raw(
+                    input
+                        .into_iter()
+                        .map(|e| CDialogueConfigureIntent::c_repr_of(e))
+                        .collect::<Fallible<Vec<_>>>()
+                        .context("Could not convert map to C Repr")?
+                        .into_boxed_slice(),
+                ) as *const _
+            } else {
+                null() as *const _
+            },
         };
         Ok(array)
     }
@@ -909,7 +913,7 @@ impl AsRust<Vec<hermes::DialogueConfigureIntent>> for CDialogueConfigureIntentAr
 
         if self.count > 0 {
             for e in unsafe { slice::from_raw_parts(self.entries, self.count as usize) } {
-                result.push(unsafe { CDialogueConfigureIntent::raw_borrow(*e) }?.as_rust()?);
+                result.push(e.as_rust()?);
             }
         }
         Ok(result)
@@ -919,14 +923,10 @@ impl AsRust<Vec<hermes::DialogueConfigureIntent>> for CDialogueConfigureIntentAr
 impl Drop for CDialogueConfigureIntentArray {
     fn drop(&mut self) {
         unsafe {
-            let slots = Box::from_raw(std::slice::from_raw_parts_mut(
-                self.entries as *mut *mut CDialogueConfigureIntent,
+            Box::from_raw(std::slice::from_raw_parts_mut(
+                self.entries as *mut CDialogueConfigureIntent,
                 self.count as usize,
             ));
-
-            for e in slots.iter() {
-                let _ = CDialogueConfigureIntent::drop_raw_pointer(*e);
-            }
         }
     }
 }

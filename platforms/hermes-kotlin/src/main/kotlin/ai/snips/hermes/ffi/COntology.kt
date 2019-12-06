@@ -1177,12 +1177,16 @@ class CDialogueConfigureIntent(p: Pointer?) : Structure(p), Structure.ByReferenc
     companion object {
         @JvmStatic
         fun fromDialogueConfigureIntent(dialogueConfigureIntent: DialogueConfigureIntent) = CDialogueConfigureIntent(null).apply {
-            intent_id = dialogueConfigureIntent.intentId.toPointer()
-            enable = when(dialogueConfigureIntent.enable) {
-                true -> 1
-                false -> 0
-                null -> -1
-            }
+            assignFromDialogueConfigureIntent(dialogueConfigureIntent)
+        }
+    }
+
+    fun assignFromDialogueConfigureIntent(dialogueConfigureIntent: DialogueConfigureIntent) {
+        intent_id = dialogueConfigureIntent.intentId.toPointer()
+        enable = when(dialogueConfigureIntent.enable) {
+            true -> 1
+            false -> 0
+            null -> -1
         }
     }
 
@@ -1215,18 +1219,20 @@ class CDialogueConfigureIntentArray(p: Pointer?) : Structure(p), Structure.ByRef
         @JvmStatic
         fun fromDialogueConfigureIntentList(list: List<DialogueConfigureIntent>) = CDialogueConfigureIntentArray(null).apply {
             count = list.size
-            entries = if (count > 0)
-                Memory(Pointer.SIZE * list.size.toLong()).apply {
-                    list.forEachIndexed { i, e ->
-                        this.setPointer(i.toLong() * Pointer.SIZE, CDialogueConfigureIntent.fromDialogueConfigureIntent(e).apply { write() }.pointer)
-                    }
+            entries = if (count > 0) {
+                val cDialogueConfigureIntentRef = CDialogueConfigureIntent(null)
+                val cDialogueConfigureIntentArray: Array<CDialogueConfigureIntent> = cDialogueConfigureIntentRef.toArray(list.size) as Array<CDialogueConfigureIntent>
+                list.forEachIndexed { i, config ->
+                    cDialogueConfigureIntentArray[i].assignFromDialogueConfigureIntent(config)
                 }
+                cDialogueConfigureIntentRef
+            }
             else null
         }
     }
 
     @JvmField
-    var entries: Pointer? = null
+    var entries: CDialogueConfigureIntent? = null
     @JvmField
     var count: Int = -1
 
@@ -1239,7 +1245,7 @@ class CDialogueConfigureIntentArray(p: Pointer?) : Structure(p), Structure.ByRef
     override fun getFieldOrder() = listOf("entries", "count")
 
     fun toDialogueConfigureIntentList(): List<DialogueConfigureIntent> = if (count > 0) {
-        entries!!.getPointerArray(0, count).map { CDialogueConfigureIntent(it).toDialogueConfigureIntent() }
+        (entries!!.toArray(count) as Array<CDialogueConfigureIntent>).map { it.toDialogueConfigureIntent() }
     } else listOf()
 }
 
