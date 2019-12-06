@@ -1018,83 +1018,6 @@ class CAsrDecodingDuration : Structure(), Structure.ByValue {
             end = end!!)
 }
 
-class Dummy(val value_start: Int, val value_end: Int, val time: AsrDecodingDuration)
-
-class CDummy(p: Pointer?) : Structure(p), Structure.ByReference {
-    companion object {
-        @JvmStatic
-        fun fromDummy(d: Dummy) = CDummy(null).apply {
-            value_start = d.value_start
-            value_end = d.value_end
-            time = CAsrDecodingDuration.fromAsrDecodingDuration(d.time)
-        }
-    }
-
-    @JvmField
-    var value_start: Int = -1
-
-    @JvmField
-    var value_end: Int = -1
-
-    @JvmField
-    var time: CAsrDecodingDuration? = null
-
-
-    init {
-        read()
-    }
-    override fun getFieldOrder() = listOf("value_start", "value_end", "time")
-
-    fun toDummy() = Dummy (
-            value_start = value_start,
-            value_end = value_end,
-            time = time!!.toAsrDecodingDuration()
-    )
-}
-
-class CDummyArray(p: Pointer?) : Structure(p), Structure.ByReference {
-    companion object {
-        @JvmStatic
-        fun fromDummyList(list: List<Dummy>) = CDummyArray(null).apply {
-            count = list.size
-            entries = if (count > 0) {
-
-                val cDummyRef = CDummy(null)
-
-                var vals : Array<CDummy> = cDummyRef.toArray(list.size) as Array<CDummy>
-
-                list.forEachIndexed { i, dummy ->
-                    vals[i].apply {
-                        value_start = dummy.value_start
-                        value_end = dummy.value_end
-                        time = CAsrDecodingDuration.fromAsrDecodingDuration(dummy.time)
-                    }
-                }
-                vals
-            }
-            else null
-        }
-    }
-
-    @JvmField
-    var entries: Array<CDummy>? = arrayOf(CDummy(null))
-    @JvmField
-    var count: Int = -1
-
-    // be careful this block must be below the field definition if you don't want the native values read by JNA
-    // overridden by the default ones
-    init {
-        read()
-    }
-
-    override fun getFieldOrder() = listOf("entries", "count")
-
-    fun toDummyList(): List<Dummy> = if (count > 0) {
-        entries!!.map { it.toDummy() }
-    } else listOf()
-}
-
-
 class CAsrToken(p: Pointer?) : Structure(p), Structure.ByReference {
     companion object {
         @JvmStatic
@@ -1140,7 +1063,6 @@ class CAsrToken(p: Pointer?) : Structure(p), Structure.ByReference {
     }
 
 }
-
 
 class CAsrTokenArray(p: Pointer?) : Structure(p), Structure.ByReference {
     companion object {
