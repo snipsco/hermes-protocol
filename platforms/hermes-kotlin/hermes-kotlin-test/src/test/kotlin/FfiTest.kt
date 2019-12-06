@@ -22,6 +22,7 @@ import ai.snips.hermes.SessionQueuedMessage
 import ai.snips.hermes.SessionTermination
 import ai.snips.hermes.StartSessionMessage
 import ai.snips.hermes.TextCapturedMessage
+import ai.snips.hermes.ffi.CAsrToken
 import ai.snips.hermes.ffi.CAsrTokenArray
 import ai.snips.hermes.ffi.CDummy
 import ai.snips.hermes.ffi.CDummyArray
@@ -305,6 +306,7 @@ class FfiTest {
                                             confidence = 0.3f)
         )
         assertThat(HermesTest().roundTripAsrTokenArray(input)).isEqualTo(input)
+        assertThat(HermesTest().roundTripAsrTokenArray(listOf())).isEqualTo(listOf<CAsrToken>())
     }
 
     @Test
