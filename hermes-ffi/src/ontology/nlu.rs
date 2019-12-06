@@ -293,7 +293,7 @@ impl Drop for CNluSlot {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CNluSlotArray {
-    pub entries: *const *const CNluSlot,
+    pub entries: *const CNluSlot,
     pub count: libc::c_int,
 }
 
@@ -301,14 +301,18 @@ impl CReprOf<Vec<hermes::NluSlot>> for CNluSlotArray {
     fn c_repr_of(input: Vec<hermes::NluSlot>) -> Fallible<Self> {
         let array = Self {
             count: input.len() as _,
-            entries: Box::into_raw(
-                input
-                    .into_iter()
-                    .map(|e| CNluSlot::c_repr_of(e).map(RawPointerConverter::into_raw_pointer))
-                    .collect::<Fallible<Vec<_>>>()
-                    .context("Could not convert map to C Repr")?
-                    .into_boxed_slice(),
-            ) as *const *const _,
+            entries: if input.len() > 0 {
+                Box::into_raw(
+                    input
+                        .into_iter()
+                        .map(|e| CNluSlot::c_repr_of(e))
+                        .collect::<Fallible<Vec<_>>>()
+                        .context("Could not convert map to C Repr")?
+                        .into_boxed_slice(),
+                ) as *const _
+            } else {
+                null() as *const _
+            },
         };
         Ok(array)
     }
@@ -319,7 +323,7 @@ impl AsRust<Vec<hermes::NluSlot>> for CNluSlotArray {
         let mut result = Vec::with_capacity(self.count as usize);
         if self.count > 0 {
             for e in unsafe { slice::from_raw_parts(self.entries, self.count as usize) } {
-                result.push(unsafe { CNluSlot::raw_borrow(*e) }?.as_rust()?);
+                result.push(unsafe { CNluSlot::raw_borrow(e) }?.as_rust()?);
             }
         }
         Ok(result)
@@ -330,13 +334,9 @@ impl Drop for CNluSlotArray {
     fn drop(&mut self) {
         unsafe {
             let slots = Box::from_raw(std::slice::from_raw_parts_mut(
-                self.entries as *mut *mut CNluSlot,
+                self.entries as *mut CNluSlot,
                 self.count as usize,
             ));
-
-            for e in slots.iter() {
-                let _ = CNluSlot::drop_raw_pointer(*e);
-            }
         }
     }
 }
@@ -473,7 +473,7 @@ impl Drop for CNluIntentAlternative {
 #[derive(Debug)]
 pub struct CNluIntentAlternativeArray {
     /// pointer to the first alternative
-    pub entries: *const *const CNluIntentAlternative,
+    pub entries: *const CNluIntentAlternative,
     /// number of alternatives
     pub count: libc::c_int,
 }
@@ -482,14 +482,18 @@ impl CReprOf<Vec<hermes::NluIntentAlternative>> for CNluIntentAlternativeArray {
     fn c_repr_of(input: Vec<hermes::NluIntentAlternative>) -> Fallible<Self> {
         let array = Self {
             count: input.len() as _,
-            entries: Box::into_raw(
-                input
-                    .into_iter()
-                    .map(|e| CNluIntentAlternative::c_repr_of(e).map(RawPointerConverter::into_raw_pointer))
-                    .collect::<Fallible<Vec<_>>>()
-                    .context("Could not convert map to C Repr")?
-                    .into_boxed_slice(),
-            ) as *const *const _,
+            entries: if input.len() > 0 {
+                Box::into_raw(
+                    input
+                        .into_iter()
+                        .map(|e| CNluIntentAlternative::c_repr_of(e))
+                        .collect::<Fallible<Vec<_>>>()
+                        .context("Could not convert map to C Repr")?
+                        .into_boxed_slice(),
+                ) as *const _
+            } else {
+                null() as *const _
+            },
         };
         Ok(array)
     }
@@ -501,7 +505,7 @@ impl AsRust<Vec<hermes::NluIntentAlternative>> for CNluIntentAlternativeArray {
 
         if self.count > 0 {
             for e in unsafe { slice::from_raw_parts(self.entries, self.count as usize) } {
-                result.push(unsafe { CNluIntentAlternative::raw_borrow(*e) }?.as_rust()?);
+                result.push(unsafe { CNluIntentAlternative::raw_borrow(e) }?.as_rust()?);
             }
         }
         Ok(result)
@@ -515,10 +519,6 @@ impl Drop for CNluIntentAlternativeArray {
                 self.entries as *mut *mut CNluIntentAlternative,
                 self.count as usize,
             ));
-
-            for e in slots.iter() {
-                let _ = CNluIntentAlternative::drop_raw_pointer(*e);
-            }
         }
     }
 }
@@ -562,10 +562,27 @@ mod tests {
     use super::super::tests::round_trip_test;
     use super::*;
     use hermes::hermes_utils::Example;
+    use hermes::NluIntentAlternative;
 
     #[test]
     fn round_trip_intent_classifier_result() {
         round_trip_test::<_, CNluIntentClassifierResult>(hermes::NluIntentClassifierResult::minimal_example());
         round_trip_test::<_, CNluIntentClassifierResult>(hermes::NluIntentClassifierResult::full_example());
+    }
+
+    #[test]
+    fn round_trip_intent_alternative_array() {
+        round_trip_test::<_, CNluIntentAlternativeArray>(vec![
+            NluIntentAlternative::minimal_example(),
+            NluIntentAlternative::full_example(),
+        ]);
+    }
+
+    #[test]
+    fn round_trip_nlu_slot_array() {
+        round_trip_test::<_, CNluSlotArray>(vec![
+            hermes::NluSlot::minimal_example(),
+            hermes::NluSlot::full_example(),
+        ]);
     }
 }
