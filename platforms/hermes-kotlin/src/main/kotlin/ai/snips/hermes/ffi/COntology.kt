@@ -815,12 +815,15 @@ class CInjectionRequestOperation(p: Pointer?) : Structure(p), Structure.ByRefere
 
         @JvmStatic
         fun fromInjectionOperation(input: InjectionOperation) = CInjectionRequestOperation(null).apply {
-            values = CMapStringToStringArray.fromMap(input.values)
-            kind = when (input.kind) {
-                InjectionKind.Add -> KIND_ADD
-                InjectionKind.AddFromVanilla -> KIND_ADD_FROM_VANILLA
-            }
-            write()
+            assignFromInjectionOperation(input)
+        }
+    }
+
+    fun assignFromInjectionOperation(input: InjectionOperation) {
+        values = CMapStringToStringArray.fromMap(input.values)
+        kind = when (input.kind) {
+            InjectionKind.Add -> KIND_ADD
+            InjectionKind.AddFromVanilla -> KIND_ADD_FROM_VANILLA
         }
     }
 
@@ -852,16 +855,19 @@ class CInjectionRequestOperations(p: Pointer?) : Structure(p), Structure.ByRefer
         @JvmStatic
         fun fromInjectionOperationsList(input: List<InjectionOperation>) = CInjectionRequestOperations(null).apply {
             count = input.size
-            operations = if (input.isNotEmpty()) Memory(Pointer.SIZE * input.size.toLong()).apply {
-                input.forEachIndexed { i, o ->
-                    this.setPointer(i.toLong() * Pointer.SIZE, CInjectionRequestOperation.fromInjectionOperation(o).pointer.share(0))
+            operations = if (count > 0) {
+                val cInjectionRequestOperationRef = CInjectionRequestOperation(null)
+                val cInjectionRequestOperationArray: Array<CInjectionRequestOperation> = cInjectionRequestOperationRef.toArray(count) as Array<CInjectionRequestOperation>
+                input.forEachIndexed { i, operation ->
+                    cInjectionRequestOperationArray[i].assignFromInjectionOperation(operation)
                 }
+                cInjectionRequestOperationRef
             } else null
         }
     }
 
     @JvmField
-    var operations: Pointer? = null
+    var operations: CInjectionRequestOperation? = null
     @JvmField
     var count: Int = -1
 
@@ -874,7 +880,7 @@ class CInjectionRequestOperations(p: Pointer?) : Structure(p), Structure.ByRefer
     override fun getFieldOrder() = listOf("operations", "count")
 
     fun toList() = if (count > 0) {
-        operations!!.getPointerArray(0, count).map { CInjectionRequestOperation(it).toInjectionOperation() }
+        (operations!!.toArray(count) as Array<CInjectionRequestOperation>).map { it.toInjectionOperation() }
     } else listOf()
 }
 

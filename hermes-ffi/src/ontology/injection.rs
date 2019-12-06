@@ -41,22 +41,18 @@ impl Drop for CEntityValue {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CEntityValueArray {
-    pub values: *const *const CEntityValue,
+    pub values: *const CEntityValue,
     pub count: libc::c_int,
 }
 
 impl Drop for CEntityValueArray {
     fn drop(&mut self) {
         unsafe {
-            for e in Box::from_raw(std::slice::from_raw_parts_mut(
+            Box::from_raw(std::slice::from_raw_parts_mut(
                 self.values as *mut *mut CEntityValue,
                 self.count as usize,
-            ))
-            .iter()
-            {
-                let _ = CEntityValue::drop_raw_pointer(*e);
-            }
-        };
+            ));
+        }
     }
 }
 
@@ -64,14 +60,18 @@ impl CReprOf<Vec<hermes::EntityValue>> for CEntityValueArray {
     fn c_repr_of(input: Vec<hermes::EntityValue>) -> Fallible<Self> {
         let array = Self {
             count: input.len() as _,
-            values: Box::into_raw(
-                input
-                    .into_iter()
-                    .map(|e| CEntityValue::c_repr_of(e).map(RawPointerConverter::into_raw_pointer))
-                    .collect::<Fallible<Vec<_>>>()
-                    .context("Could not convert map to C Repr")?
-                    .into_boxed_slice(),
-            ) as *const *const _,
+            values: if !input.is_empty() {
+                Box::into_raw(
+                    input
+                        .into_iter()
+                        .map(|e| CEntityValue::c_repr_of(e))
+                        .collect::<Fallible<Vec<_>>>()
+                        .context("Could not convert map to C Repr")?
+                        .into_boxed_slice(),
+                ) as *const _
+            } else {
+                null() as * const _
+            },
         };
         Ok(array)
     }
@@ -83,7 +83,7 @@ impl AsRust<Vec<hermes::EntityValue>> for CEntityValueArray {
 
         if self.count > 0 {
             for e in unsafe { slice::from_raw_parts(self.values, self.count as usize) } {
-                let entity = unsafe { CEntityValue::raw_borrow(*e) }?.as_rust()?;
+                let entity = e.as_rust()?;
                 result.push(entity);
             }
         }
@@ -167,7 +167,7 @@ impl AsRust<(hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue>>)> 
 #[repr(C)]
 #[derive(Debug)]
 pub struct CInjectionRequestOperations {
-    pub operations: *const *const CInjectionRequestOperation,
+    pub operations: *const CInjectionRequestOperation,
     pub count: libc::c_int,
 }
 
@@ -176,14 +176,10 @@ type CInjectionRequest = (hermes::InjectionKind, HashMap<String, Vec<hermes::Ent
 impl Drop for CInjectionRequestOperations {
     fn drop(&mut self) {
         unsafe {
-            let operations = Box::from_raw(std::slice::from_raw_parts_mut(
+            Box::from_raw(std::slice::from_raw_parts_mut(
                 self.operations as *mut *mut CInjectionRequestOperation,
                 self.count as usize,
             ));
-
-            for e in operations.iter() {
-                let _ = CInjectionRequestOperation::drop_raw_pointer(*e);
-            }
         }
     }
 }
@@ -192,14 +188,18 @@ impl CReprOf<Vec<CInjectionRequest>> for CInjectionRequestOperations {
     fn c_repr_of(input: Vec<CInjectionRequest>) -> Fallible<Self> {
         Ok(Self {
             count: input.len() as libc::c_int,
-            operations: Box::into_raw(
-                input
-                    .into_iter()
-                    .map(|e| CInjectionRequestOperation::c_repr_of(e).map(RawPointerConverter::into_raw_pointer))
-                    .collect::<Fallible<Vec<*const CInjectionRequestOperation>>>()
-                    .context("Could not convert map to C Repr")?
-                    .into_boxed_slice(),
-            ) as *const *const CInjectionRequestOperation,
+            operations: if !input.is_empty() {
+                Box::into_raw(
+                    input
+                        .into_iter()
+                        .map(|e| CInjectionRequestOperation::c_repr_of(e))
+                        .collect::<Fallible<Vec<_>>>()
+                        .context("Could not convert map to C Repr")?
+                        .into_boxed_slice(),
+                ) as *const _
+            } else {
+                null() as *const _
+            },
         })
     }
 }
@@ -210,7 +210,7 @@ impl AsRust<Vec<CInjectionRequest>> for CInjectionRequestOperations {
 
         if self.count > 0 {
             for e in unsafe { slice::from_raw_parts(self.operations, self.count as usize) } {
-                result.push(unsafe { CInjectionRequestOperation::raw_borrow(*e) }?.as_rust()?);
+                result.push(e.as_rust()?);
             }
         }
 
