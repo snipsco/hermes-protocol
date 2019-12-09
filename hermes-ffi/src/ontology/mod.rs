@@ -145,21 +145,17 @@ impl AsRust<(String, Vec<String>)> for CMapStringToStringArrayEntry {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CMapStringToStringArray {
-    pub entries: *const *const CMapStringToStringArrayEntry,
+    pub entries: *const CMapStringToStringArrayEntry,
     pub count: libc::c_int,
 }
 
 impl Drop for CMapStringToStringArray {
     fn drop(&mut self) {
         unsafe {
-            let entries = Box::from_raw(std::slice::from_raw_parts_mut(
-                self.entries as *mut *mut CMapStringToStringArrayEntry,
+            Box::from_raw(std::slice::from_raw_parts_mut(
+                self.entries as *mut CMapStringToStringArrayEntry,
                 self.count as usize,
             ));
-
-            for e in entries.iter() {
-                let _ = CMapStringToStringArrayEntry::drop_raw_pointer(*e);
-            }
         }
     }
 }
@@ -168,14 +164,18 @@ impl CReprOf<HashMap<String, Vec<String>>> for CMapStringToStringArray {
     fn c_repr_of(input: HashMap<String, Vec<String>>) -> Fallible<Self> {
         let array = Self {
             count: input.len() as libc::c_int,
-            entries: Box::into_raw(
-                input
-                    .into_iter()
-                    .map(|e| CMapStringToStringArrayEntry::c_repr_of(e).map(RawPointerConverter::into_raw_pointer))
-                    .collect::<Fallible<Vec<*const CMapStringToStringArrayEntry>>>()
-                    .context("Could not convert map to C Repr")?
-                    .into_boxed_slice(),
-            ) as *const *const CMapStringToStringArrayEntry,
+            entries: if !input.is_empty() {
+                Box::into_raw(
+                    input
+                        .into_iter()
+                        .map(|e| CMapStringToStringArrayEntry::c_repr_of(e))
+                        .collect::<Fallible<Vec<_>>>()
+                        .context("Could not convert map to C Repr")?
+                        .into_boxed_slice(),
+                ) as *const _
+            } else {
+                null() as *const _
+            },
         };
         Ok(array)
     }
@@ -185,7 +185,7 @@ impl AsRust<HashMap<String, Vec<String>>> for CMapStringToStringArray {
     fn as_rust(&self) -> Fallible<HashMap<String, Vec<String>>> {
         let mut result = HashMap::with_capacity(self.count as usize);
         for e in unsafe { slice::from_raw_parts(self.entries, self.count as usize) } {
-            let (key, value) = unsafe { CMapStringToStringArrayEntry::raw_borrow(*e) }?.as_rust()?;
+            let (key, value) = e.as_rust()?;
             result.insert(key, value);
         }
 

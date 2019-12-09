@@ -747,15 +747,17 @@ class CSayFinishedMessage(p: Pointer?) : Structure(p), Structure.ByReference {
     )
 }
 
-class CMapStringToStringArrayEntry(p: Pointer?) : Structure(p), Structure.ByValue {
+class CMapStringToStringArrayEntry(p: Pointer?) : Structure(p), Structure.ByReference {
     companion object {
         @JvmStatic
         fun fromMapEntry(entry: Map.Entry<String, List<String>>) = CMapStringToStringArrayEntry(null).apply {
-            key = entry.key.toPointer()
-            value = CStringArray.fromStringList(entry.value)
-            write()
+            assignFromMapEntry(entry)
         }
+    }
 
+    fun assignFromMapEntry(entry: Map.Entry<String, List<String>>) {
+        key = entry.key.toPointer()
+        value = CStringArray.fromStringList(entry.value)
     }
 
     @JvmField
@@ -780,16 +782,21 @@ class CMapStringToStringArray(p: Pointer?) : Structure(p), Structure.ByReference
         @JvmStatic
         fun fromMap(map: Map<String, List<String>>) = CMapStringToStringArray(null).apply {
             count = map.size
-            entries = if (map.isNotEmpty()) Memory(Pointer.SIZE * map.size.toLong()).apply {
-                map.entries.forEachIndexed { i, e ->
-                    this.setPointer(i.toLong() * Pointer.SIZE, CMapStringToStringArrayEntry.fromMapEntry(e).pointer)
+            entries = if (map.isNotEmpty()) {
+                val cMapStringToStringArrayEntryRef = CMapStringToStringArrayEntry(null)
+                val cMapStringToStringArray: Array<CMapStringToStringArrayEntry> = cMapStringToStringArrayEntryRef.toArray(count) as Array<CMapStringToStringArrayEntry>
+
+                map.entries.forEachIndexed {i, entry ->
+                    cMapStringToStringArray[i].assignFromMapEntry(entry)
                 }
+
+                cMapStringToStringArrayEntryRef
             } else null
         }
     }
 
     @JvmField
-    var entries: Pointer? = null
+    var entries: CMapStringToStringArrayEntry? = null
 
     @JvmField
     var count: Int = -1
@@ -803,7 +810,7 @@ class CMapStringToStringArray(p: Pointer?) : Structure(p), Structure.ByReference
     override fun getFieldOrder() = listOf("entries", "count")
 
     fun toMap() = if (count > 0) {
-        entries!!.getPointerArray(0, count).map { CMapStringToStringArrayEntry(it).toPair() }.toMap()
+        (entries!!.toArray(count) as Array<CMapStringToStringArrayEntry>).map { it.toPair() }.toMap()
     } else mapOf()
 
 }

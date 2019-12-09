@@ -271,6 +271,7 @@ class FfiTest {
                         "pif" to listOf("paf", "pouf"))
 
         assertThat(HermesTest().roundTripMapStringToStringArray(map)).isEqualTo(map)
+        assertThat(HermesTest().roundTripMapStringToStringArray(mapOf())).isEqualTo(mapOf<String, List<String>>())
     }
 
     @Test
