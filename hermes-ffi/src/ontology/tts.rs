@@ -1,45 +1,27 @@
-use std::ptr::null;
 use std::slice;
 
 use failure::Fallible;
 use failure::ResultExt;
 use ffi_utils::*;
+use ffi_utils_derive::{AsRust, CReprOf};
+
+use hermes::*;
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, CReprOf, AsRust)]
+#[target_type(SayMessage)]
 pub struct CSayMessage {
     pub text: *const libc::c_char,
     /// Nullable
+    #[nullable]
     pub lang: *const libc::c_char,
     /// Nullable
+    #[nullable]
     pub id: *const libc::c_char,
     pub site_id: *const libc::c_char,
     /// Nullable
+    #[nullable]
     pub session_id: *const libc::c_char,
-}
-
-impl CReprOf<hermes::SayMessage> for CSayMessage {
-    fn c_repr_of(input: hermes::SayMessage) -> Fallible<Self> {
-        Ok(Self {
-            text: convert_to_c_string!(input.text),
-            lang: convert_to_nullable_c_string!(input.lang),
-            id: convert_to_nullable_c_string!(input.id),
-            site_id: convert_to_c_string!(input.site_id),
-            session_id: convert_to_nullable_c_string!(input.session_id),
-        })
-    }
-}
-
-impl AsRust<hermes::SayMessage> for CSayMessage {
-    fn as_rust(&self) -> Fallible<hermes::SayMessage> {
-        Ok(hermes::SayMessage {
-            text: create_rust_string_from!(self.text),
-            lang: create_optional_rust_string_from!(self.lang),
-            id: create_optional_rust_string_from!(self.id),
-            site_id: create_rust_string_from!(self.site_id),
-            session_id: create_optional_rust_string_from!(self.session_id),
-        })
-    }
 }
 
 impl CSayMessage {
@@ -65,11 +47,14 @@ impl Drop for CSayMessage {
 }
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, CReprOf, AsRust)]
+#[target_type(SayFinishedMessage)]
 pub struct CSayFinishedMessage {
     /// Nullable
+    #[nullable]
     pub id: *const libc::c_char,
     /// Nullable
+    #[nullable]
     pub session_id: *const libc::c_char,
 }
 
@@ -82,24 +67,6 @@ impl CSayFinishedMessage {
 
     pub fn to_say_finished_message(&self) -> Fallible<hermes::SayFinishedMessage> {
         self.as_rust()
-    }
-}
-
-impl CReprOf<hermes::SayFinishedMessage> for CSayFinishedMessage {
-    fn c_repr_of(input: hermes::SayFinishedMessage) -> Fallible<Self> {
-        Ok(Self {
-            id: convert_to_nullable_c_string!(input.id),
-            session_id: convert_to_nullable_c_string!(input.session_id),
-        })
-    }
-}
-
-impl AsRust<hermes::SayFinishedMessage> for CSayFinishedMessage {
-    fn as_rust(&self) -> Fallible<hermes::SayFinishedMessage> {
-        Ok(hermes::SayFinishedMessage {
-            id: create_optional_rust_string_from!(self.id),
-            session_id: create_optional_rust_string_from!(self.session_id),
-        })
     }
 }
 
@@ -155,9 +122,10 @@ impl Drop for CRegisterSoundMessage {
 
 #[cfg(test)]
 mod tests {
-    use super::super::tests::round_trip_test;
-    use super::*;
     use hermes::hermes_utils::Example;
+
+    use super::*;
+    use super::super::tests::round_trip_test;
 
     #[test]
     fn round_trip_register_sound() {
