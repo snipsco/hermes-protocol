@@ -5,17 +5,21 @@ use failure::format_err;
 use failure::Fallible;
 use failure::ResultExt;
 use ffi_utils::*;
+use ffi_utils_derive::{CReprOf, AsRust};
 
+use hermes::*;
 use crate::ontology::asr::CAsrTokenDoubleArray;
 use crate::ontology::nlu::{CNluIntentClassifierResult, CNluSlotArray};
-use crate::CNluIntentAlternativeArray;
+use crate::{CNluIntentAlternativeArray, CSpeakerId, CNluSlot, CNluIntentAlternative, CAsrTokenArray, CAsrToken};
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, CReprOf, AsRust)]
+#[target_type(IntentMessage)]
 pub struct CIntentMessage {
     /// The session identifier in which this intent was detected
     pub session_id: *const libc::c_char,
     /// Nullable, the custom data that was given at the session creation
+    #[nullable]
     pub custom_data: *const libc::c_char,
     /// The site where the intent was detected.
     pub site_id: *const libc::c_char,
@@ -24,16 +28,20 @@ pub struct CIntentMessage {
     /// The result of the intent classification
     pub intent: *const CNluIntentClassifierResult,
     /// Nullable, the detected slots, if any
-    pub slots: *const CNluSlotArray,
+    pub slots: *const CArray<CNluSlot>,
     /// Nullable, alternatives intent resolutions
-    pub alternatives: *const CNluIntentAlternativeArray,
-    ///// Nullable
-    //pub speaker_hypotheses: *const CSpeakerIdArray,
+    #[nullable]
+    pub alternatives: *const CArray<CNluIntentAlternative>,
+    /// Nullable
+    #[nullable]
+    pub speaker_hypotheses: *const CArray<CSpeakerId>,
     /// Nullable, the tokens detected by the ASR, the first array level represents the asr
     /// invocation, the second one the tokens
-    pub asr_tokens: *const CAsrTokenDoubleArray,
+    #[nullable]
+    pub asr_tokens: *const CArray<CArray<CAsrToken>>,
     /// Confidence of the asr capture, this value is optional. Any value not in [0,1] should be ignored.
-    pub asr_confidence: libc::c_float,
+    #[nullable]
+    pub asr_confidence: *const f32,
 }
 
 unsafe impl Sync for CIntentMessage {}
@@ -41,82 +49,6 @@ unsafe impl Sync for CIntentMessage {}
 impl CIntentMessage {
     pub fn from(input: hermes::IntentMessage) -> Fallible<Self> {
         Self::c_repr_of(input)
-    }
-}
-
-impl CReprOf<hermes::IntentMessage> for CIntentMessage {
-    fn c_repr_of(input: hermes::IntentMessage) -> Fallible<Self> {
-        Ok(Self {
-            session_id: convert_to_c_string!(input.session_id),
-            custom_data: convert_to_nullable_c_string!(input.custom_data),
-            site_id: convert_to_c_string!(input.site_id),
-            input: convert_to_c_string!(input.input),
-            intent: CNluIntentClassifierResult::c_repr_of(input.intent)?.into_raw_pointer(),
-            slots: if !input.slots.is_empty() {
-                CNluSlotArray::c_repr_of(input.slots)?.into_raw_pointer()
-            } else {
-                null()
-            },
-            alternatives: if let Some(alternatives) = input.alternatives {
-                CNluIntentAlternativeArray::c_repr_of(alternatives)?.into_raw_pointer()
-            } else {
-                null()
-            },
-            /*speaker_hypotheses: if let Some(speaker_hypotheses) = input.speaker_hypotheses {
-                CSpeakerIdArray::c_repr_of(speaker_hypotheses)?.into_raw_pointer()
-            } else {
-                null()
-            },*/
-            asr_tokens: if let Some(asr_tokens) = input.asr_tokens {
-                CAsrTokenDoubleArray::c_repr_of(asr_tokens)?.into_raw_pointer()
-            } else {
-                null()
-            },
-            asr_confidence: if let Some(asr_confidence) = input.asr_confidence {
-                asr_confidence
-            } else {
-                -1.0
-            },
-        })
-    }
-}
-
-impl AsRust<hermes::IntentMessage> for CIntentMessage {
-    fn as_rust(&self) -> Fallible<hermes::IntentMessage> {
-        Ok(hermes::IntentMessage {
-            session_id: create_rust_string_from!(self.session_id),
-            custom_data: create_optional_rust_string_from!(self.custom_data),
-            site_id: create_rust_string_from!(self.site_id),
-            input: create_rust_string_from!(self.input),
-            speaker_hypotheses: None,
-            /* match unsafe { self.speaker_hypotheses.as_ref() } {
-                Some(speaker_hypotheses) => {
-                    Some(unsafe { CSpeakerIdArray::raw_borrow(speaker_hypotheses)? }.as_rust()?)
-                }
-                None => None,
-            }*/
-            asr_tokens: if self.asr_tokens.is_null() {
-                None
-            } else {
-                Some(unsafe { CAsrTokenDoubleArray::raw_borrow(self.asr_tokens) }?.as_rust()?)
-            },
-            asr_confidence: if self.asr_confidence >= 0.0 && self.asr_confidence <= 1.0 {
-                Some(self.asr_confidence)
-            } else {
-                None
-            },
-            intent: unsafe { CNluIntentClassifierResult::raw_borrow(self.intent) }?.as_rust()?,
-            slots: if !self.slots.is_null() {
-                unsafe { CNluSlotArray::raw_borrow(self.slots) }?.as_rust()?
-            } else {
-                vec![]
-            },
-            alternatives: if !self.alternatives.is_null() {
-                Some(unsafe { CNluIntentAlternativeArray::raw_borrow(self.alternatives) }?.as_rust()?)
-            } else {
-                None
-            },
-        })
     }
 }
 
