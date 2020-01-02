@@ -22,6 +22,9 @@ import ai.snips.hermes.SessionQueuedMessage
 import ai.snips.hermes.SessionTermination
 import ai.snips.hermes.StartSessionMessage
 import ai.snips.hermes.TextCapturedMessage
+import ai.snips.hermes.ffi.CArray
+import ai.snips.hermes.ffi.CDummy
+import ai.snips.hermes.ffi.Dummy
 import ai.snips.hermes.test.HermesTest
 import ai.snips.nlu.ontology.Range
 import ai.snips.nlu.ontology.Slot
@@ -33,8 +36,28 @@ import ai.snips.nlu.ontology.SlotValue.MusicTrackValue
 import ai.snips.nlu.ontology.SlotValue.NumberValue
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
+import com.sun.jna.Pointer
 
 class FfiTest {
+    @Test
+    fun testOfCDymmy() {
+        val input = Dummy(customData = "abc", siteId = "bedroom")
+        val cReprOfInput = CDummy.cReprOf(input)
+        val asJava = cReprOfInput.asJava()
+        assertThat(input).isEqualTo(asJava)
+    }
+
+    @Test
+    fun testOfCDummyArray() {
+        val dummy1 = Dummy(customData = "abc", siteId = "bedroom")
+        val dummy2 = Dummy(customData = "bcd", siteId = "livingroom")
+        val input = listOf(dummy1, dummy2)
+
+        val cArray = CArray.cReprOf<Dummy, CDummy>(input)
+        val output = cArray.asJava<CDummy>()
+
+        assertThat(input).isEqualTo(output)
+    }
 
     @Test
     fun roundTripSessionQueued() {
