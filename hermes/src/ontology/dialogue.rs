@@ -19,9 +19,9 @@ pub struct IntentMessage {
     pub asr_tokens: Option<Vec<Vec<AsrToken>>>,
     /// Confidence of the asr capture
     pub asr_confidence: Option<f32>,
-    /// Optional list of the most probable speaker detected
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub speaker_hypotheses: Option<Vec<SpeakerId>>,
+//    /// Optional list of the most probable speaker detected
+//    #[serde(skip_serializing_if = "Option::is_none")]
+//    pub speaker_hypotheses: Option<Vec<SpeakerId>>,
     /// The result of the intent classification
     pub intent: NluIntentClassifierResult,
     /// The detected slots, if any
@@ -44,9 +44,9 @@ pub struct IntentNotRecognizedMessage {
     pub site_id: String,
     /// The text that didn't match any intent, `None` if no text wa captured
     pub input: Option<String>,
-    /// Optional list of the most probable speaker detected
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub speaker_hypotheses: Option<Vec<SpeakerId>>,
+//    /// Optional list of the most probable speaker detected
+//    #[serde(skip_serializing_if = "Option::is_none")]
+//    pub speaker_hypotheses: Option<Vec<SpeakerId>>,
     /// Expresses the confidence that no intent was found
     pub confidence_score: f32,
     /// Alternatives intent resolutions

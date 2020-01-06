@@ -10,7 +10,7 @@ use ffi_utils_derive::{CReprOf, AsRust};
 use hermes::*;
 use crate::ontology::asr::CAsrTokenDoubleArray;
 use crate::ontology::nlu::{CNluIntentClassifierResult, CNluSlotArray};
-use crate::{CNluIntentAlternativeArray, CSpeakerId, CNluSlot, CNluIntentAlternative, CAsrTokenArray, CAsrToken};
+use crate::{CNluIntentAlternativeArray, CSpeakerId, CNluSlot, CNluIntentAlternative, CAsrToken};
 
 #[repr(C)]
 #[derive(Debug, CReprOf, AsRust)]
@@ -32,9 +32,9 @@ pub struct CIntentMessage {
     /// Nullable, alternatives intent resolutions
     #[nullable]
     pub alternatives: *const CArray<CNluIntentAlternative>,
-    /// Nullable
-    #[nullable]
-    pub speaker_hypotheses: *const CArray<CSpeakerId>,
+//    /// Nullable
+//    #[nullable]
+//    pub speaker_hypotheses: *const CArray<CSpeakerId>,
     /// Nullable, the tokens detected by the ASR, the first array level represents the asr
     /// invocation, the second one the tokens
     #[nullable]
@@ -123,7 +123,7 @@ impl AsRust<hermes::IntentNotRecognizedMessage> for CIntentNotRecognizedMessage 
             site_id: create_rust_string_from!(self.site_id),
             session_id: create_rust_string_from!(self.session_id),
             input: create_optional_rust_string_from!(self.input),
-            speaker_hypotheses: None,
+            //speaker_hypotheses: None,
             /* match unsafe { self.speaker_hypotheses.as_ref() } {
                 Some(speaker_hypotheses) => {
                     Some(unsafe { CSpeakerIdArray::raw_borrow(speaker_hypotheses)? }.as_rust()?)
@@ -924,7 +924,7 @@ mod tests {
         round_trip_test::<_, CIntentNotRecognizedMessage>(hermes::IntentNotRecognizedMessage::minimal_example());
 
         round_trip_test::<_, CIntentNotRecognizedMessage>(hermes::IntentNotRecognizedMessage {
-            speaker_hypotheses: None, // TODO these are not supported by the ffi just yet
+            //speaker_hypotheses: None, // TODO these are not supported by the ffi just yet
             ..hermes::IntentNotRecognizedMessage::full_example()
         });
     }
@@ -1174,7 +1174,7 @@ mod tests {
             custom_data: Some("a custom datum".to_string()),
             site_id: "a site id".to_string(),
             input: "What's the weather in Guadeloupe ?".to_string(),
-            speaker_hypotheses: None,
+            //speaker_hypotheses: None,
             asr_tokens: Some(asr_token_double_array),
             asr_confidence: Some(0.7),
             intent: hermes::nlu::NluIntentClassifierResult {

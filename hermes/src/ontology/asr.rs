@@ -51,9 +51,9 @@ pub struct TextCapturedMessage {
     pub site_id: String,
     /// An optional session id if there is a related session
     pub session_id: Option<String>,
-    /// Optional list of the most probable speaker detected
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub speaker_hypotheses: Option<Vec<SpeakerId>>,
+//    /// Optional list of the most probable speaker detected
+//    #[serde(skip_serializing_if = "Option::is_none")]
+//    pub speaker_hypotheses: Option<Vec<SpeakerId>>,
 }
 
 impl<'de> HermesMessage<'de> for TextCapturedMessage {}

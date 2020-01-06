@@ -46,9 +46,9 @@ pub struct CTextCapturedMessage {
     /// Nullable
     #[nullable]
     pub session_id: *const libc::c_char,
-    /// Nullable
-    #[nullable]
-    pub speaker_hypotheses: *const CArray<CSpeakerId>,
+//    /// Nullable
+//    #[nullable]
+//    pub speaker_hypotheses: *const CArray<CSpeakerId>,
 }
 
 unsafe impl Sync for CTextCapturedMessage {}
