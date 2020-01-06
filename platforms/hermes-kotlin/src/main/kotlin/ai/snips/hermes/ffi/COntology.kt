@@ -58,9 +58,6 @@ import com.sun.jna.Memory
 import com.sun.jna.Pointer
 import com.sun.jna.Structure
 
-import org.parceler.Parcel
-import org.parceler.ParcelConstructor
-import org.parceler.ParcelProperty
 import kotlin.reflect.jvm.jvmErasure
 
 // helper function, enabling CStruct constructor inside the generic api
@@ -71,45 +68,15 @@ inline fun <T, reified U : CStruct<T>> factory(p: Pointer?) = U::class
         }!!
         .call(p)
 
-// CStruct
 abstract class CStruct<T>(p: Pointer?) : Structure(p) {
+    abstract class CReprOf<T> {
+        abstract fun cReprOf(input: T): CStruct<T>
+        // TODO: make cReprOf implementation work instead of abstract class
+        // fun cReprOf(input: T): CStruct<T> = factory<T, CStruct<T>>(null).assign(input)
+    }
+
     abstract fun asJava(): T
     abstract fun assign(input: T): CStruct<T>
-}
-
-open class CReprOf<T> {
-    fun cReprOf(input: T): CStruct<T> = factory<T, CStruct<T>>(null).assign(input)
-}
-
-@Parcel(Parcel.Serialization.BEAN)
-data class Dummy @ParcelConstructor constructor(
-        @ParcelProperty("customData") val customData: String?,
-        @ParcelProperty("siteId") val siteId: String?
-)
-
-class CDummy(p: Pointer?) : CStruct<Dummy>(p), Structure.ByReference {
-    companion object : CReprOf<Dummy>()
-
-    @JvmField
-    var customData: Pointer? = null
-    @JvmField
-    var siteId: Pointer? = null
-
-    init {
-        read()
-    }
-
-    override fun getFieldOrder() = listOf("customData", "siteId")
-
-    override fun asJava(): Dummy = Dummy(
-            customData = customData?.readString(),
-            siteId = siteId?.readString()
-    )
-
-    override fun assign(input: Dummy) = this.apply {
-        customData = input.customData?.toPointer()
-        siteId = input.siteId?.toPointer()
-    }
 }
 
 class CArray<T>(p: Pointer?) : Structure(p), Structure.ByReference {
@@ -1114,16 +1081,9 @@ class CAsrDecodingDuration : Structure(), Structure.ByValue {
                                                       end = end!!)
 }
 
-class CAsrToken(p: Pointer?) : Structure(p), Structure.ByReference {
-    companion object {
-        @JvmStatic
-        fun fromAsrToken(token: AsrToken) = CAsrToken(null).apply {
-            value = token.value.toPointer()
-            confidence = token.confidence
-            range_start = token.range.start
-            range_end = token.range.end
-            time = CAsrDecodingDuration.fromAsrDecodingDuration(token.time)
-        }
+class CAsrToken(p: Pointer?) : CStruct<AsrToken>(p), Structure.ByReference {
+    companion object: CStruct.CReprOf<AsrToken>() {
+        override fun cReprOf(input: AsrToken) = CAsrToken(null).assign(input)
     }
 
     @JvmField
@@ -1149,47 +1109,20 @@ class CAsrToken(p: Pointer?) : Structure(p), Structure.ByReference {
 
     override fun getFieldOrder() = listOf("value", "confidence", "range_start", "range_end", "time")
 
-    fun toAsrToken() = AsrToken(
+    override fun asJava(): AsrToken = AsrToken(
             value = value.readString(),
             confidence = confidence!!,
             range = AsrTokenRange(range_start, range_end),
             time = time!!.toAsrDecodingDuration()
     )
 
-}
-
-
-class CAsrTokenArray(p: Pointer?) : Structure(p), Structure.ByReference {
-    companion object {
-        @JvmStatic
-        fun fromAsrTokenList(list: List<AsrToken>) = CAsrTokenArray(null).apply {
-            count = list.size
-            entries = if (count > 0)
-                Memory(Pointer.SIZE * list.size.toLong()).apply {
-                    list.forEachIndexed { i, e ->
-                        this.setPointer(i.toLong() * Pointer.SIZE, CAsrToken.fromAsrToken(e).apply { write() }.pointer)
-                    }
-                }
-            else null
-        }
+    override fun assign(input: AsrToken): CStruct<AsrToken> = this.apply {
+        value = input.value.toPointer()
+        confidence = input.confidence
+        range_start = input.range.start
+        range_end = input.range.end
+        time = CAsrDecodingDuration.fromAsrDecodingDuration(input.time)
     }
-
-    @JvmField
-    var entries: Pointer? = null
-    @JvmField
-    var count: Int = -1
-
-    // be careful this block must be below the field definition if you don't want the native values read by JNA
-    // overridden by the default ones
-    init {
-        read()
-    }
-
-    override fun getFieldOrder() = listOf("entries", "count")
-
-    fun toAsrTokenList(): List<AsrToken> = if (count > 0) {
-        entries!!.getPointerArray(0, count).map { CAsrToken(it).toAsrToken() }
-    } else listOf()
 }
 
 class CAsrTokenDoubleArray(p: Pointer?) : Structure(p), Structure.ByReference {
@@ -1200,7 +1133,7 @@ class CAsrTokenDoubleArray(p: Pointer?) : Structure(p), Structure.ByReference {
             entries = if (count > 0)
                 Memory(Pointer.SIZE * list.size.toLong()).apply {
                     list.forEachIndexed { i, e ->
-                        this.setPointer(i.toLong() * Pointer.SIZE, CAsrTokenArray.fromAsrTokenList(e).apply { write() }.pointer)
+                        this.setPointer(i.toLong() * Pointer.SIZE, CArray.cReprOf<AsrToken, CAsrToken>(e).apply { write() }.pointer)
                     }
                 }
             else null
@@ -1221,29 +1154,22 @@ class CAsrTokenDoubleArray(p: Pointer?) : Structure(p), Structure.ByReference {
     override fun getFieldOrder() = listOf("entries", "count")
 
     fun toAsrTokenDoubleList(): List<List<AsrToken>> = if (count > 0) {
-        entries!!.getPointerArray(0, count).map { CAsrTokenArray(it).toAsrTokenList() }
+        entries!!.getPointerArray(0, count).map { CArray<AsrToken>(it).asJava<CAsrToken>() }
     } else listOf()
 }
 
 
-class CTextCapturedMessage(p: Pointer?) : Structure(p), Structure.ByReference {
-    companion object {
+class CTextCapturedMessage(p: Pointer?) : CStruct<TextCapturedMessage>(p), Structure.ByReference {
+    companion object: CStruct.CReprOf<TextCapturedMessage>() {
         @JvmStatic
-        fun fromTextCapturedMessage(message:TextCapturedMessage) = CTextCapturedMessage(null).apply {
-            text = message.text.toPointer()
-            tokens = CAsrTokenArray.fromAsrTokenList(message.tokens)
-            likelihood = message.likelihood
-            seconds = message.seconds
-            site_id = message.siteId.toPointer()
-            session_id = message.sessionId?.toPointer()
-        }
+        override fun cReprOf(message: TextCapturedMessage) = CTextCapturedMessage(null).assign(message)
     }
 
 
     @JvmField
     var text: Pointer? = null
     @JvmField
-    var tokens: CAsrTokenArray? = null
+    var tokens: Pointer? = null
     @JvmField
     var likelihood: Float? = null
     @JvmField
@@ -1261,15 +1187,27 @@ class CTextCapturedMessage(p: Pointer?) : Structure(p), Structure.ByReference {
 
     override fun getFieldOrder() = listOf("text", "tokens", "likelihood", "seconds", "site_id", "session_id")
 
-    fun toTextCapturedMessage() = TextCapturedMessage(
+    override fun asJava(): TextCapturedMessage = TextCapturedMessage(
             text = text.readString(),
-            tokens = tokens?.toAsrTokenList() ?: listOf(),
+            tokens = if (tokens != null) {
+                CArray<AsrToken>(tokens).asJava<CAsrToken>()
+            } else listOf(),
             likelihood = likelihood!!,
             seconds = seconds!!,
             siteId = site_id.readString(),
             sessionId = session_id?.readString()
     )
 
+    override fun assign(input: TextCapturedMessage): CStruct<TextCapturedMessage> = this.apply {
+        text = input.text.toPointer()
+        tokens = if(input.tokens.isNotEmpty()) {
+            CArray.cReprOf<AsrToken, CAsrToken>(input.tokens).apply { write() }.pointer
+        } else null
+        likelihood = input.likelihood
+        seconds = input.seconds
+        site_id = input.siteId.toPointer()
+        session_id = input.sessionId?.toPointer()
+    }
 }
 
 class CDialogueConfigureIntent(p: Pointer?) : Structure(p), Structure.ByReference {
