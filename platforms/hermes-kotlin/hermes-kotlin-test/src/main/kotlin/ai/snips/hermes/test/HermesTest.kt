@@ -17,25 +17,7 @@ import ai.snips.hermes.SessionStartedMessage
 import ai.snips.hermes.SessionTermination
 import ai.snips.hermes.StartSessionMessage
 import ai.snips.hermes.TextCapturedMessage
-import ai.snips.hermes.ffi.CAsrToken
-import ai.snips.hermes.ffi.CAsrTokenArray
-import ai.snips.hermes.ffi.CAsrTokenDoubleArray
-import ai.snips.hermes.ffi.CContinueSessionMessage
-import ai.snips.hermes.ffi.CDialogueConfigureMessage
-import ai.snips.hermes.ffi.CEndSessionMessage
-import ai.snips.hermes.ffi.CInjectionRequestMessage
-import ai.snips.hermes.ffi.CInjectionCompleteMessage
-import ai.snips.hermes.ffi.CInjectionResetCompleteMessage
-import ai.snips.hermes.ffi.CInjectionResetRequestMessage
-import ai.snips.hermes.ffi.CIntentMessage
-import ai.snips.hermes.ffi.CIntentNotRecognizedMessage
-import ai.snips.hermes.ffi.CMapStringToStringArray
-import ai.snips.hermes.ffi.CNluIntentAlternative
-import ai.snips.hermes.ffi.CNluIntentAlternativeArray
-import ai.snips.hermes.ffi.CSessionEndedMessage
-import ai.snips.hermes.ffi.CSessionTermination
-import ai.snips.hermes.ffi.CStartSessionMessage
-import ai.snips.hermes.ffi.CTextCapturedMessage
+import ai.snips.hermes.ffi.*
 import ai.snips.hermes.test.HermesTest.HermesTestLib.Companion.INSTANCE
 import ai.snips.nlu.ontology.ffi.readString
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -43,12 +25,10 @@ import com.sun.jna.Library
 import com.sun.jna.Native
 import com.sun.jna.Pointer
 import com.sun.jna.ptr.PointerByReference
-import kotlin.reflect.jvm.internal.impl.protobuf.ByteString
-
 
 class HermesTest {
     companion object {
-        private fun parseError(returnCode: Int) {
+        fun parseError(returnCode: Int) {
             if (returnCode != 0) {
                 PointerByReference().apply {
                     INSTANCE.hermes_ffi_test_get_last_error(this)
@@ -149,31 +129,32 @@ class HermesTest {
 
     fun roundTripAsrToken(input: AsrToken) =
             roundTrip(input,
-                      CAsrToken.Companion::fromAsrToken,
+                      CAsrToken.Companion::cReprOf,
                       INSTANCE::hermes_ffi_test_round_trip_asr_token,
-                      { CAsrToken(it).toAsrToken() },
+                      { CAsrToken(it).asJava() },
                       INSTANCE::hermes_ffi_test_destroy_asr_token)
 
 
     fun roundTripAsrTokenArray(input: List<AsrToken>) =
-            roundTrip(input,
-                      CAsrTokenArray.Companion::fromAsrTokenList,
-                      INSTANCE::hermes_ffi_test_round_trip_asr_token_array,
-                      { CAsrTokenArray(it).toAsrTokenList() },
-                      INSTANCE::hermes_ffi_test_destroy_asr_token_array)
+            roundTripArray<AsrToken, CAsrToken>(
+                input,
+                INSTANCE::hermes_ffi_test_round_trip_asr_token_array,
+                INSTANCE::hermes_ffi_test_destroy_asr_token_array)
 
-    fun roundTripAsrTokenDoubleArray(input: List<List<AsrToken>>) =
-            roundTrip(input,
-                      CAsrTokenDoubleArray.Companion::fromAsrTokenDoubleList,
-                      INSTANCE::hermes_ffi_test_round_trip_asr_token_double_array,
-                      { CAsrTokenDoubleArray(it).toAsrTokenDoubleList() },
-                      INSTANCE::hermes_ffi_test_destroy_asr_token_double_array)
+    fun roundTripAsrTokenDoubleArray(input: List<List<AsrToken>>): List<List<AsrToken>> {
+        return input.map {
+            roundTripArray<AsrToken, CAsrToken>(
+                    it,
+                    INSTANCE::hermes_ffi_test_round_trip_asr_token_array,
+                    INSTANCE::hermes_ffi_test_destroy_asr_token_array)
+        }
+    }
 
     fun roundTripTextCaptured(input: TextCapturedMessage) =
             roundTrip(input,
-                      CTextCapturedMessage.Companion::fromTextCapturedMessage,
+                      CTextCapturedMessage.Companion::cReprOf,
                       INSTANCE::hermes_ffi_test_round_trip_text_captured,
-                      { CTextCapturedMessage(it).toTextCapturedMessage() },
+                      { CTextCapturedMessage(it).asJava() },
                       INSTANCE::hermes_drop_text_captured_message)
 
     fun roundTripDialogueConfigure(input: DialogueConfigureMessage) =
@@ -199,6 +180,20 @@ class HermesTest {
             parseError(roundTrip(toCConverter(input), this))
         }.value.let {
             fromCConverter(it).apply {
+                parseError(drop(it))
+            }
+        }
+    }
+
+    private inline fun <T,reified U: CStruct<T>> roundTripArray(
+            input: List<T>,
+            roundTrip: (CArray<T>, PointerByReference) -> Int,
+            drop: (Pointer) -> Int
+    ): List<T> {
+        return PointerByReference().apply {
+            parseError(roundTrip(CArray.cReprOf<T, U>(input), this))
+        }.value.let {
+            CArray<T>(it).asJava<U>().apply {
                 parseError(drop(it))
             }
         }
@@ -273,10 +268,10 @@ class HermesTest {
         fun hermes_ffi_test_round_trip_injection_reset_request(input: CInjectionResetRequestMessage, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_injection_reset_complete(input: CInjectionResetCompleteMessage, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_map_string_to_string_array(input: CMapStringToStringArray, output: PointerByReference): Int
-        fun hermes_ffi_test_round_trip_asr_token(input: CAsrToken, output: PointerByReference): Int
-        fun hermes_ffi_test_round_trip_asr_token_array(input: CAsrTokenArray, output: PointerByReference): Int
-        fun hermes_ffi_test_round_trip_asr_token_double_array(input: CAsrTokenDoubleArray, output: PointerByReference): Int
-        fun hermes_ffi_test_round_trip_text_captured(input: CTextCapturedMessage, output: PointerByReference): Int
+        fun hermes_ffi_test_round_trip_asr_token(input: CStruct<AsrToken>, output: PointerByReference): Int
+        fun hermes_ffi_test_round_trip_asr_token_array(input: CArray<AsrToken>, output: PointerByReference): Int
+        fun hermes_ffi_test_round_trip_asr_token_double_array(input: CArray<List<AsrToken>>, output: PointerByReference): Int
+        fun hermes_ffi_test_round_trip_text_captured(input: CStruct<TextCapturedMessage>, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_dialogue_configure(input: CDialogueConfigureMessage, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_session_ended(input: CSessionEndedMessage, output: PointerByReference) : Int
 
