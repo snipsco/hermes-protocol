@@ -5,90 +5,22 @@ use std::slice;
 use failure::Fallible;
 use failure::ResultExt;
 use ffi_utils::*;
+use ffi_utils_derive::{CReprOf, AsRust};
 
+use hermes::*;
 use super::CMapStringToStringArray;
 
 #[repr(C)]
+#[derive(CReprOf, AsRust)]
+#[target_type(EntityValue)]
 pub struct CEntityValue {
     pub value: *const libc::c_char,
     pub weight: u32,
 }
 
-impl CReprOf<hermes::EntityValue> for CEntityValue {
-    fn c_repr_of(input: hermes::EntityValue) -> Fallible<Self> {
-        Ok(Self {
-            value: convert_to_c_string!(input.value),
-            weight: input.weight,
-        })
-    }
-}
-
-impl AsRust<hermes::EntityValue> for CEntityValue {
-    fn as_rust(&self) -> Fallible<hermes::EntityValue> {
-        Ok(hermes::EntityValue {
-            value: create_rust_string_from!(self.value),
-            weight: self.weight,
-        })
-    }
-}
-
 impl Drop for CEntityValue {
     fn drop(&mut self) {
         take_back_c_string!(self.value);
-    }
-}
-
-#[repr(C)]
-#[derive(Debug)]
-pub struct CEntityValueArray {
-    pub values: *const CEntityValue,
-    pub count: libc::c_int,
-}
-
-impl Drop for CEntityValueArray {
-    fn drop(&mut self) {
-        unsafe {
-            Box::from_raw(std::slice::from_raw_parts_mut(
-                self.values as *mut *mut CEntityValue,
-                self.count as usize,
-            ));
-        }
-    }
-}
-
-impl CReprOf<Vec<hermes::EntityValue>> for CEntityValueArray {
-    fn c_repr_of(input: Vec<hermes::EntityValue>) -> Fallible<Self> {
-        let array = Self {
-            count: input.len() as _,
-            values: if !input.is_empty() {
-                Box::into_raw(
-                    input
-                        .into_iter()
-                        .map(|e| CEntityValue::c_repr_of(e))
-                        .collect::<Fallible<Vec<_>>>()
-                        .context("Could not convert map to C Repr")?
-                        .into_boxed_slice(),
-                ) as *const _
-            } else {
-                null() as * const _
-            },
-        };
-        Ok(array)
-    }
-}
-
-impl AsRust<Vec<hermes::EntityValue>> for CEntityValueArray {
-    fn as_rust(&self) -> Fallible<Vec<hermes::EntityValue>> {
-        let mut result = Vec::with_capacity(self.count as usize);
-
-        if self.count > 0 {
-            for e in unsafe { slice::from_raw_parts(self.values, self.count as usize) } {
-                let entity = e.as_rust()?;
-                result.push(entity);
-            }
-        }
-
-        Ok(result)
     }
 }
 
@@ -166,62 +98,8 @@ impl AsRust<(hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue>>)> 
 
 #[repr(C)]
 #[derive(Debug)]
-pub struct CInjectionRequestOperations {
-    pub operations: *const CInjectionRequestOperation,
-    pub count: libc::c_int,
-}
-
-type CInjectionRequest = (hermes::InjectionKind, HashMap<String, Vec<hermes::EntityValue>>);
-
-impl Drop for CInjectionRequestOperations {
-    fn drop(&mut self) {
-        unsafe {
-            Box::from_raw(std::slice::from_raw_parts_mut(
-                self.operations as *mut *mut CInjectionRequestOperation,
-                self.count as usize,
-            ));
-        }
-    }
-}
-
-impl CReprOf<Vec<CInjectionRequest>> for CInjectionRequestOperations {
-    fn c_repr_of(input: Vec<CInjectionRequest>) -> Fallible<Self> {
-        Ok(Self {
-            count: input.len() as libc::c_int,
-            operations: if !input.is_empty() {
-                Box::into_raw(
-                    input
-                        .into_iter()
-                        .map(|e| CInjectionRequestOperation::c_repr_of(e))
-                        .collect::<Fallible<Vec<_>>>()
-                        .context("Could not convert map to C Repr")?
-                        .into_boxed_slice(),
-                ) as *const _
-            } else {
-                null() as *const _
-            },
-        })
-    }
-}
-
-impl AsRust<Vec<CInjectionRequest>> for CInjectionRequestOperations {
-    fn as_rust(&self) -> Fallible<Vec<CInjectionRequest>> {
-        let mut result = Vec::with_capacity(self.count as usize);
-
-        if self.count > 0 {
-            for e in unsafe { slice::from_raw_parts(self.operations, self.count as usize) } {
-                result.push(e.as_rust()?);
-            }
-        }
-
-        Ok(result)
-    }
-}
-
-#[repr(C)]
-#[derive(Debug)]
 pub struct CInjectionRequestMessage {
-    operations: *const CInjectionRequestOperations,
+    operations: *const CArray<CInjectionRequestOperation>,
     lexicon: *const CMapStringToStringArray,
     /// Nullable
     cross_language: *const libc::c_char,
@@ -231,7 +109,7 @@ pub struct CInjectionRequestMessage {
 
 impl Drop for CInjectionRequestMessage {
     fn drop(&mut self) {
-        let _ = unsafe { CInjectionRequestOperations::drop_raw_pointer(self.operations) };
+        //let _ = unsafe { CInjectionRequestOperations::drop_raw_pointer(self.operations) };
         let _ = unsafe { CMapStringToStringArray::drop_raw_pointer(self.lexicon) };
         take_back_nullable_c_string!(self.cross_language);
         take_back_nullable_c_string!(self.id);
@@ -241,7 +119,7 @@ impl Drop for CInjectionRequestMessage {
 impl CReprOf<hermes::InjectionRequestMessage> for CInjectionRequestMessage {
     fn c_repr_of(input: hermes::InjectionRequestMessage) -> Fallible<Self> {
         Ok(Self {
-            operations: CInjectionRequestOperations::c_repr_of(input.operations)?.into_raw_pointer(),
+            operations: CArray::<CInjectionRequestOperation>::c_repr_of(input.operations)?.into_raw_pointer(),
             lexicon: CMapStringToStringArray::c_repr_of(input.lexicon)?.into_raw_pointer(),
             cross_language: convert_to_nullable_c_string!(input.cross_language),
             id: convert_to_nullable_c_string!(input.id),
@@ -251,10 +129,9 @@ impl CReprOf<hermes::InjectionRequestMessage> for CInjectionRequestMessage {
 
 impl AsRust<hermes::InjectionRequestMessage> for CInjectionRequestMessage {
     fn as_rust(&self) -> Fallible<hermes::InjectionRequestMessage> {
-        let operations = unsafe { CInjectionRequestOperations::raw_borrow(self.operations) }?.as_rust()?;
         let lexicon = unsafe { CMapStringToStringArray::raw_borrow(self.lexicon) }?.as_rust()?;
         Ok(hermes::InjectionRequestMessage {
-            operations,
+            operations: self.operations.as_rust()?,
             lexicon,
             cross_language: create_optional_rust_string_from!(self.cross_language),
             id: create_optional_rust_string_from!(self.id),
@@ -300,8 +177,11 @@ impl AsRust<hermes::InjectionStatusMessage> for CInjectionStatusMessage {
 }
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, CReprOf, AsRust)]
+#[target_type(InjectionCompleteMessage)]
 pub struct CInjectionCompleteMessage {
+    /// Nullable
+    #[nullable]
     pub request_id: *const libc::c_char,
 }
 
@@ -313,24 +193,12 @@ impl Drop for CInjectionCompleteMessage {
     }
 }
 
-impl CReprOf<hermes::InjectionCompleteMessage> for CInjectionCompleteMessage {
-    fn c_repr_of(message: hermes::InjectionCompleteMessage) -> Fallible<Self> {
-        Ok(Self {
-            request_id: convert_to_nullable_c_string!(message.request_id),
-        })
-    }
-}
-
-impl AsRust<hermes::InjectionCompleteMessage> for CInjectionCompleteMessage {
-    fn as_rust(&self) -> Fallible<hermes::InjectionCompleteMessage> {
-        let request_id = create_optional_rust_string_from!(self.request_id);
-        Ok(hermes::InjectionCompleteMessage { request_id })
-    }
-}
-
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, CReprOf, AsRust)]
+#[target_type(InjectionResetRequestMessage)]
 pub struct CInjectionResetRequestMessage {
+    /// Nullable
+    #[nullable]
     pub request_id: *const libc::c_char,
 }
 
@@ -342,24 +210,12 @@ impl Drop for CInjectionResetRequestMessage {
     }
 }
 
-impl CReprOf<hermes::InjectionResetRequestMessage> for CInjectionResetRequestMessage {
-    fn c_repr_of(message: hermes::InjectionResetRequestMessage) -> Fallible<Self> {
-        Ok(Self {
-            request_id: convert_to_nullable_c_string!(message.request_id),
-        })
-    }
-}
-
-impl AsRust<hermes::InjectionResetRequestMessage> for CInjectionResetRequestMessage {
-    fn as_rust(&self) -> Fallible<hermes::InjectionResetRequestMessage> {
-        let request_id = create_optional_rust_string_from!(self.request_id);
-        Ok(hermes::InjectionResetRequestMessage { request_id })
-    }
-}
-
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, CReprOf, AsRust)]
+#[target_type(InjectionResetCompleteMessage)]
 pub struct CInjectionResetCompleteMessage {
+    /// Nullable
+    #[nullable]
     pub request_id: *const libc::c_char,
 }
 
@@ -368,21 +224,6 @@ unsafe impl Sync for CInjectionResetCompleteMessage {}
 impl Drop for CInjectionResetCompleteMessage {
     fn drop(&mut self) {
         take_back_nullable_c_string!(self.request_id);
-    }
-}
-
-impl CReprOf<hermes::InjectionResetCompleteMessage> for CInjectionResetCompleteMessage {
-    fn c_repr_of(message: hermes::InjectionResetCompleteMessage) -> Fallible<Self> {
-        Ok(Self {
-            request_id: convert_to_nullable_c_string!(message.request_id),
-        })
-    }
-}
-
-impl AsRust<hermes::InjectionResetCompleteMessage> for CInjectionResetCompleteMessage {
-    fn as_rust(&self) -> Fallible<hermes::InjectionResetCompleteMessage> {
-        let request_id = create_optional_rust_string_from!(self.request_id);
-        Ok(hermes::InjectionResetCompleteMessage { request_id })
     }
 }
 
@@ -425,44 +266,6 @@ mod tests {
         );
 
         round_trip_test::<_, CInjectionRequestOperation>((hermes::InjectionKind::Add, test_map));
-    }
-
-    #[test]
-    fn round_trip_injection_request_operations() {
-        round_trip_test::<_, CInjectionRequestOperations>(vec![]);
-
-        let mut test_map = HashMap::new();
-        test_map.insert(
-            "hello".into(),
-            vec![
-                hermes::EntityValue {
-                    value: "hello".to_string(),
-                    weight: 1,
-                },
-                hermes::EntityValue {
-                    value: "world".to_string(),
-                    weight: 1,
-                },
-            ],
-        );
-        test_map.insert(
-            "foo".into(),
-            vec![
-                hermes::EntityValue {
-                    value: "bar".to_string(),
-                    weight: 1,
-                },
-                hermes::EntityValue {
-                    value: "baz".to_string(),
-                    weight: 1,
-                },
-            ],
-        );
-
-        round_trip_test::<_, CInjectionRequestOperations>(vec![
-            (hermes::InjectionKind::Add, HashMap::new()),
-            (hermes::InjectionKind::AddFromVanilla, test_map),
-        ]);
     }
 
     #[test]
