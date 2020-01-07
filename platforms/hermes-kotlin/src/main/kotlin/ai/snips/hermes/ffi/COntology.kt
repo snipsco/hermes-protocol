@@ -868,23 +868,13 @@ class CMapStringToStringArray(p: Pointer?) : Structure(p), Structure.ByReference
 
 }
 
-class CInjectionRequestOperation(p: Pointer?) : Structure(p), Structure.ByReference {
-    companion object {
+class CInjectionRequestOperation(p: Pointer?) : CStruct<InjectionOperation>(p), Structure.ByReference {
+    companion object: CStruct.CReprOf<InjectionOperation>() {
         const val KIND_ADD = 1
         const val KIND_ADD_FROM_VANILLA = 2
 
         @JvmStatic
-        fun fromInjectionOperation(input: InjectionOperation) = CInjectionRequestOperation(null).apply {
-            assignFromInjectionOperation(input)
-        }
-    }
-
-    fun assignFromInjectionOperation(input: InjectionOperation) {
-        values = CMapStringToStringArray.fromMap(input.values)
-        kind = when (input.kind) {
-            InjectionKind.Add -> KIND_ADD
-            InjectionKind.AddFromVanilla -> KIND_ADD_FROM_VANILLA
-        }
+        override fun cReprOf(input: InjectionOperation) = CInjectionRequestOperation(null).assign(input)
     }
 
     @JvmField
@@ -901,62 +891,31 @@ class CInjectionRequestOperation(p: Pointer?) : Structure(p), Structure.ByRefere
 
     override fun getFieldOrder() = listOf("values", "kind")
 
-    fun toInjectionOperation() = InjectionOperation(
+    override fun asJava(): InjectionOperation = InjectionOperation(
             kind = when (kind) {
                 KIND_ADD -> Add
                 else -> throw RuntimeException("unknown injection kind $kind")
             },
             values = values?.toMap()?.toMutableMap() ?: mutableMapOf()
     )
-}
 
-class CInjectionRequestOperations(p: Pointer?) : Structure(p), Structure.ByReference {
-    companion object {
-        @JvmStatic
-        fun fromInjectionOperationsList(input: List<InjectionOperation>) = CInjectionRequestOperations(null).apply {
-            count = input.size
-            operations = if (count > 0) {
-                val cInjectionRequestOperationRef = CInjectionRequestOperation(null)
-                val cInjectionRequestOperationArray: Array<CInjectionRequestOperation> = cInjectionRequestOperationRef.toArray(count) as Array<CInjectionRequestOperation>
-                input.forEachIndexed { i, operation ->
-                    cInjectionRequestOperationArray[i].assignFromInjectionOperation(operation)
-                }
-                cInjectionRequestOperationRef
-            } else null
+    override fun assign(input: InjectionOperation) = this.apply {
+        values = CMapStringToStringArray.fromMap(input.values)
+        kind = when (input.kind) {
+            InjectionKind.Add -> KIND_ADD
+            InjectionKind.AddFromVanilla -> KIND_ADD_FROM_VANILLA
         }
     }
-
-    @JvmField
-    var operations: CInjectionRequestOperation? = null
-    @JvmField
-    var count: Int = -1
-
-    // be careful this block must be below the field definition if you don't want the native values read by JNA
-    // overridden by the default ones
-    init {
-        read()
-    }
-
-    override fun getFieldOrder() = listOf("operations", "count")
-
-    fun toList() = if (count > 0) {
-        (operations!!.toArray(count) as Array<CInjectionRequestOperation>).map { it.toInjectionOperation() }
-    } else listOf()
 }
 
-class CInjectionRequestMessage(p: Pointer?) : Structure(p), Structure.ByReference {
-    companion object {
+class CInjectionRequestMessage(p: Pointer?) : CStruct<InjectionRequestMessage>(p), Structure.ByReference {
+    companion object: CStruct.CReprOf<InjectionRequestMessage>() {
         @JvmStatic
-        fun fromInjectionRequest(input: InjectionRequestMessage) = CInjectionRequestMessage(null).apply {
-            operations = CInjectionRequestOperations.fromInjectionOperationsList(input.operations)
-            lexicon = CMapStringToStringArray.fromMap(input.lexicon)
-            cross_language = input.crossLanguage?.toPointer()
-            id = input.id?.toPointer()
-        }
+        override fun cReprOf(input: InjectionRequestMessage) = CInjectionRequestMessage(null).assign(input)
     }
 
     @JvmField
-    var operations: CInjectionRequestOperations? = null
+    var operations: CArray<InjectionOperation>? = null
     @JvmField
     var lexicon: CMapStringToStringArray? = null
     @JvmField
@@ -972,12 +931,19 @@ class CInjectionRequestMessage(p: Pointer?) : Structure(p), Structure.ByReferenc
 
     override fun getFieldOrder() = listOf("operations", "lexicon", "cross_language", "id")
 
-    fun toInjectionRequestMessage() = InjectionRequestMessage(
-            operations = operations!!.toList(),
+    override fun asJava(): InjectionRequestMessage = InjectionRequestMessage(
+            operations = operations!!.asJava<CInjectionRequestOperation>(),
             lexicon = lexicon!!.toMap().toMutableMap(),
             crossLanguage = cross_language?.readString(),
             id = id?.readString()
     )
+
+    override fun assign(input: InjectionRequestMessage): CStruct<InjectionRequestMessage> = this.apply {
+        operations = CArray.cReprOf<InjectionOperation, CInjectionRequestOperation>(input.operations)
+        lexicon = CMapStringToStringArray.fromMap(input.lexicon)
+        cross_language = input.crossLanguage?.toPointer()
+        id = input.id?.toPointer()
+    }
 }
 
 class CInjectionCompleteMessage(p: Pointer?) : Structure(p), Structure.ByReference {
