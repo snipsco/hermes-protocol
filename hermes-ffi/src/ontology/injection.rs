@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 use std::ptr::null;
-use std::slice;
 
 use failure::Fallible;
 use failure::ResultExt;

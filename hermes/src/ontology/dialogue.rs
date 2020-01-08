@@ -1,4 +1,4 @@
-use super::asr::{AsrToken, SpeakerId};
+use super::asr::AsrToken;
 use super::nlu::{NluIntentClassifierResult, NluSlot};
 use super::HermesMessage;
 use crate::{HermesComponent, NluIntentAlternative};
