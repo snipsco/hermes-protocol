@@ -44,9 +44,9 @@ class HermesTest {
 
     fun roundTripContinueSession(input: ContinueSessionMessage) =
             roundTrip(input,
-                      CContinueSessionMessage.Companion::fromContinueSessionMessage,
+                      CContinueSessionMessage.Companion::cReprOf,
                       INSTANCE::hermes_ffi_test_round_trip_continue_session,
-                      { CContinueSessionMessage(it).toContinueSessionMessage() },
+                      { CContinueSessionMessage(it).asJava() },
                       INSTANCE::hermes_drop_continue_session_message)
 
     fun roundTripStartSession(input: StartSessionMessage) =
@@ -65,38 +65,38 @@ class HermesTest {
 
     fun roundTripIntent(input: IntentMessage) =
             roundTrip(input,
-                      CIntentMessage.Companion::fromIntentMessage,
+                      CIntentMessage.Companion::cReprOf,
                       INSTANCE::hermes_ffi_test_round_trip_intent,
-                      { CIntentMessage(it).toIntentMessage() },
+                      { CIntentMessage(it).asJava() },
                       INSTANCE::hermes_drop_intent_message)
 
     fun roundTripIntentAlternative(input: IntentAlternative) =
             roundTrip(input,
-                      CNluIntentAlternative.Companion::fromIntentAlternative,
+                      CNluIntentAlternative.Companion::cReprOf,
                       INSTANCE::hermes_ffi_test_round_trip_nlu_intent_alternative,
-                      { CNluIntentAlternative(it).toIntentAlternative() },
+                      { CNluIntentAlternative(it).asJava() },
                       INSTANCE::hermes_ffi_test_destroy_nlu_intent_alternative)
 
     fun roundTripIntentAlternativeArray(input: List<IntentAlternative>) =
-            roundTrip(input,
-                      CNluIntentAlternativeArray.Companion::fromIntentAlternativeList,
-                      INSTANCE::hermes_ffi_test_round_trip_nlu_intent_alternative_array,
-                      { CNluIntentAlternativeArray(it).toIntentAlternativeList() },
-                      INSTANCE::hermes_ffi_test_destroy_nlu_intent_alternative_array)
+            roundTripArray<IntentAlternative, CNluIntentAlternative>(
+                    input,
+                    INSTANCE::hermes_ffi_test_round_trip_nlu_intent_alternative_array,
+                    INSTANCE::hermes_ffi_test_destroy_nlu_intent_alternative_array
+            )
 
 
     fun roundTripIntentNotRecognized(input: IntentNotRecognizedMessage) =
             roundTrip(input,
-                      CIntentNotRecognizedMessage.Companion::fromIntentNotRecognizedMessage,
+                      CIntentNotRecognizedMessage.Companion::cReprOf,
                       INSTANCE::hermes_ffi_test_round_trip_intent_not_recognized,
-                      { CIntentNotRecognizedMessage(it).toIntentNotRecognizedMessage() },
+                      { CIntentNotRecognizedMessage(it).asJava() },
                       INSTANCE::hermes_drop_intent_not_recognized_message)
 
     fun roundTripInjectionRequest(input: InjectionRequestMessage) =
             roundTrip(input,
-                      CInjectionRequestMessage.Companion::fromInjectionRequest,
+                      CInjectionRequestMessage.Companion::cReprOf,
                       INSTANCE::hermes_ffi_test_round_trip_injection_request,
-                      { CInjectionRequestMessage(it).toInjectionRequestMessage() },
+                      { CInjectionRequestMessage(it).asJava() },
                       INSTANCE::hermes_drop_injection_request_message)
 
     fun roundTripInjectionComplete(input: InjectionCompleteMessage) =
@@ -142,12 +142,11 @@ class HermesTest {
                 INSTANCE::hermes_ffi_test_destroy_asr_token_array)
 
     fun roundTripAsrTokenDoubleArray(input: List<List<AsrToken>>): List<List<AsrToken>> {
-        return input.map {
-            roundTripArray<AsrToken, CAsrToken>(
-                    it,
-                    INSTANCE::hermes_ffi_test_round_trip_asr_token_array,
-                    INSTANCE::hermes_ffi_test_destroy_asr_token_array)
-        }
+        return roundTrip(input,
+                CAsrTokenDoubleArray.Companion::cReprOf,
+                INSTANCE::hermes_ffi_test_round_trip_asr_token_double_array,
+                { CAsrTokenDoubleArray(it).asJava() },
+                INSTANCE::hermes_ffi_test_destroy_asr_token_double_array)
     }
 
     fun roundTripTextCaptured(input: TextCapturedMessage) =
@@ -159,9 +158,9 @@ class HermesTest {
 
     fun roundTripDialogueConfigure(input: DialogueConfigureMessage) =
             roundTrip(input,
-                      CDialogueConfigureMessage.Companion::fromDialogueConfigureMessage,
+                      CDialogueConfigureMessage.Companion::cReprOf,
                       INSTANCE::hermes_ffi_test_round_trip_dialogue_configure,
-                      { CDialogueConfigureMessage(it).toDialogueConfigureMessage() },
+                      { CDialogueConfigureMessage(it).asJava() },
                       INSTANCE::hermes_drop_dialogue_configure_message)
 
     fun roundTripSessionEnded(input: SessionEndedMessage) =
@@ -257,22 +256,22 @@ class HermesTest {
         }
 
         fun hermes_ffi_test_round_trip_start_session(input: CStartSessionMessage, output: PointerByReference): Int
-        fun hermes_ffi_test_round_trip_continue_session(input: CContinueSessionMessage, output: PointerByReference): Int
+        fun hermes_ffi_test_round_trip_continue_session(input: CStruct<ContinueSessionMessage>, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_end_session(input: CEndSessionMessage, output: PointerByReference): Int
-        fun hermes_ffi_test_round_trip_intent(input: CIntentMessage, output: PointerByReference): Int
-        fun hermes_ffi_test_round_trip_nlu_intent_alternative(input: CNluIntentAlternative, output: PointerByReference): Int
-        fun hermes_ffi_test_round_trip_nlu_intent_alternative_array(input: CNluIntentAlternativeArray, output: PointerByReference): Int
-        fun hermes_ffi_test_round_trip_intent_not_recognized(input: CIntentNotRecognizedMessage, output: PointerByReference): Int
-        fun hermes_ffi_test_round_trip_injection_request(input: CInjectionRequestMessage, output: PointerByReference): Int
+        fun hermes_ffi_test_round_trip_intent(input: CStruct<IntentMessage>, output: PointerByReference): Int
+        fun hermes_ffi_test_round_trip_nlu_intent_alternative(input: CStruct<IntentAlternative>, output: PointerByReference): Int
+        fun hermes_ffi_test_round_trip_nlu_intent_alternative_array(input: CArray<IntentAlternative>, output: PointerByReference): Int
+        fun hermes_ffi_test_round_trip_intent_not_recognized(input: CStruct<IntentNotRecognizedMessage>, output: PointerByReference): Int
+        fun hermes_ffi_test_round_trip_injection_request(input: CStruct<InjectionRequestMessage>, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_injection_complete(input: CInjectionCompleteMessage, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_injection_reset_request(input: CInjectionResetRequestMessage, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_injection_reset_complete(input: CInjectionResetCompleteMessage, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_map_string_to_string_array(input: CMapStringToStringArray, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_asr_token(input: CStruct<AsrToken>, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_asr_token_array(input: CArray<AsrToken>, output: PointerByReference): Int
-        fun hermes_ffi_test_round_trip_asr_token_double_array(input: CArray<List<AsrToken>>, output: PointerByReference): Int
+        fun hermes_ffi_test_round_trip_asr_token_double_array(input: CStruct<List<List<AsrToken>>>, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_text_captured(input: CStruct<TextCapturedMessage>, output: PointerByReference): Int
-        fun hermes_ffi_test_round_trip_dialogue_configure(input: CDialogueConfigureMessage, output: PointerByReference): Int
+        fun hermes_ffi_test_round_trip_dialogue_configure(input: CStruct<DialogueConfigureMessage>, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_session_ended(input: CSessionEndedMessage, output: PointerByReference) : Int
 
 

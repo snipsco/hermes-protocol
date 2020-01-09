@@ -286,17 +286,10 @@ class CStartSessionMessage(p: Pointer?) : Structure(p), Structure.ByReference {
     )
 }
 
-class CContinueSessionMessage(p: Pointer?) : Structure(p), Structure.ByReference {
-    companion object {
+class CContinueSessionMessage(p: Pointer?) : CStruct<ContinueSessionMessage>(p), Structure.ByReference {
+    companion object: CStruct.CReprOf<ContinueSessionMessage>() {
         @JvmStatic
-        fun fromContinueSessionMessage(continueSessionMessage: ContinueSessionMessage) = CContinueSessionMessage(null).apply {
-            session_id = continueSessionMessage.sessionId.toPointer()
-            text = continueSessionMessage.text.toPointer()
-            intent_filter = if (continueSessionMessage.intentFilter.isEmpty()) null else CStringArray.fromStringList(continueSessionMessage.intentFilter)
-            custom_data = continueSessionMessage.customData?.toPointer()
-            slot = continueSessionMessage.slot?.toPointer()
-            send_intent_not_recognized = if (continueSessionMessage.sendIntentNotRecognized) 1 else 0
-        }
+        override fun cReprOf(input: ContinueSessionMessage): CStruct<ContinueSessionMessage> = CContinueSessionMessage(null).assign(input)
     }
 
     @JvmField
@@ -320,7 +313,7 @@ class CContinueSessionMessage(p: Pointer?) : Structure(p), Structure.ByReference
 
     override fun getFieldOrder() = listOf("session_id", "text", "intent_filter", "custom_data", "slot", "send_intent_not_recognized")
 
-    fun toContinueSessionMessage() = ContinueSessionMessage(
+    override fun asJava(): ContinueSessionMessage = ContinueSessionMessage(
             sessionId = session_id.readString(),
             text = text.readString(),
             intentFilter = intent_filter?.toStringList() ?: listOf(),
@@ -328,6 +321,15 @@ class CContinueSessionMessage(p: Pointer?) : Structure(p), Structure.ByReference
             slot = slot?.readString(),
             sendIntentNotRecognized = send_intent_not_recognized == 1.toByte()
     )
+
+    override fun assign(input: ContinueSessionMessage): CStruct<ContinueSessionMessage> = this.apply {
+        session_id = input.sessionId.toPointer()
+        text = input.text.toPointer()
+        intent_filter = if (input.intentFilter.isEmpty()) null else CStringArray.fromStringList(input.intentFilter)
+        custom_data = input.customData?.toPointer()
+        slot = input.slot?.toPointer()
+        send_intent_not_recognized = if (input.sendIntentNotRecognized) 1 else 0
+    }
 }
 
 class CEndSessionMessage(p: Pointer?) : Structure(p), Structure.ByReference {
@@ -358,13 +360,10 @@ class CEndSessionMessage(p: Pointer?) : Structure(p), Structure.ByReference {
     )
 }
 
-class CNluSlot(p: Pointer?) : Structure(p), Structure.ByReference {
-    companion object {
+class CNluSlot(p: Pointer?) : CStruct<Slot>(p), Structure.ByReference {
+    companion object: CStruct.CReprOf<Slot>() {
         @JvmStatic
-        fun fromSlot(@Suppress("UNUSED_PARAMETER") slot: Slot) = CNluSlot(null).apply {
-            nlu_slot = null
-            throw java.lang.RuntimeException("Converter for CSlot not existing yet...")
-        }
+        override fun cReprOf(@Suppress("UNUSED_PARAMETER") slot: Slot) = CNluSlot(null).assign(slot)
     }
 
     @JvmField
@@ -378,41 +377,46 @@ class CNluSlot(p: Pointer?) : Structure(p), Structure.ByReference {
 
     override fun getFieldOrder() = listOf("nlu_slot")
 
-    fun toSlot() = nlu_slot!!.toSlot()
+    override fun asJava(): Slot = nlu_slot!!.toSlot()
+
+    override fun assign(input: Slot): CStruct<Slot> = this.apply {
+        nlu_slot = null
+        throw java.lang.RuntimeException("Converter for CSlot not existing yet...")
+    }
 }
 
-class CNluSlotArray(p: Pointer?) : Structure(p), Structure.ByReference {
-    companion object {
-        @JvmStatic
-        fun fromSlotList(list: List<Slot>) = CNluSlotArray(null).apply {
-            count = list.size
-            entries = if (count > 0)
-                Memory(Pointer.SIZE * list.size.toLong()).apply {
-                    list.forEachIndexed { i, e ->
-                        this.setPointer(i.toLong() * Pointer.SIZE, CNluSlot.fromSlot(e).pointer)
-                    }
-                }
-            else null
-        }
-    }
-
-    @JvmField
-    var entries: Pointer? = null
-    @JvmField
-    var count: Int = -1
-
-    // be careful this block must be below the field definition if you don't want the native values read by JNA
-    // overridden by the default ones
-    init {
-        read()
-    }
-
-    override fun getFieldOrder() = listOf("entries", "count")
-
-    fun toSlotList(): List<Slot> = if (count > 0) {
-        entries!!.getPointerArray(0, count).map { CNluSlot(it).toSlot() }
-    } else listOf()
-}
+//class CNluSlotArray(p: Pointer?) : Structure(p), Structure.ByReference {
+//    companion object {
+//        @JvmStatic
+//        fun fromSlotList(list: List<Slot>) = CNluSlotArray(null).apply {
+//            count = list.size
+//            entries = if (count > 0)
+//                Memory(Pointer.SIZE * list.size.toLong()).apply {
+//                    list.forEachIndexed { i, e ->
+//                        this.setPointer(i.toLong() * Pointer.SIZE, CNluSlot.fromSlot(e).pointer)
+//                    }
+//                }
+//            else null
+//        }
+//    }
+//
+//    @JvmField
+//    var entries: Pointer? = null
+//    @JvmField
+//    var count: Int = -1
+//
+//    // be careful this block must be below the field definition if you don't want the native values read by JNA
+//    // overridden by the default ones
+//    init {
+//        read()
+//    }
+//
+//    override fun getFieldOrder() = listOf("entries", "count")
+//
+//    fun toSlotList(): List<Slot> = if (count > 0) {
+//        entries!!.getPointerArray(0, count).map { CNluSlot(it).toSlot() }
+//    } else listOf()
+//}
 
 class CNluIntentClassifierResult : Structure(), Structure.ByReference {
     companion object {
@@ -441,22 +445,16 @@ class CNluIntentClassifierResult : Structure(), Structure.ByReference {
                                                             confidenceScore = confidence_score!!)
 }
 
-class CNluIntentAlternative(p: Pointer?) : Structure(p), Structure.ByReference {
-    companion object {
+class CNluIntentAlternative(p: Pointer?) : CStruct<IntentAlternative>(p), Structure.ByReference {
+    companion object: CStruct.CReprOf<IntentAlternative>() {
         @JvmStatic
-        fun fromIntentAlternative(intentAlternative: IntentAlternative) =
-                CNluIntentAlternative(null).apply {
-                    intent_name = intentAlternative.intentName?.toPointer()
-                    confidence_score = intentAlternative.confidenceScore
-                    slots = CNluSlotArray.fromSlotList(intentAlternative.slots)
-                    println(this)
-                }
+        override fun cReprOf(input: IntentAlternative): CStruct<IntentAlternative> = CNluIntentAlternative(null).assign(input)
     }
 
     @JvmField
     var intent_name: Pointer? = null
     @JvmField
-    var slots: CNluSlotArray? = null
+    var slots: CArray<Slot>? = null
     @JvmField
     var confidence_score: Float? = null
 
@@ -468,59 +466,22 @@ class CNluIntentAlternative(p: Pointer?) : Structure(p), Structure.ByReference {
 
     override fun getFieldOrder() = listOf("intent_name", "slots", "confidence_score")
 
-    fun toIntentAlternative() = IntentAlternative(intentName = intent_name?.readString(),
-                                                  confidenceScore = confidence_score!!,
-                                                  slots = slots?.toSlotList() ?: listOf())
+    override fun asJava() = IntentAlternative(
+            intentName = intent_name?.readString(),
+            confidenceScore = confidence_score!!,
+            slots = slots?.asJava<CNluSlot>() ?: listOf())
+
+    override fun assign(input: IntentAlternative): CStruct<IntentAlternative> = this.apply {
+        intent_name = input.intentName?.toPointer()
+        confidence_score = input.confidenceScore
+        slots = CArray.cReprOf<Slot, CNluSlot>(input.slots)
+    }
 }
 
-class CNluIntentAlternativeArray(p: Pointer?) : Structure(p), Structure.ByReference {
-    companion object {
+class CIntentMessage(p: Pointer?) : CStruct<IntentMessage>(p), Structure.ByReference {
+    companion object: CStruct.CReprOf<IntentMessage>() {
         @JvmStatic
-        fun fromIntentAlternativeList(list: List<IntentAlternative>) = CNluIntentAlternativeArray(null).apply {
-            count = list.size
-            entries = if (count > 0)
-                Memory(Pointer.SIZE * list.size.toLong()).apply {
-                    list.forEachIndexed { i, e ->
-                        this.setPointer(i.toLong() * Pointer.SIZE, CNluIntentAlternative.fromIntentAlternative(e).apply { write() }.pointer)
-                    }
-                }
-            else null
-        }
-    }
-
-    @JvmField
-    var entries: Pointer? = null
-    @JvmField
-    var count: Int = -1
-
-    // be careful this block must be below the field definition if you don't want the native values read by JNA
-    // overridden by the default ones
-    init {
-        read()
-    }
-
-    override fun getFieldOrder() = listOf("entries", "count")
-
-    fun toIntentAlternativeList(): List<IntentAlternative> = if (count > 0) {
-        entries!!.getPointerArray(0, count).map { CNluIntentAlternative(it).toIntentAlternative() }
-    } else listOf()
-}
-
-
-class CIntentMessage(p: Pointer?) : Structure(p), Structure.ByReference {
-    companion object {
-        @JvmStatic
-        fun fromIntentMessage(message: IntentMessage) = CIntentMessage(null).apply {
-            session_id = message.sessionId.toPointer()
-            custom_data = message.customData?.toPointer()
-            site_id = message.siteId.toPointer()
-            input = message.input.toPointer()
-            intent = CNluIntentClassifierResult.fromIntentClassifierResult(message.intent)
-            slots = CNluSlotArray.fromSlotList(message.slots)
-            alternatives = CNluIntentAlternativeArray.fromIntentAlternativeList(message.alternatives)
-            asr_tokens = CAsrTokenDoubleArray.fromAsrTokenDoubleList(message.asrTokens)
-            asr_confidence = message.asrConfidence ?: -1.0f
-        }
+        override fun cReprOf(input: IntentMessage): CStruct<IntentMessage> = CIntentMessage(null).assign(input)
     }
 
     @JvmField
@@ -536,7 +497,7 @@ class CIntentMessage(p: Pointer?) : Structure(p), Structure.ByReference {
     @JvmField
     var slots: CNluSlotArray? = null
     @JvmField
-    var alternatives: CNluIntentAlternativeArray? = null
+    var alternatives: CArray<IntentAlternative>? = null
     @JvmField
     var asr_tokens: CAsrTokenDoubleArray? = null
     @JvmField
@@ -550,29 +511,34 @@ class CIntentMessage(p: Pointer?) : Structure(p), Structure.ByReference {
 
     override fun getFieldOrder() = listOf("session_id", "custom_data", "site_id", "input", "intent", "slots", "alternatives", "asr_tokens", "asr_confidence")
 
-    fun toIntentMessage() = IntentMessage(
+    override fun asJava() = IntentMessage(
             sessionId = session_id.readString(),
             customData = custom_data?.readString(),
             siteId = site_id.readString(),
             input = input.readString(),
             intent = intent!!.toIntentClassifierResult(),
             slots = slots?.toSlotList() ?: listOf(),
-            alternatives = alternatives?.toIntentAlternativeList() ?: listOf(),
+            alternatives = alternatives?.asJava<CNluIntentAlternative>() ?: listOf(),
             asrConfidence = if(asr_confidence?.let { it in 0.0..1.0 } == true) asr_confidence else null,
-            asrTokens = asr_tokens?.toAsrTokenDoubleList()?.toMutableList() ?: mutableListOf())
+            asrTokens = asr_tokens?.asJava()?.toMutableList() ?: mutableListOf())
+
+    override fun assign(input_: IntentMessage): CStruct<IntentMessage> = this.apply {
+        session_id = input_.sessionId.toPointer()
+        custom_data = input_.customData?.toPointer()
+        site_id = input_.siteId.toPointer()
+        input = input_.input.toPointer()
+        intent = CNluIntentClassifierResult.fromIntentClassifierResult(input_.intent)
+        slots = CArray.cReprOf<Slot, CNluSlot>(input_.slots)
+        alternatives = CArray.cReprOf<IntentAlternative, CNluIntentAlternative>(input_.alternatives)
+        asr_tokens = CAsrTokenDoubleArray.cReprOf(input_.asrTokens)
+        asr_confidence = input_.asrConfidence ?: -1.0f
+    }
 }
 
-class CIntentNotRecognizedMessage(p: Pointer?) : Structure(p), Structure.ByReference {
-    companion object {
+class CIntentNotRecognizedMessage(p: Pointer?) : CStruct<IntentNotRecognizedMessage>(p), Structure.ByReference {
+    companion object: CStruct.CReprOf<IntentNotRecognizedMessage>() {
         @JvmStatic
-        fun fromIntentNotRecognizedMessage(message: IntentNotRecognizedMessage) = CIntentNotRecognizedMessage(null).apply {
-            site_id = message.siteId.toPointer()
-            session_id = message.sessionId.toPointer()
-            input = message.input?.toPointer()
-            custom_data = message.customData?.toPointer()
-            alternatives = CNluIntentAlternativeArray.fromIntentAlternativeList(message.alternatives)
-            confidence_score = message.confidenceScore
-        }
+        override fun cReprOf(input: IntentNotRecognizedMessage): CStruct<IntentNotRecognizedMessage> = CIntentNotRecognizedMessage(null).assign(input)
     }
 
     @JvmField
@@ -584,7 +550,7 @@ class CIntentNotRecognizedMessage(p: Pointer?) : Structure(p), Structure.ByRefer
     @JvmField
     var custom_data: Pointer? = null
     @JvmField
-    var alternatives: CNluIntentAlternativeArray? = null
+    var alternatives: CArray<IntentAlternative>? = null
     @JvmField
     var confidence_score: Float? = null
 
@@ -596,13 +562,22 @@ class CIntentNotRecognizedMessage(p: Pointer?) : Structure(p), Structure.ByRefer
 
     override fun getFieldOrder() = listOf("site_id", "session_id", "input", "custom_data", "alternatives", "confidence_score")
 
-    fun toIntentNotRecognizedMessage() = IntentNotRecognizedMessage(
+    override fun asJava() = IntentNotRecognizedMessage(
             siteId = site_id.readString(),
             sessionId = session_id.readString(),
             input = input?.readString(),
             customData = custom_data?.readString(),
-            alternatives = alternatives?.toIntentAlternativeList() ?: listOf(),
+            alternatives = alternatives?.asJava<CNluIntentAlternative>() ?: listOf(),
             confidenceScore = confidence_score!!)
+
+    override fun assign(input_: IntentNotRecognizedMessage): CStruct<IntentNotRecognizedMessage> = this.apply {
+        site_id = input_.siteId.toPointer()
+        session_id = input_.sessionId.toPointer()
+        input = input_.input?.toPointer()
+        custom_data = input_.customData?.toPointer()
+        alternatives = CArray.cReprOf<IntentAlternative, CNluIntentAlternative>(input_.alternatives)
+        confidence_score = input_.confidenceScore
+    }
 }
 
 class CSessionStartedMessage(p: Pointer) : Structure(p), Structure.ByReference {
@@ -1091,25 +1066,16 @@ class CAsrToken(p: Pointer?) : CStruct<AsrToken>(p), Structure.ByReference {
     }
 }
 
-class CAsrTokenDoubleArray(p: Pointer?) : Structure(p), Structure.ByReference {
-    companion object {
+class CAsrTokenDoubleArray(p: Pointer?) : CStruct<List<List<AsrToken>>>(p), Structure.ByReference {
+    companion object: CStruct.CReprOf<List<List<AsrToken>>>()  {
         @JvmStatic
-        fun fromAsrTokenDoubleList(list: List<List<AsrToken>>) = CAsrTokenDoubleArray(null).apply {
-            count = list.size
-            entries = if (count > 0)
-                Memory(Pointer.SIZE * list.size.toLong()).apply {
-                    list.forEachIndexed { i, e ->
-                        this.setPointer(i.toLong() * Pointer.SIZE, CArray.cReprOf<AsrToken, CAsrToken>(e).apply { write() }.pointer)
-                    }
-                }
-            else null
-        }
+        override fun cReprOf(input: List<List<AsrToken>>) = CAsrTokenDoubleArray(null).assign(input)
     }
 
     @JvmField
-    var entries: Pointer? = null
+    var entry: Pointer? = null
     @JvmField
-    var count: Int = -1
+    var size: Int = -1
 
     // be careful this block must be below the field definition if you don't want the native values read by JNA
     // overridden by the default ones
@@ -1117,11 +1083,25 @@ class CAsrTokenDoubleArray(p: Pointer?) : Structure(p), Structure.ByReference {
         read()
     }
 
-    override fun getFieldOrder() = listOf("entries", "count")
+    override fun getFieldOrder() = listOf("entry", "size")
 
-    fun toAsrTokenDoubleList(): List<List<AsrToken>> = if (count > 0) {
-        entries!!.getPointerArray(0, count).map { CArray<AsrToken>(it).asJava<CAsrToken>() }
-    } else listOf()
+    override fun asJava(): List<List<AsrToken>> = if (size > 0) {
+        (CArray<AsrToken>(entry).toArray(size) as Array<CArray<AsrToken>>).map { it.asJava<CAsrToken>() }
+    } else {
+        listOf()
+    }
+
+    override fun assign(input: List<List<AsrToken>>) = this.apply {
+        size = input.size
+        entry = if (size > 0) {
+            val ref = CArray<AsrToken>(null)
+            val cArray: Array<CArray<AsrToken>> = ref.toArray(input.size) as Array<CArray<AsrToken>>
+            input.forEachIndexed { i, asrTokenList ->
+                cArray[i].assign<CAsrToken>(asrTokenList).apply { write() }
+            }
+            ref.pointer
+        } else null
+    }
 }
 
 
@@ -1176,28 +1156,17 @@ class CTextCapturedMessage(p: Pointer?) : CStruct<TextCapturedMessage>(p), Struc
     }
 }
 
-class CDialogueConfigureIntent(p: Pointer?) : Structure(p), Structure.ByReference {
-    companion object {
+class CDialogueConfigureIntent(p: Pointer?) : CStruct<DialogueConfigureIntent>(p), Structure.ByReference {
+    companion object: CStruct.CReprOf<DialogueConfigureIntent>() {
         @JvmStatic
-        fun fromDialogueConfigureIntent(dialogueConfigureIntent: DialogueConfigureIntent) = CDialogueConfigureIntent(null).apply {
-            assignFromDialogueConfigureIntent(dialogueConfigureIntent)
-        }
-    }
-
-    fun assignFromDialogueConfigureIntent(dialogueConfigureIntent: DialogueConfigureIntent) {
-        intent_id = dialogueConfigureIntent.intentId.toPointer()
-        enable = when(dialogueConfigureIntent.enable) {
-            true -> 1
-            false -> 0
-            null -> -1
-        }
+        override fun cReprOf(input: DialogueConfigureIntent): CStruct<DialogueConfigureIntent> = CDialogueConfigureIntent(null).assign(input)
     }
 
     @JvmField
     var intent_id: Pointer? = null
 
     @JvmField
-    var enable: Byte = -1
+    var enable: Pointer? = null
 
     // be careful this block must be below the field definition if you don't want the native values read by JNA
     // overridden by the default ones
@@ -1207,65 +1176,39 @@ class CDialogueConfigureIntent(p: Pointer?) : Structure(p), Structure.ByReferenc
 
     override fun getFieldOrder() = listOf("intent_id", "enable")
 
-    fun toDialogueConfigureIntent() = DialogueConfigureIntent(
+    override fun asJava(): DialogueConfigureIntent = DialogueConfigureIntent(
             intentId = intent_id.readString(),
-            enable = when(enable) {
-                0.toByte() -> false
-                1.toByte() -> true
-                else -> null
-            }
-    )
-}
-
-class CDialogueConfigureIntentArray(p: Pointer?) : Structure(p), Structure.ByReference {
-    companion object {
-        @JvmStatic
-        fun fromDialogueConfigureIntentList(list: List<DialogueConfigureIntent>) = CDialogueConfigureIntentArray(null).apply {
-            count = list.size
-            entries = if (count > 0) {
-                val cDialogueConfigureIntentRef = CDialogueConfigureIntent(null)
-                val cDialogueConfigureIntentArray: Array<CDialogueConfigureIntent> = cDialogueConfigureIntentRef.toArray(list.size) as Array<CDialogueConfigureIntent>
-                list.forEachIndexed { i, config ->
-                    cDialogueConfigureIntentArray[i].assignFromDialogueConfigureIntent(config)
+            enable = if (enable != null) {
+                when(enable!!.getChar(0).toByte()) {
+                    0.toByte() -> false
+                    1.toByte() -> true
+                    else -> true
                 }
-                cDialogueConfigureIntentRef
-            }
-            else null
+            } else null
+    )
+
+    override fun assign(input: DialogueConfigureIntent): CStruct<DialogueConfigureIntent> = this.apply {
+        intent_id = input.intentId.toPointer()
+        enable = when(input.enable) {
+            true -> Memory(Pointer.SIZE.toLong()).apply { write(0, byteArrayOf(1.toByte()), 0, 1) }
+            false -> Memory(Pointer.SIZE.toLong()).apply { write(0, byteArrayOf(0.toByte()), 0, 1) }
+            null -> null
         }
+
     }
-
-    @JvmField
-    var entries: CDialogueConfigureIntent? = null
-    @JvmField
-    var count: Int = -1
-
-    // be careful this block must be below the field definition if you don't want the native values read by JNA
-    // overridden by the default ones
-    init {
-        read()
-    }
-
-    override fun getFieldOrder() = listOf("entries", "count")
-
-    fun toDialogueConfigureIntentList(): List<DialogueConfigureIntent> = if (count > 0) {
-        (entries!!.toArray(count) as Array<CDialogueConfigureIntent>).map { it.toDialogueConfigureIntent() }
-    } else listOf()
 }
 
-class CDialogueConfigureMessage(p: Pointer?) : Structure(p), Structure.ByReference {
-    companion object {
+class CDialogueConfigureMessage(p: Pointer?) : CStruct<DialogueConfigureMessage>(p), Structure.ByReference {
+    companion object: CStruct.CReprOf<DialogueConfigureMessage>() {
         @JvmStatic
-        fun fromDialogueConfigureMessage(dialogueConfigureMessage: DialogueConfigureMessage) = CDialogueConfigureMessage(null).apply {
-            site_id = dialogueConfigureMessage.siteId?.toPointer()
-            intents = CDialogueConfigureIntentArray.fromDialogueConfigureIntentList(dialogueConfigureMessage.intents)
-        }
+        override fun cReprOf(input: DialogueConfigureMessage): CStruct<DialogueConfigureMessage> = CDialogueConfigureMessage(null).assign(input)
     }
 
     @JvmField
     var site_id: Pointer? = null
 
     @JvmField
-    var intents: CDialogueConfigureIntentArray? = null
+    var intents: CArray<DialogueConfigureIntent>? = null
 
     // be careful this block must be below the field definition if you don't want the native values read by JNA
     // overridden by the default ones
@@ -1275,8 +1218,13 @@ class CDialogueConfigureMessage(p: Pointer?) : Structure(p), Structure.ByReferen
 
     override fun getFieldOrder() = listOf("site_id", "intents")
 
-    fun toDialogueConfigureMessage() = DialogueConfigureMessage(
+    override fun asJava(): DialogueConfigureMessage = DialogueConfigureMessage(
             siteId = site_id?.readString(),
-            intents = intents?.toDialogueConfigureIntentList() ?: listOf()
+            intents = intents?.asJava<CDialogueConfigureIntent>() ?: listOf()
     )
+
+    override fun assign(input: DialogueConfigureMessage): CStruct<DialogueConfigureMessage> = this.apply {
+        site_id = input.siteId?.toPointer()
+        intents = CArray.cReprOf<DialogueConfigureIntent, CDialogueConfigureIntent>(input.intents)
+    }
 }
