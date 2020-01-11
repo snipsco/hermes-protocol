@@ -29,6 +29,9 @@ impl Drop for CAsrStartListeningMessage {
     fn drop(&mut self) {
         take_back_c_string!(self.site_id);
         take_back_nullable_c_string!(self.session_id);
+        if !self.start_signal_ms.is_null() {
+            let _ = unsafe { Box::from_raw(self.start_signal_ms as *mut i64) };
+        }
     }
 }
 
@@ -64,8 +67,10 @@ impl Drop for CTextCapturedMessage {
         take_back_c_string!(self.text);
         take_back_c_string!(self.site_id);
         take_back_nullable_c_string!(self.session_id);
+        if !self.tokens.is_null() {
+            let _ = unsafe { CArray::<CAsrToken>::drop_raw_pointer(self.tokens) };
+        }
         /*
-        let _ = unsafe { CAsrTokenArray::drop_raw_pointer(self.tokens) };
         if !self.speaker_hypotheses.is_null() {
             let _ = unsafe { CSpeakerIdArray::drop_raw_pointer(self.speaker_hypotheses) };
         }

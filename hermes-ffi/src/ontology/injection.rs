@@ -108,7 +108,7 @@ pub struct CInjectionRequestMessage {
 
 impl Drop for CInjectionRequestMessage {
     fn drop(&mut self) {
-        //let _ = unsafe { CInjectionRequestOperations::drop_raw_pointer(self.operations) };
+        let _ = unsafe { CArray::<CInjectionRequestOperation>::drop_raw_pointer(self.operations) };
         let _ = unsafe { CMapStringToStringArray::drop_raw_pointer(self.lexicon) };
         take_back_nullable_c_string!(self.cross_language);
         take_back_nullable_c_string!(self.id);

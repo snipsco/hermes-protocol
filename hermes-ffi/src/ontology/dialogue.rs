@@ -56,9 +56,17 @@ impl Drop for CIntentMessage {
         take_back_nullable_c_string!(self.custom_data);
         take_back_c_string!(self.site_id);
         take_back_c_string!(self.input);
-        /*if !self.speaker_hypotheses.is_null() {
-            let _ = unsafe { CSpeakerIdArray::drop_raw_pointer(self.speaker_hypotheses) };
-        }*/
+        if !self.asr_confidence.is_null() {
+            let _ = unsafe { Box::from_raw(self.asr_confidence as *mut f32) };
+        }
+        if !self.asr_tokens.is_null() {
+            let _ = unsafe { CAsrTokenDoubleArray::drop_raw_pointer(self.asr_tokens) };
+        }
+        if !self.alternatives.is_null() {
+            let _ = unsafe { CArray::<CNluIntentAlternative>::drop_raw_pointer(self.alternatives) };
+        }
+        let _ = unsafe { CNluIntentClassifierResult::drop_raw_pointer(self.intent) };
+        let _ = unsafe { CArray::<CNluSlot>::drop_raw_pointer(self.slots) };
     }
 }
 
@@ -92,9 +100,9 @@ impl Drop for CIntentNotRecognizedMessage {
         take_back_c_string!(self.session_id);
         take_back_nullable_c_string!(self.input);
         take_back_nullable_c_string!(self.custom_data);
-        /*if !self.speaker_hypotheses.is_null() {
-            let _ = unsafe { CSpeakerIdArray::drop_raw_pointer(self.speaker_hypotheses) };
-        }*/
+        if !self.alternatives.is_null() {
+            let _ = unsafe { CArray::<CNluIntentAlternative>::drop_raw_pointer(self.alternatives) };
+        }
     }
 }
 
@@ -127,11 +135,11 @@ pub struct CActionSessionInit {
     intent_filter: *const CStringArray,
     /// A boolean to indicate if the session can be enqueued if it can't be started immediately (ie
     /// there is another running session on the site). 1 = true, 0 = false
-    can_be_enqueued: libc::c_uchar,
+    can_be_enqueued: u8,
     /// A boolean to indicate whether the dialogue manager should handle non recognized intents by
     /// itself or sent them as an `CIntentNotRecognizedMessage` for the client to handle. This
     /// setting applies only to the next conversation turn. 1 = true, 0 = false
-    send_intent_not_recognized: libc::c_uchar,
+    send_intent_not_recognized: u8,
 }
 
 impl CActionSessionInit {
@@ -626,7 +634,10 @@ pub struct CDialogueConfigureIntent {
 
 impl Drop for CDialogueConfigureIntent {
     fn drop(&mut self) {
-        take_back_c_string!(self.intent_id)
+        take_back_c_string!(self.intent_id);
+        if !self.enable.is_null() {
+            let _ = unsafe { Box::from_raw(self.enable as *mut u8) };
+        }
     }
 }
 
@@ -648,6 +659,9 @@ unsafe impl Sync for CDialogueConfigureMessage {}
 impl Drop for CDialogueConfigureMessage {
     fn drop(&mut self) {
         take_back_nullable_c_string!(self.site_id);
+        if !self.intents.is_null() {
+            let _ = unsafe { CArray::<CDialogueConfigureIntent>::drop_raw_pointer(self.intents) };
+        }
     }
 }
 
@@ -743,13 +757,12 @@ mod tests {
     #[test]
     fn round_trip_continue_session() {
         round_trip_test::<_, CContinueSessionMessage>(hermes::ContinueSessionMessage::minimal_example());
-        // TODO: Investigate when optional fields with empty vec, test will crash
-        //round_trip_test::<_, CContinueSessionMessage>(hermes::ContinueSessionMessage::full_example());
+        round_trip_test::<_, CContinueSessionMessage>(hermes::ContinueSessionMessage::full_example());
 
         round_trip_test::<_, CContinueSessionMessage>(hermes::ContinueSessionMessage {
-            intent_filter: None,
-            custom_data: Some("a".into()),
-            slot: Some("a".into()),
+            intent_filter: Some(vec![]),
+            custom_data: Some("".into()),
+            slot: Some("".into()),
             send_intent_not_recognized: true,
             ..hermes::ContinueSessionMessage::full_example()
         });

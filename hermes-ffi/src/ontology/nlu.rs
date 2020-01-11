@@ -4,7 +4,7 @@ use ffi_utils_derive::{CReprOf, AsRust};
 use snips_nlu_ontology_ffi_macros::*;
 use hermes::*;
 
-use crate::ontology::asr::CAsrTokenArray;
+use crate::ontology::asr::CAsrToken;
 
 #[repr(C)]
 #[derive(Debug, CReprOf, AsRust)]
@@ -13,7 +13,7 @@ pub struct CNluQueryMessage {
     pub input: *const libc::c_char,
     /// Nullable
     #[nullable]
-    pub asr_tokens: *const CAsrTokenArray,
+    pub asr_tokens: *const CArray<CAsrToken>,
     /// Nullable
     #[nullable]
     pub intent_filter: *const CStringArray,
@@ -39,6 +39,9 @@ impl Drop for CNluQueryMessage {
         take_back_nullable_c_string_array!(self.intent_filter);
         take_back_nullable_c_string!(self.id);
         take_back_nullable_c_string!(self.session_id);
+        if !self.asr_tokens.is_null() {
+            let _ = unsafe { CArray::<CAsrToken>::drop_raw_pointer(self.asr_tokens) };
+        }
     }
 }
 
@@ -49,7 +52,7 @@ pub struct CNluSlotQueryMessage {
     pub input: *const libc::c_char,
     /// Nullable
     #[nullable]
-    pub asr_tokens: *const CAsrTokenArray,
+    pub asr_tokens: *const CArray<CAsrToken>,
     pub intent_name: *const libc::c_char,
     pub slot_name: *const libc::c_char,
     /// Nullable
@@ -75,6 +78,9 @@ impl Drop for CNluSlotQueryMessage {
         take_back_c_string!(self.slot_name);
         take_back_nullable_c_string!(self.id);
         take_back_nullable_c_string!(self.session_id);
+        if !self.asr_tokens.is_null() {
+            let _ = unsafe { CArray::<CAsrToken>::drop_raw_pointer(self.asr_tokens) };
+        }
     }
 }
 
@@ -109,6 +115,9 @@ impl Drop for CNluSlotMessage {
         take_back_c_string!(self.input);
         take_back_c_string!(self.intent_name);
         take_back_nullable_c_string!(self.session_id);
+        if !self.slot.is_null() {
+            let _ = unsafe { CNluSlot::drop_raw_pointer(self.slot) };
+        }
     }
 }
 
@@ -142,6 +151,9 @@ impl Drop for CNluIntentNotRecognizedMessage {
         take_back_c_string!(self.input);
         take_back_nullable_c_string!(self.id);
         take_back_nullable_c_string!(self.session_id);
+        if !self.alternatives.is_null() {
+            let _ = unsafe { CArray::<CNluIntentAlternative>::drop_raw_pointer(self.alternatives) };
+        }
     }
 }
 
@@ -169,7 +181,7 @@ impl AsRust<hermes::NluSlot> for CNluSlot {
 
 impl Drop for CNluSlot {
     fn drop(&mut self) {
-        let _ = unsafe { CSlot::from_raw_pointer(self.nlu_slot) };
+        let _ = unsafe { CSlot::drop_raw_pointer(self.nlu_slot) };
     }
 }
 
@@ -206,6 +218,9 @@ impl Drop for CNluIntentMessage {
     fn drop(&mut self) {
         take_back_nullable_c_string!(self.id);
         take_back_c_string!(self.input);
+        if !self.alternatives.is_null() {
+            let _ = unsafe { CArray::<CNluIntentAlternative>::drop_raw_pointer(self.alternatives) };
+        }
     }
 }
 
@@ -225,6 +240,9 @@ pub struct CNluIntentAlternative {
 impl Drop for CNluIntentAlternative {
     fn drop(&mut self) {
         take_back_nullable_c_string!(self.intent_name);
+        if !self.slots.is_null() {
+            let _ = unsafe { CArray::<CNluSlot>::drop_raw_pointer(self.slots) };
+        }
     }
 }
 
