@@ -496,7 +496,7 @@ class CIntentMessage(p: Pointer?) : CStruct<IntentMessage>(p), Structure.ByRefer
     @JvmField
     var asr_tokens: CAsrTokenDoubleArray? = null
     @JvmField
-    var asr_confidence: Float? = null
+    var asr_confidence: Pointer? = null // Pointer to a Float (it's optional in rust)
 
     // be careful this block must be below the field definition if you don't want the native values read by JNA
     // overridden by the default ones
@@ -514,7 +514,9 @@ class CIntentMessage(p: Pointer?) : CStruct<IntentMessage>(p), Structure.ByRefer
             intent = intent!!.toIntentClassifierResult(),
             slots = slots?.asJava() ?: listOf(),
             alternatives = alternatives?.asJava<CNluIntentAlternative>() ?: listOf(),
-            asrConfidence = if(asr_confidence?.let { it in 0.0..1.0 } == true) asr_confidence else null,
+            asrConfidence = if (asr_confidence != null) {
+                asr_confidence!!.getFloat(0)
+            } else null,
             asrTokens = asr_tokens?.asJava()?.toMutableList() ?: mutableListOf())
 
     override fun assign(input_: IntentMessage): CStruct<IntentMessage> = this.apply {
@@ -526,7 +528,9 @@ class CIntentMessage(p: Pointer?) : CStruct<IntentMessage>(p), Structure.ByRefer
         slots = CNluSlotArray.cReprOf(input_.slots)
         alternatives = CArray.cReprOf<IntentAlternative, CNluIntentAlternative>(input_.alternatives)
         asr_tokens = CAsrTokenDoubleArray.cReprOf(input_.asrTokens)
-        asr_confidence = input_.asrConfidence ?: -1.0f
+        asr_confidence = if (input_.asrConfidence != null) {
+            Memory(Pointer.SIZE.toLong()).apply { write(0, floatArrayOf(input_.asrConfidence.toFloat()), 0, 1) }
+        } else null
     }
 }
 
