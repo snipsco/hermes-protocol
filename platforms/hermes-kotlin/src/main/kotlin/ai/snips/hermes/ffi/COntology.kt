@@ -360,10 +360,13 @@ class CEndSessionMessage(p: Pointer?) : Structure(p), Structure.ByReference {
     )
 }
 
-class CNluSlot(p: Pointer?) : CStruct<Slot>(p), Structure.ByReference {
-    companion object: CStruct.CReprOf<Slot>() {
+class CNluSlot(p: Pointer?) : Structure(p), Structure.ByReference {
+    companion object {
         @JvmStatic
-        override fun cReprOf(@Suppress("UNUSED_PARAMETER") slot: Slot) = CNluSlot(null).assign(slot)
+        fun cReprOf(@Suppress("UNUSED_PARAMETER") slot: Slot) = CNluSlot(null).apply {
+            nlu_slot = null
+            throw java.lang.RuntimeException("Converter for CSlot not existing yet...")
+        }
     }
 
     @JvmField
@@ -377,46 +380,38 @@ class CNluSlot(p: Pointer?) : CStruct<Slot>(p), Structure.ByReference {
 
     override fun getFieldOrder() = listOf("nlu_slot")
 
-    override fun asJava(): Slot = nlu_slot!!.toSlot()
-
-    override fun assign(input: Slot): CStruct<Slot> = this.apply {
-        nlu_slot = null
-        throw java.lang.RuntimeException("Converter for CSlot not existing yet...")
-    }
+    fun asJava() = nlu_slot!!.toSlot()
 }
 
-//class CNluSlotArray(p: Pointer?) : Structure(p), Structure.ByReference {
-//    companion object {
-//        @JvmStatic
-//        fun fromSlotList(list: List<Slot>) = CNluSlotArray(null).apply {
-//            count = list.size
-//            entries = if (count > 0)
-//                Memory(Pointer.SIZE * list.size.toLong()).apply {
-//                    list.forEachIndexed { i, e ->
-//                        this.setPointer(i.toLong() * Pointer.SIZE, CNluSlot.fromSlot(e).pointer)
-//                    }
-//                }
-//            else null
-//        }
-//    }
-//
-//    @JvmField
-//    var entries: Pointer? = null
-//    @JvmField
-//    var count: Int = -1
-//
-//    // be careful this block must be below the field definition if you don't want the native values read by JNA
-//    // overridden by the default ones
-//    init {
-//        read()
-//    }
-//
-//    override fun getFieldOrder() = listOf("entries", "count")
-//
-//    fun toSlotList(): List<Slot> = if (count > 0) {
-//        entries!!.getPointerArray(0, count).map { CNluSlot(it).toSlot() }
-//    } else listOf()
-//}
+// TODO: this struct needs to be optimised
+class CNluSlotArray(p: Pointer?) : Structure(p), Structure.ByReference {
+    companion object {
+        @JvmStatic
+        fun cReprOf(@Suppress("UNUSED_PARAMETER") list: List<Slot>) = CNluSlotArray(null).apply {
+            count = list.size
+            entries = if (count > 0) {
+                throw java.lang.RuntimeException("Converter for CNluSlotArray not existing yet...")
+            } else null
+        }
+    }
+
+    @JvmField
+    var entries: CNluSlot? = null
+    @JvmField
+    var count: Int = -1
+
+    // be careful this block must be below the field definition if you don't want the native values read by JNA
+    // overridden by the default ones
+    init {
+        read()
+    }
+
+    override fun getFieldOrder() = listOf("entries", "count")
+
+    fun asJava(): List<Slot> = if (count > 0) {
+        (entries!!.toArray(count) as Array<CNluSlot>).map { it.asJava() }
+    } else listOf()
+}
 
 class CNluIntentClassifierResult : Structure(), Structure.ByReference {
     companion object {
@@ -454,7 +449,7 @@ class CNluIntentAlternative(p: Pointer?) : CStruct<IntentAlternative>(p), Struct
     @JvmField
     var intent_name: Pointer? = null
     @JvmField
-    var slots: CArray<Slot>? = null
+    var slots: CNluSlotArray? = null
     @JvmField
     var confidence_score: Float? = null
 
@@ -469,12 +464,12 @@ class CNluIntentAlternative(p: Pointer?) : CStruct<IntentAlternative>(p), Struct
     override fun asJava() = IntentAlternative(
             intentName = intent_name?.readString(),
             confidenceScore = confidence_score!!,
-            slots = slots?.asJava<CNluSlot>() ?: listOf())
+            slots = slots?.asJava() ?: listOf())
 
     override fun assign(input: IntentAlternative): CStruct<IntentAlternative> = this.apply {
         intent_name = input.intentName?.toPointer()
         confidence_score = input.confidenceScore
-        slots = CArray.cReprOf<Slot, CNluSlot>(input.slots)
+        slots = CNluSlotArray.cReprOf(input.slots)
     }
 }
 
@@ -517,7 +512,7 @@ class CIntentMessage(p: Pointer?) : CStruct<IntentMessage>(p), Structure.ByRefer
             siteId = site_id.readString(),
             input = input.readString(),
             intent = intent!!.toIntentClassifierResult(),
-            slots = slots?.toSlotList() ?: listOf(),
+            slots = slots?.asJava() ?: listOf(),
             alternatives = alternatives?.asJava<CNluIntentAlternative>() ?: listOf(),
             asrConfidence = if(asr_confidence?.let { it in 0.0..1.0 } == true) asr_confidence else null,
             asrTokens = asr_tokens?.asJava()?.toMutableList() ?: mutableListOf())
@@ -528,7 +523,7 @@ class CIntentMessage(p: Pointer?) : CStruct<IntentMessage>(p), Structure.ByRefer
         site_id = input_.siteId.toPointer()
         input = input_.input.toPointer()
         intent = CNluIntentClassifierResult.fromIntentClassifierResult(input_.intent)
-        slots = CArray.cReprOf<Slot, CNluSlot>(input_.slots)
+        slots = CNluSlotArray.cReprOf(input_.slots)
         alternatives = CArray.cReprOf<IntentAlternative, CNluIntentAlternative>(input_.alternatives)
         asr_tokens = CAsrTokenDoubleArray.cReprOf(input_.asrTokens)
         asr_confidence = input_.asrConfidence ?: -1.0f

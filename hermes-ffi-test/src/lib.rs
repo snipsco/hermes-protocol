@@ -162,8 +162,8 @@ pub extern "C" fn hermes_ffi_test_round_trip_dialogue_configure_intent(
 
 #[no_mangle]
 pub extern "C" fn hermes_ffi_test_round_trip_dialogue_configure_intent_array(
-    input: *const hermes_ffi::CDialogueConfigureIntentArray,
-    output: *mut *const hermes_ffi::CDialogueConfigureIntentArray,
+    input: *const CArray<hermes_ffi::CDialogueConfigureIntent>,
+    output: *mut *const CArray<hermes_ffi::CDialogueConfigureIntent>,
 ) -> ffi_utils::SNIPS_RESULT {
     wrap!(round_trip(input, output))
 }

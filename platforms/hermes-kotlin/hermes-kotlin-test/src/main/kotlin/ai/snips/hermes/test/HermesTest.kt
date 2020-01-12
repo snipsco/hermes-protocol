@@ -165,9 +165,9 @@ class HermesTest {
 
     fun roundTripSessionEnded(input: SessionEndedMessage) =
         roundTrip(input,
-                  CSessionEndedMessage.Companion::fromSessionEndedMessage,
+                  CSessionEndedMessage.Companion::cReprOf,
                   INSTANCE::hermes_ffi_test_round_trip_session_ended,
-                  { CSessionEndedMessage(it).toSessionEndedMessage() },
+                  { CSessionEndedMessage(it).asJava() },
                   INSTANCE::hermes_drop_session_ended_message)
 
     fun <T, U> roundTrip(input: T,
@@ -272,7 +272,7 @@ class HermesTest {
         fun hermes_ffi_test_round_trip_asr_token_double_array(input: CStruct<List<List<AsrToken>>>, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_text_captured(input: CStruct<TextCapturedMessage>, output: PointerByReference): Int
         fun hermes_ffi_test_round_trip_dialogue_configure(input: CStruct<DialogueConfigureMessage>, output: PointerByReference): Int
-        fun hermes_ffi_test_round_trip_session_ended(input: CSessionEndedMessage, output: PointerByReference) : Int
+        fun hermes_ffi_test_round_trip_session_ended(input: CStruct<SessionEndedMessage>, output: PointerByReference) : Int
 
 
         fun hermes_ffi_test_round_trip_session_queued_json(input: String, output: PointerByReference): Int

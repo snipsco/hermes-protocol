@@ -32,6 +32,8 @@ import ai.snips.nlu.ontology.SlotValue.MusicAlbumValue
 import ai.snips.nlu.ontology.SlotValue.MusicArtistValue
 import ai.snips.nlu.ontology.SlotValue.MusicTrackValue
 import ai.snips.nlu.ontology.SlotValue.NumberValue
+import ai.snips.nlu.ontology.ffi.readString
+import ai.snips.nlu.ontology.ffi.toPointer
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import com.sun.jna.Pointer
@@ -471,7 +473,6 @@ class FfiTest {
         assertThat(HermesTest().roundTripIntentJson(input2)).isEqualTo(input2)
 
     }
-
 
     @Test
     fun roundTripIntentAlternative() {
