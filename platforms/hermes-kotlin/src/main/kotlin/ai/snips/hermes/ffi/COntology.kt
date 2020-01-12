@@ -681,15 +681,10 @@ class CSessionTermination : Structure(), Structure.ByValue {
     }
 }
 
-class CSessionEndedMessage(p: Pointer?) : Structure(p), Structure.ByReference {
-    companion object {
+class CSessionEndedMessage(p: Pointer?) : CStruct<SessionEndedMessage>(p), Structure.ByReference {
+    companion object: CStruct.CReprOf<SessionEndedMessage>() {
         @JvmStatic
-        fun fromSessionEndedMessage(input: SessionEndedMessage) = CSessionEndedMessage(null).apply {
-            session_id = input.sessionId.toPointer()
-            custom_data = input.customData?.toPointer()
-            termination = CSessionTermination.fromSessionTermination(input.termination)
-            site_id = input.siteId.toPointer()
-        }
+        override fun cReprOf(input: SessionEndedMessage): CStruct<SessionEndedMessage> =  CSessionEndedMessage(null).assign(input)
     }
 
     @JvmField
@@ -709,11 +704,19 @@ class CSessionEndedMessage(p: Pointer?) : Structure(p), Structure.ByReference {
 
     override fun getFieldOrder() = listOf("session_id", "custom_data", "termination", "site_id")
 
-    fun toSessionEndedMessage() = SessionEndedMessage(
+    override fun asJava(): SessionEndedMessage = SessionEndedMessage(
             sessionId = session_id.readString(),
             customData = custom_data?.readString(),
             siteId = site_id.readString(),
-            termination = termination!!.toSessionTermination())
+            termination = termination!!.toSessionTermination()
+    )
+
+    override fun assign(input: SessionEndedMessage): CStruct<SessionEndedMessage> = this.apply {
+        session_id = input.sessionId.toPointer()
+        custom_data = input.customData?.toPointer()
+        termination = CSessionTermination.fromSessionTermination(input.termination)
+        site_id = input.siteId.toPointer()
+    }
 }
 
 class CSayMessage(p: Pointer) : Structure(p), Structure.ByReference {
