@@ -1,5 +1,6 @@
 package ai.snips.hermes.test
 
+import ai.snips.ffi.utils.*
 import ai.snips.hermes.AsrToken
 import ai.snips.hermes.ContinueSessionMessage
 import ai.snips.hermes.DialogueConfigureMessage
@@ -14,7 +15,6 @@ import ai.snips.hermes.IntentNotRecognizedMessage
 import ai.snips.hermes.SessionEndedMessage
 import ai.snips.hermes.SessionQueuedMessage
 import ai.snips.hermes.SessionStartedMessage
-import ai.snips.hermes.SessionTermination
 import ai.snips.hermes.StartSessionMessage
 import ai.snips.hermes.TextCapturedMessage
 import ai.snips.hermes.ffi.*

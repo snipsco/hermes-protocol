@@ -29,10 +29,10 @@ repositories {
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     compile "ai.snips:snips-nlu-ontology:0.67.2"
     compile 'net.java.dev.jna:jna:4.5.0'
     compile 'org.parceler:parceler-api:1.1.9'
+    compile "ai.snips:snips-ffi-utils-kotlin:0.1"
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {

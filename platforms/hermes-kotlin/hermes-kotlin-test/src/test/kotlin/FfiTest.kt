@@ -22,7 +22,6 @@ import ai.snips.hermes.SessionQueuedMessage
 import ai.snips.hermes.SessionTermination
 import ai.snips.hermes.StartSessionMessage
 import ai.snips.hermes.TextCapturedMessage
-import ai.snips.hermes.ffi.*
 import ai.snips.hermes.test.HermesTest
 import ai.snips.nlu.ontology.Range
 import ai.snips.nlu.ontology.Slot
@@ -32,67 +31,10 @@ import ai.snips.nlu.ontology.SlotValue.MusicAlbumValue
 import ai.snips.nlu.ontology.SlotValue.MusicArtistValue
 import ai.snips.nlu.ontology.SlotValue.MusicTrackValue
 import ai.snips.nlu.ontology.SlotValue.NumberValue
-import ai.snips.nlu.ontology.ffi.readString
-import ai.snips.nlu.ontology.ffi.toPointer
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import com.sun.jna.Pointer
-import com.sun.jna.Structure
-
-data class Dummy constructor(
-        val customData: String?,
-        val siteId: String?
-)
-
-class CDummy(p: Pointer?) : CStruct<Dummy>(p), Structure.ByReference {
-    companion object: CStruct.CReprOf<Dummy>() {
-        override fun cReprOf(input: Dummy) = CDummy(null).assign(input)
-    }
-
-    @JvmField
-    var customData: Pointer? = null
-    @JvmField
-    var siteId: Pointer? = null
-
-    init {
-        read()
-    }
-
-    override fun getFieldOrder() = listOf("customData", "siteId")
-
-    override fun asJava(): Dummy = Dummy(
-            customData = customData?.readString(),
-            siteId = siteId?.readString()
-    )
-
-    override fun assign(input: Dummy) = this.apply {
-        customData = input.customData?.toPointer()
-        siteId = input.siteId?.toPointer()
-    }
-}
 
 class FfiTest {
-    @Test
-    fun testOfCDymmy() {
-        val input = Dummy(customData = "abc", siteId = "bedroom")
-        val cStruct = CDummy.cReprOf(input)
-        val output = cStruct.asJava()
-
-        assertThat(input).isEqualTo(output)
-    }
-
-    @Test
-    fun testOfCDummyArray() {
-        val dummy1 = Dummy(customData = "abc", siteId = "bedroom")
-        val dummy2 = Dummy(customData = "bcd", siteId = "livingroom")
-        val input = listOf(dummy1, dummy2)
-
-        val cArray = CArray.cReprOf<Dummy, CDummy>(input)
-        val output = cArray.asJava<CDummy>()
-
-        assertThat(input).isEqualTo(output)
-    }
-
     @Test
     fun roundTripSessionQueued() {
         val input = SessionQueuedMessage(sessionId = "some session id",

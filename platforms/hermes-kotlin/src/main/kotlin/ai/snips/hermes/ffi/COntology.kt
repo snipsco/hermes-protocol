@@ -3,6 +3,7 @@
 
 package ai.snips.hermes.ffi
 
+import ai.snips.ffi.utils.*
 import ai.snips.hermes.AsrDecodingDuration
 import ai.snips.hermes.AsrToken
 import ai.snips.hermes.AsrTokenRange
@@ -50,67 +51,9 @@ import ai.snips.hermes.StartSessionMessage
 import ai.snips.hermes.TextCapturedMessage
 import ai.snips.nlu.ontology.Slot
 import ai.snips.nlu.ontology.ffi.CSlot
-import ai.snips.nlu.ontology.ffi.readRangeTo
-import ai.snips.nlu.ontology.ffi.readSlotValue
-import ai.snips.nlu.ontology.ffi.readString
-import ai.snips.nlu.ontology.ffi.toPointer
 import com.sun.jna.Memory
 import com.sun.jna.Pointer
 import com.sun.jna.Structure
-
-import kotlin.reflect.jvm.jvmErasure
-
-// helper function, enabling CStruct constructor inside the generic api
-inline fun <T, reified U : CStruct<T>> factory(p: Pointer?) = U::class
-        .constructors
-        .firstOrNull {
-            it.parameters.size == 1 && it.parameters.first().type.jvmErasure == Pointer::class
-        }!!
-        .call(p)
-
-abstract class CStruct<T>(p: Pointer?) : Structure(p) {
-    abstract class CReprOf<T> {
-        abstract fun cReprOf(input: T): CStruct<T>
-        // TODO: make cReprOf implementation work instead of abstract class
-        // fun cReprOf(input: T): CStruct<T> = factory<T, CStruct<T>>(null).assign(input)
-    }
-
-    abstract fun asJava(): T
-    abstract fun assign(input: T): CStruct<T>
-}
-
-class CArray<T>(p: Pointer?) : Structure(p), Structure.ByReference {
-    companion object {
-        inline fun <T, reified U : CStruct<T>> cReprOf(input: List<T>) = CArray<T>(null).assign<U>(input)
-    }
-
-    @JvmField
-    var entry: Pointer? = null
-    @JvmField
-    var size: Int = -1
-
-    init {
-        read()
-    }
-
-    override fun getFieldOrder() = listOf("entry", "size")
-
-    inline fun <reified U : CStruct<T>> asJava(): List<T> = if (size > 0) {
-        (factory<T, U>(entry).toArray(size) as Array<U>).map { it.asJava() }
-    } else {
-        listOf()
-    }
-
-    inline fun <reified U : CStruct<T>> assign(list: List<T>) = this.apply {
-        size = list.size
-        entry = if (size > 0) {
-            val ref = factory<T, U>(null)
-            val cArray: Array<U> = ref.toArray(list.size) as Array<U>
-            list.forEachIndexed { i, token -> cArray[i].assign(token).apply { write() } }
-            ref.pointer
-        } else null
-    }
-}
 
 class CHermesComponent {
     companion object {
