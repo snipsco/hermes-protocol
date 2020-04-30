@@ -137,6 +137,22 @@ pub extern "C" fn hermes_ffi_test_round_trip_injection_reset_complete(
 }
 
 #[no_mangle]
+pub extern "C" fn hermes_ffi_test_round_trip_injection_failed(
+    input: *const hermes_ffi::CInjectionFailedMessage,
+    output: *mut *const hermes_ffi::CInjectionFailedMessage,
+) -> ffi_utils::SNIPS_RESULT {
+    wrap!(round_trip(input, output))
+}
+
+#[no_mangle]
+pub extern "C" fn hermes_ffi_test_round_trip_injection_reset_failed(
+    input: *const hermes_ffi::CInjectionResetFailedMessage,
+    output: *mut *const hermes_ffi::CInjectionResetFailedMessage,
+) -> ffi_utils::SNIPS_RESULT {
+    wrap!(round_trip(input, output))
+}
+
+#[no_mangle]
 pub extern "C" fn hermes_ffi_test_round_trip_map_string_to_string_array(
     input: *const hermes_ffi::CMapStringToStringArray,
     output: *mut *const hermes_ffi::CMapStringToStringArray,

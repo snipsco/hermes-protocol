@@ -257,5 +257,9 @@ macro_rules! test_suite {
                     injection_backend.subscribe_injection_reset_request <= InjectionResetRequestMessage | injection.publish_injection_reset_request);
         t!(injection_reset_complete:
                     injection.subscribe_injection_reset_complete <= InjectionResetCompleteMessage | injection_backend.publish_injection_reset_complete);
+        t!(injection_failed:
+                    injection.subscribe_injection_failed <= InjectionFailedMessage | injection_backend.publish_injection_failed);
+        t!(injection_reset_failed:
+                    injection.subscribe_injection_reset_failed <= InjectionResetFailedMessage | injection_backend.publish_injection_reset_failed);
     };
 }

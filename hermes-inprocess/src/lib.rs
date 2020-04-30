@@ -1067,6 +1067,16 @@ struct InjectionResetComplete {
     message: InjectionResetCompleteMessage,
 }
 
+#[derive(Debug)]
+struct InjectionFailed {
+    message: InjectionFailedMessage,
+}
+
+#[derive(Debug)]
+struct InjectionResetFailed {
+    message: InjectionResetFailedMessage,
+}
+
 impl InjectionFacade for InProcessComponent<Injection> {
     fn publish_injection_request(&self, request: InjectionRequestMessage) -> Fallible<()> {
         self.publish(InjectionPerform { request })
@@ -1090,6 +1100,14 @@ impl InjectionFacade for InProcessComponent<Injection> {
 
     fn subscribe_injection_reset_complete(&self, handler: Callback<InjectionResetCompleteMessage>) -> Fallible<()> {
         subscribe!(self, InjectionResetComplete { message }, handler)
+    }
+
+    fn subscribe_injection_failed(&self, handler: Callback<InjectionFailedMessage>) -> Fallible<()> {
+        subscribe!(self, InjectionFailed { message }, handler)
+    }
+
+    fn subscribe_injection_reset_failed(&self, handler: Callback<InjectionResetFailedMessage>) -> Fallible<()> {
+        subscribe!(self, InjectionResetFailed { message }, handler)
     }
 }
 
@@ -1116,6 +1134,14 @@ impl InjectionBackendFacade for InProcessComponent<Injection> {
 
     fn publish_injection_reset_complete(&self, message: InjectionResetCompleteMessage) -> Fallible<()> {
         self.publish(InjectionResetComplete { message })
+    }
+
+    fn publish_injection_failed(&self, message: InjectionFailedMessage) -> Fallible<()> {
+        self.publish(InjectionFailed { message })
+    }
+
+    fn publish_injection_reset_failed(&self, message: InjectionResetFailedMessage) -> Fallible<()> {
+        self.publish(InjectionResetFailed { message })
     }
 }
 

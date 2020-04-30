@@ -99,6 +99,17 @@ impl<'de> HermesMessage<'de> for InjectionCompleteMessage {}
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Example)]
 #[serde(rename_all = "camelCase")]
+pub struct InjectionFailedMessage {
+    /// The id of the `InjectionFailedMessage`
+    pub request_id: Option<String>,
+    /// The context of the failure
+    pub context: String,
+}
+
+impl<'de> HermesMessage<'de> for InjectionFailedMessage {}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Example)]
+#[serde(rename_all = "camelCase")]
 pub struct InjectionResetRequestMessage {
     /// The id of the `InjectionResetRequestMessage`
     pub request_id: Option<String>,
@@ -114,6 +125,17 @@ pub struct InjectionResetCompleteMessage {
 }
 
 impl<'de> HermesMessage<'de> for InjectionResetCompleteMessage {}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Example)]
+#[serde(rename_all = "camelCase")]
+pub struct InjectionResetFailedMessage {
+    /// The id of the `InjectionResetFailedMessage`
+    pub request_id: Option<String>,
+    /// The context of the failure
+    pub context: String,
+}
+
+impl<'de> HermesMessage<'de> for InjectionResetFailedMessage {}
 
 #[cfg(test)]
 mod test {

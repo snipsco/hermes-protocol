@@ -713,6 +713,9 @@ typedef struct {
 } CHotwordFacade;
 
 typedef struct {
+  /**
+   * Nullable
+   */
   const char *request_id;
 } CInjectionCompleteMessage;
 
@@ -720,6 +723,14 @@ typedef struct {
   const void *facade;
   void *user_data;
 } CInjectionFacade;
+
+typedef struct {
+  /**
+   * Nullable
+   */
+  const char *request_id;
+  const char *context;
+} CInjectionFailedMessage;
 
 typedef struct {
   const char *key;
@@ -755,10 +766,24 @@ typedef struct {
 } CInjectionRequestMessage;
 
 typedef struct {
+  /**
+   * Nullable
+   */
   const char *request_id;
 } CInjectionResetCompleteMessage;
 
 typedef struct {
+  /**
+   * Nullable
+   */
+  const char *request_id;
+  const char *context;
+} CInjectionResetFailedMessage;
+
+typedef struct {
+  /**
+   * Nullable
+   */
   const char *request_id;
 } CInjectionResetRequestMessage;
 
@@ -1255,9 +1280,13 @@ SNIPS_RESULT hermes_drop_injection_complete_message(const CInjectionCompleteMess
 
 SNIPS_RESULT hermes_drop_injection_facade(const CInjectionFacade *cstruct);
 
+SNIPS_RESULT hermes_drop_injection_failed_message(const CInjectionFailedMessage *cstruct);
+
 SNIPS_RESULT hermes_drop_injection_request_message(const CInjectionRequestMessage *cstruct);
 
 SNIPS_RESULT hermes_drop_injection_reset_complete_message(const CInjectionResetCompleteMessage *cstruct);
+
+SNIPS_RESULT hermes_drop_injection_reset_failed_message(const CInjectionResetFailedMessage *cstruct);
 
 SNIPS_RESULT hermes_drop_injection_reset_request_message(const CInjectionResetRequestMessage *cstruct);
 
@@ -1343,8 +1372,14 @@ SNIPS_RESULT hermes_injection_publish_injection_status_request(const CInjectionF
 SNIPS_RESULT hermes_injection_subscribe_injection_complete(const CInjectionFacade *facade,
                                                            void (*handler)(const CInjectionCompleteMessage*, void*));
 
+SNIPS_RESULT hermes_injection_subscribe_injection_failed(const CInjectionFacade *facade,
+                                                         void (*handler)(const CInjectionFailedMessage*, void*));
+
 SNIPS_RESULT hermes_injection_subscribe_injection_reset_complete(const CInjectionFacade *facade,
                                                                  void (*handler)(const CInjectionResetCompleteMessage*, void*));
+
+SNIPS_RESULT hermes_injection_subscribe_injection_reset_failed(const CInjectionFacade *facade,
+                                                               void (*handler)(const CInjectionResetFailedMessage*, void*));
 
 SNIPS_RESULT hermes_injection_subscribe_injection_status(const CInjectionFacade *facade,
                                                          void (*handler)(const CInjectionStatusMessage*, void*));

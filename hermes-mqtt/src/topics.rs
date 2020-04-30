@@ -280,6 +280,7 @@ impl HermesTopic {
                 ComponentCommand::VersionRequest,
             )),
             Some("complete") => Some(Injection(Complete)),
+            Some("failed") => Some(Injection(Failed)),
             Some("version") => Some(HermesTopic::Component(
                 None,
                 Component::Injection,
@@ -298,6 +299,7 @@ impl HermesTopic {
             Some("reset") => match comps.next() {
                 Some("perform") => Some(Injection(ResetRequest)),
                 Some("complete") => Some(Injection(ResetComplete)),
+                Some("failed") => Some(Injection(ResetFailed)),
                 _ => None,
             },
             _ => None,
@@ -533,6 +535,8 @@ pub enum InjectionCommand {
     Complete,
     ResetRequest,
     ResetComplete,
+    Failed,
+    ResetFailed,
 }
 
 impl ToPath for InjectionCommand {
@@ -540,6 +544,7 @@ impl ToPath for InjectionCommand {
         match &self {
             InjectionCommand::ResetRequest => "reset/perform".into(),
             InjectionCommand::ResetComplete => "reset/complete".into(),
+            InjectionCommand::ResetFailed => "reset/failed".into(),
             _ => self.as_path_default(),
         }
     }
@@ -830,6 +835,14 @@ mod tests {
             (
                 HermesTopic::Injection(InjectionCommand::ResetComplete),
                 "hermes/injection/reset/complete",
+            ),
+            (
+                HermesTopic::Injection(InjectionCommand::Failed),
+                "hermes/injection/failed",
+            ),
+            (
+                HermesTopic::Injection(InjectionCommand::ResetFailed),
+                "hermes/injection/reset/failed",
             ),
             (
                 HermesTopic::Component(None, Component::Injection, ComponentCommand::VersionRequest),
