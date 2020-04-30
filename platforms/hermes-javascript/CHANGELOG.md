@@ -1,3 +1,8 @@
+## [0.4.1](https://github.com/snipsco/hermes-protocol/compare/js/0.4.0...0.4.1) (2019-10-17)
+
+* **Chore**: Use node 12 compatible dependencies (ffi & ref).
+
+
 # [0.4.0](https://github.com/snipsco/hermes-protocol/compare/js/0.3.14...0.4.0) (2019-10-03)
 
 
